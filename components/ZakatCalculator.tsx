@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import type { ZakatState, ZakatSettings, ZakatResult } from "../types.ts";
+import type {
+  ZakatState,
+  ZakatSettings,
+  ZakatResult,
+  ZakatHistoryEntry,
+} from "../types.ts";
 import { calculateTotalZakat } from "../services/zakat.service.ts";
 import { formatCurrency, formatNumber } from "../utils.ts";
 import { FAQ } from "./FAQ.tsx";
@@ -86,7 +91,7 @@ const InputField: React.FC<InputFieldProps> = React.memo(
                 inputMode="numeric"
                 value={value === 0 ? "" : formatNumber(value)}
                 onChange={handleChange}
-                className="w-full border border-slate-300 rounded-md shadow-sm py-2 pl-10 pr-3 focus:ring-emerald-500 focus:border-emerald-500 font-medium"
+                className="w-full bg-white text-slate-900 border border-slate-300 rounded-md shadow-sm py-2 pl-10 pr-3 focus:ring-emerald-500 focus:border-emerald-500 font-medium placeholder-slate-400"
                 placeholder="0"
               />
             </>
@@ -98,7 +103,7 @@ const InputField: React.FC<InputFieldProps> = React.memo(
               step="any"
               value={value === 0 ? "" : value}
               onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
-              className="w-full border border-slate-300 rounded-md shadow-sm py-2 pl-3 pr-3 focus:ring-emerald-500 focus:border-emerald-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              className="w-full bg-white text-slate-900 border border-slate-300 rounded-md shadow-sm py-2 pl-3 pr-3 focus:ring-emerald-500 focus:border-emerald-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none placeholder-slate-400"
               placeholder="0"
             />
           )}
@@ -234,6 +239,7 @@ export const ZakatCalculator: React.FC = () => {
   const [settings, setSettings] = useState<ZakatSettings>(INITIAL_SETTINGS);
   const [state, setState] = useState<ZakatState>(INITIAL_STATE);
   const [result, setResult] = useState<ZakatResult | null>(null);
+  const [history, setHistory] = useState<ZakatHistoryEntry[]>([]);
   const [showSettings, setShowSettings] = useState(false);
   const receiptRef = useRef<HTMLDivElement>(null);
 
@@ -243,6 +249,9 @@ export const ZakatCalculator: React.FC = () => {
 
     const savedState = localStorage.getItem("zakatState");
     if (savedState) setState(JSON.parse(savedState));
+
+    const savedHistory = localStorage.getItem("zakatHistory");
+    if (savedHistory) setHistory(JSON.parse(savedHistory));
   }, []);
 
   useEffect(() => {
@@ -266,8 +275,41 @@ export const ZakatCalculator: React.FC = () => {
       )
     ) {
       setState(INITIAL_STATE);
-      // We don't clear settings, only the input state
       setActiveTab("fitrah");
+    }
+  };
+
+  const handleSaveHistory = () => {
+    if (!result) return;
+    const newEntry: ZakatHistoryEntry = {
+      id: Date.now().toString(),
+      timestamp: new Date().toLocaleString("id-ID"),
+      state: state,
+      result: result,
+    };
+    const updatedHistory = [newEntry, ...history].slice(0, 10); // Keep last 10
+    setHistory(updatedHistory);
+    localStorage.setItem("zakatHistory", JSON.stringify(updatedHistory));
+    alert("Perhitungan berhasil disimpan ke riwayat.");
+  };
+
+  const handleLoadHistory = (entry: ZakatHistoryEntry) => {
+    if (
+      window.confirm(
+        "Muat data ini? Input saat ini akan digantikan dengan data dari riwayat."
+      )
+    ) {
+      setState(entry.state);
+      setActiveTab("summary");
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const handleClearHistory = () => {
+    if (window.confirm("Hapus semua riwayat perhitungan?")) {
+      setHistory([]);
+      localStorage.removeItem("zakatHistory");
     }
   };
 
@@ -420,7 +462,7 @@ export const ZakatCalculator: React.FC = () => {
                       parseInt(e.target.value.replace(/\D/g, "") || "0", 10)
                     )
                   }
-                  className="w-full border border-slate-300 rounded-md shadow-sm py-2 pl-10 pr-3 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full bg-white text-slate-900 border border-slate-300 rounded-md shadow-sm py-2 pl-10 pr-3 focus:ring-emerald-500 focus:border-emerald-500 placeholder-slate-400"
                 />
               </div>
               <p className="text-xs text-slate-400 mt-1">
@@ -449,7 +491,7 @@ export const ZakatCalculator: React.FC = () => {
                       parseInt(e.target.value.replace(/\D/g, "") || "0", 10)
                     )
                   }
-                  className="w-full border border-slate-300 rounded-md shadow-sm py-2 pl-10 pr-3 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full bg-white text-slate-900 border border-slate-300 rounded-md shadow-sm py-2 pl-10 pr-3 focus:ring-emerald-500 focus:border-emerald-500 placeholder-slate-400"
                 />
               </div>
             </div>
@@ -475,7 +517,7 @@ export const ZakatCalculator: React.FC = () => {
                       parseInt(e.target.value.replace(/\D/g, "") || "0", 10)
                     )
                   }
-                  className="w-full border border-slate-300 rounded-md shadow-sm py-2 pl-10 pr-3 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full bg-white text-slate-900 border border-slate-300 rounded-md shadow-sm py-2 pl-10 pr-3 focus:ring-emerald-500 focus:border-emerald-500 placeholder-slate-400"
                 />
               </div>
             </div>
@@ -768,7 +810,7 @@ export const ZakatCalculator: React.FC = () => {
 
           {activeTab === "summary" && result && (
             <div className="space-y-6 animate-fade-in">
-              <div className="flex justify-between items-start">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                   <h2 className="text-2xl font-bold text-slate-800">
                     Ringkasan & Kwitansi
@@ -783,26 +825,48 @@ export const ZakatCalculator: React.FC = () => {
                     })}
                   </p>
                 </div>
-                <button
-                  onClick={downloadPDF}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center shadow-sm"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 mr-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleSaveHistory}
+                    className="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium flex items-center shadow-sm transition-colors"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                    />
-                  </svg>
-                  Unduh PDF
-                </button>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 mr-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+                      />
+                    </svg>
+                    Simpan Riwayat
+                  </button>
+                  <button
+                    onClick={downloadPDF}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center shadow-sm transition-colors"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 mr-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                      />
+                    </svg>
+                    Unduh PDF
+                  </button>
+                </div>
               </div>
 
               {/* Receipt Visual */}
@@ -855,7 +919,6 @@ export const ZakatCalculator: React.FC = () => {
                               : "text-slate-300"
                           }`}
                         >
-                          {/* Show formatted display value (like "10 Kg Beras") if available, otherwise show currency */}
                           {item.formattedValue
                             ? item.formattedValue
                             : formatCurrency(item.zakatAmount)}
@@ -875,7 +938,6 @@ export const ZakatCalculator: React.FC = () => {
                     <span className="text-lg font-bold text-slate-800">
                       TOTAL ZAKAT
                     </span>
-                    {/* Use the new formattedTotal property */}
                     <span className="text-xl sm:text-2xl font-extrabold text-emerald-600 text-right pl-2">
                       {result.formattedTotal}
                     </span>
@@ -886,6 +948,46 @@ export const ZakatCalculator: React.FC = () => {
                   </p>
                 </div>
               </div>
+
+              {/* HISTORY SECTION */}
+              {history.length > 0 && (
+                <div className="mt-12 pt-8 border-t border-slate-200">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-bold text-slate-700">
+                      Riwayat Tersimpan
+                    </h3>
+                    <button
+                      onClick={handleClearHistory}
+                      className="text-xs text-red-600 hover:text-red-800 font-medium"
+                    >
+                      Hapus Semua
+                    </button>
+                  </div>
+                  <div className="grid gap-3 max-h-60 overflow-y-auto">
+                    {history.map((entry) => (
+                      <div
+                        key={entry.id}
+                        className="bg-slate-50 p-3 rounded-lg border border-slate-100 flex justify-between items-center hover:bg-slate-100 transition-colors"
+                      >
+                        <div>
+                          <p className="font-bold text-emerald-700">
+                            {entry.result.formattedTotal}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {entry.timestamp}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => handleLoadHistory(entry)}
+                          className="text-sm text-emerald-600 hover:underline px-2"
+                        >
+                          Muat Ulang
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

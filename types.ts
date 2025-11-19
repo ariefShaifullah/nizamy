@@ -126,5 +126,6 @@ export interface ZakatResult {
 export interface ZakatHistoryEntry {
   id: string;
   timestamp: string;
+  state: ZakatState;
   result: ZakatResult;
 }

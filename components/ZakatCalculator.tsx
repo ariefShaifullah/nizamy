@@ -9,13 +9,15 @@ import { calculateTotalZakat } from "../services/zakat.service.ts";
 import { formatCurrency, formatNumber } from "../utils.ts";
 import { FAQ } from "./FAQ.tsx";
 import { ZAKAT_FAQ } from "../constants.ts";
+import { ZakatInputField } from "./ZakatInputField.tsx";
+import { NisabStatus } from "./NisabStatus.tsx";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
 const INITIAL_SETTINGS: ZakatSettings = {
-  goldPrice: 2200000, // IDR per gram (Example default)
-  silverPrice: 25000, // IDR per gram
-  ricePrice: 15000, // IDR per kg
+  goldPrice: 2200000,
+  silverPrice: 25000,
+  ricePrice: 15000,
   riceKgPerPerson: 2.5,
   currency: "IDR",
 };
@@ -49,151 +51,6 @@ const TABS = [
   { id: "livestock", label: "Ternak" },
 ];
 
-// --- KOMPONEN INPUT FIELD ---
-interface InputFieldProps {
-  label: string;
-  sublabel?: string;
-  value: number;
-  onChange: (val: number) => void;
-  type?: "currency" | "number";
-}
-
-const InputField: React.FC<InputFieldProps> = React.memo(
-  ({ label, sublabel, value, onChange, type = "currency" }) => {
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const rawValue = e.target.value;
-
-      if (type === "currency") {
-        const digits = rawValue.replace(/\D/g, "");
-        const numValue = digits === "" ? 0 : parseInt(digits, 10);
-        onChange(numValue);
-      } else {
-        const normalized = rawValue.replace(",", ".");
-        const num = parseFloat(normalized);
-        onChange(isNaN(num) ? 0 : num);
-      }
-    };
-
-    return (
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-slate-700 mb-1">
-          {label}
-        </label>
-        {sublabel && <p className="text-xs text-slate-500 mb-2">{sublabel}</p>}
-        <div className="relative">
-          {type === "currency" ? (
-            <>
-              <span className="absolute left-3 top-2.5 text-slate-500 text-sm">
-                Rp
-              </span>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={value === 0 ? "" : formatNumber(value)}
-                onChange={handleChange}
-                className="w-full bg-white text-slate-900 border border-slate-300 rounded-md shadow-sm py-2 pl-10 pr-3 focus:ring-emerald-500 focus:border-emerald-500 font-medium placeholder-slate-400"
-                placeholder="0"
-              />
-            </>
-          ) : (
-            <input
-              type="number"
-              inputMode="decimal"
-              min="0"
-              step="any"
-              value={value === 0 ? "" : value}
-              onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
-              className="w-full bg-white text-slate-900 border border-slate-300 rounded-md shadow-sm py-2 pl-3 pr-3 focus:ring-emerald-500 focus:border-emerald-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none placeholder-slate-400"
-              placeholder="0"
-            />
-          )}
-        </div>
-      </div>
-    );
-  }
-);
-
-// --- KOMPONEN STATUS NISAB ---
-interface NisabStatusProps {
-  value: number;
-  nisab: number;
-  label: string;
-  unit?: string;
-  customMessage?: string;
-}
-
-const NisabStatus: React.FC<NisabStatusProps> = ({
-  value,
-  nisab,
-  label,
-  unit = "Rp",
-  customMessage,
-}) => {
-  const isReached = value >= nisab;
-  const displayValue =
-    unit === "Rp" ? formatCurrency(value) : `${value} ${unit}`;
-  const displayNisab =
-    unit === "Rp" ? formatCurrency(nisab) : `${nisab} ${unit}`;
-
-  return (
-    <div
-      className={`mt-4 p-4 rounded-lg border ${
-        isReached
-          ? "bg-emerald-50 border-emerald-200"
-          : "bg-slate-50 border-slate-200"
-      }`}
-    >
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
-        <div>
-          <div className="text-sm text-slate-500">
-            Total/Proyeksi:{" "}
-            <span className="font-semibold text-slate-700">{displayValue}</span>
-          </div>
-          <div className="text-sm text-slate-500">
-            Ambang Batas (Nisab):{" "}
-            <span className="font-semibold text-slate-700">{displayNisab}</span>
-          </div>
-        </div>
-        <div
-          className={`px-3 py-1 rounded-full text-sm font-bold ${
-            isReached
-              ? "bg-emerald-100 text-emerald-700"
-              : "bg-slate-200 text-slate-600"
-          }`}
-        >
-          {isReached ? "WAJIB ZAKAT" : "BELUM WAJIB"}
-        </div>
-      </div>
-      {!isReached && (
-        <div className="mt-2 flex items-start text-sm text-slate-600 bg-white p-2 rounded border border-slate-100">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 mr-2 text-slate-400 flex-shrink-0"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <span>
-            {customMessage || (
-              <span>
-                Harta belum mencapai nisab, maka{" "}
-                <strong>muzakki belum wajib zakat</strong> (tidak ada kewajiban
-                membayar).
-              </span>
-            )}
-          </span>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// --- Helper Button Component ---
 const ViewSummaryButton = ({ onClick }: { onClick: () => void }) => (
   <div className="mt-8 pt-4 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
     <p className="text-sm text-slate-500 italic flex items-center">
@@ -287,7 +144,7 @@ export const ZakatCalculator: React.FC = () => {
       state: state,
       result: result,
     };
-    const updatedHistory = [newEntry, ...history].slice(0, 10); // Keep last 10
+    const updatedHistory = [newEntry, ...history].slice(0, 10);
     setHistory(updatedHistory);
     localStorage.setItem("zakatHistory", JSON.stringify(updatedHistory));
     alert("Perhitungan berhasil disimpan ke riwayat.");
@@ -301,7 +158,6 @@ export const ZakatCalculator: React.FC = () => {
     ) {
       setState(entry.state);
       setActiveTab("summary");
-      // Scroll to top
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
@@ -317,7 +173,6 @@ export const ZakatCalculator: React.FC = () => {
 
   const downloadPDF = async () => {
     if (!receiptRef.current || !result) return;
-
     try {
       const canvas = await html2canvas(receiptRef.current, {
         scale: 2,
@@ -327,7 +182,6 @@ export const ZakatCalculator: React.FC = () => {
       const pdf = new jsPDF("p", "mm", "a4");
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const imgHeight = (canvas.height * pdfWidth) / canvas.width;
-
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, imgHeight);
       pdf.save(
         `Kwitansi_Zakat_NIZAMY_${new Date().toISOString().split("T")[0]}.pdf`
@@ -338,9 +192,7 @@ export const ZakatCalculator: React.FC = () => {
     }
   };
 
-  // Helpers for Nisab Calculations in UI
   const nisabGoldValue = 85 * settings.goldPrice;
-
   const netMaalAssets = Math.max(
     0,
     state.cash +
@@ -367,9 +219,7 @@ export const ZakatCalculator: React.FC = () => {
         </p>
       </div>
 
-      {/* Toolbar: Settings & Reset */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-        {/* Left: Tickers */}
         <div className="flex flex-wrap justify-center sm:justify-start gap-4 md:gap-6 text-sm w-full sm:w-auto">
           <div className="flex items-center">
             <span className="text-slate-500 mr-2">Harga Emas (g):</span>
@@ -385,7 +235,6 @@ export const ZakatCalculator: React.FC = () => {
           </div>
         </div>
 
-        {/* Right: Actions */}
         <div className="flex items-center gap-3 w-full sm:w-auto justify-center sm:justify-end">
           <button
             onClick={handleReset}
@@ -433,7 +282,6 @@ export const ZakatCalculator: React.FC = () => {
         </div>
       </div>
 
-      {/* Settings Panel */}
       {showSettings && (
         <div className="bg-slate-50 rounded-xl border border-emerald-100 p-6 mb-8 animate-fade-in-down">
           <h3 className="font-bold text-emerald-800 mb-4">
@@ -526,7 +374,6 @@ export const ZakatCalculator: React.FC = () => {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Navigation Tabs */}
         <div className="lg:col-span-1">
           <nav className="flex flex-col space-y-1">
             {TABS.map((tab) => (
@@ -545,7 +392,6 @@ export const ZakatCalculator: React.FC = () => {
           </nav>
         </div>
 
-        {/* Main Content Area */}
         <div className="lg:col-span-3 bg-white rounded-2xl shadow-lg border border-slate-200 min-h-[500px] p-6">
           {activeTab === "fitrah" && (
             <div className="space-y-6 animate-fade-in">
@@ -557,7 +403,7 @@ export const ZakatCalculator: React.FC = () => {
                 umum 2.5 kg beras atau setara uang.
               </p>
               <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-100">
-                <InputField
+                <ZakatInputField
                   label="Jumlah Orang"
                   value={state.fitrahPeople}
                   onChange={(v) => handleInputChange("fitrahPeople", v)}
@@ -609,28 +455,28 @@ export const ZakatCalculator: React.FC = () => {
                 mencapai nisab (setara 85g emas).
               </p>
               <div className="grid md:grid-cols-2 gap-6">
-                <InputField
+                <ZakatInputField
                   label="Uang Tunai / Tabungan"
                   value={state.cash}
                   onChange={(v) => handleInputChange("cash", v)}
                 />
-                <InputField
+                <ZakatInputField
                   label="Tabungan Berjangka / Deposito"
                   value={state.savings}
                   onChange={(v) => handleInputChange("savings", v)}
                 />
-                <InputField
+                <ZakatInputField
                   label="Investasi (Saham, Reksadana, Emas Digital)"
                   value={state.investments}
                   onChange={(v) => handleInputChange("investments", v)}
                 />
-                <InputField
+                <ZakatInputField
                   label="Aset Lain (Properti Sewa, dll)"
                   value={state.otherAssets}
                   onChange={(v) => handleInputChange("otherAssets", v)}
                 />
                 <div className="md:col-span-2">
-                  <InputField
+                  <ZakatInputField
                     label="Hutang Jatuh Tempo (Pengurang)"
                     sublabel="Hutang yang harus segera dibayar mengurangi kewajiban zakat."
                     value={state.debts}
@@ -638,7 +484,6 @@ export const ZakatCalculator: React.FC = () => {
                   />
                 </div>
 
-                {/* Rikaz Section - Added here as part of Wealth but separated visually */}
                 <div className="md:col-span-2 pt-4 mt-2 border-t border-slate-100">
                   <h3 className="font-bold text-emerald-700 mb-2">
                     Zakat Rikaz (Barang Temuan/Hadiah)
@@ -647,7 +492,7 @@ export const ZakatCalculator: React.FC = () => {
                     Tarif 20% (1/5). Dikenakan untuk harta karun temuan atau
                     hadiah undian tak terduga.
                   </p>
-                  <InputField
+                  <ZakatInputField
                     label="Nilai Barang Temuan / Hadiah"
                     value={state.rikazValue}
                     onChange={(v) => handleInputChange("rikazValue", v)}
@@ -670,7 +515,7 @@ export const ZakatCalculator: React.FC = () => {
               </h2>
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <InputField
+                  <ZakatInputField
                     label="Berat Emas (Gram)"
                     sublabel="Nisab: 85 gram"
                     value={state.goldWeight}
@@ -685,7 +530,7 @@ export const ZakatCalculator: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <InputField
+                  <ZakatInputField
                     label="Berat Perak (Gram)"
                     sublabel="Nisab: 595 gram"
                     value={state.silverWeight}
@@ -714,17 +559,17 @@ export const ZakatCalculator: React.FC = () => {
                 Nisab setara 85g emas.
               </p>
               <div className="grid md:grid-cols-1 gap-4">
-                <InputField
+                <ZakatInputField
                   label="Nilai Aset Lancar (Kas, Bank)"
                   value={state.bizAssets}
                   onChange={(v) => handleInputChange("bizAssets", v)}
                 />
-                <InputField
+                <ZakatInputField
                   label="Nilai Stok Barang / Persediaan"
                   value={state.bizInventory}
                   onChange={(v) => handleInputChange("bizInventory", v)}
                 />
-                <InputField
+                <ZakatInputField
                   label="Hutang Usaha Jatuh Tempo"
                   value={state.bizLiabilities}
                   onChange={(v) => handleInputChange("bizLiabilities", v)}
@@ -748,7 +593,7 @@ export const ZakatCalculator: React.FC = () => {
                 Dibayarkan saat panen. Nisab setara 5 wasaq (±653 kg gabah atau
                 ±524 kg beras).
               </p>
-              <InputField
+              <ZakatInputField
                 label="Nilai Hasil Panen (Rupiah)"
                 sublabel="Konversikan total hasil panen ke Rupiah"
                 value={state.agriHarvest}
@@ -791,10 +636,9 @@ export const ZakatCalculator: React.FC = () => {
                 <strong>Mode Sederhana:</strong> Perhitungan di bawah ini
                 menggunakan pendekatan nilai komersial (Qiyas Zakat Perniagaan)
                 sebesar 2.5%. Untuk perhitungan konvensional berdasarkan jumlah
-                ekor (misal: 1 kambing untuk 40 ekor), disarankan berkonsultasi
-                langsung dengan amil zakat.
+                ekor, disarankan berkonsultasi langsung dengan amil zakat.
               </div>
-              <InputField
+              <ZakatInputField
                 label="Total Nilai Hewan Ternak (Rp)"
                 value={state.livestockValue}
                 onChange={(v) => handleInputChange("livestockValue", v)}
@@ -869,7 +713,6 @@ export const ZakatCalculator: React.FC = () => {
                 </div>
               </div>
 
-              {/* Receipt Visual */}
               <div
                 ref={receiptRef}
                 className="bg-white border-2 border-slate-100 rounded-xl p-8 shadow-sm print:shadow-none print:border-black"
@@ -949,7 +792,6 @@ export const ZakatCalculator: React.FC = () => {
                 </div>
               </div>
 
-              {/* HISTORY SECTION */}
               {history.length > 0 && (
                 <div className="mt-12 pt-8 border-t border-slate-200">
                   <div className="flex justify-between items-center mb-4">

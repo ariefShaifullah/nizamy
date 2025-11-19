@@ -75,14 +75,17 @@ export interface ZakatSettings {
 export interface ZakatState {
   // Fitrah
   fitrahPeople: number;
-  fitrahMethod: 'rice' | 'money';
-  
+  fitrahMethod: "rice" | "money";
+
   // Maal (Wealth)
   cash: number;
   savings: number;
   investments: number; // Deposito, stocks, etc.
   otherAssets: number; // Rent, etc.
   debts: number; // Hutang jatuh tempo
+
+  // Rikaz (Temuan/Hadiah)
+  rikazValue: number;
 
   // Gold/Silver
   goldWeight: number;
@@ -92,10 +95,10 @@ export interface ZakatState {
   bizAssets: number;
   bizInventory: number;
   bizLiabilities: number;
-  
+
   // Agriculture
   agriHarvest: number; // In currency or kg depending on calc
-  agriMethod: 'natural' | 'artificial'; // 10% vs 5%
+  agriMethod: "natural" | "artificial"; // 10% vs 5%
 
   // Livestock (Simplified)
   livestockValue: number; // Value in money if using simple mode
@@ -109,11 +112,13 @@ export interface ZakatBreakdownItem {
   isNisabReached: boolean;
   rate: number;
   zakatAmount: number;
+  formattedValue?: string; // Optional override for display (e.g., "10 Kg Beras")
   note?: string;
 }
 
 export interface ZakatResult {
-  totalZakat: number;
+  totalZakat: number; // Numeric representation (useful for generic logic)
+  formattedTotal: string; // Display string (e.g. "Rp 1.000.000 + 10 Kg Beras")
   items: ZakatBreakdownItem[];
   timestamp: string;
 }

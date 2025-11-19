@@ -79,7 +79,7 @@ Untuk menjalankan proyek ini di lingkungan lokal Anda, ikuti langkah-langkah ber
 1.  **Clone repository ini:**
 
     ```bash
-    git clone https://github.com/username/nizamy.git
+    git clone https://github.com/ariefShaifullah/nizamy.git
     cd nizamy
     ```
 

@@ -23,6 +23,7 @@ const INITIAL_STATE: ZakatState = {
   investments: 0,
   otherAssets: 0,
   debts: 0,
+  rikazValue: 0,
   goldWeight: 0,
   silverWeight: 0,
   bizAssets: 0,
@@ -113,6 +114,7 @@ interface NisabStatusProps {
   nisab: number;
   label: string;
   unit?: string;
+  customMessage?: string;
 }
 
 const NisabStatus: React.FC<NisabStatusProps> = ({
@@ -120,6 +122,7 @@ const NisabStatus: React.FC<NisabStatusProps> = ({
   nisab,
   label,
   unit = "Rp",
+  customMessage,
 }) => {
   const isReached = value >= nisab;
   const displayValue =
@@ -138,7 +141,7 @@ const NisabStatus: React.FC<NisabStatusProps> = ({
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
         <div>
           <div className="text-sm text-slate-500">
-            Total Harta/Nilai Bersih:{" "}
+            Total/Proyeksi:{" "}
             <span className="font-semibold text-slate-700">{displayValue}</span>
           </div>
           <div className="text-sm text-slate-500">
@@ -171,15 +174,60 @@ const NisabStatus: React.FC<NisabStatusProps> = ({
             />
           </svg>
           <span>
-            Harta belum mencapai nisab, maka{" "}
-            <strong>muzakki belum wajib zakat</strong> (tidak ada kewajiban
-            membayar).
+            {customMessage || (
+              <span>
+                Harta belum mencapai nisab, maka{" "}
+                <strong>muzakki belum wajib zakat</strong> (tidak ada kewajiban
+                membayar).
+              </span>
+            )}
           </span>
         </div>
       )}
     </div>
   );
 };
+
+// --- Helper Button Component ---
+const ViewSummaryButton = ({ onClick }: { onClick: () => void }) => (
+  <div className="mt-8 pt-4 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+    <p className="text-sm text-slate-500 italic flex items-center">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-4 w-4 mr-1 text-emerald-500"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+      >
+        <path
+          fillRule="evenodd"
+          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+          clipRule="evenodd"
+        />
+      </svg>
+      Data tersimpan otomatis.
+    </p>
+    <button
+      onClick={onClick}
+      className="group flex items-center px-5 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all shadow-sm hover:shadow-md font-medium w-full sm:w-auto justify-center"
+    >
+      Lihat Hasil di Ringkasan
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          d="M14 5l7 7m0 0l-7 7m7-7H3"
+        />
+      </svg>
+    </button>
+  </div>
+);
 
 export const ZakatCalculator: React.FC = () => {
   const [activeTab, setActiveTab] = useState("fitrah");
@@ -203,13 +251,27 @@ export const ZakatCalculator: React.FC = () => {
     setResult(calculateTotalZakat(state, settings));
   }, [state, settings]);
 
-  const handleInputChange = (key: keyof ZakatState, value: number) => {
+  const handleInputChange = (key: keyof ZakatState, value: any) => {
     setState((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleSettingChange = (key: keyof ZakatSettings, value: number) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
   };
+
+  const handleReset = () => {
+    if (
+      window.confirm(
+        "Apakah Anda yakin ingin menghapus semua nilai input zakat? Data yang sudah diisi akan hilang. Pengaturan harga tidak akan berubah."
+      )
+    ) {
+      setState(INITIAL_STATE);
+      // We don't clear settings, only the input state
+      setActiveTab("fitrah");
+    }
+  };
+
+  const goToSummary = () => setActiveTab("summary");
 
   const downloadPDF = async () => {
     if (!receiptRef.current || !result) return;
@@ -236,6 +298,7 @@ export const ZakatCalculator: React.FC = () => {
 
   // Helpers for Nisab Calculations in UI
   const nisabGoldValue = 85 * settings.goldPrice;
+
   const netMaalAssets = Math.max(
     0,
     state.cash +
@@ -256,16 +319,16 @@ export const ZakatCalculator: React.FC = () => {
           Kalkulator Zakat Online
         </h1>
         <p className="mt-3 max-w-2xl mx-auto text-lg text-slate-600">
-          Hitung kewajiban <strong>Zakat Fitrah</strong>,{" "}
-          <strong>Zakat Maal</strong> (Harta), dan{" "}
-          <strong>Zakat Profesi</strong> secara akurat sesuai Nisab & Haul. Data
-          dijamin privasi (tersimpan lokal).
+          Hitung kewajiban <strong>Zakat Fitrah</strong> dan{" "}
+          <strong>Zakat Maal</strong> (Harta) secara akurat sesuai Nisab & Haul.
+          Data dijamin privasi (tersimpan lokal).
         </p>
       </div>
 
-      {/* Settings Bar */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6 flex flex-wrap justify-between items-center gap-4">
-        <div className="flex flex-wrap gap-6 text-sm">
+      {/* Toolbar: Settings & Reset */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+        {/* Left: Tickers */}
+        <div className="flex flex-wrap justify-center sm:justify-start gap-4 md:gap-6 text-sm w-full sm:w-auto">
           <div className="flex items-center">
             <span className="text-slate-500 mr-2">Harga Emas (g):</span>
             <span className="font-semibold text-emerald-700">
@@ -279,24 +342,53 @@ export const ZakatCalculator: React.FC = () => {
             </span>
           </div>
         </div>
-        <button
-          onClick={() => setShowSettings(!showSettings)}
-          className="text-sm font-medium text-emerald-600 hover:text-emerald-700 flex items-center"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 mr-1"
-            viewBox="0 0 20 20"
-            fill="currentColor"
+
+        {/* Right: Actions */}
+        <div className="flex items-center gap-3 w-full sm:w-auto justify-center sm:justify-end">
+          <button
+            onClick={handleReset}
+            className="text-sm font-medium px-4 py-2 rounded-lg bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 hover:border-red-200 transition-colors flex items-center"
+            title="Hapus semua input data"
           >
-            <path
-              fillRule="evenodd"
-              d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
-              clipRule="evenodd"
-            />
-          </svg>
-          Pengaturan Harga
-        </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4 mr-1.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
+            </svg>
+            Reset Data
+          </button>
+          <button
+            onClick={() => setShowSettings(!showSettings)}
+            className={`text-sm font-medium px-4 py-2 rounded-lg border transition-colors flex items-center ${
+              showSettings
+                ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-800"
+            }`}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 mr-1.5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Pengaturan Harga
+          </button>
+        </div>
       </div>
 
       {/* Settings Panel */}
@@ -414,7 +506,7 @@ export const ZakatCalculator: React.FC = () => {
         {/* Main Content Area */}
         <div className="lg:col-span-3 bg-white rounded-2xl shadow-lg border border-slate-200 min-h-[500px] p-6">
           {activeTab === "fitrah" && (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-fade-in">
               <h2 className="text-2xl font-bold text-emerald-800">
                 Zakat Fitrah
               </h2>
@@ -461,11 +553,12 @@ export const ZakatCalculator: React.FC = () => {
                   </div>
                 </div>
               </div>
+              <ViewSummaryButton onClick={goToSummary} />
             </div>
           )}
 
           {activeTab === "maal" && (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-fade-in">
               <h2 className="text-2xl font-bold text-emerald-800">
                 Zakat Maal (Harta Simpanan)
               </h2>
@@ -502,17 +595,34 @@ export const ZakatCalculator: React.FC = () => {
                     onChange={(v) => handleInputChange("debts", v)}
                   />
                 </div>
+
+                {/* Rikaz Section - Added here as part of Wealth but separated visually */}
+                <div className="md:col-span-2 pt-4 mt-2 border-t border-slate-100">
+                  <h3 className="font-bold text-emerald-700 mb-2">
+                    Zakat Rikaz (Barang Temuan/Hadiah)
+                  </h3>
+                  <p className="text-xs text-slate-500 mb-2">
+                    Tarif 20% (1/5). Dikenakan untuk harta karun temuan atau
+                    hadiah undian tak terduga.
+                  </p>
+                  <InputField
+                    label="Nilai Barang Temuan / Hadiah"
+                    value={state.rikazValue}
+                    onChange={(v) => handleInputChange("rikazValue", v)}
+                  />
+                </div>
               </div>
               <NisabStatus
                 value={netMaalAssets}
                 nisab={nisabGoldValue}
                 label="Zakat Maal"
               />
+              <ViewSummaryButton onClick={goToSummary} />
             </div>
           )}
 
           {activeTab === "gold" && (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-fade-in">
               <h2 className="text-2xl font-bold text-emerald-800">
                 Zakat Emas & Perak
               </h2>
@@ -548,11 +658,12 @@ export const ZakatCalculator: React.FC = () => {
                   />
                 </div>
               </div>
+              <ViewSummaryButton onClick={goToSummary} />
             </div>
           )}
 
           {activeTab === "business" && (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-fade-in">
               <h2 className="text-2xl font-bold text-emerald-800">
                 Zakat Perniagaan
               </h2>
@@ -582,17 +693,18 @@ export const ZakatCalculator: React.FC = () => {
                 nisab={nisabGoldValue}
                 label="Zakat Perniagaan"
               />
+              <ViewSummaryButton onClick={goToSummary} />
             </div>
           )}
 
           {activeTab === "agri" && (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-fade-in">
               <h2 className="text-2xl font-bold text-emerald-800">
                 Zakat Pertanian
               </h2>
               <p className="text-slate-600">
-                Dibayarkan saat panen. Nisab setara 5 wasaq (±653 kg
-                gabah/beras).
+                Dibayarkan saat panen. Nisab setara 5 wasaq (±653 kg gabah atau
+                ±524 kg beras).
               </p>
               <InputField
                 label="Nilai Hasil Panen (Rupiah)"
@@ -624,11 +736,12 @@ export const ZakatCalculator: React.FC = () => {
                 nisab={653 * settings.ricePrice}
                 label="Pertanian"
               />
+              <ViewSummaryButton onClick={goToSummary} />
             </div>
           )}
 
           {activeTab === "livestock" && (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-fade-in">
               <h2 className="text-2xl font-bold text-emerald-800">
                 Zakat Peternakan
               </h2>
@@ -649,6 +762,7 @@ export const ZakatCalculator: React.FC = () => {
                 nisab={nisabGoldValue}
                 label="Peternakan"
               />
+              <ViewSummaryButton onClick={goToSummary} />
             </div>
           )}
 
@@ -741,7 +855,10 @@ export const ZakatCalculator: React.FC = () => {
                               : "text-slate-300"
                           }`}
                         >
-                          {formatCurrency(item.zakatAmount)}
+                          {/* Show formatted display value (like "10 Kg Beras") if available, otherwise show currency */}
+                          {item.formattedValue
+                            ? item.formattedValue
+                            : formatCurrency(item.zakatAmount)}
                         </p>
                         {item.rate > 0 && (
                           <p className="text-xs text-slate-400">
@@ -758,8 +875,9 @@ export const ZakatCalculator: React.FC = () => {
                     <span className="text-lg font-bold text-slate-800">
                       TOTAL ZAKAT
                     </span>
-                    <span className="text-2xl font-extrabold text-emerald-600">
-                      {formatCurrency(result.totalZakat)}
+                    {/* Use the new formattedTotal property */}
+                    <span className="text-xl sm:text-2xl font-extrabold text-emerald-600 text-right pl-2">
+                      {result.formattedTotal}
                     </span>
                   </div>
                   <p className="text-right text-xs text-slate-500 mt-1 italic">

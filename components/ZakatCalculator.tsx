@@ -11,8 +11,7 @@ import { FAQ } from "./FAQ.tsx";
 import { ZAKAT_FAQ } from "../constants.ts";
 import { ZakatInputField } from "./ZakatInputField.tsx";
 import { NisabStatus } from "./NisabStatus.tsx";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+import { exportZakatToPdf } from "../services/pdf.service.ts";
 
 const INITIAL_SETTINGS: ZakatSettings = {
   goldPrice: 2200000,
@@ -171,24 +170,12 @@ export const ZakatCalculator: React.FC = () => {
 
   const goToSummary = () => setActiveTab("summary");
 
-  const downloadPDF = async () => {
-    if (!receiptRef.current || !result) return;
-    try {
-      const canvas = await html2canvas(receiptRef.current, {
-        scale: 2,
-        backgroundColor: "#ffffff",
-      });
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, imgHeight);
-      pdf.save(
+  const handleDownloadPDF = () => {
+    if (receiptRef.current) {
+      exportZakatToPdf(
+        receiptRef,
         `Kwitansi_Zakat_NIZAMY_${new Date().toISOString().split("T")[0]}.pdf`
       );
-    } catch (err) {
-      console.error("PDF Export failed", err);
-      alert("Gagal mengunduh PDF");
     }
   };
 
@@ -691,7 +678,7 @@ export const ZakatCalculator: React.FC = () => {
                     Simpan Riwayat
                   </button>
                   <button
-                    onClick={downloadPDF}
+                    onClick={handleDownloadPDF}
                     className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center shadow-sm transition-colors"
                   >
                     <svg

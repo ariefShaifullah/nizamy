@@ -194,7 +194,7 @@ export const HAFALAN_FAQ = [
   {
     question: "Apa itu metode SRS (Spaced Repetition System)?",
     answer:
-      "SRS adalah metode belajar ilmiah yang menjadwalkan pengulangan (murajaah) dengan interval waktu yang semakin lama. Tujuannya adalah melawan 'Kurva Lupa' otak manusia. Dengan SRS, Anda hanya perlu mengulang ayat tepat saat Anda hampir melupakannya, sehingga hafalan masuk ke ingatan jangka panjang (Long Term Memory) dengan efisien.",
+      "Bayangkan SRS sebagai 'Asisten Pribadi' yang tahu persis kapan Anda mulai lupa.\n\nAlih-alih mengulang semua hafalan setiap hari (yang melelahkan), metode ini hanya akan menyodorkan ayat-ayat yang hampir Anda lupakan.\n\n• Jika lancar, jadwal review berikutnya akan semakin lama (3 hari, 7 hari, dst).\n• Jika lupa, akan sering diulang besoknya.\n\nHasilnya: Hafalan menempel kuat (mutqin) dengan waktu belajar yang jauh lebih hemat & efisien.",
   },
   {
     question: "Kapan saja jadwal review akan muncul?",
@@ -204,7 +204,7 @@ export const HAFALAN_FAQ = [
   {
     question: "Apa bedanya tombol 'Lancar' dan 'Lupa' saat review?",
     answer:
-      "Kejujuran adalah kunci metode ini.\n• Pilih Lancar jika Anda bisa membaca ayat tersebut tanpa melihat teks dan tanpa terbata-bata.\n• Pilih Lupa / Salah jika Anda melakukan kesalahan tajwid, lupa sambungan ayat, atau perlu melihat teks.\n\nJika memilih 'Lupa', sistem akan meminta Anda mengulang lagi besok untuk memperkuat ingatan.",
+      "Kejujuran adalah kunci metode ini.\n• Pilih **Lancar** jika Anda bisa membaca ayat tersebut tanpa melihat teks dan tanpa terbata-bata.\n• Pilih **Lupa / Salah** jika Anda melakukan kesalahan tajwid, lupa sambungan ayat, atau perlu melihat teks.\n\nJika memilih 'Lupa', sistem akan meminta Anda mengulang lagi besok untuk memperkuat ingatan.",
   },
   {
     question: "Apakah saya boleh menghafal lebih dari batas limit level saya?",

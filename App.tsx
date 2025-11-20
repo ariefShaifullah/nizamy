@@ -29,7 +29,7 @@ export default function App() {
         document.title = `${baseTitle} | Hafalan Quran Tracker (SRS)`;
         break;
       default:
-        document.title = `${baseTitle}: Aplikasi Islam Terlengkap (Waris, Zakat, Hafalan)`;
+        document.title = `${baseTitle}: Aplikasi Ibadah Islam (Waris, Zakat, Hafalan)`;
     }
   }, [view]);
 

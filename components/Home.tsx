@@ -19,7 +19,7 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
           بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
         </span>
         <h1 className="text-4xl md:text-6xl font-extrabold text-slate-900 tracking-tight mb-6">
-          NIZAMY <span className="text-primary-600">Apps</span>
+          NIZAMY <span className="text-primary-600">Apps Suite </span>
         </h1>
         <p className="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
           Solusi digital terintegrasi untuk kebutuhan ibadah harian Anda. Hitung
@@ -31,7 +31,7 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
         {/* FARAIDH CARD */}
         <button
           onClick={() => setView("faraidh")}
-          className="group relative bg-white p-8 rounded-3xl shadow-lg border border-slate-100 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 text-left overflow-hidden flex flex-col h-full"
+          className="group relative bg-white p-8 rounded-3xl shadow-lg shadow-blue-100/50 border border-slate-100 hover:shadow-xl hover:shadow-blue-200/50 hover:-translate-y-1 transition-all duration-300 text-left overflow-hidden flex flex-col h-full"
         >
           <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
             <IconContext.Provider
@@ -62,7 +62,7 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
         {/* ZAKAT CARD */}
         <button
           onClick={() => setView("zakat")}
-          className="group relative bg-white p-8 rounded-3xl shadow-lg border border-slate-100 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 text-left overflow-hidden flex flex-col h-full"
+          className="group relative bg-white p-8 rounded-3xl shadow-lg shadow-emerald-100/50 border border-slate-100 hover:shadow-xl hover:shadow-emerald-200/50 hover:-translate-y-1 transition-all duration-300 text-left overflow-hidden flex flex-col h-full"
         >
           <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
             <IconContext.Provider
@@ -91,7 +91,7 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
         {/* HAFALAN CARD */}
         <button
           onClick={() => setView("hafalan")}
-          className="group relative bg-white p-8 rounded-3xl shadow-lg border border-slate-100 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 text-left overflow-hidden flex flex-col h-full"
+          className="group relative bg-white p-8 rounded-3xl shadow-lg shadow-indigo-100/50 border border-slate-100 hover:shadow-xl hover:shadow-indigo-200/50 hover:-translate-y-1 transition-all duration-300 text-left overflow-hidden flex flex-col h-full"
         >
           <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
             <IconContext.Provider

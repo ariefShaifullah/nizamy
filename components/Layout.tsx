@@ -91,8 +91,8 @@ export const Footer: React.FC = () => (
     <div className="container mx-auto px-4">
       <p className="text-slate-500 text-sm flex items-center justify-center gap-1">
         &copy; {new Date().getFullYear()} NIZAMY{" "}
-        <span className="hidden sm:inline">| Islam Apps Suite</span>. Dibuat
-        dengan <span className="text-red-500 animate-pulse">♥</span>
+        <span className="hidden sm:inline">| Apps Suite</span>. Dibuat dengan{" "}
+        <span className="text-red-500 animate-pulse">♥</span>
       </p>
     </div>
   </footer>

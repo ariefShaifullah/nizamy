@@ -885,70 +885,83 @@ export const HafalanTracker: React.FC = () => {
 
   if (view === "review_session" && activeSessionItem) {
     return (
-      <div className="max-w-2xl mx-auto animate-fade-in min-h-screen flex flex-col pb-6">
-        {/* Top Bar */}
-        <div className="flex justify-between items-center py-4 px-2 mb-2">
-          <button
-            onClick={() => actions.setView("dashboard")}
-            className="text-slate-400 hover:text-slate-600 flex items-center text-sm font-medium"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-1"
-              viewBox="0 0 20 20"
-              fill="currentColor"
+      <div className="animate-fade-in min-h-screen flex flex-col md:justify-center md:items-center md:py-8">
+        {/* Desktop Centered Card Container */}
+        <div className="w-full max-w-5xl md:bg-white md:rounded-[2.5rem] md:shadow-2xl md:shadow-slate-200/70 md:border md:border-slate-100 flex flex-col overflow-hidden relative md:aspect-[1.4/1] md:max-h-[85vh]">
+          {/* Header - Sticky on Mobile, Top of Card on Desktop */}
+          <div className="flex justify-between items-center py-4 px-4 md:px-8 md:py-6 bg-white md:bg-transparent z-20 relative">
+            <div
+              className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                isPracticeMode
+                  ? "bg-teal-100 text-teal-700"
+                  : "bg-indigo-100 text-indigo-700"
+              }`}
             >
-              <path
-                fillRule="evenodd"
-                d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
-                clipRule="evenodd"
-              />
-            </svg>
-            Keluar
-          </button>
-          <div
-            className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-              isPracticeMode
-                ? "bg-teal-100 text-teal-700"
-                : "bg-indigo-100 text-indigo-700"
-            }`}
-          >
-            {isPracticeMode ? "Mode Latihan" : "Mode Hafalan"}
+              {isPracticeMode ? "Mode Latihan" : "Mode Hafalan"}
+            </div>
+            <button
+              onClick={() => actions.setView("dashboard")}
+              className="text-slate-400 hover:text-slate-600 hover:bg-slate-50 px-3 py-1.5 rounded-full transition-colors flex items-center text-sm font-medium"
+            >
+              Keluar
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 ml-1"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </button>
           </div>
-        </div>
 
-        <div className="bg-white rounded-[2rem] shadow-2xl shadow-slate-200/50 border border-slate-100 flex-1 flex flex-col overflow-hidden relative">
-          {/* Session Header */}
-          <div className="bg-slate-50/80 backdrop-blur-sm border-b border-slate-100 p-6 text-center z-10">
-            <h2 className="text-xl font-bold text-slate-800">
+          {/* Surah Info Title */}
+          <div className="text-center px-6 pb-2 z-10">
+            <h2 className="text-xl md:text-3xl font-bold text-slate-800">
               {activeSessionItem.surahName}
             </h2>
-            <p className="text-slate-500 text-sm mt-1 font-medium">
+            <p className="text-slate-500 text-sm md:text-base mt-1 font-medium">
               Ayat {activeSessionItem.startAyah} - {activeSessionItem.endAyah}
             </p>
           </div>
 
-          {/* Quran Text Area - Scrollable and Centered */}
+          {/* Quran Text Area - Scrollable */}
           <div
-            className="flex-1 overflow-y-auto p-6 md:p-10 flex items-center justify-center bg-slate-50/30 relative"
+            className="flex-1 overflow-y-auto px-6 md:px-12 py-4 md:py-8 flex flex-col relative custom-scrollbar"
             dir="rtl"
           >
             {isLoadingText ? (
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-center my-auto">
                 <div className="animate-spin rounded-full h-10 w-10 border-b-4 border-indigo-600 mb-4"></div>
                 <p className="text-slate-400 text-sm font-medium">
                   Memuat Ayat...
                 </p>
               </div>
             ) : (
-              <div className="space-y-8 w-full max-w-xl mx-auto py-8">
+              <div className="space-y-8 md:space-y-12 w-full max-w-3xl mx-auto my-auto py-8">
+                {/* Decorative Bismillah */}
+                {activeSessionItem.startAyah === 1 &&
+                  activeSessionItem.surahNo !== 1 &&
+                  activeSessionItem.surahNo !== 9 && (
+                    <div className="text-center mb-10">
+                      <span className="font-arabic text-2xl md:text-4xl text-slate-500 block mb-4">
+                        بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
+                      </span>
+                      <div className="w-16 h-0.5 bg-slate-200 mx-auto"></div>
+                    </div>
+                  )}
+
                 {quranText.map((a) => (
                   <div key={a.number} className="relative group">
                     <p className="text-3xl md:text-5xl leading-[2.2] md:leading-[2.4] font-arabic text-slate-800 text-center selection:bg-indigo-100 selection:text-indigo-900">
                       {a.text}
                     </p>
                     <div className="flex justify-center mt-4">
-                      <span className="inline-flex items-center justify-center w-8 h-8 md:w-10 md:h-10 text-sm md:text-base border-2 border-slate-200 rounded-full text-slate-400 font-sans bg-white">
+                      <span className="inline-flex items-center justify-center w-8 h-8 md:w-12 md:h-12 text-sm md:text-lg border-2 border-slate-200 rounded-full text-slate-400 font-sans bg-white">
                         {a.number}
                       </span>
                     </div>
@@ -958,8 +971,8 @@ export const HafalanTracker: React.FC = () => {
             )}
           </div>
 
-          {/* Action Area - Fixed at Bottom */}
-          <div className="p-4 md:p-6 bg-white border-t border-slate-100 z-20">
+          {/* Action Area - Fixed at Bottom Mobile, Inside Card Desktop */}
+          <div className="p-4 md:p-8 bg-white md:bg-transparent border-t border-slate-100 md:border-0 z-20 mt-auto">
             {isPracticeMode ? (
               <button
                 onClick={actions.finishPractice}
@@ -968,16 +981,16 @@ export const HafalanTracker: React.FC = () => {
                 Selesai Membaca
               </button>
             ) : (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 md:gap-8 max-w-2xl mx-auto">
                 <button
                   onClick={() => handleSubmitReview("fail")}
-                  className="flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-slate-100 bg-slate-50 text-slate-600 hover:bg-orange-50 hover:border-orange-200 hover:text-orange-700 active:scale-95 transition-all duration-200 group h-28 md:h-32"
+                  className="flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-slate-100 bg-slate-50 text-slate-600 hover:bg-orange-50 hover:border-orange-200 hover:text-orange-700 active:scale-95 transition-all duration-200 group h-28 md:h-32 shadow-sm"
                 >
-                  <span className="text-3xl mb-2 grayscale group-hover:grayscale-0 transition-all">
+                  <span className="text-3xl md:text-4xl mb-2 grayscale group-hover:grayscale-0 transition-all">
                     🤔
                   </span>
-                  <span className="font-bold text-lg">Lupa</span>
-                  <span className="text-[10px] uppercase tracking-wide opacity-60 mt-1">
+                  <span className="font-bold text-lg md:text-xl">Lupa</span>
+                  <span className="text-[10px] md:text-xs uppercase tracking-wide opacity-60 mt-1">
                     Ulangi Besok
                   </span>
                 </button>
@@ -986,9 +999,9 @@ export const HafalanTracker: React.FC = () => {
                   onClick={() => handleSubmitReview("success")}
                   className="flex flex-col items-center justify-center p-4 rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-xl active:scale-95 transition-all duration-200 h-28 md:h-32"
                 >
-                  <span className="text-3xl mb-2">✨</span>
-                  <span className="font-bold text-lg">Lancar</span>
-                  <span className="text-[10px] uppercase tracking-wide opacity-80 mt-1">
+                  <span className="text-3xl md:text-4xl mb-2">✨</span>
+                  <span className="font-bold text-lg md:text-xl">Lancar</span>
+                  <span className="text-[10px] md:text-xs uppercase tracking-wide opacity-80 mt-1">
                     + XP Bonus
                   </span>
                 </button>

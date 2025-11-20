@@ -419,10 +419,18 @@ export const fetchQuranVerses = async (
       const filtered = allAyahs.filter(
         (a: any) => a.numberInSurah >= start && a.numberInSurah <= end
       );
-      return filtered.map((a: any) => ({
-        text: a.text,
-        number: a.numberInSurah,
-      }));
+
+      return filtered.map((a: any) => {
+        let text = a.text;
+        // Fix: Remove Bismillah from Ayah 1 for all Surahs except Al-Fatihah (Surah 1)
+        if (surahNo !== 1 && a.numberInSurah === 1) {
+          const bismillah = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ";
+          if (text.startsWith(bismillah)) {
+            text = text.substring(bismillah.length).trim();
+          }
+        }
+        return { text: text, number: a.numberInSurah };
+      });
     }
     return [];
   } catch (error) {

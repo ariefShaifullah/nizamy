@@ -27,62 +27,67 @@ export const HafalanTutorialModal: React.FC<{ onClose: () => void }> = ({
   onClose,
 }) => {
   const [step, setStep] = useState(1);
-  const totalSteps = 4;
 
   const content = [
     {
-      title: "Selamat Datang di NIZAMY Hafalan",
-      desc: "Kami menggunakan metode ilmiah Spaced Repetition System (SRS). Jadwal review Anda akan otomatis diatur pada interval hari ke-1, 3, 7, 14, dan 30 agar hafalan masuk ke ingatan jangka panjang.",
+      title: "Ahlan wa Sahlan!",
+      desc: "Bayangkan aplikasi ini sebagai 'Asisten Pribadi' hafalanmu. Kamu tidak perlu pusing mencatat manual kapan harus mengulang ayat. Biarkan sistem pintar kami yang mengatur jadwalnya untukmu.",
+      icon: "👋",
+    },
+    {
+      title: "Mulai dari yang Kecil",
+      desc: "Kunci hafalan kuat adalah 'Sedikit tapi Rutin' (Istiqomah). Jangan langsung banyak. Tambahkan 3-5 ayat dulu per hari. Otak kita butuh waktu untuk memindahkan hafalan ke ingatan jangka panjang.",
+      icon: "🌱",
+    },
+    {
+      title: "Jujur adalah Kunci",
+      desc: "Saat jadwal Murajaah (Mengulang) tiba, bacalah ayat tanpa melihat teks.\n\n• Tekan 'Lancar' jika bacaanmu mengalir tanpa terbata-bata.\n• Tekan 'Lupa' jika kamu sempat berhenti, ragu, atau salah tajwid.",
+      icon: "🔑",
+    },
+    {
+      title: "Kenapa Harus Jujur?",
+      desc: "Jika kamu tekan 'Lupa', asisten ini akan memintamu mengulang lagi besok sampai lancar.\n\nJika 'Lancar', jadwal Murajaah berikutnya akan makin lama (3 hari, 1 minggu, 1 bulan). Inilah rahasia agar hafalan awet selamanya!",
       icon: "🧠",
     },
     {
-      title: "Cara Menambah Hafalan",
-      desc: "Mulai sedikit demi sedikit. Pilih surat, tentukan rentang ayat (misal 3-5 ayat), lalu hafalkan. Sistem membatasi jumlah ayat harian sesuai level agar tidak kelelahan.",
-      icon: "📝",
-    },
-    {
-      title: "Sistem Review (Murajaah)",
-      desc: "Saat jadwal review tiba, baca ayat tanpa melihat. Jika lancar, tekan 'Lancar'. Jika ada salah/lupa, tekan 'Lupa'. Kejujuran adalah kunci keberhasilan metode ini.",
-      icon: "🔄",
-    },
-    {
-      title: "Gamification & Istiqomah",
-      desc: "Kumpulkan XP untuk naik level. Jaga 'Streak' dengan membuka aplikasi setiap hari. Konsistensi lebih penting daripada kecepatan.",
-      icon: "🔥",
+      title: "Siap Menjadi Hafiz?",
+      desc: "Kumpulkan Poin (XP) dan jaga 'Streak' (Hadir Tiap Hari). Jadikan Al-Quran sahabat setiamu setiap hari. Mari kita mulai!",
+      icon: "🚀",
     },
   ];
 
+  const totalSteps = content.length;
   const current = content[step - 1];
 
   return (
     <Modal isOpen={true} maxWidth="max-w-md">
       <div className="bg-indigo-600 p-6 text-center">
-        <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-4xl mx-auto mb-3 backdrop-blur-md border border-white/30">
+        <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-4xl mx-auto mb-3 backdrop-blur-md border border-white/30 animate-bounce-slow">
           {current.icon}
         </div>
         <h3 className="text-xl font-bold text-white">{current.title}</h3>
       </div>
       <div className="p-6">
-        <p className="text-slate-600 text-center leading-relaxed mb-8 min-h-[80px]">
+        <p className="text-slate-600 text-center leading-relaxed mb-8 min-h-[100px] whitespace-pre-line text-sm md:text-base">
           {current.desc}
         </p>
 
         <div className="flex justify-between items-center">
-          <div className="flex space-x-1">
+          <div className="flex space-x-1.5">
             {content.map((_, i) => (
               <div
                 key={i}
-                className={`h-2 w-2 rounded-full transition-colors ${
-                  i + 1 === step ? "bg-indigo-600" : "bg-slate-200"
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  i + 1 === step ? "w-6 bg-indigo-600" : "w-2 bg-slate-200"
                 }`}
               />
             ))}
           </div>
           <button
             onClick={() => (step < totalSteps ? setStep(step + 1) : onClose())}
-            className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors"
+            className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-200 hover:shadow-xl transform hover:-translate-y-0.5"
           >
-            {step < totalSteps ? "Lanjut" : "Mulai Menghafal"}
+            {step < totalSteps ? "Lanjut →" : "Bismillah, Mulai!"}
           </button>
         </div>
       </div>
@@ -128,7 +133,7 @@ export const HafalanDetailModal: React.FC<DetailModalProps> = ({
 
         <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
           <p className="text-sm text-slate-600 mb-1">
-            Jadwal Review Berikutnya:
+            Jadwal Murajaah Berikutnya:
           </p>
           <p className="font-bold text-slate-800 flex items-center">
             <svg
@@ -236,7 +241,7 @@ export const HafalanSettingsModal: React.FC<SettingsModalProps> = ({
 
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">
-            Kapasitas Harian (Level)
+            Target Harian (Level)
           </label>
           <div className="grid grid-cols-3 gap-3">
             {(["beginner", "intermediate", "advanced"] as const).map((lvl) => (

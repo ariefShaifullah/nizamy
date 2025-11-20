@@ -190,7 +190,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
               <span className="w-1.5 h-6 bg-primary-500 rounded-full mr-2"></span>
               Visualisasi Pembagian
             </h4>
-            <div className="h-72 w-full bg-white rounded-xl p-2">
+            <div className="h-[400px] w-full bg-white rounded-xl p-2">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -199,8 +199,8 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
                     nameKey="name"
                     cx="50%"
                     cy="50%"
-                    outerRadius={100}
-                    innerRadius={60}
+                    outerRadius="75%"
+                    innerRadius="45%"
                     paddingAngle={2}
                   >
                     {chartData.map((entry, index) => (
@@ -214,12 +214,13 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
                   <Tooltip content={<CustomChartTooltip />} />
                   <Legend
                     iconType="circle"
-                    layout="vertical"
-                    verticalAlign="middle"
-                    align="right"
+                    layout="horizontal"
+                    verticalAlign="bottom"
+                    align="center"
                     wrapperStyle={{
                       fontSize: "12px",
                       fontFamily: "sans-serif",
+                      paddingTop: "20px",
                     }}
                   />
                 </PieChart>

@@ -8,13 +8,22 @@ if (!rootElement) {
   throw new Error("Could not find root element to mount to");
 }
 
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
 class ErrorBoundary extends React.Component<
-  { children: React.ReactNode },
-  { hasError: boolean; error: any }
+  ErrorBoundaryProps,
+  ErrorBoundaryState
 > {
   state: { hasError: boolean; error: any };
   props: any;
-  constructor(props: any) {
+  constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false, error: null };
   }

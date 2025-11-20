@@ -387,6 +387,7 @@ export const validateNewItem = (
     };
   }
 
+  // Strict Overlap Check
   const isStrictOverlap = currentItems.some(
     (item) =>
       item.surahNo === surahNo &&
@@ -423,11 +424,11 @@ export const fetchQuranVerses = async (
       return filtered.map((a: any) => {
         let text = a.text;
         // Fix: Remove Bismillah from Ayah 1 for all Surahs except Al-Fatihah (Surah 1)
+        // An-Naml (27) Ayah 30 also has Bismillah but should be KEPT.
         if (surahNo !== 1 && a.numberInSurah === 1) {
-          const bismillah = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ";
-          if (text.startsWith(bismillah)) {
-            text = text.substring(bismillah.length).trim();
-          }
+          // Use regex to remove Bismillah from the start of the string only
+          // Matches "Bismillahi... Ar-Rahim" followed by optional spaces
+          text = text.replace(/^بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ\s*/, "");
         }
         return { text: text, number: a.numberInSurah };
       });

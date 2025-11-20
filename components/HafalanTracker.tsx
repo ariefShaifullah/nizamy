@@ -75,7 +75,7 @@ export const HafalanTracker: React.FC = () => {
       const nextStart = lastAyah + 1;
       const surah = SURAH_DATA.find((s) => s.number === selectedSurahNumber);
 
-      // 1. Lock Start Verse
+      // 1. Suggest Start Verse (but allow edit)
       if (surah && nextStart > surah.verses) {
         setNewAyahStart(surah.verses); // Already finished, but safer to cap
       } else {
@@ -112,20 +112,30 @@ export const HafalanTracker: React.FC = () => {
       const dailyRemaining = Math.max(0, limit - dailyUsed);
       const versesRequested = newAyahEnd - newAyahStart + 1;
 
-      const lastAyah = getLastMemorizedAyah(state.items, selectedSurahNumber);
+      // Check for strict overlaps (Validation allows gaps, but not overlapping existing items)
+      const isOverlap = state.items.some(
+        (item) =>
+          item.surahNo === selectedSurahNumber &&
+          Math.max(newAyahStart, item.startAyah) <=
+            Math.min(newAyahEnd, item.endAyah)
+      );
 
-      if (newAyahStart <= lastAyah) {
-        setInputError(
-          `Ayat ${newAyahStart} sudah dihafal (Terakhir: ${lastAyah}).`
-        );
+      if (newAyahStart < 1) {
+        setInputError("Ayat awal minimal 1.");
       } else if (newAyahStart > surah.verses) {
-        setInputError("Surat ini sudah selesai dihafal.");
+        setInputError("Ayat awal melebihi jumlah ayat surat.");
       } else if (newAyahEnd > surah.verses) {
         setInputError(`Melebihi jumlah ayat surat (${surah.verses}).`);
       } else if (newAyahEnd < newAyahStart) {
-        setInputError("Ayat akhir harus lebih besar dari awal.");
+        setInputError(
+          "Ayat akhir harus lebih besar atau sama dengan ayat awal."
+        );
       } else if (versesRequested > dailyRemaining) {
         setInputError(`Melebihi sisa kuota (${dailyRemaining} ayat).`);
+      } else if (isOverlap) {
+        setInputError(
+          "Rentang ayat ini bertabrakan dengan hafalan yang sudah ada."
+        );
       } else {
         setInputError(null);
       }
@@ -393,6 +403,13 @@ export const HafalanTracker: React.FC = () => {
       (a, b) => a.surahNo - b.surahNo || a.startAyah - b.startAyah
     );
 
+    // Quota Calculation for Dashboard
+    const dailyLimit = getMaxAyatByLevel(state.profile.skillLevel);
+    const dailyUsed = getDailyVerseCount(state.items);
+    const dailyRemaining = Math.max(0, dailyLimit - dailyUsed);
+    const isQuotaFull = dailyRemaining === 0;
+    const isMaxLevel = state.profile.skillLevel === "advanced";
+
     return (
       <div className="max-w-5xl mx-auto space-y-6 md:space-y-8 animate-fade-in">
         {showTutorial && (
@@ -506,7 +523,7 @@ export const HafalanTracker: React.FC = () => {
                     : "text-slate-500 hover:text-slate-700"
                 }`}
               >
-                📅 Jadwal{" "}
+                📅 Murajaah{" "}
                 {dueItems.length > 0 && (
                   <span className="ml-1 bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full text-[10px]">
                     {dueItems.length}
@@ -528,7 +545,9 @@ export const HafalanTracker: React.FC = () => {
               {dashboardTab === "schedule" ? (
                 <div className="space-y-4 h-full flex flex-col">
                   <div className="flex justify-between items-center">
-                    <h3 className="font-bold text-slate-800">Tugas Hari Ini</h3>
+                    <h3 className="font-bold text-slate-800">
+                      Murajaah Hari Ini
+                    </h3>
                     <button
                       onClick={() => actions.setView("add_new")}
                       className="text-sm bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg font-bold hover:bg-indigo-100 transition-colors border border-indigo-100"
@@ -566,19 +585,50 @@ export const HafalanTracker: React.FC = () => {
                       </div>
                       <div>
                         <h4 className="font-bold text-slate-800 text-lg">
-                          Masya Allah!
+                          {isQuotaFull
+                            ? "Target Harian Tercapai!"
+                            : "Masya Allah!"}
                         </h4>
-                        <p className="text-slate-500 text-sm mt-1">
-                          Semua jadwal hari ini selesai. Istirahat atau tambah
-                          hafalan baru?
+                        <p className="text-slate-500 text-sm mt-1 max-w-xs mx-auto">
+                          {isQuotaFull
+                            ? `Anda sudah menghafal ${dailyUsed} ayat hari ini. Istirahat dulu agar hafalan menempel kuat.`
+                            : "Semua jadwal murajaah hari ini selesai. Istirahat atau tambah hafalan baru?"}
                         </p>
                       </div>
-                      <button
-                        onClick={() => actions.setView("add_new")}
-                        className="bg-white border border-slate-300 text-slate-700 px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all"
-                      >
-                        Tambah Hafalan Baru
-                      </button>
+                      {isQuotaFull ? (
+                        <div className="flex flex-col gap-3 w-full max-w-xs">
+                          {isMaxLevel && (
+                            <div className="bg-green-100 text-green-800 px-4 py-2 rounded-lg text-xs font-medium border border-green-200 mb-1">
+                              Performa Luar Biasa (Level Mahir)!
+                            </div>
+                          )}
+
+                          <button
+                            onClick={() => setShowSettings(true)}
+                            className="w-full bg-white border-2 border-green-200 text-green-700 px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-green-50 hover:border-green-300 transition-all"
+                          >
+                            Atur Target Harian
+                          </button>
+
+                          {!isMaxLevel && (
+                            <p className="text-xs text-slate-400">atau</p>
+                          )}
+
+                          <button
+                            onClick={() => setDashboardTab("list")}
+                            className="text-slate-500 hover:text-indigo-600 text-sm font-medium"
+                          >
+                            Lihat Daftar & Latihan
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => actions.setView("add_new")}
+                          className="bg-white border border-slate-300 text-slate-700 px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all"
+                        >
+                          Tambah Hafalan Baru
+                        </button>
+                      )}
                     </div>
                   ) : (
                     // Tasks List
@@ -753,6 +803,8 @@ export const HafalanTracker: React.FC = () => {
     const dailyRemaining = Math.max(0, dailyLimit - dailyUsed);
     const pendingNewItems = state.items.filter((i) => i.stage === 0);
     const hasPending = pendingNewItems.length > 0;
+    const isQuotaFull = dailyRemaining === 0;
+    const isMaxLevel = state.profile?.skillLevel === "advanced";
 
     return (
       <div className="max-w-lg mx-auto bg-white p-6 md:p-8 rounded-3xl shadow-2xl shadow-slate-200/50 border border-slate-100 animate-fade-in-up mt-4">
@@ -786,7 +838,7 @@ export const HafalanTracker: React.FC = () => {
               Tugas Menumpuk!
             </h4>
             <p className="text-orange-800/80 text-sm mb-6 leading-relaxed">
-              Ada {pendingNewItems.length} hafalan baru yang belum direview.
+              Ada {pendingNewItems.length} hafalan baru yang belum dimurajaah.
               Selesaikan dulu agar hafalan kuat.
             </p>
             <button
@@ -796,7 +848,38 @@ export const HafalanTracker: React.FC = () => {
               }}
               className="w-full bg-orange-600 text-white font-bold py-3.5 rounded-xl hover:bg-orange-700 transition-colors shadow-lg shadow-orange-200"
             >
-              Ke Jadwal Review
+              Ke Jadwal Murajaah
+            </button>
+          </div>
+        ) : isQuotaFull ? (
+          <div className="text-center py-8 px-4 bg-indigo-50 rounded-2xl border border-indigo-100">
+            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-3xl mx-auto mb-4 shadow-sm">
+              🛑
+            </div>
+            <h4 className="text-lg font-bold text-indigo-900 mb-2">
+              Kuota Harian Penuh
+            </h4>
+            <p className="text-indigo-800/80 text-sm mb-6 leading-relaxed">
+              {isMaxLevel
+                ? `Anda telah mencapai batas maksimal sistem (${dailyLimit} ayat/hari). Istirahatkan pikiran agar hafalan hari ini menempel sempurna. Lanjut lagi besok ya!`
+                : `Anda telah mencapai batas ${dailyLimit} ayat hari ini. Ingin menambah lebih banyak? Naikkan level Anda.`}
+            </p>
+
+            <button
+              onClick={() => {
+                setShowSettings(true);
+                actions.setView("dashboard");
+              }}
+              className="w-full bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200"
+            >
+              Atur Target Harian (Pengaturan)
+            </button>
+
+            <button
+              onClick={() => actions.setView("dashboard")}
+              className="mt-3 text-sm font-bold text-indigo-500 hover:text-indigo-700"
+            >
+              Kembali ke Dashboard
             </button>
           </div>
         ) : (
@@ -843,9 +926,13 @@ export const HafalanTracker: React.FC = () => {
                 </label>
                 <input
                   type="number"
-                  className="w-full border border-slate-200 bg-slate-100 text-slate-500 rounded-xl p-4 font-bold text-center"
+                  className={`w-full border rounded-xl p-4 font-bold text-center outline-none focus:ring-2 ${
+                    inputError && inputError.includes("Ayat awal")
+                      ? "border-red-300 bg-red-50 text-red-900 focus:ring-red-200"
+                      : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-200"
+                  }`}
                   value={newAyahStart}
-                  readOnly
+                  onChange={(e) => setNewAyahStart(Number(e.target.value))}
                 />
               </div>
               <div>
@@ -855,7 +942,7 @@ export const HafalanTracker: React.FC = () => {
                 <input
                   type="number"
                   className={`w-full border rounded-xl p-4 font-bold text-center outline-none focus:ring-2 ${
-                    inputError
+                    inputError && !inputError.includes("Ayat awal")
                       ? "border-red-300 bg-red-50 text-red-900 focus:ring-red-200"
                       : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-200"
                   }`}

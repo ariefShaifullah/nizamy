@@ -28,34 +28,31 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
       </div>
 
       <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-        {/* FARAIDH CARD */}
+        {/* HAFALAN CARD */}
         <button
-          onClick={() => setView("faraidh")}
-          className="group relative bg-white p-8 rounded-3xl shadow-lg shadow-blue-100/50 border border-slate-100 hover:shadow-xl hover:shadow-blue-200/50 hover:-translate-y-1 transition-all duration-300 text-left overflow-hidden flex flex-col h-full"
+          onClick={() => setView("hafalan")}
+          className="group relative bg-white p-8 rounded-3xl shadow-lg shadow-indigo-100/50 border border-slate-100 hover:shadow-xl hover:shadow-indigo-200/50 hover:-translate-y-1 transition-all duration-300 text-left overflow-hidden flex flex-col h-full"
         >
           <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
             <IconContext.Provider
-              value={{ className: "w-32 h-32 text-blue-600" }}
+              value={{ className: "w-32 h-32 text-indigo-600" }}
             >
-              <FaBalanceScale />
+              <FaQuran />
             </IconContext.Provider>
           </div>
-          <div className="relative z-10">
-            <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center mb-6 text-blue-600 group-hover:scale-110 transition-transform">
-              <IconContext.Provider value={{ className: "h-8 w-8" }}>
-                <FaBalanceScale />
-              </IconContext.Provider>
-            </div>
+          <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mb-6 text-indigo-600 group-hover:scale-110 transition-transform">
+            <IconContext.Provider value={{ className: "h-8 w-8" }}>
+              <FaQuran />
+            </IconContext.Provider>
           </div>
-          <h2 className="text-2xl font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">
-            Waris (Faraidh)
+          <h2 className="text-2xl font-bold text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors">
+            Hafalan (SRS)
           </h2>
           <p className="text-slate-500 mb-6 text-sm leading-relaxed flex-1">
-            Kalkulator pembagian harta warisan otomatis sesuai syariat Islam dan
-            dalil Al-Quran.
+            Jaga hafalan Al-Quran dengan metode Spaced Repetition System.
           </p>
-          <div className="mt-auto flex items-center text-blue-600 font-bold text-sm group-hover:translate-x-2 transition-transform">
-            Mulai Hitung &rarr;
+          <div className="mt-auto flex items-center text-indigo-600 font-bold text-sm group-hover:translate-x-2 transition-transform">
+            Mulai Menghafal &rarr;
           </div>
         </button>
 
@@ -88,31 +85,34 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
           </div>
         </button>
 
-        {/* HAFALAN CARD */}
+        {/* FARAIDH CARD */}
         <button
-          onClick={() => setView("hafalan")}
-          className="group relative bg-white p-8 rounded-3xl shadow-lg shadow-indigo-100/50 border border-slate-100 hover:shadow-xl hover:shadow-indigo-200/50 hover:-translate-y-1 transition-all duration-300 text-left overflow-hidden flex flex-col h-full"
+          onClick={() => setView("faraidh")}
+          className="group relative bg-white p-8 rounded-3xl shadow-lg shadow-blue-100/50 border border-slate-100 hover:shadow-xl hover:shadow-blue-200/50 hover:-translate-y-1 transition-all duration-300 text-left overflow-hidden flex flex-col h-full"
         >
           <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
             <IconContext.Provider
-              value={{ className: "w-32 h-32 text-indigo-600" }}
+              value={{ className: "w-32 h-32 text-blue-600" }}
             >
-              <FaQuran />
+              <FaBalanceScale />
             </IconContext.Provider>
           </div>
-          <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mb-6 text-indigo-600 group-hover:scale-110 transition-transform">
-            <IconContext.Provider value={{ className: "h-8 w-8" }}>
-              <FaQuran />
-            </IconContext.Provider>
+          <div className="relative z-10">
+            <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center mb-6 text-blue-600 group-hover:scale-110 transition-transform">
+              <IconContext.Provider value={{ className: "h-8 w-8" }}>
+                <FaBalanceScale />
+              </IconContext.Provider>
+            </div>
           </div>
-          <h2 className="text-2xl font-bold text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors">
-            Hafalan (SRS)
+          <h2 className="text-2xl font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">
+            Waris (Faraidh)
           </h2>
           <p className="text-slate-500 mb-6 text-sm leading-relaxed flex-1">
-            Jaga hafalan Al-Quran dengan metode Spaced Repetition System.
+            Kalkulator pembagian harta warisan otomatis sesuai syariat Islam dan
+            dalil Al-Quran.
           </p>
-          <div className="mt-auto flex items-center text-indigo-600 font-bold text-sm group-hover:translate-x-2 transition-transform">
-            Mulai Menghafal &rarr;
+          <div className="mt-auto flex items-center text-blue-600 font-bold text-sm group-hover:translate-x-2 transition-transform">
+            Mulai Hitung &rarr;
           </div>
         </button>
       </div>

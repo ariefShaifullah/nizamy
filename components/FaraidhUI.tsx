@@ -68,29 +68,6 @@ export const InfoTooltip: React.FC<{ term: keyof typeof FIQH_DEFINITIONS }> = ({
   );
 };
 
-export const PerPersonTooltip: React.FC<{ value: number }> = ({ value }) => {
-  return (
-    <div className="relative flex items-center group ml-2">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-4 w-4 text-slate-400 cursor-help"
-        viewBox="0 0 20 20"
-        fill="currentColor"
-      >
-        <path
-          fillRule="evenodd"
-          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-          clipRule="evenodd"
-        />
-      </svg>
-      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max px-3 py-1.5 bg-slate-800 text-white text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg">
-        Setiap orang mendapat {formatCurrency(value)}
-        <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-slate-800"></div>
-      </div>
-    </div>
-  );
-};
-
 // --- RESULT CARD ---
 
 export const ResultCard: React.FC<{ heir: HeirResult }> = React.memo(
@@ -123,12 +100,28 @@ export const ResultCard: React.FC<{ heir: HeirResult }> = React.memo(
           </div>
           {!heir.isBlocked && heir.value > 0 && (
             <div className="text-right">
-              <div className="flex items-center justify-end">
-                <p className="font-semibold text-slate-800 text-lg">
+              <div className="flex flex-col items-end">
+                <p className="font-bold text-slate-800 text-lg leading-none">
                   {formatCurrency(heir.value)}
                 </p>
                 {heir.count > 1 && (
-                  <PerPersonTooltip value={heir.value / heir.count} />
+                  <div className="mt-1.5 px-2 py-0.5 bg-slate-50 rounded border border-slate-100 inline-flex items-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-3 w-3 text-slate-400 mr-1"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <p className="text-xs text-slate-500 font-medium">
+                      @{formatCurrency(heir.value / heir.count)}
+                    </p>
+                  </div>
                 )}
               </div>
               <p className="text-sm text-slate-500 font-mono mt-1">

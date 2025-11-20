@@ -153,7 +153,7 @@ export const ZakatCalculator: React.FC = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto animate-fade-in">
+    <div className="max-w-7xl mx-auto animate-fade-in">
       <div className="text-center mb-8">
         <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-emerald-900 sm:text-5xl">
           Kalkulator Zakat
@@ -278,11 +278,12 @@ export const ZakatCalculator: React.FC = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 md:gap-8">
-        {/* Navigation: Horizontal Scroll on Mobile, Vertical on Desktop */}
-        <div className="lg:col-span-1">
+      {/* Main Layout: Flexbox for Better Responsive Control */}
+      <div className="flex flex-col lg:flex-row gap-6 md:gap-8 items-start">
+        {/* Navigation: Horizontal on Mobile, Vertical Fixed on Desktop */}
+        <div className="w-full lg:w-64 flex-shrink-0">
           <nav
-            className="flex lg:flex-col overflow-x-auto pb-2 lg:pb-0 lg:sticky lg:top-24 space-x-2 lg:space-x-0 lg:space-y-2 no-scrollbar"
+            className="flex lg:flex-col overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 lg:sticky lg:top-24 space-x-2 lg:space-x-0 lg:space-y-2 no-scrollbar"
             aria-label="Tabs"
           >
             {TABS.map((tab) => (
@@ -302,8 +303,8 @@ export const ZakatCalculator: React.FC = () => {
           </nav>
         </div>
 
-        {/* Main Content Area */}
-        <div className="lg:col-span-3 bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 min-h-[500px] p-6 md:p-8 relative">
+        {/* Main Content Area: Flex-1 with min-w-0 to prevent overflow */}
+        <div className="flex-1 min-w-0 bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 min-h-[500px] p-6 md:p-8 relative">
           {activeTab === "fitrah" && (
             <FitrahView
               state={state}

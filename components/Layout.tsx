@@ -59,28 +59,30 @@ export const Header: React.FC<HeaderProps> = ({ view, setView }) => {
           </div>
         </button>
 
-        {view !== "home" && (
-          <button
-            onClick={() => setView("home")}
-            className="text-xs md:text-sm font-medium text-slate-500 hover:text-slate-800 flex items-center bg-slate-50 hover:bg-slate-100 px-3 py-2 md:px-4 md:py-2 rounded-full transition-all active:scale-95 border border-slate-200"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4 md:mr-1.5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+        <div className="flex items-center gap-2 md:gap-3">
+          {view !== "home" && (
+            <button
+              onClick={() => setView("home")}
+              className="text-xs md:text-sm font-medium text-slate-500 hover:text-slate-800 flex items-center bg-slate-50 hover:bg-slate-100 px-3 py-2 md:px-4 md:py-2 rounded-full transition-all active:scale-95 border border-slate-200"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"
-              />
-            </svg>
-            <span className="hidden md:inline">Menu Utama</span>
-          </button>
-        )}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4 md:mr-1.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
+              </svg>
+              <span className="hidden md:inline">Menu Utama</span>
+            </button>
+          )}
+        </div>
       </div>
     </header>
   );
@@ -91,8 +93,8 @@ export const Footer: React.FC = () => (
     <div className="container mx-auto px-4">
       <p className="text-slate-500 text-sm flex items-center justify-center gap-1">
         &copy; {new Date().getFullYear()} NIZAMY{" "}
-        <span className="hidden sm:inline">| Apps Suite</span>. Dibuat dengan{" "}
-        <span className="text-red-500 animate-pulse">♥</span>
+        <span className="hidden sm:inline">| Islam Apps Suite</span>. Dibuat
+        dengan <span className="text-red-500 animate-pulse">♥</span>
       </p>
     </div>
   </footer>

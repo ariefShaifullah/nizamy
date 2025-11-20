@@ -11,6 +11,21 @@ export const formatNumber = (value: number): string => {
   return new Intl.NumberFormat("id-ID").format(value);
 };
 
+export const formatDate = (
+  dateString: string,
+  options?: Intl.DateTimeFormatOptions
+): string => {
+  const defaultOptions: Intl.DateTimeFormatOptions = {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  };
+  return new Date(dateString).toLocaleDateString(
+    "id-ID",
+    options || defaultOptions
+  );
+};
+
 // Greatest Common Divisor
 export const gcd = (a: number, b: number): number =>
   b === 0 ? a : gcd(b, a % b);

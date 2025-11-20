@@ -37,12 +37,12 @@ export const NisabStatus: React.FC<NisabStatusProps> = ({
             <span className="font-semibold text-slate-700">{displayValue}</span>
           </div>
           <div className="text-sm text-slate-500">
-            Ambang Batas (Nisab):{" "}
+            Batas Nisab:{" "}
             <span className="font-semibold text-slate-700">{displayNisab}</span>
           </div>
         </div>
         <div
-          className={`px-3 py-1 rounded-full text-sm font-bold ${
+          className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center justify-center uppercase tracking-wide ${
             isReached
               ? "bg-emerald-100 text-emerald-700"
               : "bg-slate-200 text-slate-600"

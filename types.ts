@@ -1,22 +1,21 @@
-
 export enum Heir {
-  Husband = 'husband',
-  Wife = 'wife',
-  Son = 'son',
-  Daughter = 'daughter',
-  Father = 'father',
-  Mother = 'mother',
-  Grandfather = 'grandfather', // Paternal
-  PaternalGrandmother = 'paternalGrandmother',
-  MaternalGrandmother = 'maternalGrandmother',
-  Grandson = 'grandson', // Son's son
-  Granddaughter = 'granddaughter', // Son's daughter
-  FullBrother = 'fullBrother',
-  FullSister = 'fullSister',
-  PaternalBrother = 'paternalBrother',
-  PaternalSister = 'paternalSister',
-  MaternalBrother = 'maternalBrother',
-  MaternalSister = 'maternalSister',
+  Husband = "husband",
+  Wife = "wife",
+  Son = "son",
+  Daughter = "daughter",
+  Father = "father",
+  Mother = "mother",
+  Grandfather = "grandfather", // Paternal
+  PaternalGrandmother = "paternalGrandmother",
+  MaternalGrandmother = "maternalGrandmother",
+  Grandson = "grandson", // Son's son
+  Granddaughter = "granddaughter", // Son's daughter
+  FullBrother = "fullBrother",
+  FullSister = "fullSister",
+  PaternalBrother = "paternalBrother",
+  PaternalSister = "paternalSister",
+  MaternalBrother = "maternalBrother",
+  MaternalSister = "maternalSister",
 }
 
 export type HeirKey = keyof typeof Heir;
@@ -28,7 +27,7 @@ export type HeirInputState = {
 export interface Share {
   numerator: number;
   denominator: number;
-  type: 'furudh' | 'ashabah' | 'none';
+  type: "furudh" | "ashabah" | "none";
 }
 
 export interface HeirResult {
@@ -62,7 +61,13 @@ export interface HistoryEntry {
 
 // --- ZAKAT TYPES ---
 
-export type ZakatType = 'fitrah' | 'maal' | 'goldSilver' | 'business' | 'agriculture' | 'livestock';
+export type ZakatType =
+  | "fitrah"
+  | "maal"
+  | "goldSilver"
+  | "business"
+  | "agriculture"
+  | "livestock";
 
 export interface ZakatSettings {
   goldPrice: number; // Per gram
@@ -128,4 +133,54 @@ export interface ZakatHistoryEntry {
   timestamp: string;
   state: ZakatState;
   result: ZakatResult;
+}
+
+// --- HAFALAN (SRS) TYPES ---
+
+export type HafalanSkillLevel = "beginner" | "intermediate" | "advanced";
+
+export interface UserSummary {
+  id: string;
+  name: string;
+  level: number;
+  lastLogin: string;
+  avatarColor: string;
+}
+
+export interface HafalanProfile {
+  userId: string;
+  name: string;
+  skillLevel: HafalanSkillLevel;
+  targetJuz: number; // e.g., 30 (Juz 30) or 1 (Juz 1)
+  linesPerDay: number; // Capacity
+}
+
+export interface HafalanItem {
+  id: string;
+  surahNo: number;
+  surahName: string;
+  startAyah: number;
+  endAyah: number;
+  stage: number; // 0 = New, 1 = 1d, 2 = 3d, 3 = 7d, 4 = 14d, 5 = 30d (Mutqin)
+  nextReviewDate: string; // ISO Date YYYY-MM-DD
+  lastReviewedDate?: string;
+  createdAt: string; // ISO Date YYYY-MM-DD for daily quota tracking
+  easeFactor: number; // Simplified multiplier
+  errorCount: number;
+}
+
+export interface GamificationState {
+  xp: number;
+  level: number;
+  currentStreak: number;
+  lastLoginDate: string;
+  badges: string[]; // IDs of earned badges
+  weeklyChallengeProgress: number; // 0 to 100
+  weeklyChallengeTarget: number;
+}
+
+export interface HafalanState {
+  profile: HafalanProfile | null;
+  items: HafalanItem[];
+  gamification: GamificationState;
 }

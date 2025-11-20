@@ -6,12 +6,19 @@ import type {
   ZakatHistoryEntry,
 } from "../types.ts";
 import { calculateTotalZakat } from "../services/zakat.service.ts";
-import { formatCurrency, formatNumber } from "../utils.ts";
+import { formatNumber, formatCurrency } from "../utils.ts";
 import { FAQ } from "./FAQ.tsx";
 import { ZAKAT_FAQ } from "../constants.ts";
-import { ZakatInputField } from "./ZakatInputField.tsx";
-import { NisabStatus } from "./NisabStatus.tsx";
 import { exportZakatToPdf } from "../services/pdf.service.ts";
+import {
+  FitrahView,
+  MaalView,
+  GoldSilverView,
+  BusinessView,
+  AgricultureView,
+  LivestockView,
+  SummaryView,
+} from "./ZakatTabs.tsx";
 
 const INITIAL_SETTINGS: ZakatSettings = {
   goldPrice: 2200000,
@@ -41,54 +48,14 @@ const INITIAL_STATE: ZakatState = {
 };
 
 const TABS = [
-  { id: "summary", label: "Ringkasan" },
-  { id: "fitrah", label: "Fitrah" },
-  { id: "maal", label: "Maal & Harta" },
-  { id: "gold", label: "Emas/Perak" },
-  { id: "business", label: "Perniagaan" },
-  { id: "agri", label: "Pertanian" },
-  { id: "livestock", label: "Ternak" },
+  { id: "fitrah", label: "Fitrah", icon: "🍚" },
+  { id: "maal", label: "Maal", icon: "💰" },
+  { id: "gold", label: "Emas", icon: "🥇" },
+  { id: "business", label: "Niaga", icon: "🏪" },
+  { id: "agri", label: "Tani", icon: "🌾" },
+  { id: "livestock", label: "Ternak", icon: "🐄" },
+  { id: "summary", label: "Hasil", icon: "🧾" },
 ];
-
-const ViewSummaryButton = ({ onClick }: { onClick: () => void }) => (
-  <div className="mt-8 pt-4 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-    <p className="text-sm text-slate-500 italic flex items-center">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-4 w-4 mr-1 text-emerald-500"
-        viewBox="0 0 20 20"
-        fill="currentColor"
-      >
-        <path
-          fillRule="evenodd"
-          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-          clipRule="evenodd"
-        />
-      </svg>
-      Data tersimpan otomatis.
-    </p>
-    <button
-      onClick={onClick}
-      className="group flex items-center px-5 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all shadow-sm hover:shadow-md font-medium w-full sm:w-auto justify-center"
-    >
-      Lihat Hasil di Ringkasan
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          d="M14 5l7 7m0 0l-7 7m7-7H3"
-        />
-      </svg>
-    </button>
-  </div>
-);
 
 export const ZakatCalculator: React.FC = () => {
   const [activeTab, setActiveTab] = useState("fitrah");
@@ -99,17 +66,23 @@ export const ZakatCalculator: React.FC = () => {
   const [showSettings, setShowSettings] = useState(false);
   const receiptRef = useRef<HTMLDivElement>(null);
 
+  // Load from LocalStorage
   useEffect(() => {
-    const savedSettings = localStorage.getItem("zakatSettings");
-    if (savedSettings) setSettings(JSON.parse(savedSettings));
+    try {
+      const savedSettings = localStorage.getItem("zakatSettings");
+      if (savedSettings) setSettings(JSON.parse(savedSettings));
 
-    const savedState = localStorage.getItem("zakatState");
-    if (savedState) setState(JSON.parse(savedState));
+      const savedState = localStorage.getItem("zakatState");
+      if (savedState) setState(JSON.parse(savedState));
 
-    const savedHistory = localStorage.getItem("zakatHistory");
-    if (savedHistory) setHistory(JSON.parse(savedHistory));
+      const savedHistory = localStorage.getItem("zakatHistory");
+      if (savedHistory) setHistory(JSON.parse(savedHistory));
+    } catch (e) {
+      console.error("Failed to load data from local storage", e);
+    }
   }, []);
 
+  // Save & Recalculate
   useEffect(() => {
     localStorage.setItem("zakatSettings", JSON.stringify(settings));
     localStorage.setItem("zakatState", JSON.stringify(state));
@@ -127,7 +100,7 @@ export const ZakatCalculator: React.FC = () => {
   const handleReset = () => {
     if (
       window.confirm(
-        "Apakah Anda yakin ingin menghapus semua nilai input zakat? Data yang sudah diisi akan hilang. Pengaturan harga tidak akan berubah."
+        "Apakah Anda yakin ingin menghapus semua nilai input zakat? Data yang sudah diisi akan hilang."
       )
     ) {
       setState(INITIAL_STATE);
@@ -179,82 +152,57 @@ export const ZakatCalculator: React.FC = () => {
     }
   };
 
-  const nisabGoldValue = 85 * settings.goldPrice;
-  const netMaalAssets = Math.max(
-    0,
-    state.cash +
-      state.savings +
-      state.investments +
-      state.otherAssets -
-      state.debts
-  );
-  const netBusinessAssets = Math.max(
-    0,
-    state.bizAssets + state.bizInventory - state.bizLiabilities
-  );
-
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto animate-fade-in">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-extrabold tracking-tight text-emerald-800 sm:text-5xl">
-          Kalkulator Zakat Online
+        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-emerald-900 sm:text-5xl">
+          Kalkulator Zakat
         </h1>
-        <p className="mt-3 max-w-2xl mx-auto text-lg text-slate-600">
-          Hitung kewajiban <strong>Zakat Fitrah</strong> dan{" "}
-          <strong>Zakat Maal</strong> (Harta) secara akurat sesuai Nisab & Haul.
-          Data dijamin privasi (tersimpan lokal).
+        <p className="mt-3 max-w-2xl mx-auto text-base md:text-lg text-slate-600">
+          Hitung <strong>Zakat Fitrah</strong> dan <strong>Maal</strong> akurat
+          sesuai Nisab & Haul.
         </p>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-        <div className="flex flex-wrap justify-center sm:justify-start gap-4 md:gap-6 text-sm w-full sm:w-auto">
-          <div className="flex items-center">
-            <span className="text-slate-500 mr-2">Harga Emas (g):</span>
-            <span className="font-semibold text-emerald-700">
+      {/* Settings Bar */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="flex flex-wrap justify-center md:justify-start gap-2 md:gap-6 text-sm w-full md:w-auto">
+          <div className="flex items-center bg-emerald-50/50 px-3 py-2 rounded-lg border border-emerald-100">
+            <span className="text-slate-500 mr-2 text-xs md:text-sm">
+              Emas/g:
+            </span>
+            <span className="font-bold text-emerald-700 text-xs md:text-sm">
               {formatCurrency(settings.goldPrice)}
             </span>
           </div>
-          <div className="flex items-center">
-            <span className="text-slate-500 mr-2">Harga Beras (kg):</span>
-            <span className="font-semibold text-emerald-700">
+          <div className="flex items-center bg-emerald-50/50 px-3 py-2 rounded-lg border border-emerald-100">
+            <span className="text-slate-500 mr-2 text-xs md:text-sm">
+              Beras/kg:
+            </span>
+            <span className="font-bold text-emerald-700 text-xs md:text-sm">
               {formatCurrency(settings.ricePrice)}
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-center sm:justify-end">
+        <div className="flex items-center gap-2 w-full md:w-auto justify-center md:justify-end">
           <button
             onClick={handleReset}
-            className="text-sm font-medium px-4 py-2 rounded-lg bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 hover:border-red-200 transition-colors flex items-center"
-            title="Hapus semua input data"
+            className="text-xs md:text-sm font-medium px-3 py-2 rounded-lg bg-slate-50 text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors border border-slate-200"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4 mr-1.5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-              />
-            </svg>
-            Reset Data
+            Reset
           </button>
           <button
             onClick={() => setShowSettings(!showSettings)}
-            className={`text-sm font-medium px-4 py-2 rounded-lg border transition-colors flex items-center ${
+            className={`text-xs md:text-sm font-medium px-4 py-2 rounded-lg border transition-colors flex items-center shadow-sm ${
               showSettings
-                ? "bg-emerald-100 text-emerald-700 border-emerald-200"
-                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-800"
+                ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
             }`}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-1.5"
+              className="h-4 w-4 mr-1.5"
               viewBox="0 0 20 20"
               fill="currentColor"
             >
@@ -264,566 +212,163 @@ export const ZakatCalculator: React.FC = () => {
                 clipRule="evenodd"
               />
             </svg>
-            Pengaturan Harga
+            Ubah Harga
           </button>
         </div>
       </div>
 
+      {/* Settings Panel */}
       {showSettings && (
-        <div className="bg-slate-50 rounded-xl border border-emerald-100 p-6 mb-8 animate-fade-in-down">
-          <h3 className="font-bold text-emerald-800 mb-4">
-            Asumsi Harga & Parameter
+        <div className="bg-slate-50 rounded-xl border border-emerald-100 p-6 mb-8 animate-fade-in-down shadow-inner">
+          <h3 className="font-bold text-emerald-800 mb-4 flex items-center">
+            <span className="bg-emerald-200 text-emerald-700 w-6 h-6 rounded-full flex items-center justify-center text-xs mr-2">
+              ⚙️
+            </span>
+            Asumsi Harga Pasar
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label className="block text-sm text-slate-600 mb-1">
-                Harga Emas per Gram
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-2.5 text-slate-500 text-sm">
-                  Rp
-                </span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={
-                    settings.goldPrice === 0
-                      ? ""
-                      : formatNumber(settings.goldPrice)
-                  }
-                  onChange={(e) =>
-                    handleSettingChange(
-                      "goldPrice",
-                      parseInt(e.target.value.replace(/\D/g, "") || "0", 10)
-                    )
-                  }
-                  className="w-full bg-white text-slate-900 border border-slate-300 rounded-md shadow-sm py-2 pl-10 pr-3 focus:ring-emerald-500 focus:border-emerald-500 placeholder-slate-400"
-                />
+            {[
+              {
+                label: "Harga Emas / Gram",
+                key: "goldPrice" as keyof ZakatSettings,
+                hint: "Acuan: Antam",
+              },
+              {
+                label: "Harga Perak / Gram",
+                key: "silverPrice" as keyof ZakatSettings,
+                hint: "",
+              },
+              {
+                label: "Harga Beras / Kg",
+                key: "ricePrice" as keyof ZakatSettings,
+                hint: "Beras kualitas sedang/baik",
+              },
+            ].map((field) => (
+              <div key={field.key}>
+                <label className="block text-sm text-slate-600 mb-1 font-medium">
+                  {field.label}
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-slate-400 text-sm font-bold">
+                    Rp
+                  </span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={
+                      settings[field.key] === 0
+                        ? ""
+                        : formatNumber(settings[field.key] as number)
+                    }
+                    onChange={(e) =>
+                      handleSettingChange(
+                        field.key,
+                        parseInt(e.target.value.replace(/\D/g, "") || "0", 10)
+                      )
+                    }
+                    className="w-full bg-white text-slate-900 border border-slate-300 rounded-lg shadow-sm py-2.5 pl-10 pr-3 focus:ring-emerald-500 focus:border-emerald-500 font-medium"
+                  />
+                </div>
+                {field.hint && (
+                  <p className="text-xs text-slate-400 mt-1">{field.hint}</p>
+                )}
               </div>
-              <p className="text-xs text-slate-400 mt-1">
-                Acuan: Antam atau harga pasar.
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm text-slate-600 mb-1">
-                Harga Perak per Gram
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-2.5 text-slate-500 text-sm">
-                  Rp
-                </span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={
-                    settings.silverPrice === 0
-                      ? ""
-                      : formatNumber(settings.silverPrice)
-                  }
-                  onChange={(e) =>
-                    handleSettingChange(
-                      "silverPrice",
-                      parseInt(e.target.value.replace(/\D/g, "") || "0", 10)
-                    )
-                  }
-                  className="w-full bg-white text-slate-900 border border-slate-300 rounded-md shadow-sm py-2 pl-10 pr-3 focus:ring-emerald-500 focus:border-emerald-500 placeholder-slate-400"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm text-slate-600 mb-1">
-                Harga Beras per Kg
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-2.5 text-slate-500 text-sm">
-                  Rp
-                </span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={
-                    settings.ricePrice === 0
-                      ? ""
-                      : formatNumber(settings.ricePrice)
-                  }
-                  onChange={(e) =>
-                    handleSettingChange(
-                      "ricePrice",
-                      parseInt(e.target.value.replace(/\D/g, "") || "0", 10)
-                    )
-                  }
-                  className="w-full bg-white text-slate-900 border border-slate-300 rounded-md shadow-sm py-2 pl-10 pr-3 focus:ring-emerald-500 focus:border-emerald-500 placeholder-slate-400"
-                />
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 md:gap-8">
+        {/* Navigation: Horizontal Scroll on Mobile, Vertical on Desktop */}
         <div className="lg:col-span-1">
-          <nav className="flex flex-col space-y-1">
+          <nav
+            className="flex lg:flex-col overflow-x-auto pb-2 lg:pb-0 lg:sticky lg:top-24 space-x-2 lg:space-x-0 lg:space-y-2 no-scrollbar"
+            aria-label="Tabs"
+          >
             {TABS.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-3 text-left text-sm font-medium rounded-lg transition-colors ${
+                className={`whitespace-nowrap px-4 py-3 text-sm font-medium rounded-xl transition-all flex items-center flex-shrink-0 ${
                   activeTab === tab.id
-                    ? "bg-emerald-600 text-white shadow-md"
-                    : "bg-white text-slate-600 hover:bg-emerald-50"
+                    ? "bg-emerald-600 text-white shadow-md shadow-emerald-200 lg:translate-x-2"
+                    : "bg-white text-slate-600 border border-slate-100 hover:bg-emerald-50 hover:text-emerald-700"
                 }`}
               >
+                <span className="mr-2">{tab.icon}</span>
                 {tab.label}
               </button>
             ))}
           </nav>
         </div>
 
-        <div className="lg:col-span-3 bg-white rounded-2xl shadow-lg border border-slate-200 min-h-[500px] p-6">
+        {/* Main Content Area */}
+        <div className="lg:col-span-3 bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 min-h-[500px] p-6 md:p-8 relative">
           {activeTab === "fitrah" && (
-            <div className="space-y-6 animate-fade-in">
-              <h2 className="text-2xl font-bold text-emerald-800">
-                Zakat Fitrah
-              </h2>
-              <p className="text-slate-600">
-                Wajib bagi setiap Muslim yang mampu pada bulan Ramadhan. Besaran
-                umum 2.5 kg beras atau setara uang.
-              </p>
-              <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-100">
-                <ZakatInputField
-                  label="Jumlah Orang"
-                  value={state.fitrahPeople}
-                  onChange={(v) => handleInputChange("fitrahPeople", v)}
-                  type="number"
-                />
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Metode Pembayaran
-                  </label>
-                  <div className="flex space-x-4">
-                    <label className="flex items-center cursor-pointer">
-                      <input
-                        type="radio"
-                        name="fitrahMethod"
-                        checked={state.fitrahMethod === "money"}
-                        onChange={() =>
-                          setState({ ...state, fitrahMethod: "money" })
-                        }
-                        className="text-emerald-600 focus:ring-emerald-500"
-                      />
-                      <span className="ml-2">Uang (Rp)</span>
-                    </label>
-                    <label className="flex items-center cursor-pointer">
-                      <input
-                        type="radio"
-                        name="fitrahMethod"
-                        checked={state.fitrahMethod === "rice"}
-                        onChange={() =>
-                          setState({ ...state, fitrahMethod: "rice" })
-                        }
-                        className="text-emerald-600 focus:ring-emerald-500"
-                      />
-                      <span className="ml-2">Beras (Kg)</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-              <ViewSummaryButton onClick={goToSummary} />
-            </div>
+            <FitrahView
+              state={state}
+              settings={settings}
+              onChange={handleInputChange}
+              onNext={goToSummary}
+            />
           )}
-
           {activeTab === "maal" && (
-            <div className="space-y-6 animate-fade-in">
-              <h2 className="text-2xl font-bold text-emerald-800">
-                Zakat Maal (Harta Simpanan)
-              </h2>
-              <p className="text-slate-600">
-                Dikenakan pada harta yang tersimpan selama 1 tahun (haul) dan
-                mencapai nisab (setara 85g emas).
-              </p>
-              <div className="grid md:grid-cols-2 gap-6">
-                <ZakatInputField
-                  label="Uang Tunai / Tabungan"
-                  value={state.cash}
-                  onChange={(v) => handleInputChange("cash", v)}
-                />
-                <ZakatInputField
-                  label="Tabungan Berjangka / Deposito"
-                  value={state.savings}
-                  onChange={(v) => handleInputChange("savings", v)}
-                />
-                <ZakatInputField
-                  label="Investasi (Saham, Reksadana, Emas Digital)"
-                  value={state.investments}
-                  onChange={(v) => handleInputChange("investments", v)}
-                />
-                <ZakatInputField
-                  label="Aset Lain (Properti Sewa, dll)"
-                  value={state.otherAssets}
-                  onChange={(v) => handleInputChange("otherAssets", v)}
-                />
-                <div className="md:col-span-2">
-                  <ZakatInputField
-                    label="Hutang Jatuh Tempo (Pengurang)"
-                    sublabel="Hutang yang harus segera dibayar mengurangi kewajiban zakat."
-                    value={state.debts}
-                    onChange={(v) => handleInputChange("debts", v)}
-                  />
-                </div>
-
-                <div className="md:col-span-2 pt-4 mt-2 border-t border-slate-100">
-                  <h3 className="font-bold text-emerald-700 mb-2">
-                    Zakat Rikaz (Barang Temuan/Hadiah)
-                  </h3>
-                  <p className="text-xs text-slate-500 mb-2">
-                    Tarif 20% (1/5). Dikenakan untuk harta karun temuan atau
-                    hadiah undian tak terduga.
-                  </p>
-                  <ZakatInputField
-                    label="Nilai Barang Temuan / Hadiah"
-                    value={state.rikazValue}
-                    onChange={(v) => handleInputChange("rikazValue", v)}
-                  />
-                </div>
-              </div>
-              <NisabStatus
-                value={netMaalAssets}
-                nisab={nisabGoldValue}
-                label="Zakat Maal"
-              />
-              <ViewSummaryButton onClick={goToSummary} />
-            </div>
+            <MaalView
+              state={state}
+              settings={settings}
+              onChange={handleInputChange}
+              onNext={goToSummary}
+            />
           )}
-
           {activeTab === "gold" && (
-            <div className="space-y-6 animate-fade-in">
-              <h2 className="text-2xl font-bold text-emerald-800">
-                Zakat Emas & Perak
-              </h2>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <ZakatInputField
-                    label="Berat Emas (Gram)"
-                    sublabel="Nisab: 85 gram"
-                    value={state.goldWeight}
-                    onChange={(v) => handleInputChange("goldWeight", v)}
-                    type="number"
-                  />
-                  <NisabStatus
-                    value={state.goldWeight}
-                    nisab={85}
-                    label="Emas"
-                    unit="gram"
-                  />
-                </div>
-                <div>
-                  <ZakatInputField
-                    label="Berat Perak (Gram)"
-                    sublabel="Nisab: 595 gram"
-                    value={state.silverWeight}
-                    onChange={(v) => handleInputChange("silverWeight", v)}
-                    type="number"
-                  />
-                  <NisabStatus
-                    value={state.silverWeight}
-                    nisab={595}
-                    label="Perak"
-                    unit="gram"
-                  />
-                </div>
-              </div>
-              <ViewSummaryButton onClick={goToSummary} />
-            </div>
+            <GoldSilverView
+              state={state}
+              settings={settings}
+              onChange={handleInputChange}
+              onNext={goToSummary}
+            />
           )}
-
           {activeTab === "business" && (
-            <div className="space-y-6 animate-fade-in">
-              <h2 className="text-2xl font-bold text-emerald-800">
-                Zakat Perniagaan
-              </h2>
-              <p className="text-slate-600">
-                Dihitung dari aset lancar usaha dikurangi hutang jangka pendek.
-                Nisab setara 85g emas.
-              </p>
-              <div className="grid md:grid-cols-1 gap-4">
-                <ZakatInputField
-                  label="Nilai Aset Lancar (Kas, Bank)"
-                  value={state.bizAssets}
-                  onChange={(v) => handleInputChange("bizAssets", v)}
-                />
-                <ZakatInputField
-                  label="Nilai Stok Barang / Persediaan"
-                  value={state.bizInventory}
-                  onChange={(v) => handleInputChange("bizInventory", v)}
-                />
-                <ZakatInputField
-                  label="Hutang Usaha Jatuh Tempo"
-                  value={state.bizLiabilities}
-                  onChange={(v) => handleInputChange("bizLiabilities", v)}
-                />
-              </div>
-              <NisabStatus
-                value={netBusinessAssets}
-                nisab={nisabGoldValue}
-                label="Zakat Perniagaan"
-              />
-              <ViewSummaryButton onClick={goToSummary} />
-            </div>
+            <BusinessView
+              state={state}
+              settings={settings}
+              onChange={handleInputChange}
+              onNext={goToSummary}
+            />
           )}
-
           {activeTab === "agri" && (
-            <div className="space-y-6 animate-fade-in">
-              <h2 className="text-2xl font-bold text-emerald-800">
-                Zakat Pertanian
-              </h2>
-              <p className="text-slate-600">
-                Dibayarkan saat panen. Nisab setara 5 wasaq (±653 kg gabah atau
-                ±524 kg beras).
-              </p>
-              <ZakatInputField
-                label="Nilai Hasil Panen (Rupiah)"
-                sublabel="Konversikan total hasil panen ke Rupiah"
-                value={state.agriHarvest}
-                onChange={(v) => handleInputChange("agriHarvest", v)}
-              />
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Sistem Pengairan
-                </label>
-                <select
-                  className="w-full border border-slate-300 rounded-md shadow-sm py-2 px-3"
-                  value={state.agriMethod}
-                  onChange={(e) =>
-                    setState({ ...state, agriMethod: e.target.value as any })
-                  }
-                >
-                  <option value="natural">
-                    Alami / Tadah Hujan (Tarif 10%)
-                  </option>
-                  <option value="artificial">
-                    Irigasi / Berbiaya (Tarif 5%)
-                  </option>
-                </select>
-              </div>
-              <NisabStatus
-                value={state.agriHarvest}
-                nisab={653 * settings.ricePrice}
-                label="Pertanian"
-              />
-              <ViewSummaryButton onClick={goToSummary} />
-            </div>
+            <AgricultureView
+              state={state}
+              settings={settings}
+              onChange={handleInputChange}
+              onNext={goToSummary}
+            />
           )}
-
           {activeTab === "livestock" && (
-            <div className="space-y-6 animate-fade-in">
-              <h2 className="text-2xl font-bold text-emerald-800">
-                Zakat Peternakan
-              </h2>
-              <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 text-sm text-yellow-800 mb-4">
-                <strong>Mode Sederhana:</strong> Perhitungan di bawah ini
-                menggunakan pendekatan nilai komersial (Qiyas Zakat Perniagaan)
-                sebesar 2.5%. Untuk perhitungan konvensional berdasarkan jumlah
-                ekor, disarankan berkonsultasi langsung dengan amil zakat.
-              </div>
-              <ZakatInputField
-                label="Total Nilai Hewan Ternak (Rp)"
-                value={state.livestockValue}
-                onChange={(v) => handleInputChange("livestockValue", v)}
-              />
-              <NisabStatus
-                value={state.livestockValue}
-                nisab={nisabGoldValue}
-                label="Peternakan"
-              />
-              <ViewSummaryButton onClick={goToSummary} />
-            </div>
+            <LivestockView
+              state={state}
+              settings={settings}
+              onChange={handleInputChange}
+              onNext={goToSummary}
+            />
           )}
-
-          {activeTab === "summary" && result && (
-            <div className="space-y-6 animate-fade-in">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                  <h2 className="text-2xl font-bold text-slate-800">
-                    Ringkasan & Kwitansi
-                  </h2>
-                  <p className="text-slate-500 text-sm">
-                    Dibuat pada:{" "}
-                    {new Date(result.timestamp).toLocaleDateString("id-ID", {
-                      weekday: "long",
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleSaveHistory}
-                    className="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium flex items-center shadow-sm transition-colors"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 mr-2"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
-                      />
-                    </svg>
-                    Simpan Riwayat
-                  </button>
-                  <button
-                    onClick={handleDownloadPDF}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center shadow-sm transition-colors"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 mr-2"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                      />
-                    </svg>
-                    Unduh PDF
-                  </button>
-                </div>
-              </div>
-
-              <div
-                ref={receiptRef}
-                className="bg-white border-2 border-slate-100 rounded-xl p-8 shadow-sm print:shadow-none print:border-black"
-              >
-                <div className="border-b-2 border-emerald-500 pb-4 mb-6 flex justify-between items-center">
-                  <div>
-                    <h3 className="text-2xl font-extrabold text-emerald-800 tracking-tight">
-                      NIZAMY
-                    </h3>
-                    <p className="text-emerald-600 font-medium">
-                      Kalkulator Zakat Mandiri
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  {result.items.length === 0 && (
-                    <p className="text-center text-slate-500 py-4 italic">
-                      Belum ada data zakat yang dimasukkan. Silakan isi form
-                      pada tab terkait.
-                    </p>
-                  )}
-
-                  {result.items.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex justify-between items-start py-3 border-b border-slate-100 last:border-0"
-                    >
-                      <div className="flex-1 pr-4">
-                        <h4 className="font-bold text-slate-700">
-                          {item.label}
-                        </h4>
-                        <p className="text-xs text-slate-500 mt-1">
-                          {item.note}
-                        </p>
-                        {!item.isNisabReached && item.id !== "fitrah" && (
-                          <span className="inline-block mt-1 px-2 py-0.5 bg-slate-100 text-slate-500 text-xs rounded font-medium">
-                            Belum mencapai nisab (Tidak wajib)
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-right">
-                        <p
-                          className={`font-mono font-bold ${
-                            item.zakatAmount > 0
-                              ? "text-slate-800"
-                              : "text-slate-300"
-                          }`}
-                        >
-                          {item.formattedValue
-                            ? item.formattedValue
-                            : formatCurrency(item.zakatAmount)}
-                        </p>
-                        {item.rate > 0 && (
-                          <p className="text-xs text-slate-400">
-                            Rate: {(item.rate * 100).toFixed(1)}%
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-8 pt-6 border-t-2 border-slate-800">
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-bold text-slate-800">
-                      TOTAL ZAKAT
-                    </span>
-                    <span className="text-xl sm:text-2xl font-extrabold text-emerald-600 text-right pl-2">
-                      {result.formattedTotal}
-                    </span>
-                  </div>
-                  <p className="text-right text-xs text-slate-500 mt-1 italic">
-                    "Ambillah zakat dari sebagian harta mereka, dengan zakat itu
-                    kamu membersihkan dan mensucikan mereka..." (At-Taubah: 103)
-                  </p>
-                </div>
-              </div>
-
-              {history.length > 0 && (
-                <div className="mt-12 pt-8 border-t border-slate-200">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-bold text-slate-700">
-                      Riwayat Tersimpan
-                    </h3>
-                    <button
-                      onClick={handleClearHistory}
-                      className="text-xs text-red-600 hover:text-red-800 font-medium"
-                    >
-                      Hapus Semua
-                    </button>
-                  </div>
-                  <div className="grid gap-3 max-h-60 overflow-y-auto">
-                    {history.map((entry) => (
-                      <div
-                        key={entry.id}
-                        className="bg-slate-50 p-3 rounded-lg border border-slate-100 flex justify-between items-center hover:bg-slate-100 transition-colors"
-                      >
-                        <div>
-                          <p className="font-bold text-emerald-700">
-                            {entry.result.formattedTotal}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            {entry.timestamp}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => handleLoadHistory(entry)}
-                          className="text-sm text-emerald-600 hover:underline px-2"
-                        >
-                          Muat Ulang
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+          {activeTab === "summary" && (
+            <SummaryView
+              result={result}
+              history={history}
+              onSaveHistory={handleSaveHistory}
+              onDownloadPDF={handleDownloadPDF}
+              onClearHistory={handleClearHistory}
+              onLoadHistory={handleLoadHistory}
+              receiptRef={receiptRef}
+            />
           )}
         </div>
       </div>
+
       <FAQ
-        title="Pertanyaan Umum (FAQ) Zakat"
-        subtitle="Pelajari lebih lanjut tentang Nisab, Haul, dan jenis-jenis Zakat."
+        title="FAQ Zakat"
+        subtitle="Pelajari lebih lanjut tentang Nisab & Haul."
         data={ZAKAT_FAQ}
       />
     </div>

@@ -31,27 +31,27 @@ export const HafalanTutorialModal: React.FC<{ onClose: () => void }> = ({
   const content = [
     {
       title: "Ahlan wa Sahlan!",
-      desc: "Bayangkan aplikasi ini sebagai 'Asisten Pribadi' hafalanmu. Kamu tidak perlu pusing mencatat manual kapan harus mengulang ayat. Biarkan sistem pintar kami yang mengatur jadwalnya untukmu.",
+      desc: "Anggap aja aplikasi ini kayak 'Asisten Pribadi' hafalan kamu. Gak perlu pusing nyatet manual kapan harus ngulang ayat. Biar sistem pintar kita yang atur jadwalnya.",
       icon: "👋",
     },
     {
-      title: "Mulai dari yang Kecil",
-      desc: "Kunci hafalan kuat adalah 'Sedikit tapi Rutin' (Istiqomah). Jangan langsung banyak. Tambahkan 3-5 ayat dulu per hari. Otak kita butuh waktu untuk memindahkan hafalan ke ingatan jangka panjang.",
+      title: "Mulai Pelan-pelan",
+      desc: "Kunci hafalan kuat itu 'Sedikit tapi Rutin'. Jangan langsung banyak. Tambah 3-5 ayat dulu per hari. Otak kita butuh waktu buat mindahin hafalan ke ingatan jangka panjang.",
       icon: "🌱",
     },
     {
-      title: "Jujur adalah Kunci",
-      desc: "Saat jadwal Murajaah (Mengulang) tiba, bacalah ayat tanpa melihat teks.\n\n• Tekan 'Lancar' jika bacaanmu mengalir tanpa terbata-bata.\n• Tekan 'Lupa' jika kamu sempat berhenti, ragu, atau salah tajwid.",
+      title: "Kuncinya Jujur",
+      desc: "Pas jadwal Murajaah (Mengulang) dateng, baca ayat tanpa ngintip teks.\n\n• Tekan 'Lancar' kalau bacaan kamu ngalir.\n• Tekan 'Lupa' kalau sempet berhenti, ragu, atau salah tajwid.",
       icon: "🔑",
     },
     {
       title: "Kenapa Harus Jujur?",
-      desc: "Jika kamu tekan 'Lupa', asisten ini akan memintamu mengulang lagi besok sampai lancar.\n\nJika 'Lancar', jadwal Murajaah berikutnya akan makin lama (3 hari, 1 minggu, 1 bulan). Inilah rahasia agar hafalan awet selamanya!",
+      desc: "Kalau kamu tekan 'Lupa', asisten ini bakal minta kamu ulang lagi besok sampai lancar.\n\nKalau 'Lancar', jadwal Murajaah berikutnya bakal makin lama (3 hari, seminggu, sebulan). Ini rahasianya biar hafalan awet!",
       icon: "🧠",
     },
     {
-      title: "Siap Menjadi Hafiz?",
-      desc: "Kumpulkan Poin (XP) dan jaga 'Streak' (Hadir Tiap Hari). Jadikan Al-Quran sahabat setiamu setiap hari. Mari kita mulai!",
+      title: "Siap Jadi Hafiz?",
+      desc: "Kumpulin Poin (XP) dan jaga 'Streak' (Hadir Tiap Hari). Jadiin Al-Quran sahabat kamu tiap hari. Yuk kita mulai!",
       icon: "🚀",
     },
   ];
@@ -64,7 +64,7 @@ export const HafalanTutorialModal: React.FC<{ onClose: () => void }> = ({
       <div className="bg-indigo-600 p-6 text-center relative">
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-white/60 hover:text-white transition-colors p-1"
+          className="absolute top-3 right-3 text-white/60 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10"
           aria-label="Tutup Tutorial"
         >
           <svg
@@ -92,8 +92,8 @@ export const HafalanTutorialModal: React.FC<{ onClose: () => void }> = ({
           {current.desc}
         </p>
 
-        <div className="flex justify-between items-center">
-          <div className="flex space-x-1.5">
+        <div className="flex flex-col gap-6">
+          <div className="flex justify-center space-x-1.5">
             {content.map((_, i) => (
               <div
                 key={i}
@@ -103,12 +103,24 @@ export const HafalanTutorialModal: React.FC<{ onClose: () => void }> = ({
               />
             ))}
           </div>
-          <button
-            onClick={() => (step < totalSteps ? setStep(step + 1) : onClose())}
-            className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-200 hover:shadow-xl transform hover:-translate-y-0.5"
-          >
-            {step < totalSteps ? "Lanjut →" : "Bismillah, Mulai!"}
-          </button>
+
+          <div className="flex items-center justify-between gap-4">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-slate-400 hover:text-slate-600 font-semibold text-sm transition-colors"
+            >
+              Lewati
+            </button>
+
+            <button
+              onClick={() =>
+                step < totalSteps ? setStep(step + 1) : onClose()
+              }
+              className="flex-1 sm:flex-none px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-200 hover:shadow-xl transform hover:-translate-y-0.5 text-center"
+            >
+              {step < totalSteps ? "Lanjut →" : "Bismillah, Mulai!"}
+            </button>
+          </div>
         </div>
       </div>
     </Modal>
@@ -175,8 +187,8 @@ export const HafalanDetailModal: React.FC<DetailModalProps> = ({
         </div>
 
         <p className="text-xs text-slate-500 italic text-center">
-          Ingin membaca ulang atau tes mandiri tanpa mengubah jadwal? Gunakan
-          mode latihan.
+          Pengen baca ulang atau tes mandiri tanpa ngubah jadwal? Pake mode
+          latihan aja.
         </p>
 
         <div className="flex gap-3 pt-2">
@@ -292,8 +304,8 @@ export const HafalanSettingsModal: React.FC<SettingsModalProps> = ({
             ))}
           </div>
           <p className="text-xs text-slate-500 mt-2 italic">
-            Mengubah level akan menyesuaikan batas maksimal penambahan ayat
-            harian Anda. Data hafalan lama tidak akan hilang.
+            Ubah level bakal nyesuain batas maksimal ayat harian kamu. Tenang
+            aja, data lama gak akan ilang kok.
           </p>
         </div>
 

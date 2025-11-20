@@ -194,27 +194,27 @@ export const HAFALAN_FAQ = [
   {
     question: "Apa itu metode SRS (Spaced Repetition System)?",
     answer:
-      "Bayangkan SRS sebagai 'Asisten Pribadi' yang tahu persis kapan Anda mulai lupa.\n\nAlih-alih mengulang semua hafalan setiap hari (yang melelahkan), metode ini hanya akan menyodorkan ayat-ayat yang hampir Anda lupakan.\n\n• Jika lancar, jadwal murajaah berikutnya akan semakin lama (3 hari, 7 hari, dst).\n• Jika lupa, akan sering diulang besoknya.\n\nHasilnya: Hafalan menempel kuat (mutqin) dengan waktu belajar yang jauh lebih hemat & efisien.",
+      "Coba bayangin SRS itu kayak 'Asisten Pribadi' yang tahu banget kapan kamu mulai lupa.\n\nDaripada kamu capek mengulang semua hafalan tiap hari, metode ini cuma bakal nyodorin ayat-ayat yang udah mau kamu lupain aja.\n\n• Kalau lancar, jadwal murajaah berikutnya bakal makin lama (3 hari, 7 hari, dst).\n• Kalau lupa, besoknya bakal disuruh ulang lagi.\n\nHasilnya: Hafalan nempel kuat (mutqin) tapi waktu belajar kamu jadi jauh lebih hemat.",
   },
   {
-    question: "Kapan saja jadwal murajaah akan muncul?",
+    question: "Kapan aja jadwal murajaah bakal muncul?",
     answer:
-      "Di aplikasi ini, jadwal murajaah diatur sebagai berikut:\n• Hari ke-0: Hafalan Baru\n• Hari ke-1: Murajaah Pertama\n• Hari ke-3: Murajaah Kedua\n• Hari ke-7: Murajaah Ketiga\n• Hari ke-14: Murajaah Keempat\n• Hari ke-30: Murajaah Kelima (Mutqin/Lancar)\n\nJika Anda berhasil menjawab 'Lancar', ayat akan naik ke level berikutnya. Jika 'Lupa', ayat akan kembali ke level awal (Besok).",
+      "Di aplikasi ini, jadwalnya gini:\n• Hari ke-0: Hafalan Baru\n• Hari ke-1: Murajaah Pertama\n• Hari ke-3: Murajaah Kedua\n• Hari ke-7: Murajaah Ketiga\n• Hari ke-14: Murajaah Keempat\n• Hari ke-30: Murajaah Kelima (Mutqin/Lancar)\n\nKalau kamu jawab 'Lancar', ayatnya naik level. Kalau 'Lupa', balik lagi ke level awal (Besok).",
   },
   {
-    question: "Apa bedanya tombol 'Lancar' dan 'Lupa' saat murajaah?",
+    question: "Apa bedanya tombol 'Lancar' sama 'Lupa'?",
     answer:
-      "Kejujuran adalah kunci metode ini.\n• Pilih 'Lancar' jika Anda bisa membaca ayat tersebut tanpa melihat teks dan tanpa terbata-bata.\n• Pilih 'Lupa / Salah' jika Anda melakukan kesalahan tajwid, lupa sambungan ayat, atau perlu melihat teks.\n\nJika memilih 'Lupa', sistem akan meminta Anda mengulang lagi besok untuk memperkuat ingatan.",
+      "Jujur itu kuncinya, ya!\n• Pilih 'Lancar' kalau kamu bisa baca ayat itu tanpa ngintip teks dan tanpa terbata-bata.\n• Pilih 'Lupa / Salah' kalau ada salah tajwid, lupa sambungan ayat, atau harus ngintip teks.\n\nKalau pilih 'Lupa', sistem bakal minta kamu ulang lagi besok biar makin kuat ingatannya.",
   },
   {
-    question: "Apakah saya boleh menghafal lebih dari batas limit level saya?",
+    question: "Boleh nggak ngafal lebih dari batas limit level?",
     answer:
-      "Kami membatasi jumlah ayat per sesi (5/10/20 ayat) sesuai level kemampuan untuk mencegah 'Burnout' (kelelahan mental). Hafalan yang sedikit tapi rutin (istiqomah) jauh lebih baik dan bertahan lama daripada menghafal banyak tapi cepat lupa.",
+      "Kami batasin jumlah ayat per sesi (5/10/20 ayat) sesuai level biar kamu nggak 'Burnout' (kecapekan mental). Hafalan dikit tapi rutin (istiqomah) itu jauh lebih berkah dan awet daripada ngafal banyak tapi cepet hilang.",
   },
   {
-    question: "Bagaimana cara menaikkan Level Gamification?",
+    question: "Gimana cara naikin Level Gamification?",
     answer:
-      "Anda mendapatkan XP (Poin) dari setiap aktivitas:\n• +10 XP: Menambah hafalan baru.\n• +5 XP: Berhasil murajaah ayat dengan status 'Lancar'.\n• +1 XP: Murajaah ayat meski status 'Lupa'.\n\nLevel Anda akan naik seiring bertambahnya total XP. Tetap semangat!",
+      "Kamu dapet XP (Poin) dari sini:\n• +10 XP: Nambah hafalan baru.\n• +5 XP: Berhasil murajaah dengan status 'Lancar'.\n• +1 XP: Murajaah walau statusnya 'Lupa' (Usaha tetep dihitung!).\n\nLevel kamu bakal naik seiring terkumpulnya XP. Semangat terus ya!",
   },
 ];
 

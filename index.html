@@ -3,7 +3,6 @@
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light">
     <title>NIZAMY: Aplikasi Ibadah Islam (Waris, Zakat, Hafalan)</title>
@@ -27,28 +26,13 @@
     <meta property="twitter:description" content="Satu aplikasi untuk semua kebutuhan: Hitung Waris, Bayar Zakat, dan Jaga Hafalan Al-Quran.">
     <meta property="twitter:image" content="https://nizamy.com/og-image.png">
     
-    <!-- Kitab Font for Quran Text -->
-    <style>
-      @font-face {
-        font-family: 'Kitab';
-        src: url('https://cdn.alquran.cloud/public/fonts/Kitab-Regular.woff2') format('woff2'),
-             url('https://cdn.alquran.cloud/public/fonts/Kitab-Regular.woff') format('woff'),
-             url('https://cdn.alquran.cloud/public/fonts/Kitab-Regular.ttf') format('truetype');
-        font-weight: normal;
-        font-style: normal;
-        font-display: swap;
-      }
-      @font-face {
-        font-family: 'Kitab';
-        src: url('https://cdn.alquran.cloud/public/fonts/Kitab-Bold.woff2') format('woff2'),
-             url('https://cdn.alquran.cloud/public/fonts/Kitab-Bold.woff') format('woff'),
-             url('https://cdn.alquran.cloud/public/fonts/Kitab-Bold.ttf') format('truetype');
-        font-weight: bold;
-        font-style: normal;
-        font-display: swap;
-      }
+      <!-- Google Fonts: Inter & Amiri (Arabic) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-            /* Custom Scrollbar */
+    <style>
+                  /* Custom Scrollbar */
       .custom-scrollbar::-webkit-scrollbar {
         width: 8px;
       }
@@ -104,30 +88,13 @@
             fontFamily: {
               'sans': ['Inter', 'sans-serif'],
               'serif': ['Georgia', 'Cambria', 'Times New Roman', 'Times', 'serif'],
-              'arabic': ['Kitab', '"Traditional Arabic"', 'Arial', 'sans-serif']
+              'arabic': ['Amiri', 'Kitab', '"Traditional Arabic"', 'Arial', 'sans-serif']
             }
           }
         }
       };
     </script>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-  <script type="importmap">
-{
-  "imports": {
-    "react/": "https://aistudiocdn.com/react@18.3.1/",
-    "react": "https://aistudiocdn.com/react@18.3.1",
-    "react-dom/client": "https://aistudiocdn.com/react-dom@18.3.1/client",
-    "react-dom/": "https://aistudiocdn.com/react-dom@18.3.1/",
-    "recharts": "https://aistudiocdn.com/recharts@2.12.7",
-    "jspdf": "https://aistudiocdn.com/jspdf@2.5.2", 
-    "html2canvas": "https://aistudiocdn.com/html2canvas@1.4.1"
-  }
-}
-</script>
     <!-- Structured Data (Schema.org) -->
     <script type="application/ld+json">
     {

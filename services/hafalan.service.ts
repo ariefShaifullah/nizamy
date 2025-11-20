@@ -15,6 +15,81 @@ const STORAGE_KEY_USERS = "nizamy_hafalan_users";
 const STORAGE_PREFIX_DATA = "nizamy_hafalan_data_";
 const OLD_STORAGE_KEY = "hafalanState"; // For migration
 
+// --- WEIGHTED SCORE SYSTEM ---
+// Defines verses that are significantly longer than average.
+// Benchmark: 1 Line in Mushaf Madinah ≈ Weight 1.
+// Standard short verse ≈ Weight 1.
+// Al-Baqarah 282 (Full Page/15 Lines) = Weight 15.
+const HEAVY_VERSES: Record<string, number> = {
+  // --- QS. Al-Baqarah (2) ---
+  "2:102": 10, // Harut & Marut (~10 baris)
+  "2:177": 5, // Ayat Al-Birr (~5 baris)
+  "2:196": 10, // Ayat Haji & Dam (~10 baris)
+  "2:217": 7, // Perang di bulan haram (~7 baris)
+  "2:233": 7, // Hukum menyusui (~7 baris)
+  "2:246": 9, // Kisah Thalut (~9 baris)
+  "2:255": 5, // Ayat Kursi (~5 baris)
+  "2:258": 6, // Debat Ibrahim & Namrud (~6 baris)
+  "2:259": 9, // Kisah Uzair (~9 baris)
+  "2:282": 15, // Ayat Dayn / Utang Piutang (1 Halaman Penuh)
+  "2:283": 5, // Lanjutan Dayn/Rihan (~5 baris)
+  "2:284": 3, // Lillahi ma fissamawati... (~3 baris)
+  "2:285": 4, // Amanar Rasul 1 (~4 baris)
+  "2:286": 7, // Amanar Rasul 2 (~7 baris)
+
+  // --- QS. Ali 'Imran (3) ---
+  "3:154": 9, // Tsumma anzala... (~9 baris)
+  "3:164": 4, // Laqad mannallahu... (~4 baris)
+
+  // --- QS. An-Nisa' (4) ---
+  "4:11": 9, // Ayat Waris 1 (~9 baris)
+  "4:12": 9, // Ayat Waris 2 (~9 baris)
+  "4:23": 6, // Mahram wanita (~6 baris)
+  "4:176": 6, // Ayat Kalalah (~6 baris)
+
+  // --- QS. Al-Ma'idah (5) ---
+  "5:3": 7, // Diharamkan bagimu bangkai... (~7 baris)
+
+  // --- QS. Al-An'am (6) ---
+  "6:145": 5, // Qul la ajidu... (~5 baris)
+
+  // --- QS. At-Taubah (9) ---
+  "9:60": 4, // Asnaf Zakat (~4 baris)
+
+  // --- QS. An-Nur (24) ---
+  "24:31": 9, // Ayat Hijab/Menundukkan pandangan (~9 baris)
+  "24:35": 6, // Ayat Cahaya (Allah nurus samawat...) (~6 baris)
+  "24:61": 8, // Adab makan/memasuki rumah (~8 baris)
+
+  // --- QS. Al-Ahzab (33) ---
+  "33:35": 5, // Innal muslimina wal muslimat... (~5 baris)
+  "33:50": 8, // Khususiah Nabi (~8 baris)
+  "33:53": 9, // Adab bertamu ke rumah Nabi (~9 baris)
+
+  // --- QS. Al-Fath (48) ---
+  "48:29": 10, // Muhammadur Rasulullah... (~10 baris)
+
+  // --- QS. Al-Muzzammil (73) ---
+  "73:20": 12, // Inna rabbaka ya'lamu... (Ayat terakhir sangat panjang, ~12 baris)
+};
+
+export const getVerseWeight = (surah: number, ayah: number): number => {
+  return HEAVY_VERSES[`${surah}:${ayah}`] || 1;
+};
+
+// Helper to calculate total weight of an item (sum of all verses in the range)
+export const getItemWeight = (
+  surahNo: number,
+  start: number,
+  end: number
+): number => {
+  let totalWeight = 0;
+  for (let i = start; i <= end; i++) {
+    totalWeight += getVerseWeight(surahNo, i);
+  }
+  return totalWeight;
+};
+
 // --- UTILS ---
 
 export const getLocalYYYYMMDD = (d: Date = new Date()) => {
@@ -214,12 +289,12 @@ export const calculateLevel = (xp: number): number => {
 
 export const getMotivationalQuote = (): string => {
   const quotes = [
-    "Sedikit tapi rutin lebih dicintai Allah. Jalanmu sudah benar.",
-    "Satu ayat yang kau jaga lebih berharga dari dunia dan seisinya.",
-    "Lelahmu dalam menghafal akan menjadi cahaya di alam kubur.",
-    "Teruslah mengulang, karena Al-Quran mudah lepas dari ingatan.",
-    "Allah tidak melihat seberapa cepat kau hafal, tapi seberapa setia kau menjaga.",
-    "Jangan menyerah saat susah, itu tanda otakmu sedang berkembang.",
+    "Sedikit tapi rutin itu lebih dicintai Allah. Jalan kamu udah bener kok.",
+    "Satu ayat yang kamu jaga itu lebih mahal dari dunia seisinya.",
+    "Lelah kamu pas ngafal bakal jadi cahaya nanti.",
+    "Terus ulang aja, Al-Quran emang cepet lepas kalau gak dijaga.",
+    "Allah gak liat seberapa cepet kamu hafal, tapi seberapa setia kamu ngejaganya.",
+    "Jangan nyerah pas susah, itu tandanya otak kamu lagi berkembang.",
   ];
   return quotes[Math.floor(Math.random() * quotes.length)];
 };
@@ -265,18 +340,28 @@ export const processItemReview = (
   const today = getLocalYYYYMMDD();
   updatedItem.lastReviewedDate = today;
 
+  // Calculate Weight Multiplier
+  // e.g. Standard item = 1. Al-Baqarah 282 = 15.
+  const weight = getItemWeight(item.surahNo, item.startAyah, item.endAyah);
+
   if (result === "success") {
     const newStage = Math.min(updatedItem.stage + 1, 5);
     updatedItem.stage = newStage;
     updatedItem.nextReviewDate = getNextReviewDate(newStage);
 
-    if (item.stage === 0) xpGained = 10;
-    else xpGained = 5;
+    if (item.stage === 0) {
+      // New Item: 10 XP * Weight
+      xpGained = 10 * weight;
+    } else {
+      // Review Success: 5 XP * Weight
+      xpGained = 5 * weight;
+    }
   } else {
     updatedItem.stage = 1;
     updatedItem.errorCount += 1;
     updatedItem.nextReviewDate = getNextReviewDate(1);
-    xpGained = 1;
+    // Review Fail: 1 XP * Weight (Effort still counts, especially for long verses)
+    xpGained = 1 * weight;
   }
 
   return { updatedItem, xpGained };
@@ -333,12 +418,15 @@ export const getMaxAyatByLevel = (level: HafalanSkillLevel): number => {
   }
 };
 
-// Calculate how many verses have been added TODAY
-export const getDailyVerseCount = (items: HafalanItem[]): number => {
+// Calculate how many "points" of load have been added TODAY
+// Normal verse = 1 point. Heavy verse (e.g. 2:282) = 15 points.
+export const getDailyLoad = (items: HafalanItem[]): number => {
   const today = getLocalYYYYMMDD();
   return items
     .filter((i) => i.createdAt === today) // Only count items created today (Local Time)
-    .reduce((total, i) => total + (i.endAyah - i.startAyah + 1), 0);
+    .reduce((total, item) => {
+      return total + getItemWeight(item.surahNo, item.startAyah, item.endAyah);
+    }, 0);
 };
 
 export const getAvailableSurahs = (targetJuz: number) => {
@@ -368,6 +456,11 @@ export const getLastMemorizedAyah = (
   return Math.max(...surahItems.map((i) => i.endAyah));
 };
 
+export type ValidationResult =
+  | { status: "error"; message: string }
+  | { status: "warning"; message: string }
+  | { status: "success" };
+
 export const validateNewItem = (
   currentItems: HafalanItem[],
   surahNo: number,
@@ -375,30 +468,15 @@ export const validateNewItem = (
   end: number,
   maxAyahCount: number,
   skillLevel: HafalanSkillLevel
-): { valid: boolean; message?: string } => {
+): ValidationResult => {
   if (start < 1 || end > maxAyahCount || start > end) {
     return {
-      valid: false,
-      message: `Nomor ayat tidak valid. Surat ini memiliki ${maxAyahCount} ayat.`,
+      status: "error",
+      message: `Nomor ayat nggak pas nih. Surat ini cuma punya ${maxAyahCount} ayat.`,
     };
   }
 
-  // Calculate verses being added now
-  const newVerseCount = end - start + 1;
-
-  // Calculate daily limit usage
-  const dailyLimit = getMaxAyatByLevel(skillLevel);
-  const versesAddedToday = getDailyVerseCount(currentItems);
-  const remainingQuota = Math.max(0, dailyLimit - versesAddedToday);
-
-  if (newVerseCount > remainingQuota) {
-    return {
-      valid: false,
-      message: `Kuota harian habis. Anda sudah menambah ${versesAddedToday}/${dailyLimit} ayat hari ini. Level ${skillLevel} hanya mengizinkan maksimal ${dailyLimit} ayat per hari.`,
-    };
-  }
-
-  // Strict Overlap Check
+  // Strict Overlap Check (BLOCKING)
   const isStrictOverlap = currentItems.some(
     (item) =>
       item.surahNo === surahNo &&
@@ -407,12 +485,49 @@ export const validateNewItem = (
 
   if (isStrictOverlap) {
     return {
-      valid: false,
-      message: "Ayat ini sudah ada dalam daftar hafalan Anda.",
+      status: "error",
+      message: "Ayat ini udah masuk daftar hafalan kamu.",
     };
   }
 
-  return { valid: true };
+  // Calculate LOAD (Weighted Score) for the new selection
+  const newLoad = getItemWeight(surahNo, start, end);
+  const hasHeavyVerse = newLoad > end - start + 1; // If load > count, it contains heavy verses
+
+  // Calculate Remaining Quota based on LOAD
+  const dailyLimit = getMaxAyatByLevel(skillLevel);
+  const currentDailyLoad = getDailyLoad(currentItems);
+  const remainingQuota = Math.max(0, dailyLimit - currentDailyLoad);
+
+  // Translate Level to UI Label
+  const levelLabel =
+    skillLevel === "beginner"
+      ? "Santai"
+      : skillLevel === "intermediate"
+      ? "Sedang"
+      : "Fokus";
+
+  if (newLoad > remainingQuota) {
+    let msg = "";
+
+    if (hasHeavyVerse) {
+      // Special message for heavy verses like 2:282
+      msg = `Kamu milih ayat yang panjang banget. Beban ini setara ${newLoad} poin. Lewat dari sisa kuota kamu (${remainingQuota}).`;
+    } else {
+      // Standard message
+      msg =
+        remainingQuota <= 0
+          ? `Kuota harian (${dailyLimit} poin) udah habis.`
+          : `Lewat dari sisa kuota kamu (${remainingQuota} ayat).`;
+    }
+
+    return {
+      status: "warning",
+      message: `${msg} Kapasitas sekarang: Mode ${levelLabel}. Yakin mau lanjut?`,
+    };
+  }
+
+  return { status: "success" };
 };
 
 export const fetchQuranVerses = async (

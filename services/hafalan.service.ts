@@ -367,19 +367,92 @@ export const processItemReview = (
   return { updatedItem, xpGained };
 };
 
+// --- ADVANCED BADGE LOGIC ---
+
+// Helper to check if user has at least started ALL surahs in a range
+const hasStartedAllSurahsInRange = (
+  items: HafalanItem[],
+  startSurah: number,
+  endSurah: number
+): boolean => {
+  const distinctSurahs = new Set(items.map((i) => i.surahNo));
+  for (let i = startSurah; i <= endSurah; i++) {
+    if (!distinctSurahs.has(i)) return false;
+  }
+  return true;
+};
+
+// Helper to check if user has started ANY verse from a specific Surah
+const hasStartedSurah = (items: HafalanItem[], surahNo: number): boolean => {
+  return items.some((i) => i.surahNo === surahNo);
+};
+
+// Helper to check if user reviewed a specific Surah TODAY
+const reviewedSurahToday = (items: HafalanItem[], surahNo: number): boolean => {
+  const today = getLocalYYYYMMDD();
+  return items.some(
+    (i) => i.surahNo === surahNo && i.lastReviewedDate === today
+  );
+};
+
 export const checkBadges = (state: HafalanState): string[] => {
   const newBadges: string[] = [];
   const existing = state.gamification.badges;
+  const items = state.items;
+  const now = new Date();
+  const currentHour = now.getHours(); // 0-23
+  const currentDay = now.getDay(); // 0=Sun, 5=Fri
 
-  if (!existing.includes("first_step") && state.items.length > 0) {
-    newBadges.push("first_step");
+  // Helper to safely add badge
+  const award = (id: string) => {
+    if (!existing.includes(id)) newBadges.push(id);
+  };
+
+  // 1. BASIC
+  if (items.length > 0) award("first_step");
+  if (state.gamification.currentStreak >= 7) award("streak_7");
+  if (state.gamification.currentStreak >= 30) award("streak_30");
+
+  // 2. LEVELING
+  if (state.gamification.level >= 10) award("level_10");
+
+  // 3. MASTERY (MUTQIN) - Items at Stage 5
+  const mutqinCount = items.filter((i) => i.stage >= 5).length;
+  if (mutqinCount >= 10) award("mutqin_10");
+  if (mutqinCount >= 50) award("mutqin_50");
+
+  // 4. JUZ MILESTONES (Approximation: Has started all surahs in Juz)
+  // Juz 30: Surah 78-114
+  if (hasStartedAllSurahsInRange(items, 78, 114)) award("juz_30_master");
+
+  // Juz 1: Surah 1-2 (Al-Fatihah & Al-Baqarah)
+  if (hasStartedAllSurahsInRange(items, 1, 2)) award("juz_1_pioneer");
+
+  // Half Quran (Approx 15 Juz)
+  // Rough calc: Quran has 114 Surahs. 15 Juz approx 57 Surahs (very rough but works for gamification)
+  const distinctSurahCount = new Set(items.map((i) => i.surahNo)).size;
+  if (distinctSurahCount >= 57) award("half_quran");
+
+  // Khatam (30 Juz)
+  if (distinctSurahCount === 114) award("khatam_hafiz");
+
+  // 5. POPULAR SURAHS
+  if (hasStartedSurah(items, 67)) award("mulk_master"); // Al-Mulk
+  if (hasStartedSurah(items, 56)) award("waqiah_provider"); // Al-Waqiah
+  if (hasStartedSurah(items, 55)) award("rahman_lover"); // Ar-Rahman
+
+  // 6. CONTEXTUAL (TIME/DAY)
+  // Kahf on Friday (Surah 18, Day 5)
+  // Check if user has REVIEWED Al-Kahf today AND today is Friday
+  if (currentDay === 5 && reviewedSurahToday(items, 18)) {
+    award("kahf_friday");
   }
-  if (!existing.includes("streak_7") && state.gamification.currentStreak >= 7) {
-    newBadges.push("streak_7");
-  }
-  if (!existing.includes("level_5") && state.gamification.level >= 5) {
-    newBadges.push("level_5");
-  }
+
+  // Fajr: 04:00 - 06:00
+  if (currentHour >= 4 && currentHour < 6) award("fajr_warrior");
+
+  // Night Owl (Tahajjud): 00:00 - 03:00
+  if (currentHour >= 0 && currentHour < 3) award("night_owl");
 
   return newBadges;
 };

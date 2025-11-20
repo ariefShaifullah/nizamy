@@ -103,8 +103,23 @@ export const useHafalan = () => {
       setView("user_selection");
     },
     addItem: (item: HafalanItem) => {
-      setState((prev) => ({ ...prev, items: [...prev.items, item] }));
+      // 1. Calculate potential badges with the new item included
+      const tempItems = [...state.items, item];
+      const tempState = { ...state, items: tempItems };
+      const badgesEarned = checkBadges(tempState);
+
+      // 2. Update State
+      setState((prev) => ({
+        ...prev,
+        items: [...prev.items, item],
+        gamification: {
+          ...prev.gamification,
+          badges: [...prev.gamification.badges, ...badgesEarned],
+        },
+      }));
+
       setView("dashboard");
+      return badgesEarned; // Return badges so UI can trigger modal
     },
     startReview: (item: HafalanItem) => {
       setActiveSessionItem(item);

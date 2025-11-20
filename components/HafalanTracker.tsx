@@ -5,6 +5,7 @@ import {
   HafalanTutorialModal,
   HafalanDetailModal,
   HafalanSettingsModal,
+  CelebrationModal,
 } from "./HafalanModals.tsx";
 import { useHafalan } from "../hooks/useHafalan.ts";
 import { exportHafalanToPdf } from "../services/pdf.service.ts";
@@ -22,6 +23,36 @@ import {
   getLocalYYYYMMDD,
 } from "../services/hafalan.service.ts";
 import { formatDate } from "../utils.ts";
+import { audioService } from "../services/audio.service.ts";
+
+// --- TOAST COMPONENT ---
+const Toast = ({
+  message,
+  type,
+  onClose,
+}: {
+  message: string;
+  type: "success" | "info";
+  onClose: () => void;
+}) => {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 3000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div
+      className={`fixed bottom-24 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full shadow-xl z-50 animate-fade-in-up flex items-center gap-2 ${
+        type === "success"
+          ? "bg-emerald-600 text-white"
+          : "bg-slate-800 text-white"
+      }`}
+    >
+      <span>{type === "success" ? "✨" : "ℹ️"}</span>
+      <span className="font-bold text-sm">{message}</span>
+    </div>
+  );
+};
 
 export const HafalanTracker: React.FC = () => {
   const {
@@ -48,6 +79,13 @@ export const HafalanTracker: React.FC = () => {
     null
   );
   const [bypassQuota, setBypassQuota] = useState(false);
+  const [earnedBadgesQueue, setEarnedBadgesQueue] = useState<string[]>([]);
+
+  // Toast State
+  const [toast, setToast] = useState<{
+    msg: string;
+    type: "success" | "info";
+  } | null>(null);
 
   // Form State
   const [selectedSurahNumber, setSelectedSurahNumber] = useState(1);
@@ -175,13 +213,19 @@ export const HafalanTracker: React.FC = () => {
 
   // --- HANDLERS ---
 
+  const showToast = (msg: string, type: "success" | "info" = "success") => {
+    setToast({ msg, type });
+  };
+
   const handleCloseTutorial = () => {
     localStorage.setItem("nizamy_hafalan_tutorial_seen", "true");
     setShowTutorial(false);
+    audioService.playClick();
   };
 
   const handleCreateUser = () => {
     if (!onboardName.trim()) return alert("Nama wajib diisi");
+    audioService.playSuccess();
     actions.createUser(onboardName, onboardLevel, onboardTarget);
     if (onboardTarget === 30) setSelectedSurahNumber(78);
 
@@ -210,32 +254,56 @@ export const HafalanTracker: React.FC = () => {
     );
 
     if (validation.status === "error") {
+      audioService.playFail();
       alert(validation.message);
       return;
     }
 
     // If it's a warning and not forced, show UI warning
     if (validation.status === "warning" && !force) {
+      audioService.playFail();
       setQuotaWarning(validation.message);
       return;
     }
 
-    actions.addItem(
+    // Execute Add Item and Capture Badges
+    const badges = actions.addItem(
       createNewItem(surah.name, surah.number, newAyahStart, newAyahEnd)
     );
+
+    // Check if any badges were earned
+    if (badges && badges.length > 0) {
+      setEarnedBadgesQueue(badges);
+    } else {
+      audioService.playSuccess(); // Regular success sound
+    }
+
     setDashboardTab("list");
     setQuotaWarning(null);
     setBypassQuota(false);
+    showToast("Hafalan Baru Disimpan!", "success");
   };
 
   const handleSubmitReview = (result: "success" | "fail") => {
     const res = actions.submitReview(result);
-    if (res?.badgesEarned.length) {
-      const badgeNames = res.badgesEarned
-        .map((id) => BADGES.find((b) => b.id === id)?.name)
-        .join(", ");
-      alert(`Selamat! Kamu dapet badge baru: ${badgeNames}`);
+
+    if (result === "success") {
+      audioService.playSuccessMajor();
+      showToast(`Murajaah Sukses! +${res?.xpGained} XP`, "success");
+    } else {
+      audioService.playFail(); // Gentle fail sound
+      showToast("Tetap Semangat! +1 XP", "info");
     }
+
+    if (res?.badgesEarned.length) {
+      // Trigger the celebration modal instead of alert
+      setEarnedBadgesQueue(res.badgesEarned);
+    }
+  };
+
+  const handleStartReview = (item: any) => {
+    audioService.playClick();
+    actions.startReview(item);
   };
 
   if (loading)
@@ -260,7 +328,10 @@ export const HafalanTracker: React.FC = () => {
           {usersList.map((user) => (
             <div key={user.id} className="relative group">
               <button
-                onClick={() => actions.selectUser(user.id)}
+                onClick={() => {
+                  audioService.playClick();
+                  actions.selectUser(user.id);
+                }}
                 className="flex flex-col items-center space-y-4 p-8 bg-white rounded-3xl shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 w-48 border border-slate-100"
               >
                 <div
@@ -278,6 +349,7 @@ export const HafalanTracker: React.FC = () => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
+                  audioService.playClick();
                   if (window.confirm(`Hapus ${user.name}?`))
                     actions.deleteUser(user.id);
                 }}
@@ -299,7 +371,10 @@ export const HafalanTracker: React.FC = () => {
             </div>
           ))}
           <button
-            onClick={() => actions.setView("create_user")}
+            onClick={() => {
+              audioService.playClick();
+              actions.setView("create_user");
+            }}
             className="flex flex-col items-center space-y-4 p-8 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-300 hover:border-indigo-400 hover:bg-indigo-50 transition-all w-48 justify-center group"
           >
             <div className="w-24 h-24 rounded-full flex items-center justify-center text-4xl text-slate-400 border-2 border-dashed border-slate-300 bg-white group-hover:text-indigo-400 transition-colors">
@@ -322,7 +397,10 @@ export const HafalanTracker: React.FC = () => {
         <div className="flex items-center mb-8">
           {usersList.length > 0 && (
             <button
-              onClick={() => actions.setView("user_selection")}
+              onClick={() => {
+                audioService.playClick();
+                actions.setView("user_selection");
+              }}
               className="mr-4 text-slate-400 hover:text-slate-600 bg-slate-50 p-2 rounded-full"
             >
               <svg
@@ -367,7 +445,10 @@ export const HafalanTracker: React.FC = () => {
                 (lvl) => (
                   <button
                     key={lvl}
-                    onClick={() => setOnboardLevel(lvl)}
+                    onClick={() => {
+                      audioService.playClick();
+                      setOnboardLevel(lvl);
+                    }}
                     className={`p-4 rounded-xl border-2 flex flex-col items-center justify-center transition-all ${
                       onboardLevel === lvl
                         ? "bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-200"
@@ -439,7 +520,16 @@ export const HafalanTracker: React.FC = () => {
     const isMaxLevel = state.profile.skillLevel === "advanced";
 
     return (
-      <div className="max-w-5xl mx-auto space-y-6 md:space-y-8 animate-fade-in">
+      <div className="max-w-5xl mx-auto space-y-6 md:space-y-8 animate-fade-in pb-12">
+        {/* TOAST NOTIFICATION */}
+        {toast && (
+          <Toast
+            message={toast.msg}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
+
         {showTutorial && <HafalanTutorialModal onClose={handleCloseTutorial} />}
         {showSettings && (
           <HafalanSettingsModal
@@ -448,6 +538,7 @@ export const HafalanTracker: React.FC = () => {
             onSave={(u) => {
               actions.updateProfile(u);
               setShowSettings(false);
+              showToast("Profil Diupdate", "success");
             }}
           />
         )}
@@ -459,6 +550,12 @@ export const HafalanTracker: React.FC = () => {
               actions.startPractice(selectedDetailItem);
               setSelectedDetailItem(null);
             }}
+          />
+        )}
+        {earnedBadgesQueue.length > 0 && (
+          <CelebrationModal
+            badges={earnedBadgesQueue}
+            onClose={() => setEarnedBadgesQueue([])}
           />
         )}
 
@@ -485,7 +582,10 @@ export const HafalanTracker: React.FC = () => {
                 </p>
               </div>
               <button
-                onClick={() => setShowSettings(true)}
+                onClick={() => {
+                  audioService.playClick();
+                  setShowSettings(true);
+                }}
                 className="bg-white/10 p-2 rounded-lg hover:bg-white/20 transition-colors backdrop-blur-sm"
               >
                 <svg
@@ -511,7 +611,7 @@ export const HafalanTracker: React.FC = () => {
               </div>
               <div className="w-full bg-black/20 rounded-full h-2.5 overflow-hidden backdrop-blur-sm">
                 <div
-                  className="bg-gradient-to-r from-amber-400 to-orange-500 h-full rounded-full shadow-[0_0_10px_rgba(251,191,36,0.6)]"
+                  className="bg-gradient-to-r from-amber-400 to-orange-500 h-full rounded-full shadow-[0_0_10px_rgba(251,191,36,0.6)] transition-all duration-1000"
                   style={{ width: `${state.gamification.xp % 100}%` }}
                 ></div>
               </div>
@@ -542,7 +642,10 @@ export const HafalanTracker: React.FC = () => {
           <div className="md:col-span-2 bg-white rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-100 overflow-hidden flex flex-col min-h-[500px]">
             <div className="flex border-b border-slate-100 p-2 bg-slate-50/50">
               <button
-                onClick={() => setDashboardTab("schedule")}
+                onClick={() => {
+                  audioService.playClick();
+                  setDashboardTab("schedule");
+                }}
                 className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${
                   dashboardTab === "schedule"
                     ? "bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200"
@@ -557,7 +660,10 @@ export const HafalanTracker: React.FC = () => {
                 )}
               </button>
               <button
-                onClick={() => setDashboardTab("list")}
+                onClick={() => {
+                  audioService.playClick();
+                  setDashboardTab("list");
+                }}
                 className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${
                   dashboardTab === "list"
                     ? "bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200"
@@ -575,7 +681,10 @@ export const HafalanTracker: React.FC = () => {
                       Murajaah Hari Ini
                     </h3>
                     <button
-                      onClick={() => actions.setView("add_new")}
+                      onClick={() => {
+                        audioService.playClick();
+                        actions.setView("add_new");
+                      }}
                       className="text-sm bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg font-bold hover:bg-indigo-100 transition-colors border border-indigo-100"
                     >
                       + Tambah
@@ -598,7 +707,10 @@ export const HafalanTracker: React.FC = () => {
                         </p>
                       </div>
                       <button
-                        onClick={() => actions.setView("add_new")}
+                        onClick={() => {
+                          audioService.playClick();
+                          actions.setView("add_new");
+                        }}
                         className="bg-indigo-600 text-white px-8 py-3 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 transform hover:-translate-y-1"
                       >
                         + Tambah Hafalan Baru
@@ -630,7 +742,10 @@ export const HafalanTracker: React.FC = () => {
                           )}
 
                           <button
-                            onClick={() => setShowSettings(true)}
+                            onClick={() => {
+                              audioService.playClick();
+                              setShowSettings(true);
+                            }}
                             className="w-full bg-white border-2 border-green-200 text-green-700 px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-green-50 hover:border-green-300 transition-all"
                           >
                             Atur Target Harian
@@ -641,7 +756,10 @@ export const HafalanTracker: React.FC = () => {
                           )}
 
                           <button
-                            onClick={() => actions.setView("add_new")}
+                            onClick={() => {
+                              audioService.playClick();
+                              actions.setView("add_new");
+                            }}
                             className="text-indigo-600 hover:text-indigo-800 text-sm font-medium underline"
                           >
                             Lanjut Menambah (Override)
@@ -649,7 +767,10 @@ export const HafalanTracker: React.FC = () => {
                         </div>
                       ) : (
                         <button
-                          onClick={() => actions.setView("add_new")}
+                          onClick={() => {
+                            audioService.playClick();
+                            actions.setView("add_new");
+                          }}
                           className="bg-white border border-slate-300 text-slate-700 px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all"
                         >
                           Tambah Hafalan Baru
@@ -684,7 +805,7 @@ export const HafalanTracker: React.FC = () => {
                             </p>
                           </div>
                           <button
-                            onClick={() => actions.startReview(item)}
+                            onClick={() => handleStartReview(item)}
                             className="w-full sm:w-auto bg-indigo-50 text-indigo-600 px-6 py-3 rounded-xl text-sm font-bold group-hover:bg-indigo-600 group-hover:text-white transition-all active:scale-95"
                           >
                             Mulai &rarr;
@@ -700,7 +821,10 @@ export const HafalanTracker: React.FC = () => {
                     <h3 className="font-bold text-slate-800">Daftar Hafalan</h3>
                     <div className="flex gap-2">
                       <button
-                        onClick={() => exportHafalanToPdf(state)}
+                        onClick={() => {
+                          audioService.playClick();
+                          exportHafalanToPdf(state);
+                        }}
                         className="text-xs bg-slate-50 text-slate-600 px-3 py-1.5 rounded-lg font-bold hover:bg-slate-100 border border-slate-200 flex items-center"
                       >
                         PDF
@@ -716,7 +840,10 @@ export const HafalanTracker: React.FC = () => {
                       allItems.map((item) => (
                         <div
                           key={item.id}
-                          onClick={() => setSelectedDetailItem(item)}
+                          onClick={() => {
+                            audioService.playClick();
+                            setSelectedDetailItem(item);
+                          }}
                           className="p-4 rounded-2xl border flex justify-between items-center cursor-pointer hover:shadow-md transition-all bg-white border-slate-100 hover:border-indigo-200 group"
                         >
                           <div>
@@ -809,7 +936,10 @@ export const HafalanTracker: React.FC = () => {
             </div>
 
             <button
-              onClick={actions.logout}
+              onClick={() => {
+                audioService.playClick();
+                actions.logout();
+              }}
               className="w-full py-3 rounded-2xl border border-slate-200 text-slate-500 text-sm font-bold hover:bg-slate-50 transition-colors"
             >
               Ganti Akun / Keluar
@@ -863,7 +993,10 @@ export const HafalanTracker: React.FC = () => {
             )}
           </div>
           <button
-            onClick={() => actions.setView("dashboard")}
+            onClick={() => {
+              audioService.playClick();
+              actions.setView("dashboard");
+            }}
             className="bg-slate-100 p-2 rounded-full text-slate-500 hover:bg-slate-200"
           >
             <svg
@@ -895,6 +1028,7 @@ export const HafalanTracker: React.FC = () => {
             </p>
             <button
               onClick={() => {
+                audioService.playClick();
                 actions.setView("dashboard");
                 setDashboardTab("schedule");
               }}
@@ -907,7 +1041,7 @@ export const HafalanTracker: React.FC = () => {
           // Soft Blocking UI - Allows Override
           <div className="text-center py-8 px-4 bg-indigo-50 rounded-2xl border border-indigo-100">
             <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-3xl mx-auto mb-4 shadow-sm">
-              ⚠️
+              🛑
             </div>
             <h4 className="text-lg font-bold text-indigo-900 mb-2">
               Kuota Harian Penuh
@@ -920,6 +1054,7 @@ export const HafalanTracker: React.FC = () => {
 
             <button
               onClick={() => {
+                audioService.playClick();
                 setShowSettings(true);
                 actions.setView("dashboard");
               }}
@@ -929,14 +1064,20 @@ export const HafalanTracker: React.FC = () => {
             </button>
 
             <button
-              onClick={() => setBypassQuota(true)}
+              onClick={() => {
+                audioService.playClick();
+                setBypassQuota(true);
+              }}
               className="mt-4 text-sm font-bold text-indigo-500 hover:text-indigo-700 underline block w-full"
             >
               Tetap Lanjut (Override)
             </button>
 
             <button
-              onClick={() => actions.setView("dashboard")}
+              onClick={() => {
+                audioService.playClick();
+                actions.setView("dashboard");
+              }}
               className="mt-3 text-sm font-bold text-slate-500 hover:text-slate-700 block w-full"
             >
               Balik ke Dashboard
@@ -1101,7 +1242,10 @@ export const HafalanTracker: React.FC = () => {
               {isPracticeMode ? "Mode Latihan" : "Mode Hafalan"}
             </div>
             <button
-              onClick={() => actions.setView("dashboard")}
+              onClick={() => {
+                audioService.playClick();
+                actions.setView("dashboard");
+              }}
               className="text-slate-400 hover:text-slate-600 hover:bg-slate-50 px-3 py-1.5 rounded-full transition-colors flex items-center text-sm font-medium"
             >
               Keluar
@@ -1176,7 +1320,10 @@ export const HafalanTracker: React.FC = () => {
           <div className="p-4 md:p-8 bg-white md:bg-transparent border-t border-slate-100 md:border-0 z-20 mt-auto">
             {isPracticeMode ? (
               <button
-                onClick={actions.finishPractice}
+                onClick={() => {
+                  audioService.playClick();
+                  actions.finishPractice();
+                }}
                 className="w-full py-4 bg-teal-600 text-white font-bold rounded-2xl hover:bg-teal-700 shadow-lg shadow-teal-200 active:scale-95 transition-all text-lg"
               >
                 Selesai Membaca

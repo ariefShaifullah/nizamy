@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal } from "./Modal.tsx";
 import type {
   HafalanItem,
   HafalanProfile,
   HafalanSkillLevel,
 } from "../types.ts";
+import { BADGES } from "../constants.ts";
+import { audioService } from "../services/audio.service.ts";
 
 // --- HELPER ---
 const formatSafeDate = (dateStr: string) => {
@@ -113,9 +115,10 @@ export const HafalanTutorialModal: React.FC<{ onClose: () => void }> = ({
             </button>
 
             <button
-              onClick={() =>
-                step < totalSteps ? setStep(step + 1) : onClose()
-              }
+              onClick={() => {
+                audioService.playClick();
+                step < totalSteps ? setStep(step + 1) : onClose();
+              }}
               className="flex-1 sm:flex-none px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-200 hover:shadow-xl transform hover:-translate-y-0.5 text-center"
             >
               {step < totalSteps ? "Lanjut →" : "Bismillah, Mulai!"}
@@ -279,7 +282,10 @@ export const HafalanSettingsModal: React.FC<SettingsModalProps> = ({
             {(["beginner", "intermediate", "advanced"] as const).map((lvl) => (
               <button
                 key={lvl}
-                onClick={() => setLevel(lvl)}
+                onClick={() => {
+                  audioService.playClick();
+                  setLevel(lvl);
+                }}
                 className={`p-3 rounded-lg border text-sm transition-colors ${
                   level === lvl
                     ? "bg-indigo-600 text-white border-indigo-600"
@@ -330,6 +336,89 @@ export const HafalanSettingsModal: React.FC<SettingsModalProps> = ({
           className="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition-colors"
         >
           Simpan Perubahan
+        </button>
+      </div>
+    </Modal>
+  );
+};
+
+// --- CELEBRATION MODAL (NEW) ---
+interface CelebrationModalProps {
+  badges: string[];
+  onClose: () => void;
+}
+
+export const CelebrationModal: React.FC<CelebrationModalProps> = ({
+  badges,
+  onClose,
+}) => {
+  // Play Sound on Mount
+  useEffect(() => {
+    audioService.playBadgeUnlock();
+  }, []);
+
+  // Find badge details
+  const earnedBadges = badges
+    .map((id) => BADGES.find((b) => b.id === id))
+    .filter(Boolean);
+
+  if (earnedBadges.length === 0) return null;
+
+  return (
+    <Modal isOpen={true} maxWidth="max-w-sm">
+      <div className="text-center p-6 relative overflow-hidden">
+        {/* Simple CSS Confetti Background effect */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-50">
+          <div
+            className="absolute top-[-10px] left-[20%] w-2 h-2 bg-red-400 rounded-full animate-bounce"
+            style={{ animationDuration: "2s" }}
+          ></div>
+          <div
+            className="absolute top-[-10px] left-[50%] w-2 h-2 bg-yellow-400 rounded-full animate-bounce"
+            style={{ animationDuration: "1.5s", animationDelay: "0.2s" }}
+          ></div>
+          <div
+            className="absolute top-[-10px] left-[80%] w-2 h-2 bg-blue-400 rounded-full animate-bounce"
+            style={{ animationDuration: "2.2s", animationDelay: "0.5s" }}
+          ></div>
+        </div>
+
+        <div className="w-24 h-24 mx-auto bg-yellow-100 rounded-full flex items-center justify-center text-5xl mb-4 shadow-lg border-4 border-yellow-200 animate-pulse">
+          🏆
+        </div>
+
+        <h2 className="text-2xl font-extrabold text-slate-800 mb-1">
+          Masya Allah!
+        </h2>
+        <p className="text-slate-500 text-sm mb-6">
+          Kamu baru saja membuka pencapaian baru.
+        </p>
+
+        <div className="space-y-3 mb-8">
+          {earnedBadges.map((badge, idx) => (
+            <div
+              key={idx}
+              className="bg-gradient-to-r from-indigo-50 to-white p-4 rounded-xl border border-indigo-100 flex items-center gap-4 text-left shadow-sm transform hover:scale-105 transition-transform"
+            >
+              <div className="text-3xl filter drop-shadow-sm">
+                {badge?.icon}
+              </div>
+              <div>
+                <h4 className="font-bold text-indigo-900">{badge?.name}</h4>
+                <p className="text-xs text-slate-500">{badge?.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <button
+          onClick={() => {
+            audioService.playClick();
+            onClose();
+          }}
+          className="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 active:scale-95"
+        >
+          Alhamdulillah, Lanjut!
         </button>
       </div>
     </Modal>

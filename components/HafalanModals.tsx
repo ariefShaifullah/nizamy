@@ -61,7 +61,27 @@ export const HafalanTutorialModal: React.FC<{ onClose: () => void }> = ({
 
   return (
     <Modal isOpen={true} maxWidth="max-w-md">
-      <div className="bg-indigo-600 p-6 text-center">
+      <div className="bg-indigo-600 p-6 text-center relative">
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 text-white/60 hover:text-white transition-colors p-1"
+          aria-label="Tutup Tutorial"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
         <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-4xl mx-auto mb-3 backdrop-blur-md border border-white/30 animate-bounce-slow">
           {current.icon}
         </div>
@@ -241,7 +261,7 @@ export const HafalanSettingsModal: React.FC<SettingsModalProps> = ({
 
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">
-            Target Harian (Level)
+            Beban Harian (Kecepatan)
           </label>
           <div className="grid grid-cols-3 gap-3">
             {(["beginner", "intermediate", "advanced"] as const).map((lvl) => (
@@ -256,17 +276,17 @@ export const HafalanSettingsModal: React.FC<SettingsModalProps> = ({
               >
                 <span className="capitalize block font-bold">
                   {lvl === "beginner"
-                    ? "Pemula"
+                    ? "Santai"
                     : lvl === "intermediate"
-                    ? "Menengah"
-                    : "Mahir"}
+                    ? "Sedang"
+                    : "Fokus"}
                 </span>
                 <span className="text-[10px] opacity-80">
                   {lvl === "beginner"
-                    ? "Max 5 Ayat"
+                    ? "Ringan (5 Ayat)"
                     : lvl === "intermediate"
-                    ? "Max 10 Ayat"
-                    : "Max 20 Ayat"}
+                    ? "Normal (10 Ayat)"
+                    : "Intensif (20 Ayat)"}
                 </span>
               </button>
             ))}
@@ -287,9 +307,9 @@ export const HafalanSettingsModal: React.FC<SettingsModalProps> = ({
             onChange={(e) => setTarget(Number(e.target.value))}
           >
             <option value={30}>Juz 30 (Juz Amma)</option>
-            <option value={1}>1 Juz (Bebas)</option>
-            <option value={5}>5 Juz</option>
-            <option value={30}>30 Juz (Khatam)</option>
+            <option value={29}>Juz 29 (Tabarak)</option>
+            <option value={1}>Juz 1 (Al-Baqarah)</option>
+            <option value={114}>30 Juz (Khatam)</option>
           </select>
         </div>
 

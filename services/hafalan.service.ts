@@ -342,9 +342,20 @@ export const getDailyVerseCount = (items: HafalanItem[]): number => {
 };
 
 export const getAvailableSurahs = (targetJuz: number) => {
+  // Filter Strictly based on Juz Target
   if (targetJuz === 30) {
-    return SURAH_DATA.filter((s) => s.number >= 78);
+    // Juz 30: An-Naba (78) to An-Nas (114)
+    return SURAH_DATA.filter((s) => s.number >= 78 && s.number <= 114);
   }
+  if (targetJuz === 29) {
+    // Juz 29: Al-Mulk (67) to Al-Mursalat (77)
+    return SURAH_DATA.filter((s) => s.number >= 67 && s.number <= 77);
+  }
+  if (targetJuz === 1) {
+    // Juz 1: Al-Fatihah (1) to Al-Baqarah (2) [Simplified, usually ends at 141]
+    return SURAH_DATA.filter((s) => s.number === 1 || s.number === 2);
+  }
+  // Default / Khatam (114) -> All Surahs
   return SURAH_DATA;
 };
 

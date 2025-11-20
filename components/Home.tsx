@@ -118,7 +118,7 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
       </div>
 
       <div className="mt-16 text-center border-t border-slate-200 pt-8">
-        <div className="inline-flex items-center space-x-2 bg-yellow-50 px-4 py-2 rounded-full border border-yellow-100 text-xs text-yellow-800 shadow-sm">
+        <div className="inline-flex items-center space-x-2 bg-slate-50 px-4 py-2 rounded-full border border-slate-200 text-xs text-slate-500">
           <IconContext.Provider value={{ className: "h-3 w-3" }}>
             <FaLock />
           </IconContext.Provider>

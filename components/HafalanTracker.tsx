@@ -64,16 +64,36 @@ export const HafalanTracker: React.FC = () => {
 
   // Tutorial Trigger
   useEffect(() => {
-    if (view === "dashboard" && state.items.length === 0 && !showTutorial)
+    const hasSeenTutorial = localStorage.getItem(
+      "nizamy_hafalan_tutorial_seen"
+    );
+    // Only show if dashboard, no items, and hasn't been seen/dismissed yet
+    if (
+      view === "dashboard" &&
+      state.items.length === 0 &&
+      !showTutorial &&
+      !hasSeenTutorial
+    ) {
       setShowTutorial(true);
+    }
   }, [view, state.items.length]);
 
   // Auto-set Form Data (Continuity Logic)
   useEffect(() => {
     if (view === "add_new" && state.profile) {
-      const lastAyah = getLastMemorizedAyah(state.items, selectedSurahNumber);
+      // Ensure selectedSurahNumber is valid for the current target
+      const availableSurahs = getAvailableSurahs(state.profile.targetJuz);
+      let currentSurahNum = selectedSurahNumber;
+
+      // If currently selected surah is not in the available list, reset to the first available
+      if (!availableSurahs.find((s) => s.number === currentSurahNum)) {
+        currentSurahNum = availableSurahs[0].number;
+        setSelectedSurahNumber(currentSurahNum);
+      }
+
+      const lastAyah = getLastMemorizedAyah(state.items, currentSurahNum);
       const nextStart = lastAyah + 1;
-      const surah = SURAH_DATA.find((s) => s.number === selectedSurahNumber);
+      const surah = SURAH_DATA.find((s) => s.number === currentSurahNum);
 
       // 1. Suggest Start Verse (but allow edit)
       if (surah && nextStart > surah.verses) {
@@ -169,6 +189,11 @@ export const HafalanTracker: React.FC = () => {
   }, [view, activeSessionItem]);
 
   // --- HANDLERS ---
+
+  const handleCloseTutorial = () => {
+    localStorage.setItem("nizamy_hafalan_tutorial_seen", "true");
+    setShowTutorial(false);
+  };
 
   const handleCreateUser = () => {
     if (!onboardName.trim()) return alert("Nama wajib diisi");
@@ -335,7 +360,7 @@ export const HafalanTracker: React.FC = () => {
           </div>
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-2">
-              Tingkat Kemampuan
+              Beban Harian (Kecepatan)
             </label>
             <div className="grid grid-cols-3 gap-3">
               {(["beginner", "intermediate", "advanced"] as const).map(
@@ -351,17 +376,17 @@ export const HafalanTracker: React.FC = () => {
                   >
                     <span className="capitalize font-bold text-sm md:text-base">
                       {lvl === "beginner"
-                        ? "Pemula"
+                        ? "Santai"
                         : lvl === "intermediate"
-                        ? "Menengah"
-                        : "Mahir"}
+                        ? "Sedang"
+                        : "Fokus"}
                     </span>
                     <span className="text-[10px] md:text-xs mt-1 opacity-90">
                       {lvl === "beginner"
-                        ? "5 Ayat/Hari"
+                        ? "Ringan (5 Ayat)"
                         : lvl === "intermediate"
-                        ? "10 Ayat/Hari"
-                        : "20 Ayat/Hari"}
+                        ? "Normal (10 Ayat)"
+                        : "Intensif (20 Ayat)"}
                     </span>
                   </button>
                 )
@@ -378,10 +403,13 @@ export const HafalanTracker: React.FC = () => {
               onChange={(e) => setOnboardTarget(Number(e.target.value))}
             >
               <option value={30}>Juz 30 (Juz Amma)</option>
-              <option value={1}>1 Juz (Bebas)</option>
-              <option value={5}>5 Juz</option>
-              <option value={30}>30 Juz (Khatam)</option>
+              <option value={29}>Juz 29 (Tabarak)</option>
+              <option value={1}>Juz 1 (Al-Baqarah)</option>
+              <option value={114}>30 Juz (Khatam)</option>
             </select>
+            <p className="text-xs text-slate-400 mt-1 ml-1 italic">
+              Pilihan surat akan disesuaikan dengan target ini.
+            </p>
           </div>
           <button
             onClick={handleCreateUser}
@@ -412,9 +440,7 @@ export const HafalanTracker: React.FC = () => {
 
     return (
       <div className="max-w-5xl mx-auto space-y-6 md:space-y-8 animate-fade-in">
-        {showTutorial && (
-          <HafalanTutorialModal onClose={() => setShowTutorial(false)} />
-        )}
+        {showTutorial && <HafalanTutorialModal onClose={handleCloseTutorial} />}
         {showSettings && (
           <HafalanSettingsModal
             currentProfile={state.profile}
@@ -599,7 +625,7 @@ export const HafalanTracker: React.FC = () => {
                         <div className="flex flex-col gap-3 w-full max-w-xs">
                           {isMaxLevel && (
                             <div className="bg-green-100 text-green-800 px-4 py-2 rounded-lg text-xs font-medium border border-green-200 mb-1">
-                              Performa Luar Biasa (Level Mahir)!
+                              Performa Luar Biasa (Level Fokus)!
                             </div>
                           )}
 

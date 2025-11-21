@@ -34,7 +34,7 @@ interface DashboardProps {
   onClearBadges: () => void;
 }
 
-type TabView = "schedule" | "list" | "profile";
+type TabView = "schedule" | "list" | "profile" | "guide";
 
 export const Dashboard: React.FC<DashboardProps> = ({
   state,
@@ -48,8 +48,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onClearBadges,
 }) => {
   // Unified tab state.
-  // On Mobile: switches between 3 views.
-  // On Desktop: 'profile' view maps to 'schedule' for the main content area (sidebar always visible).
   const [activeTab, setActiveTab] = useState<TabView>("schedule");
 
   const [showTutorial, setShowTutorial] = useState(false);
@@ -73,8 +71,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const isQuotaFull = dailyRemaining === 0;
   const isMaxLevel = profile.skillLevel === "advanced";
 
-  // Desktop Compatibility: If tab is 'profile', desktop shows 'schedule' for content
-  const desktopContentTab = activeTab === "profile" ? "schedule" : activeTab;
+  // Desktop Compatibility: If tab is 'profile' or 'guide', desktop shows 'schedule' for content
+  const desktopContentTab =
+    activeTab === "profile" || activeTab === "guide" ? "schedule" : activeTab;
 
   useEffect(() => {
     const hasSeenTutorial = localStorage.getItem(
@@ -99,7 +98,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   );
 
   return (
-    <div className="max-w-5xl mx-auto space-y-4 md:space-y-8 animate-fade-in pb-24 md:pb-12">
+    <div className="max-w-5xl mx-auto space-y-4 md:space-y-8 animate-fade-in pb-20 md:pb-12">
       {showTutorial && <HafalanTutorialModal onClose={handleCloseTutorial} />}
 
       {showSettings && (
@@ -215,10 +214,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* --- MAIN CONTENT GRID --- */}
       <div className="md:grid md:grid-cols-3 gap-6">
         {/* LEFT COL: MAIN CONTENT (Tasks & List) */}
-        {/* On Mobile: Show only if tab is NOT profile */}
+        {/* On Mobile: Show only if tab is NOT profile and NOT guide */}
         <div
           className={`md:col-span-2 bg-white md:rounded-3xl shadow-sm md:shadow-lg md:shadow-slate-200/50 border-y md:border border-slate-100 overflow-hidden flex flex-col min-h-[500px] ${
-            activeTab === "profile" ? "hidden md:flex" : "flex"
+            activeTab === "profile" || activeTab === "guide"
+              ? "hidden md:flex"
+              : "flex"
           }`}
         >
           {/* Desktop Tabs (Hidden on Mobile) */}
@@ -558,22 +559,33 @@ export const Dashboard: React.FC<DashboardProps> = ({
             Ganti Akun / Keluar
           </button>
         </div>
+
+        {/* MOBILE GUIDE TAB */}
+        <div
+          className={`${activeTab === "guide" ? "block" : "hidden md:hidden"}`}
+        >
+          <FAQ
+            title="Panduan"
+            subtitle="Metode SRS NIZAMY"
+            data={HAFALAN_FAQ}
+          />
+        </div>
       </div>
 
-      {/* FAQ MOVED HERE: VISIBLE ON DESKTOP BOTTOM AND MOBILE BOTTOM */}
-      <div className="block mt-8">
+      {/* FAQ VISIBLE ON DESKTOP BOTTOM ONLY */}
+      <div className="hidden md:block mt-8">
         <FAQ title="Panduan" subtitle="Metode SRS NIZAMY" data={HAFALAN_FAQ} />
       </div>
 
       {/* --- FAB (FLOATING ACTION BUTTON) --- */}
-      {/* Only visible on Mobile when NOT in Profile tab */}
+      {/* Only visible on Mobile when NOT in Profile or Guide tab */}
       <button
         onClick={() => {
           audioService.playClick();
           onAddClick();
         }}
         className={`md:hidden fixed bottom-24 right-4 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-xl shadow-indigo-500/40 flex items-center justify-center z-40 transition-transform active:scale-90 hover:scale-105 ${
-          activeTab === "profile" ? "hidden" : "flex"
+          activeTab === "profile" || activeTab === "guide" ? "hidden" : "flex"
         }`}
         aria-label="Tambah Hafalan"
       >
@@ -594,13 +606,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
       </button>
 
       {/* --- MOBILE BOTTOM NAVIGATION --- */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 pb-safe px-6 py-2 z-50 flex justify-between items-center shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 pb-safe px-2 py-2 z-50 flex justify-between items-center shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
         <button
           onClick={() => {
             audioService.playClick();
             setActiveTab("schedule");
           }}
-          className={`flex flex-col items-center p-2 rounded-xl transition-all ${
+          className={`flex-1 flex flex-col items-center p-2 rounded-xl transition-all ${
             activeTab === "schedule"
               ? "text-indigo-600 bg-indigo-50"
               : "text-slate-400 hover:text-slate-600"
@@ -628,7 +640,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             audioService.playClick();
             setActiveTab("list");
           }}
-          className={`flex flex-col items-center p-2 rounded-xl transition-all ${
+          className={`flex-1 flex flex-col items-center p-2 rounded-xl transition-all ${
             activeTab === "list"
               ? "text-indigo-600 bg-indigo-50"
               : "text-slate-400 hover:text-slate-600"
@@ -654,9 +666,37 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <button
           onClick={() => {
             audioService.playClick();
+            setActiveTab("guide");
+          }}
+          className={`flex-1 flex flex-col items-center p-2 rounded-xl transition-all ${
+            activeTab === "guide"
+              ? "text-indigo-600 bg-indigo-50"
+              : "text-slate-400 hover:text-slate-600"
+          }`}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6 mb-1"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+            />
+          </svg>
+          <span className="text-[10px] font-bold uppercase">Panduan</span>
+        </button>
+
+        <button
+          onClick={() => {
+            audioService.playClick();
             setActiveTab("profile");
           }}
-          className={`flex flex-col items-center p-2 rounded-xl transition-all ${
+          className={`flex-1 flex flex-col items-center p-2 rounded-xl transition-all ${
             activeTab === "profile"
               ? "text-indigo-600 bg-indigo-50"
               : "text-slate-400 hover:text-slate-600"

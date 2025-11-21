@@ -65,6 +65,7 @@ export const ZakatCalculator: React.FC = () => {
   const [history, setHistory] = useState<ZakatHistoryEntry[]>([]);
   const [showSettings, setShowSettings] = useState(false);
   const receiptRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLDivElement>(null);
 
   // Load from LocalStorage
   useEffect(() => {
@@ -141,7 +142,22 @@ export const ZakatCalculator: React.FC = () => {
     }
   };
 
-  const goToSummary = () => setActiveTab("summary");
+  const goToSummary = () => {
+    setActiveTab("summary");
+    // Scroll nav to end to show Summary tab
+    if (navRef.current) {
+      navRef.current.scrollTo({
+        left: navRef.current.scrollWidth,
+        behavior: "smooth",
+      });
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleSwitchTab = (id: string) => {
+    setActiveTab(id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const handleDownloadPDF = () => {
     if (receiptRef.current) {
@@ -153,19 +169,20 @@ export const ZakatCalculator: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto animate-fade-in">
-      <div className="text-center mb-8">
+    <div className="max-w-7xl mx-auto animate-fade-in pb-0 lg:pb-12">
+      {/* Header - Hidden on Mobile to save space */}
+      <div className="hidden lg:block text-center mb-8">
         <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-emerald-900 sm:text-5xl">
           Kalkulator Zakat
         </h1>
-        <p className="mt-3 max-w-2xl mx-auto text-base md:text-lg text-slate-600">
+        <p className="mt-3 max-w-2xl mx-auto text-base md:text-lg text-slate-600 px-4">
           Hitung <strong>Zakat Fitrah</strong> dan <strong>Maal</strong> akurat
           sesuai Nisab & Haul.
         </p>
       </div>
 
       {/* Settings Bar */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-6 flex flex-col md:flex-row justify-between items-center gap-4 mt-4 lg:mt-0">
         <div className="flex flex-wrap justify-center md:justify-start gap-2 md:gap-6 text-sm w-full md:w-auto">
           <div className="flex items-center bg-emerald-50/50 px-3 py-2 rounded-lg border border-emerald-100">
             <span className="text-slate-500 mr-2 text-xs md:text-sm">
@@ -280,32 +297,35 @@ export const ZakatCalculator: React.FC = () => {
 
       {/* Main Layout: Flexbox for Better Responsive Control */}
       <div className="flex flex-col lg:flex-row gap-6 md:gap-8 items-start">
-        {/* Navigation: Horizontal on Mobile, Vertical Fixed on Desktop */}
-        <div className="w-full lg:w-64 flex-shrink-0">
-          {/* Added hide-scrollbar class here to remove scrollbar visually while keeping functionality */}
-          <nav
-            className="flex lg:flex-col overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 lg:sticky lg:top-24 space-x-2 lg:space-x-0 lg:space-y-2 hide-scrollbar"
+        {/* Navigation: Horizontal Chips on Mobile, Vertical Fixed on Desktop */}
+        <div className="w-full lg:w-64 flex-shrink-0 sticky top-0 lg:top-24 z-30 bg-slate-50/95 lg:bg-transparent backdrop-blur-sm lg:backdrop-blur-none py-2 lg:py-0 -mx-4 px-4 lg:mx-0 lg:px-0 border-b border-slate-200 lg:border-0">
+          <div
+            ref={navRef}
+            className="flex lg:flex-col overflow-x-auto lg:overflow-visible space-x-2 lg:space-x-0 lg:space-y-2 hide-scrollbar py-1"
             aria-label="Tabs"
           >
             {TABS.map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`whitespace-nowrap px-4 py-3 text-sm font-medium rounded-xl transition-all flex items-center flex-shrink-0 ${
+                onClick={() => handleSwitchTab(tab.id)}
+                className={`whitespace-nowrap px-4 py-2.5 text-sm font-bold rounded-full lg:rounded-xl transition-all flex items-center flex-shrink-0 border ${
                   activeTab === tab.id
-                    ? "bg-emerald-600 text-white shadow-md shadow-emerald-200 lg:translate-x-2"
-                    : "bg-white text-slate-600 border border-slate-100 hover:bg-emerald-50 hover:text-emerald-700"
+                    ? "bg-emerald-600 text-white shadow-md shadow-emerald-200 border-emerald-600 lg:translate-x-2"
+                    : "bg-white text-slate-600 border-slate-200 hover:bg-emerald-50 hover:text-emerald-700"
                 }`}
               >
                 <span className="mr-2">{tab.icon}</span>
                 {tab.label}
               </button>
             ))}
-          </nav>
+            {/* Spacer for mobile scroll */}
+            <div className="w-4 flex-shrink-0 lg:hidden"></div>
+          </div>
         </div>
 
-        {/* Main Content Area: Flex-1 with min-w-0 to prevent overflow */}
-        <div className="flex-1 min-w-0 bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 min-h-[500px] p-6 md:p-8 relative">
+        {/* Main Content Area */}
+        {/* Added w-full to prevent shrinking on mobile. Removed forced min-h on mobile to prevent extra scroll */}
+        <div className="flex-1 w-full min-w-0 bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 md:min-h-[500px] p-5 md:p-8 relative">
           {activeTab === "fitrah" && (
             <FitrahView
               state={state}
@@ -368,11 +388,14 @@ export const ZakatCalculator: React.FC = () => {
         </div>
       </div>
 
-      <FAQ
-        title="FAQ Zakat"
-        subtitle="Pelajari lebih lanjut tentang Nisab & Haul."
-        data={ZAKAT_FAQ}
-      />
+      {/* FAQ SECTION - HIDDEN ON MOBILE */}
+      <div className="hidden lg:block">
+        <FAQ
+          title="FAQ Zakat"
+          subtitle="Pelajari lebih lanjut tentang Nisab & Haul."
+          data={ZAKAT_FAQ}
+        />
+      </div>
     </div>
   );
 };

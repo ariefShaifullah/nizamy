@@ -29,7 +29,7 @@ export default function App() {
         document.title = `${baseTitle} | Hafalan Quran Tracker (SRS)`;
         break;
       default:
-        document.title = `${baseTitle}: Aplikasi Ibadah Islam`;
+        document.title = `${baseTitle}: Aplikasi Ibadah Islam (Waris, Zakat, Hafalan)`;
     }
   }, [view]);
 
@@ -45,7 +45,7 @@ export default function App() {
   return (
     <div className={`min-h-screen font-sans flex flex-col ${bgClass}`}>
       <Header view={view} setView={setView} />
-      <main className="container mx-auto px-4 py-8 flex-grow">
+      <main className="container mx-auto px-4 py-4 md:py-8 flex-grow">
         {view === "home" && <Home setView={setView} />}
         {view === "faraidh" && <FaraidhCalculator />}
         {view === "zakat" && <ZakatCalculator />}

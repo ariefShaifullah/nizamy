@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React from "react";
 import type {
   ZakatState,
   ZakatSettings,
@@ -13,42 +13,55 @@ import { exportZakatToPdf } from "../../services/pdf.service.ts";
 // --- SHARED COMPONENTS ---
 
 export const ViewSummaryButton = ({ onClick }: { onClick: () => void }) => (
-  <div className="mt-8 pt-4 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 animate-fade-in">
-    <p className="text-sm text-slate-500 italic flex items-center">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-4 w-4 mr-1 text-emerald-500"
-        viewBox="0 0 20 20"
-        fill="currentColor"
+  <div className="mt-8 pb-4 md:pb-0 animate-fade-in">
+    {/* Desktop View: Static Button */}
+    <div className="hidden md:flex pt-4 border-t border-slate-100 justify-between items-center gap-4">
+      <p className="text-sm text-slate-500 italic flex items-center">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-4 w-4 mr-1 text-emerald-500"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fillRule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+            clipRule="evenodd"
+          />
+        </svg>
+        Data tersimpan otomatis.
+      </p>
+      <button
+        onClick={onClick}
+        className="group flex items-center justify-center px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200/50 font-bold text-sm"
       >
-        <path
-          fillRule="evenodd"
-          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-          clipRule="evenodd"
-        />
-      </svg>
-      Data tersimpan otomatis.
-    </p>
-    <button
-      onClick={onClick}
-      className="group flex items-center px-5 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all shadow-sm hover:shadow-md font-medium w-full sm:w-auto justify-center"
-    >
-      Lihat Hasil di Ringkasan
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
+        Lihat Hasil
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M14 5l7 7m0 0l-7 7m7-7H3"
+          />
+        </svg>
+      </button>
+    </div>
+
+    {/* Mobile View: Sticky Bottom Bar */}
+    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 z-40 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+      <button
+        onClick={onClick}
+        className="w-full flex items-center justify-center px-6 py-3.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all active:scale-95 font-bold text-base shadow-md"
       >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          d="M14 5l7 7m0 0l-7 7m7-7H3"
-        />
-      </svg>
-    </button>
+        Lihat Hasil
+      </button>
+    </div>
   </div>
 );
 
@@ -62,43 +75,54 @@ interface TabProps {
 }
 
 export const FitrahView: React.FC<TabProps> = ({ state, onChange, onNext }) => (
-  <div className="space-y-6 animate-fade-in">
-    <h2 className="text-2xl font-bold text-emerald-800">Zakat Fitrah</h2>
-    <p className="text-slate-600">
-      Wajib bagi setiap Muslim yang mampu pada bulan Ramadhan. Besaran umum 2.5
-      kg beras atau setara uang.
-    </p>
-    <div className="bg-emerald-50 p-6 rounded-xl border border-emerald-100">
+  <div className="space-y-6 animate-fade-in pb-20 md:pb-0">
+    <div className="md:hidden mb-2">
+      <h2 className="text-lg font-bold text-emerald-800">Zakat Fitrah</h2>
+      <p className="text-slate-500 text-xs">Wajib di bulan Ramadhan.</p>
+    </div>
+    <div className="hidden md:block">
+      <h2 className="text-2xl font-bold text-emerald-800">Zakat Fitrah</h2>
+      <p className="text-slate-600">
+        Wajib bagi setiap Muslim yang mampu pada bulan Ramadhan.
+      </p>
+    </div>
+
+    <div className="bg-emerald-50 p-4 md:p-6 rounded-2xl border border-emerald-100 w-full">
       <ZakatInputField
         label="Jumlah Orang"
         value={state.fitrahPeople}
         onChange={(v) => onChange("fitrahPeople", v)}
         type="number"
       />
-      <div className="mt-4">
+      <div className="mt-4 w-full">
         <label className="block text-sm font-medium text-slate-700 mb-2">
           Metode Pembayaran
         </label>
-        <div className="flex space-x-4">
-          <label className="flex items-center cursor-pointer bg-white px-4 py-2 rounded-lg border border-emerald-200 hover:bg-emerald-50 transition-colors">
+        {/* Force full width on mobile with w-full and flex-col */}
+        <div className="flex flex-col sm:flex-row gap-3 w-full">
+          <label className="relative flex items-center w-full cursor-pointer bg-white px-4 py-3 rounded-xl border border-emerald-200 hover:bg-emerald-50 transition-colors shadow-sm">
             <input
               type="radio"
               name="fitrahMethod"
               checked={state.fitrahMethod === "money"}
               onChange={() => onChange("fitrahMethod", "money")}
-              className="text-emerald-600 focus:ring-emerald-500"
+              className="text-emerald-600 focus:ring-emerald-500 w-5 h-5"
             />
-            <span className="ml-2 font-medium text-slate-700">Uang (Rp)</span>
+            <span className="ml-3 font-bold text-slate-700 flex-1">
+              Uang (Rp)
+            </span>
           </label>
-          <label className="flex items-center cursor-pointer bg-white px-4 py-2 rounded-lg border border-emerald-200 hover:bg-emerald-50 transition-colors">
+          <label className="relative flex items-center w-full cursor-pointer bg-white px-4 py-3 rounded-xl border border-emerald-200 hover:bg-emerald-50 transition-colors shadow-sm">
             <input
               type="radio"
               name="fitrahMethod"
               checked={state.fitrahMethod === "rice"}
               onChange={() => onChange("fitrahMethod", "rice")}
-              className="text-emerald-600 focus:ring-emerald-500"
+              className="text-emerald-600 focus:ring-emerald-500 w-5 h-5"
             />
-            <span className="ml-2 font-medium text-slate-700">Beras (Kg)</span>
+            <span className="ml-3 font-bold text-slate-700 flex-1">
+              Beras (Kg)
+            </span>
           </label>
         </div>
       </div>
@@ -124,16 +148,22 @@ export const MaalView: React.FC<TabProps> = ({
   const nisabGoldValue = 85 * settings.goldPrice;
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <h2 className="text-2xl font-bold text-emerald-800">
-        Zakat Maal (Harta Simpanan)
-      </h2>
-      <p className="text-slate-600">
-        Dikenakan pada harta yang tersimpan selama 1 tahun (haul) dan mencapai
-        nisab (setara 85g emas).
-      </p>
+    <div className="space-y-6 animate-fade-in pb-20 md:pb-0">
+      <div className="md:hidden mb-2">
+        <h2 className="text-lg font-bold text-emerald-800">Zakat Maal</h2>
+        <p className="text-slate-500 text-xs">Harta simpanan 1 tahun (Haul).</p>
+      </div>
+      <div className="hidden md:block">
+        <h2 className="text-2xl font-bold text-emerald-800">
+          Zakat Maal (Harta Simpanan)
+        </h2>
+        <p className="text-slate-600">
+          Dikenakan pada harta yang tersimpan selama 1 tahun (haul) dan mencapai
+          nisab (setara 85g emas).
+        </p>
+      </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-2 gap-4 md:gap-6">
         <ZakatInputField
           label="Uang Tunai / Tabungan"
           value={state.cash}
@@ -155,7 +185,7 @@ export const MaalView: React.FC<TabProps> = ({
           onChange={(v) => onChange("otherAssets", v)}
         />
 
-        <div className="md:col-span-2">
+        <div className="md:col-span-2 bg-red-50 p-4 rounded-xl border border-red-100">
           <ZakatInputField
             label="Hutang Jatuh Tempo (Pengurang)"
             sublabel="Hutang yang harus segera dibayar mengurangi kewajiban zakat."
@@ -173,7 +203,7 @@ export const MaalView: React.FC<TabProps> = ({
               Tarif 20%
             </span>
           </div>
-          <p className="text-sm text-slate-500 mb-4">
+          <p className="text-xs md:text-sm text-slate-500 mb-4">
             Dikenakan untuk harta karun temuan atau hadiah undian tak terduga
             (tanpa haul).
           </p>
@@ -200,10 +230,16 @@ export const GoldSilverView: React.FC<TabProps> = ({
   onChange,
   onNext,
 }) => (
-  <div className="space-y-6 animate-fade-in">
-    <h2 className="text-2xl font-bold text-emerald-800">Zakat Emas & Perak</h2>
+  <div className="space-y-6 animate-fade-in pb-20 md:pb-0">
+    <h2 className="text-xl md:text-2xl font-bold text-emerald-800 hidden md:block">
+      Zakat Emas & Perak
+    </h2>
+    <h2 className="text-lg font-bold text-emerald-800 md:hidden">
+      Emas & Perak
+    </h2>
+
     <div className="grid md:grid-cols-2 gap-6">
-      <div className="bg-yellow-50/50 p-4 rounded-xl border border-yellow-100">
+      <div className="bg-yellow-50/50 p-4 md:p-6 rounded-2xl border border-yellow-100">
         <ZakatInputField
           label="Berat Emas (Gram)"
           sublabel="Nisab: 85 gram"
@@ -218,7 +254,7 @@ export const GoldSilverView: React.FC<TabProps> = ({
           unit="gram"
         />
       </div>
-      <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+      <div className="bg-slate-50 p-4 md:p-6 rounded-2xl border border-slate-200">
         <ZakatInputField
           label="Berat Perak (Gram)"
           sublabel="Nisab: 595 gram"
@@ -251,13 +287,20 @@ export const BusinessView: React.FC<TabProps> = ({
   const nisabGoldValue = 85 * settings.goldPrice;
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <h2 className="text-2xl font-bold text-emerald-800">Zakat Perniagaan</h2>
-      <p className="text-slate-600">
-        Dihitung dari aset lancar usaha dikurangi hutang jangka pendek. Nisab
-        setara 85g emas.
-      </p>
-      <div className="grid md:grid-cols-1 gap-4 bg-slate-50 p-6 rounded-xl border border-slate-200">
+    <div className="space-y-6 animate-fade-in pb-20 md:pb-0">
+      <div className="hidden md:block">
+        <h2 className="text-2xl font-bold text-emerald-800">
+          Zakat Perniagaan
+        </h2>
+        <p className="text-slate-600">
+          Dihitung dari aset lancar usaha dikurangi hutang jangka pendek.
+        </p>
+      </div>
+      <div className="md:hidden">
+        <h2 className="text-lg font-bold text-emerald-800">Zakat Perniagaan</h2>
+      </div>
+
+      <div className="grid md:grid-cols-1 gap-4 bg-slate-50 p-4 md:p-6 rounded-2xl border border-slate-200">
         <ZakatInputField
           label="Nilai Aset Lancar (Kas, Bank)"
           value={state.bizAssets}
@@ -290,13 +333,15 @@ export const AgricultureView: React.FC<TabProps> = ({
   onChange,
   onNext,
 }) => (
-  <div className="space-y-6 animate-fade-in">
-    <h2 className="text-2xl font-bold text-emerald-800">Zakat Pertanian</h2>
-    <p className="text-slate-600">
-      Dibayarkan saat panen. Nisab setara 5 wasaq (±653 kg gabah atau ±524 kg
-      beras).
-    </p>
-    <div className="bg-green-50 p-6 rounded-xl border border-green-100">
+  <div className="space-y-6 animate-fade-in pb-20 md:pb-0">
+    <h2 className="text-xl md:text-2xl font-bold text-emerald-800 hidden md:block">
+      Zakat Pertanian
+    </h2>
+    <h2 className="text-lg font-bold text-emerald-800 md:hidden">
+      Zakat Pertanian
+    </h2>
+
+    <div className="bg-green-50 p-4 md:p-6 rounded-2xl border border-green-100">
       <ZakatInputField
         label="Nilai Hasil Panen (Rupiah)"
         sublabel="Konversikan total hasil panen ke Rupiah"
@@ -308,7 +353,7 @@ export const AgricultureView: React.FC<TabProps> = ({
           Sistem Pengairan
         </label>
         <select
-          className="w-full border border-slate-300 rounded-lg shadow-sm py-3 px-3 bg-white focus:ring-emerald-500 focus:border-emerald-500"
+          className="w-full border border-slate-300 rounded-lg shadow-sm py-3 px-3 bg-white focus:ring-emerald-500 focus:border-emerald-500 h-12"
           value={state.agriMethod}
           onChange={(e) => onChange("agriMethod", e.target.value)}
         >
@@ -334,15 +379,19 @@ export const LivestockView: React.FC<TabProps> = ({
 }) => {
   const nisabGoldValue = 85 * settings.goldPrice;
   return (
-    <div className="space-y-6 animate-fade-in">
-      <h2 className="text-2xl font-bold text-emerald-800">Zakat Peternakan</h2>
-      <div className="bg-amber-50 p-4 rounded-lg border border-amber-200 text-sm text-amber-900 mb-4 flex items-start">
+    <div className="space-y-6 animate-fade-in pb-20 md:pb-0">
+      <h2 className="text-xl md:text-2xl font-bold text-emerald-800 hidden md:block">
+        Zakat Peternakan
+      </h2>
+      <h2 className="text-lg font-bold text-emerald-800 md:hidden">
+        Zakat Peternakan
+      </h2>
+
+      <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 text-sm text-amber-900 mb-4 flex items-start">
         <span className="text-xl mr-2">💡</span>
         <p>
-          <strong>Mode Sederhana:</strong> Perhitungan di bawah ini menggunakan
-          pendekatan nilai komersial (Qiyas Zakat Perniagaan) sebesar 2.5%.
-          Untuk perhitungan konvensional berdasarkan jumlah ekor (sainah),
-          disarankan berkonsultasi langsung dengan amil zakat.
+          <strong>Mode Sederhana:</strong> Perhitungan menggunakan pendekatan
+          nilai komersial (2.5%).
         </p>
       </div>
       <ZakatInputField
@@ -384,11 +433,11 @@ export const SummaryView: React.FC<SummaryProps> = ({
   if (!result) return null;
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in pb-20 md:pb-12">
       {/* Action Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-slate-100">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">
+          <h2 className="text-xl md:text-2xl font-bold text-slate-800">
             Ringkasan & Kwitansi
           </h2>
           <p className="text-slate-500 text-sm mt-1">
@@ -404,7 +453,7 @@ export const SummaryView: React.FC<SummaryProps> = ({
         <div className="flex gap-3 w-full sm:w-auto">
           <button
             onClick={onSaveHistory}
-            className="flex-1 sm:flex-none justify-center bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 px-4 py-2.5 rounded-lg text-sm font-medium flex items-center shadow-sm transition-colors"
+            className="flex-1 sm:flex-none justify-center bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 px-4 py-2.5 rounded-xl text-sm font-bold flex items-center shadow-sm transition-colors"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -424,7 +473,7 @@ export const SummaryView: React.FC<SummaryProps> = ({
           </button>
           <button
             onClick={onDownloadPDF}
-            className="flex-1 sm:flex-none justify-center bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium flex items-center shadow-sm transition-colors"
+            className="flex-1 sm:flex-none justify-center bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold flex items-center shadow-sm transition-colors"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -448,14 +497,14 @@ export const SummaryView: React.FC<SummaryProps> = ({
       {/* Receipt Card */}
       <div
         ref={receiptRef}
-        className="bg-white border-2 border-slate-100 rounded-xl p-8 shadow-sm print:shadow-none print:border-black"
+        className="bg-white border-2 border-slate-100 rounded-2xl p-6 md:p-8 shadow-sm print:shadow-none print:border-black"
       >
         <div className="border-b-2 border-emerald-500 pb-4 mb-6 flex justify-between items-center">
           <div>
-            <h3 className="text-3xl font-extrabold text-emerald-800 tracking-tight">
+            <h3 className="text-2xl md:text-3xl font-extrabold text-emerald-800 tracking-tight">
               NIZAMY
             </h3>
-            <p className="text-emerald-600 font-medium text-sm tracking-wide uppercase">
+            <p className="text-emerald-600 font-medium text-xs md:text-sm tracking-wide uppercase">
               Kalkulator Zakat Mandiri
             </p>
           </div>
@@ -477,7 +526,7 @@ export const SummaryView: React.FC<SummaryProps> = ({
           {result.items.map((item) => (
             <div
               key={item.id}
-              className="flex justify-between items-start py-3 border-b border-slate-100 last:border-0"
+              className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-3 border-b border-slate-100 last:border-0 gap-2"
             >
               <div className="flex-1 pr-4">
                 <h4 className="font-bold text-slate-700">{item.label}</h4>
@@ -490,7 +539,7 @@ export const SummaryView: React.FC<SummaryProps> = ({
                   </span>
                 )}
               </div>
-              <div className="text-right">
+              <div className="text-left sm:text-right w-full sm:w-auto bg-slate-50 sm:bg-transparent p-2 sm:p-0 rounded-lg">
                 <p
                   className={`font-mono font-bold text-lg ${
                     item.zakatAmount > 0 ? "text-slate-800" : "text-slate-300"
@@ -511,15 +560,15 @@ export const SummaryView: React.FC<SummaryProps> = ({
         </div>
 
         <div className="mt-8 pt-6 border-t-2 border-slate-800">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
             <span className="text-lg font-bold text-slate-800">
               TOTAL ZAKAT
             </span>
-            <span className="text-xl sm:text-3xl font-extrabold text-emerald-600 text-right pl-2">
+            <span className="text-2xl sm:text-3xl font-extrabold text-emerald-600 text-right">
               {result.formattedTotal}
             </span>
           </div>
-          <p className="text-right text-xs text-slate-500 mt-2 italic">
+          <p className="text-left sm:text-right text-xs text-slate-500 mt-2 italic leading-relaxed">
             "Ambillah zakat dari sebagian harta mereka, dengan zakat itu kamu
             membersihkan dan mensucikan mereka..." (At-Taubah: 103)
           </p>
@@ -570,7 +619,7 @@ export const SummaryView: React.FC<SummaryProps> = ({
                 </div>
                 <button
                   onClick={() => onLoadHistory(entry)}
-                  className="text-sm text-slate-500 hover:text-emerald-600 font-medium bg-white border border-slate-200 px-3 py-1.5 rounded-lg group-hover:border-emerald-200 transition-colors"
+                  className="text-sm text-slate-500 hover:text-emerald-600 font-medium bg-white border border-slate-200 px-3 py-1.5 rounded-lg group-hover:border-emerald-200 transition-colors shadow-sm"
                 >
                   Muat
                 </button>

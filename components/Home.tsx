@@ -33,8 +33,8 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
     {
       id: "zakat",
       title: "Kalkulator Zakat",
-      shortDesc: "Maal, Fitrah & Profesi",
-      desc: "Hitung Zakat Maal, Fitrah, Profesi, dan Emas dengan acuan Nisab & Haul terkini.",
+      shortDesc: "Maal, Fitrah & Niaga",
+      desc: "Hitung Zakat Maal, Fitrah, dan Niaga dengan acuan Nisab & Haul terkini.",
       icon: FaHandsHelping,
       colors: {
         bg: "bg-emerald-50",

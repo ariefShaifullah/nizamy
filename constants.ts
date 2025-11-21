@@ -122,6 +122,27 @@ export const FIQH_DEFINITIONS: {
   },
 };
 
+// --- AUDIO CONSTANTS ---
+export const QORI_LIST = [
+  {
+    id: "Husary_64kbps",
+    name: "Syaikh Al-Husary (Tajwid Guru)",
+    speed: "Lambat",
+  },
+  { id: "Alafasy_64kbps", name: "Syaikh Mishary Rashid", speed: "Sedang" },
+  {
+    id: "Minshawy_Murattal_128kbps",
+    name: "Syaikh Al-Minshawi",
+    speed: "Sedang",
+  },
+  { id: "Ghamadi_40kbps", name: "Saad Al-Ghamdi", speed: "Sedang" },
+  {
+    id: "Abdul_Basit_Murattal_64kbps",
+    name: "Abdul Basit (Murattal)",
+    speed: "Sedang",
+  },
+];
+
 // --- FAQ DATA ---
 
 export const FARAIDH_FAQ = [
@@ -200,6 +221,16 @@ export const HAFALAN_FAQ = [
     question: "Maksud 'Level' di aplikasi ini apa ya?",
     answer:
       "Level ini cuma penanda seberapa rajin (istiqomah) kamu memakai aplikasi ini, mirip seperti 'Jam Terbang'.\n\nSemakin sering kamu murajaah dan menambah hafalan, level kamu akan naik. Ini dibuat biar kamu makin semangat menjaga Al-Quran, bukan untuk pamer atau menilai kualitas ibadah kok. Jadi jangan bingung ya!",
+  },
+  {
+    question: "Kenapa audio Qori tidak bunyi di Mode Hafalan?",
+    answer:
+      "Sengaja banget! Biar hafalan kamu kuat, kita harus 'memaksa' otak mengingat (Active Recall) dulu tanpa bantuan.\n\nKalau langsung bunyi, nanti kamu jadi 'menebak' bukan 'mengingat'. Kalau mentok banget, baru deh tekan tombol 'Bantu Saya' atau ikon speaker.",
+  },
+  {
+    question: "Gimana cara ganti Qori atau kecepatan audio?",
+    answer:
+      "Saat audio player muncul (di Mode Latihan atau setelah klik 'Bantu Saya'), kamu bisa pilih nama Qori di menu dropdown (ada Syaikh Husary, Mishary, dll). Kamu juga bisa klik tombol '1x' buat ubah kecepatannya jadi lebih lambat atau cepat.",
   },
   {
     question: "Kapan aja jadwal murajaah bakal muncul?",

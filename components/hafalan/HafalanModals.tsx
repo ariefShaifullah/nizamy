@@ -42,6 +42,11 @@ export const HafalanTutorialModal: React.FC<{ onClose: () => void }> = ({
       icon: "🌱",
     },
     {
+      title: "Fitur Baru: Audio Qori",
+      desc: "Sekarang ada audio Syaikh Husary & Mishary buat cek tajwid!\n\nDi Mode Hafalan, audio sengaja disembunyiin dulu biar kamu usaha ingat sendiri. Tekan 'Bantu Saya' kalau mentok, baru audionya muncul.",
+      icon: "🎧",
+    },
+    {
       title: "Kuncinya Jujur",
       desc: "Pas jadwal Murajaah (Mengulang) dateng, baca ayat tanpa ngintip teks.\n\n• Tekan 'Lancar' kalau bacaan kamu ngalir.\n• Tekan 'Lupa' kalau sempet berhenti, ragu, atau salah tajwid.",
       icon: "🔑",

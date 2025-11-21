@@ -107,6 +107,17 @@ export const getStartOfWeek = (d: Date = new Date()) => {
   return getLocalYYYYMMDD(monday);
 };
 
+// --- AUDIO UTILS ---
+export const getAyahAudioUrl = (
+  qoriId: string,
+  surah: number,
+  ayah: number
+): string => {
+  const surahPad = String(surah).padStart(3, "0");
+  const ayahPad = String(ayah).padStart(3, "0");
+  return `https://everyayah.com/data/${qoriId}/${surahPad}${ayahPad}.mp3`;
+};
+
 // --- STORAGE & USER MANAGEMENT ---
 
 const generateId = () => Math.random().toString(36).substr(2, 9);

@@ -282,8 +282,9 @@ export const ZakatCalculator: React.FC = () => {
       <div className="flex flex-col lg:flex-row gap-6 md:gap-8 items-start">
         {/* Navigation: Horizontal on Mobile, Vertical Fixed on Desktop */}
         <div className="w-full lg:w-64 flex-shrink-0">
+          {/* Added hide-scrollbar class here to remove scrollbar visually while keeping functionality */}
           <nav
-            className="flex lg:flex-col overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 lg:sticky lg:top-24 space-x-2 lg:space-x-0 lg:space-y-2 no-scrollbar"
+            className="flex lg:flex-col overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 lg:sticky lg:top-24 space-x-2 lg:space-x-0 lg:space-y-2 hide-scrollbar"
             aria-label="Tabs"
           >
             {TABS.map((tab) => (

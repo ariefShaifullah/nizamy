@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import type { CalculationResult } from "../types.ts";
+import type { CalculationResult } from "../../types.ts";
 import {
   PieChart,
   Pie,
@@ -8,9 +8,9 @@ import {
   Legend,
   Tooltip,
 } from "recharts";
-import { FIQH_DEFINITIONS } from "../constants.ts";
-import { formatCurrency } from "../utils.ts";
-import { exportToPdf } from "../services/pdf.service.ts";
+import { FIQH_DEFINITIONS } from "../../constants.ts";
+import { formatCurrency } from "../../utils.ts";
+import { exportToPdf } from "../../services/pdf.service.ts";
 import { InfoTooltip, ResultCard, CustomChartTooltip } from "./FaraidhUI.tsx";
 
 const COLORS = [

@@ -99,6 +99,14 @@ export const getLocalYYYYMMDD = (d: Date = new Date()) => {
   return `${year}-${month}-${day}`;
 };
 
+export const getStartOfWeek = (d: Date = new Date()) => {
+  const date = new Date(d);
+  const day = date.getDay(); // 0 (Sun) to 6 (Sat)
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is sunday
+  const monday = new Date(date.setDate(diff));
+  return getLocalYYYYMMDD(monday);
+};
+
 // --- STORAGE & USER MANAGEMENT ---
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -217,7 +225,8 @@ export const createNewUser = (
       lastLoginDate: new Date().toISOString(),
       badges: [],
       weeklyChallengeProgress: 0,
-      weeklyChallengeTarget: 50,
+      weeklyChallengeTarget: 250,
+      weekStartDate: getStartOfWeek(),
     },
   };
 
@@ -299,34 +308,54 @@ export const getMotivationalQuote = (): string => {
   return quotes[Math.floor(Math.random() * quotes.length)];
 };
 
-export const checkStreak = (
+export const checkGamificationSync = (
   currentState: GamificationState
 ): GamificationState => {
   const now = new Date();
   const today = getLocalYYYYMMDD(now);
 
-  // Check last login date (stored as ISO string) by converting to local date string
+  // 1. Check Streak (Login Date)
   const lastLoginDateObj = new Date(currentState.lastLoginDate);
   const lastLogin = getLocalYYYYMMDD(lastLoginDateObj);
 
-  if (today === lastLogin) return currentState; // Already logged in today
-
-  const yesterdayDate = new Date();
-  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-  const yesterday = getLocalYYYYMMDD(yesterdayDate);
-
   let newStreak = currentState.currentStreak;
 
-  if (lastLogin === yesterday) {
-    newStreak += 1;
-  } else {
-    newStreak = 1; // Reset streak if missed a day
+  if (today !== lastLogin) {
+    const yesterdayDate = new Date();
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+    const yesterday = getLocalYYYYMMDD(yesterdayDate);
+
+    if (lastLogin === yesterday) {
+      newStreak += 1;
+    } else {
+      newStreak = 1; // Reset streak if missed a day
+    }
   }
+
+  // 2. Check Weekly Reset
+  const currentWeekStart = getStartOfWeek(now);
+  let weeklyProgress = currentState.weeklyChallengeProgress;
+  let weekStart = currentState.weekStartDate;
+
+  // If stored week start doesn't match current week start (or is undefined), reset.
+  if (weekStart !== currentWeekStart) {
+    weeklyProgress = 0;
+    weekStart = currentWeekStart;
+  }
+
+  // Ensure target is consistent
+  const safeTarget =
+    currentState.weeklyChallengeTarget < 200
+      ? 250
+      : currentState.weeklyChallengeTarget;
 
   return {
     ...currentState,
     currentStreak: newStreak,
-    lastLoginDate: now.toISOString(), // Update to full ISO for login tracking
+    lastLoginDate: now.toISOString(),
+    weeklyChallengeProgress: weeklyProgress,
+    weekStartDate: weekStart,
+    weeklyChallengeTarget: safeTarget,
   };
 };
 

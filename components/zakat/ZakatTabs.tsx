@@ -4,11 +4,11 @@ import type {
   ZakatSettings,
   ZakatResult,
   ZakatHistoryEntry,
-} from "../types.ts";
+} from "../../types.ts";
 import { ZakatInputField } from "./ZakatInputField.tsx";
 import { NisabStatus } from "./NisabStatus.tsx";
-import { formatCurrency } from "../utils.ts";
-import { exportZakatToPdf } from "../services/pdf.service.ts";
+import { formatCurrency } from "../../utils.ts";
+import { exportZakatToPdf } from "../../services/pdf.service.ts";
 
 // --- SHARED COMPONENTS ---
 

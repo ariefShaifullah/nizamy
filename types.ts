@@ -174,8 +174,9 @@ export interface GamificationState {
   level: number;
   currentStreak: number;
   lastLoginDate: string;
+  weekStartDate?: string; // ISO Date YYYY-MM-DD of the current week's Monday
   badges: string[]; // IDs of earned badges
-  weeklyChallengeProgress: number; // 0 to 100
+  weeklyChallengeProgress: number; // Current Weekly XP Accumulation
   weeklyChallengeTarget: number;
 }
 

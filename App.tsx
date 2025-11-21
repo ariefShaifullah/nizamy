@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { FaraidhCalculator } from './components/FaraidhCalculator.tsx';
-import { ZakatCalculator } from './components/ZakatCalculator.tsx';
+import { FaraidhCalculator } from "./components/faraidh/FaraidhCalculator.tsx";
+import { ZakatCalculator } from "./components/zakat/ZakatCalculator.tsx";
 import { HafalanTracker } from "./components/HafalanTracker.tsx";
 import { Home } from "./components/Home.tsx";
 import { Header, Footer, type ViewState } from "./components/Layout.tsx";
@@ -29,7 +29,7 @@ export default function App() {
         document.title = `${baseTitle} | Hafalan Quran Tracker (SRS)`;
         break;
       default:
-        document.title = `${baseTitle}: Aplikasi Ibadah Islam (Waris, Zakat, Hafalan)`;
+        document.title = `${baseTitle}: Aplikasi Islam Terlengkap (Waris, Zakat, Hafalan)`;
     }
   }, [view]);
 

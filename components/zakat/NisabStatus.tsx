@@ -1,5 +1,5 @@
 import React from "react";
-import { formatCurrency } from "../utils.ts";
+import { formatCurrency } from "../../utils.ts";
 
 interface NisabStatusProps {
   value: number;

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import type { HeirResult, Share } from "../types.ts";
-import { FIQH_DEFINITIONS } from "../constants.ts";
-import { formatCurrency } from "../utils.ts";
+import type { HeirResult, Share } from "../../types.ts";
+import { FIQH_DEFINITIONS } from "../../constants.ts";
+import { formatCurrency } from "../../utils.ts";
 
 // --- TOOLTIPS ---
 

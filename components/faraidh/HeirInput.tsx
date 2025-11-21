@@ -1,5 +1,5 @@
 import React, { useCallback } from "react";
-import type { Heir } from "../types.ts";
+import type { Heir } from "../../types.ts";
 
 interface HeirInputProps {
   label: string;

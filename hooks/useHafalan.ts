@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import type {
   HafalanState,
   HafalanItem,
@@ -15,8 +15,7 @@ import {
   processItemReview,
   calculateLevel,
   checkBadges,
-  checkStreak,
-  SRS_INTERVALS,
+  checkGamificationSync,
 } from "../services/hafalan.service.ts";
 
 const INITIAL_STATE: HafalanState = {
@@ -68,7 +67,11 @@ export const useHafalan = () => {
     selectUser: (userId: string) => {
       const userData = loadUserData(userId);
       if (userData) {
-        const updatedGamification = checkStreak(userData.gamification);
+        // Check streak and handle weekly reset logic
+        const updatedGamification = checkGamificationSync(
+          userData.gamification
+        );
+
         const updatedState = { ...userData, gamification: updatedGamification };
         setState(updatedState);
         saveUserData(updatedState);
@@ -151,10 +154,9 @@ export const useHafalan = () => {
         );
         const newXP = prev.gamification.xp + xpGained;
         const newLevel = calculateLevel(newXP);
-        const newChallenge = Math.min(
-          100,
-          prev.gamification.weeklyChallengeProgress + (xpGained > 0 ? 10 : 0)
-        );
+        // Accumulate XP for the week (Not percentage anymore)
+        const newChallengeXP =
+          prev.gamification.weeklyChallengeProgress + xpGained;
 
         const newState = {
           ...prev,
@@ -163,7 +165,7 @@ export const useHafalan = () => {
             ...prev.gamification,
             xp: newXP,
             level: newLevel,
-            weeklyChallengeProgress: newChallenge,
+            weeklyChallengeProgress: newChallengeXP,
           },
         };
 

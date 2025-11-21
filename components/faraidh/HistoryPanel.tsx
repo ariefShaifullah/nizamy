@@ -1,6 +1,6 @@
 import React from 'react';
-import type { HistoryEntry } from '../types.ts';
-import { formatCurrency } from '../utils.ts';
+import type { HistoryEntry } from '../../types.ts';
+import { formatCurrency } from '../../utils.ts';
 
 interface HistoryPanelProps {
   history: HistoryEntry[];

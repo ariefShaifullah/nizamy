@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Modal } from "./Modal.tsx";
+import { Modal } from "../Modal.tsx";
 import type {
   HafalanItem,
   HafalanProfile,
   HafalanSkillLevel,
-} from "../types.ts";
-import { BADGES } from "../constants.ts";
-import { audioService } from "../services/audio.service.ts";
+} from "../../types.ts";
+import { BADGES } from "../../constants.ts";
+import { audioService } from "../../services/audio.service.ts";
 
 // --- HELPER ---
 const formatSafeDate = (dateStr: string) => {

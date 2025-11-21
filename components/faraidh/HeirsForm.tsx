@@ -1,8 +1,8 @@
 import React from 'react';
-import type { HeirInputState, Heir } from '../types.ts';
-import { HEIR_LABELS, HEIR_GROUPS } from '../constants.ts';
+import type { HeirInputState, Heir } from '../../types.ts';
+import { HEIR_LABELS, HEIR_GROUPS } from '../../constants.ts';
 import { HeirInput } from './HeirInput.tsx';
-import { formatNumber } from '../utils.ts';
+import { formatNumber } from '../../utils.ts';
 
 interface HeirsFormProps {
   heirs: HeirInputState;

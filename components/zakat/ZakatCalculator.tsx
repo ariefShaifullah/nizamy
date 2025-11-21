@@ -4,12 +4,12 @@ import type {
   ZakatSettings,
   ZakatResult,
   ZakatHistoryEntry,
-} from "../types.ts";
-import { calculateTotalZakat } from "../services/zakat.service.ts";
-import { formatNumber, formatCurrency } from "../utils.ts";
-import { FAQ } from "./FAQ.tsx";
-import { ZAKAT_FAQ } from "../constants.ts";
-import { exportZakatToPdf } from "../services/pdf.service.ts";
+} from "../../types.ts";
+import { calculateTotalZakat } from "../../services/zakat.service.ts";
+import { formatNumber, formatCurrency } from "../../utils.ts";
+import { FAQ } from "../FAQ.tsx";
+import { ZAKAT_FAQ } from "../../constants.ts";
+import { exportZakatToPdf } from "../../services/pdf.service.ts";
 import {
   FitrahView,
   MaalView,

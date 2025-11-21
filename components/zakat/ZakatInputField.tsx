@@ -1,5 +1,5 @@
 import React from "react";
-import { formatNumber } from "../utils.ts";
+import { formatNumber } from "../../utils.ts";
 
 interface ZakatInputFieldProps {
   label: string;

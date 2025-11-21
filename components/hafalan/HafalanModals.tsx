@@ -95,7 +95,7 @@ export const HafalanTutorialModal: React.FC<{ onClose: () => void }> = ({
         <h3 className="text-xl font-bold text-white">{current.title}</h3>
       </div>
       <div className="p-6">
-        <p className="text-slate-600 text-center leading-relaxed mb-8 min-h-[100px] whitespace-pre-line text-sm md:text-base">
+        <p className="text-slate-600 dark:text-slate-300 text-center leading-relaxed mb-8 min-h-[100px] whitespace-pre-line text-sm md:text-base">
           {current.desc}
         </p>
 
@@ -105,7 +105,9 @@ export const HafalanTutorialModal: React.FC<{ onClose: () => void }> = ({
               <div
                 key={i}
                 className={`h-2 rounded-full transition-all duration-300 ${
-                  i + 1 === step ? "w-6 bg-indigo-600" : "w-2 bg-slate-200"
+                  i + 1 === step
+                    ? "w-6 bg-indigo-600"
+                    : "w-2 bg-slate-200 dark:bg-slate-700"
                 }`}
               />
             ))}
@@ -114,7 +116,7 @@ export const HafalanTutorialModal: React.FC<{ onClose: () => void }> = ({
           <div className="flex items-center justify-between gap-4">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-slate-400 hover:text-slate-600 font-semibold text-sm transition-colors"
+              className="px-4 py-2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 font-semibold text-sm transition-colors"
             >
               Lewati
             </button>
@@ -124,7 +126,7 @@ export const HafalanTutorialModal: React.FC<{ onClose: () => void }> = ({
                 audioService.playClick();
                 step < totalSteps ? setStep(step + 1) : onClose();
               }}
-              className="flex-1 sm:flex-none px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-200 hover:shadow-xl transform hover:-translate-y-0.5 text-center"
+              className="flex-1 sm:flex-none px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-200 dark:shadow-none transform hover:-translate-y-0.5 text-center"
             >
               {step < totalSteps ? "Lanjut →" : "Bismillah, Mulai!"}
             </button>
@@ -155,27 +157,29 @@ export const HafalanDetailModal: React.FC<DetailModalProps> = ({
     >
       <div className="p-6 space-y-4">
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-indigo-50 p-3 rounded-lg text-center border border-indigo-100">
-            <p className="text-xs text-indigo-600 font-bold uppercase tracking-wider">
+          <div className="bg-indigo-50 dark:bg-indigo-900/20 p-3 rounded-lg text-center border border-indigo-100 dark:border-indigo-800">
+            <p className="text-xs text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider">
               Level SRS
             </p>
-            <p className="text-2xl font-bold text-indigo-900">{item.stage}</p>
+            <p className="text-2xl font-bold text-indigo-900 dark:text-indigo-200">
+              {item.stage}
+            </p>
           </div>
-          <div className="bg-orange-50 p-3 rounded-lg text-center border border-orange-100">
-            <p className="text-xs text-orange-600 font-bold uppercase tracking-wider">
+          <div className="bg-orange-50 dark:bg-orange-900/20 p-3 rounded-lg text-center border border-orange-100 dark:border-orange-800">
+            <p className="text-xs text-orange-600 dark:text-orange-400 font-bold uppercase tracking-wider">
               Total Lupa
             </p>
-            <p className="text-2xl font-bold text-orange-900">
+            <p className="text-2xl font-bold text-orange-900 dark:text-orange-200">
               {item.errorCount}x
             </p>
           </div>
         </div>
 
-        <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-          <p className="text-sm text-slate-600 mb-1">
+        <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
             Jadwal Murajaah Berikutnya:
           </p>
-          <p className="font-bold text-slate-800 flex items-center">
+          <p className="font-bold text-slate-800 dark:text-slate-200 flex items-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-5 w-5 mr-2 text-indigo-500"
@@ -194,7 +198,7 @@ export const HafalanDetailModal: React.FC<DetailModalProps> = ({
           </p>
         </div>
 
-        <p className="text-xs text-slate-500 italic text-center">
+        <p className="text-xs text-slate-500 dark:text-slate-400 italic text-center">
           Pengen baca ulang atau tes mandiri tanpa ngubah jadwal? Pake mode
           latihan aja.
         </p>
@@ -268,19 +272,19 @@ export const HafalanSettingsModal: React.FC<SettingsModalProps> = ({
     >
       <div className="p-6 space-y-6">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
             Nama Panggilan
           </label>
           <input
             type="text"
-            className="w-full border border-slate-300 rounded-lg p-3 bg-white text-slate-900 focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full border border-slate-300 dark:border-slate-600 rounded-lg p-3 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
             Beban Harian (Kecepatan)
           </label>
           <div className="grid grid-cols-3 gap-3">
@@ -294,7 +298,7 @@ export const HafalanSettingsModal: React.FC<SettingsModalProps> = ({
                 className={`p-3 rounded-lg border text-sm transition-colors ${
                   level === lvl
                     ? "bg-indigo-600 text-white border-indigo-600"
-                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                    : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
                 }`}
               >
                 <span className="capitalize block font-bold">
@@ -314,18 +318,18 @@ export const HafalanSettingsModal: React.FC<SettingsModalProps> = ({
               </button>
             ))}
           </div>
-          <p className="text-xs text-slate-500 mt-2 italic">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 italic">
             Ubah level bakal nyesuain batas maksimal ayat harian kamu. Tenang
             aja, data lama gak akan ilang kok.
           </p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
             Target Hafalan
           </label>
           <select
-            className="w-full border border-slate-300 rounded-lg p-3 bg-white text-slate-900 focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full border border-slate-300 dark:border-slate-600 rounded-lg p-3 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500"
             value={target}
             onChange={(e) => setTarget(Number(e.target.value))}
           >
@@ -388,14 +392,14 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
           ></div>
         </div>
 
-        <div className="w-24 h-24 mx-auto bg-yellow-100 rounded-full flex items-center justify-center text-5xl mb-4 shadow-lg border-4 border-yellow-200 animate-pulse">
+        <div className="w-24 h-24 mx-auto bg-yellow-100 dark:bg-yellow-900/50 rounded-full flex items-center justify-center text-5xl mb-4 shadow-lg border-4 border-yellow-200 dark:border-yellow-700 animate-pulse">
           🏆
         </div>
 
-        <h2 className="text-2xl font-extrabold text-slate-800 mb-1">
+        <h2 className="text-2xl font-extrabold text-slate-800 dark:text-white mb-1">
           Masya Allah!
         </h2>
-        <p className="text-slate-500 text-sm mb-6">
+        <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
           Kamu baru saja membuka pencapaian baru.
         </p>
 
@@ -403,14 +407,18 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
           {earnedBadges.map((badge, idx) => (
             <div
               key={idx}
-              className="bg-gradient-to-r from-indigo-50 to-white p-4 rounded-xl border border-indigo-100 flex items-center gap-4 text-left shadow-sm transform hover:scale-105 transition-transform"
+              className="bg-gradient-to-r from-indigo-50 to-white dark:from-indigo-900/30 dark:to-slate-800 p-4 rounded-xl border border-indigo-100 dark:border-indigo-800 flex items-center gap-4 text-left shadow-sm transform hover:scale-105 transition-transform"
             >
               <div className="text-3xl filter drop-shadow-sm">
                 {badge?.icon}
               </div>
               <div>
-                <h4 className="font-bold text-indigo-900">{badge?.name}</h4>
-                <p className="text-xs text-slate-500">{badge?.description}</p>
+                <h4 className="font-bold text-indigo-900 dark:text-indigo-300">
+                  {badge?.name}
+                </h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {badge?.description}
+                </p>
               </div>
             </div>
           ))}
@@ -421,7 +429,7 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
             audioService.playClick();
             onClose();
           }}
-          className="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 active:scale-95"
+          className="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 dark:shadow-none active:scale-95"
         >
           Alhamdulillah, Lanjut!
         </button>

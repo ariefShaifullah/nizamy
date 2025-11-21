@@ -70,23 +70,23 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
         Using h-[100dvh] ensures it fits mobile viewports with address bars correctly.
         z-[100] ensures it sits above everything (headers, bottom navs).
       */}
-      <div className="fixed inset-0 z-[100] bg-slate-50 flex flex-col h-[100dvh] md:static md:h-auto md:bg-transparent md:z-auto md:block md:inset-auto">
+      <div className="fixed inset-0 z-[100] bg-slate-50 dark:bg-slate-950 flex flex-col h-[100dvh] md:static md:h-auto md:bg-transparent md:z-auto md:block md:inset-auto">
         {/* 
           DESKTOP CARD CONTAINER 
           On mobile, these classes effectively do nothing because we use the inner flex structure.
           On desktop, this acts as the card wrapper.
         */}
-        <div className="w-full h-full flex flex-col md:max-w-5xl md:mx-auto md:bg-white md:rounded-[2.5rem] md:shadow-2xl md:shadow-slate-200/70 md:border md:border-slate-100 md:overflow-hidden md:relative md:min-h-[600px] md:h-[85vh]">
+        <div className="w-full h-full flex flex-col md:max-w-5xl md:mx-auto md:bg-white md:dark:bg-slate-900 md:rounded-[2.5rem] md:shadow-2xl md:shadow-slate-200/70 md:dark:shadow-none md:border md:border-slate-100 md:dark:border-slate-800 md:overflow-hidden md:relative md:min-h-[600px] md:h-[85vh]">
           {/* 1. HEADER SECTION (Fixed/Docked) */}
-          <div className="flex-none bg-white z-20 relative shadow-sm border-b border-slate-100">
+          <div className="flex-none bg-white dark:bg-slate-900 z-20 relative shadow-sm border-b border-slate-100 dark:border-slate-800">
             {/* Navigation Header */}
-            <div className="flex justify-between items-center py-3 px-4 md:py-4 md:px-8 border-b border-slate-50">
+            <div className="flex justify-between items-center py-3 px-4 md:py-4 md:px-8 border-b border-slate-50 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <div
                   className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
                     isPractice
-                      ? "bg-teal-100 text-teal-700"
-                      : "bg-indigo-100 text-indigo-700"
+                      ? "bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300"
+                      : "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300"
                   }`}
                 >
                   {isPractice ? "Mode Latihan" : "Mode Hafalan"}
@@ -98,7 +98,7 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
                       audioService.playClick();
                       setShowPlayer(true);
                     }}
-                    className="bg-slate-50 hover:bg-slate-100 text-slate-500 px-2 py-1 rounded-full transition-colors flex items-center gap-1 border border-slate-200"
+                    className="bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 px-2 py-1 rounded-full transition-colors flex items-center gap-1 border border-slate-200 dark:border-slate-700"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -122,7 +122,7 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
                   audioService.playClick();
                   onExit();
                 }}
-                className="text-slate-400 hover:text-slate-600 hover:bg-slate-50 px-3 py-1.5 rounded-full transition-colors flex items-center text-sm font-medium"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 px-3 py-1.5 rounded-full transition-colors flex items-center text-sm font-medium"
               >
                 Keluar
                 <svg
@@ -142,17 +142,17 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
 
             {/* Title Info */}
             <div className="text-center px-6 py-3">
-              <h2 className="text-xl md:text-3xl font-bold text-slate-800">
+              <h2 className="text-xl md:text-3xl font-bold text-slate-800 dark:text-white">
                 {item.surahName}
               </h2>
-              <p className="text-slate-500 text-sm md:text-base mt-1 font-medium">
+              <p className="text-slate-500 dark:text-slate-400 text-sm md:text-base mt-1 font-medium">
                 Ayat {item.startAyah} - {item.endAyah}
               </p>
             </div>
 
             {/* Audio Player */}
             {showPlayer && (
-              <div className="mx-4 md:mx-12 mb-3 rounded-xl overflow-hidden border border-slate-200 shadow-sm animate-fade-in-down bg-slate-50">
+              <div className="mx-4 md:mx-12 mb-3 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm animate-fade-in-down bg-slate-50 dark:bg-slate-800">
                 <QuranPlayer
                   surahNo={item.surahNo}
                   startAyah={item.startAyah}
@@ -167,7 +167,7 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
 
           {/* 2. CONTENT SECTION (Scrollable) */}
           <div
-            className="flex-1 overflow-y-auto px-4 md:px-12 py-6 flex flex-col relative custom-scrollbar bg-slate-50/30 w-full"
+            className="flex-1 overflow-y-auto px-4 md:px-12 py-6 flex flex-col relative custom-scrollbar bg-slate-50/30 dark:bg-slate-950/30 w-full"
             dir="rtl"
           >
             {isLoadingText ? (
@@ -183,10 +183,10 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
                   item.surahNo !== 1 &&
                   item.surahNo !== 9 && (
                     <div className="text-center mb-10">
-                      <span className="font-arabic text-2xl md:text-4xl text-slate-500 block mb-4">
+                      <span className="font-arabic text-2xl md:text-4xl text-slate-500 dark:text-slate-400 block mb-4">
                         بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
                       </span>
-                      <div className="w-16 h-0.5 bg-slate-200 mx-auto"></div>
+                      <div className="w-16 h-0.5 bg-slate-200 dark:bg-slate-700 mx-auto"></div>
                     </div>
                   )}
 
@@ -200,27 +200,29 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
                       onClick={() => handleAyahClick(a.number)}
                       className={`relative group transition-all duration-300 rounded-2xl p-4 ${
                         isClickable
-                          ? "cursor-pointer hover:bg-white hover:shadow-sm"
+                          ? "cursor-pointer hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm"
                           : "cursor-default"
                       } ${
                         isActive
-                          ? "bg-indigo-50 ring-1 ring-indigo-100 shadow-sm"
+                          ? "bg-indigo-50 dark:bg-indigo-900/20 ring-1 ring-indigo-100 dark:ring-indigo-800 shadow-sm"
                           : ""
                       }`}
                     >
                       <p
-                        className={`text-3xl md:text-5xl leading-[2.2] md:leading-[2.4] font-arabic text-center selection:bg-indigo-100 selection:text-indigo-900 transition-colors ${
-                          isActive ? "text-indigo-900" : "text-slate-800"
+                        className={`text-3xl md:text-5xl leading-[2.2] md:leading-[2.4] font-arabic text-center selection:bg-indigo-100 dark:selection:bg-indigo-900 selection:text-indigo-900 dark:selection:text-indigo-100 transition-colors ${
+                          isActive
+                            ? "text-indigo-900 dark:text-indigo-200"
+                            : "text-slate-800 dark:text-slate-100"
                         }`}
                       >
                         {a.text}
                       </p>
                       <div className="flex justify-center mt-4 items-center">
                         <span
-                          className={`inline-flex items-center justify-center w-8 h-8 md:w-12 md:h-12 text-sm md:text-lg border-2 rounded-full font-sans bg-white transition-colors ${
+                          className={`inline-flex items-center justify-center w-8 h-8 md:w-12 md:h-12 text-sm md:text-lg border-2 rounded-full font-sans transition-colors ${
                             isActive
-                              ? "border-indigo-300 text-indigo-600"
-                              : "border-slate-200 text-slate-400"
+                              ? "border-indigo-300 dark:border-indigo-700 text-indigo-600 dark:text-indigo-300 bg-white dark:bg-slate-800"
+                              : "border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 bg-transparent"
                           }`}
                         >
                           {a.number}
@@ -234,14 +236,14 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
           </div>
 
           {/* 3. FOOTER SECTION (Fixed) */}
-          <div className="flex-none p-4 md:p-8 bg-white border-t border-slate-100 z-20 shadow-[0_-4px_20px_rgba(0,0,0,0.02)] pb-safe">
+          <div className="flex-none p-4 md:p-8 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 z-20 shadow-[0_-4px_20px_rgba(0,0,0,0.02)] pb-safe">
             {isPractice ? (
               <button
                 onClick={() => {
                   audioService.playClick();
                   onCompletePractice();
                 }}
-                className="w-full py-4 bg-teal-600 text-white font-bold rounded-2xl hover:bg-teal-700 shadow-lg shadow-teal-200 active:scale-95 transition-all text-lg"
+                className="w-full py-4 bg-teal-600 text-white font-bold rounded-2xl hover:bg-teal-700 shadow-lg shadow-teal-200 dark:shadow-none active:scale-95 transition-all text-lg"
               >
                 Selesai Membaca
               </button>
@@ -249,7 +251,7 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
               <div className="grid grid-cols-2 gap-4 md:gap-8 max-w-2xl mx-auto">
                 <button
                   onClick={() => onSubmitReview("fail")}
-                  className="flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-slate-100 bg-slate-50 text-slate-600 hover:bg-orange-50 hover:border-orange-200 hover:text-orange-700 active:scale-95 transition-all duration-200 group h-24 md:h-32 shadow-sm"
+                  className="flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:border-orange-200 dark:hover:border-orange-800 hover:text-orange-700 dark:hover:text-orange-400 active:scale-95 transition-all duration-200 group h-24 md:h-32 shadow-sm"
                 >
                   <span className="text-3xl md:text-4xl mb-2 grayscale group-hover:grayscale-0 transition-all">
                     🤔
@@ -264,7 +266,7 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
 
                 <button
                   onClick={() => onSubmitReview("success")}
-                  className="flex flex-col items-center justify-center p-4 rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-xl active:scale-95 transition-all duration-200 h-24 md:h-32"
+                  className="flex flex-col items-center justify-center p-4 rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-200 dark:shadow-none hover:bg-indigo-700 hover:shadow-xl active:scale-95 transition-all duration-200 h-24 md:h-32"
                 >
                   <span className="text-3xl md:text-4xl mb-2">✨</span>
                   <span className="font-bold text-lg md:text-xl">Lancar</span>

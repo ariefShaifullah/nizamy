@@ -231,15 +231,15 @@ export const AddItem: React.FC<AddItemProps> = ({
 
   return (
     <>
-      <div className="max-w-lg mx-auto bg-white p-6 md:p-8 rounded-3xl shadow-2xl shadow-slate-200/50 border border-slate-100 animate-fade-in-up mt-4 relative z-10">
+      <div className="max-w-lg mx-auto bg-white dark:bg-slate-800 p-6 md:p-8 rounded-3xl shadow-2xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-700 animate-fade-in-up mt-4 relative z-10">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h3 className="text-2xl font-bold text-slate-800">
+            <h3 className="text-2xl font-bold text-slate-800 dark:text-white">
               Tambah Hafalan
             </h3>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               Mode:{" "}
-              <span className="font-bold text-indigo-600">
+              <span className="font-bold text-indigo-600 dark:text-indigo-400">
                 {profile.skillLevel === "beginner"
                   ? "Santai"
                   : profile.skillLevel === "intermediate"
@@ -255,7 +255,7 @@ export const AddItem: React.FC<AddItemProps> = ({
               audioService.playClick();
               onBack();
             }}
-            className="bg-slate-100 p-2 rounded-full text-slate-500 hover:bg-slate-200"
+            className="bg-slate-100 dark:bg-slate-700 p-2 rounded-full text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -273,14 +273,14 @@ export const AddItem: React.FC<AddItemProps> = ({
         </div>
 
         {hasPending ? (
-          <div className="text-center py-8 px-4 bg-orange-50 rounded-2xl border border-orange-100">
-            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-3xl mx-auto mb-4 shadow-sm">
+          <div className="text-center py-8 px-4 bg-orange-50 dark:bg-orange-900/20 rounded-2xl border border-orange-100 dark:border-orange-800">
+            <div className="w-16 h-16 bg-white dark:bg-slate-700 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 shadow-sm">
               🚧
             </div>
-            <h4 className="text-lg font-bold text-orange-900 mb-2">
+            <h4 className="text-lg font-bold text-orange-900 dark:text-orange-200 mb-2">
               Tugas Numpuk Nih!
             </h4>
-            <p className="text-orange-800/80 text-sm mb-6 leading-relaxed">
+            <p className="text-orange-800/80 dark:text-orange-200/70 text-sm mb-6 leading-relaxed">
               Masih ada {pendingNewItems.length} hafalan baru yang belum
               dimurajaah. Kelarin dulu yuk biar hafalan makin kuat.
             </p>
@@ -289,20 +289,20 @@ export const AddItem: React.FC<AddItemProps> = ({
                 audioService.playClick();
                 onBack(); // Goes back to dashboard
               }}
-              className="w-full bg-orange-600 text-white font-bold py-3.5 rounded-xl hover:bg-orange-700 transition-colors shadow-lg shadow-orange-200"
+              className="w-full bg-orange-600 text-white font-bold py-3.5 rounded-xl hover:bg-orange-700 transition-colors shadow-lg shadow-orange-200 dark:shadow-none"
             >
               Ke Jadwal Murajaah
             </button>
           </div>
         ) : isQuotaFull && !quotaWarning && !bypassQuota ? (
-          <div className="text-center py-8 px-4 bg-indigo-50 rounded-2xl border border-indigo-100">
-            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-3xl mx-auto mb-4 shadow-sm">
+          <div className="text-center py-8 px-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-800">
+            <div className="w-16 h-16 bg-white dark:bg-slate-700 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 shadow-sm">
               🛑
             </div>
-            <h4 className="text-lg font-bold text-indigo-900 mb-2">
+            <h4 className="text-lg font-bold text-indigo-900 dark:text-indigo-200 mb-2">
               Kuota Harian Penuh
             </h4>
-            <p className="text-indigo-800/80 text-sm mb-6 leading-relaxed">
+            <p className="text-indigo-800/80 dark:text-indigo-200/70 text-sm mb-6 leading-relaxed">
               {isMaxLevel
                 ? `Kamu udah nyampe batas rekomendasi (${dailyLimit} poin sehari). Istirahatin pikiran dulu ya biar hafalan hari ini nempel sempurna.`
                 : `Kamu udah nyampe batas ${dailyLimit} poin hari ini. Yakin mau nambah lagi?`}
@@ -313,7 +313,7 @@ export const AddItem: React.FC<AddItemProps> = ({
                 audioService.playClick();
                 setBypassQuota(true);
               }}
-              className="mt-4 text-sm font-bold text-indigo-500 hover:text-indigo-700 underline block w-full"
+              className="mt-4 text-sm font-bold text-indigo-500 dark:text-indigo-300 hover:text-indigo-700 hover:underline block w-full"
             >
               Tetap Lanjut (Override)
             </button>
@@ -323,7 +323,7 @@ export const AddItem: React.FC<AddItemProps> = ({
                 audioService.playClick();
                 onBack();
               }}
-              className="mt-3 text-sm font-bold text-slate-500 hover:text-slate-700 block w-full"
+              className="mt-3 text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-slate-700 block w-full"
             >
               Balik ke Dashboard
             </button>
@@ -335,8 +335,8 @@ export const AddItem: React.FC<AddItemProps> = ({
                 <div
                   className={`text-center p-3 rounded-xl border ${
                     dailyRemaining > 0
-                      ? "bg-indigo-50 border-indigo-100 text-indigo-700"
-                      : "bg-red-50 border-red-100 text-red-700"
+                      ? "bg-indigo-50 dark:bg-indigo-900/20 border-indigo-100 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300"
+                      : "bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800 text-red-700 dark:text-red-300"
                   }`}
                 >
                   <p className="text-xs font-bold uppercase tracking-wide">
@@ -350,8 +350,8 @@ export const AddItem: React.FC<AddItemProps> = ({
                 <div
                   className={`text-center p-3 rounded-xl border ${
                     isSelectionOverQuota
-                      ? "bg-amber-50 border-amber-100 text-amber-700"
-                      : "bg-slate-50 border-slate-100 text-slate-600"
+                      ? "bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800 text-amber-700 dark:text-amber-300"
+                      : "bg-slate-50 dark:bg-slate-700/50 border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-300"
                   }`}
                 >
                   <p className="text-xs font-bold uppercase tracking-wide">
@@ -380,7 +380,7 @@ export const AddItem: React.FC<AddItemProps> = ({
             )}
 
             <div>
-              <label className="block text-sm font-bold mb-2 text-slate-700">
+              <label className="block text-sm font-bold mb-2 text-slate-700 dark:text-slate-300">
                 Pilih Surat
               </label>
               {/* REPLACEMENT: Custom Selector Trigger */}
@@ -389,10 +389,10 @@ export const AddItem: React.FC<AddItemProps> = ({
                   audioService.playClick();
                   setIsSelectorOpen(true);
                 }}
-                className="w-full flex justify-between items-center border border-slate-200 rounded-xl p-4 bg-slate-50 font-medium text-slate-700 hover:bg-white hover:border-indigo-300 transition-all text-left group"
+                className="w-full flex justify-between items-center border border-slate-200 dark:border-slate-600 rounded-xl p-4 bg-slate-50 dark:bg-slate-900 font-medium text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 hover:border-indigo-300 transition-all text-left group"
               >
                 <span className="flex items-center">
-                  <span className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold mr-3 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                  <span className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 flex items-center justify-center text-xs font-bold mr-3 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                     {selectedSurahData?.number}
                   </span>
                   <span className="text-lg">{selectedSurahData?.name}</span>
@@ -414,15 +414,15 @@ export const AddItem: React.FC<AddItemProps> = ({
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-bold mb-2 text-slate-700">
+                <label className="block text-sm font-bold mb-2 text-slate-700 dark:text-slate-300">
                   Dari Ayat
                 </label>
                 <input
                   type="number"
-                  className={`w-full border rounded-xl p-4 font-bold text-center outline-none focus:ring-2 ${
+                  className={`w-full border rounded-xl p-4 font-bold text-center outline-none focus:ring-2 bg-white dark:bg-slate-900 text-slate-900 dark:text-white ${
                     inputError && inputError.includes("Ayat awal")
-                      ? "border-red-300 bg-red-50 text-red-900 focus:ring-red-200"
-                      : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-200"
+                      ? "border-red-300 bg-red-50 dark:bg-red-900/20 text-red-900 dark:text-red-200 focus:ring-red-200"
+                      : "border-slate-200 dark:border-slate-600 focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-900"
                   }`}
                   value={newAyahStart}
                   onChange={(e) => {
@@ -432,15 +432,15 @@ export const AddItem: React.FC<AddItemProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-sm font-bold mb-2 text-slate-700">
+                <label className="block text-sm font-bold mb-2 text-slate-700 dark:text-slate-300">
                   Sampai Ayat
                 </label>
                 <input
                   type="number"
-                  className={`w-full border rounded-xl p-4 font-bold text-center outline-none focus:ring-2 ${
+                  className={`w-full border rounded-xl p-4 font-bold text-center outline-none focus:ring-2 bg-white dark:bg-slate-900 text-slate-900 dark:text-white ${
                     inputError && !inputError.includes("Ayat awal")
-                      ? "border-red-300 bg-red-50 text-red-900 focus:ring-red-200"
-                      : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-200"
+                      ? "border-red-300 bg-red-50 dark:bg-red-900/20 text-red-900 dark:text-red-200 focus:ring-red-200"
+                      : "border-slate-200 dark:border-slate-600 focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-900"
                   }`}
                   value={newAyahEnd}
                   onChange={(e) => {
@@ -452,18 +452,18 @@ export const AddItem: React.FC<AddItemProps> = ({
             </div>
 
             {inputError && (
-              <div className="bg-red-50 text-red-600 text-xs font-bold p-3 rounded-lg text-center animate-pulse">
+              <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-300 text-xs font-bold p-3 rounded-lg text-center animate-pulse">
                 {inputError}
               </div>
             )}
 
             {quotaWarning && (
-              <div className="bg-amber-50 border border-amber-100 text-amber-800 text-sm p-4 rounded-xl text-center space-y-3">
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-sm p-4 rounded-xl text-center space-y-3">
                 <p className="font-medium leading-relaxed">{quotaWarning}</p>
                 <div className="flex gap-2 justify-center">
                   <button
                     onClick={() => setQuotaWarning(null)}
-                    className="px-4 py-2 bg-white border border-amber-200 text-amber-700 rounded-lg text-xs font-bold hover:bg-amber-50"
+                    className="px-4 py-2 bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-700 text-amber-700 dark:text-amber-300 rounded-lg text-xs font-bold hover:bg-amber-50 dark:hover:bg-slate-700"
                   >
                     Batal
                   </button>
@@ -484,7 +484,7 @@ export const AddItem: React.FC<AddItemProps> = ({
                   !!inputError ||
                   (isQuotaFull && dailyRemaining === 0 && !bypassQuota)
                 }
-                className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl shadow-indigo-200 transform active:scale-95 mt-4"
+                className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl shadow-indigo-200 dark:shadow-none transform active:scale-95 mt-4"
               >
                 {isSuggestionMode
                   ? "Simpan Lanjutan Hafalan"
@@ -498,15 +498,15 @@ export const AddItem: React.FC<AddItemProps> = ({
       {/* --- CUSTOM SURAH SELECTOR MODAL --- */}
       {isSelectorOpen && (
         <div className="fixed inset-0 z-[60] bg-slate-900/50 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-4 animate-fade-in">
-          <div className="bg-white w-full md:max-w-md h-[85vh] md:h-[600px] rounded-t-3xl md:rounded-3xl flex flex-col shadow-2xl overflow-hidden animate-fade-in-up">
+          <div className="bg-white dark:bg-slate-800 w-full md:max-w-md h-[85vh] md:h-[600px] rounded-t-3xl md:rounded-3xl flex flex-col shadow-2xl overflow-hidden animate-fade-in-up border border-slate-200 dark:border-slate-700">
             {/* Header */}
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-white z-10">
-              <h3 className="font-bold text-lg text-slate-800 ml-2">
+            <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 z-10 flex items-center justify-between">
+              <h3 className="font-bold text-lg text-slate-800 dark:text-white ml-2">
                 Pilih Surat
               </h3>
               <button
                 onClick={() => setIsSelectorOpen(false)}
-                className="p-2 bg-slate-100 rounded-full text-slate-500 hover:bg-slate-200"
+                className="p-2 bg-slate-100 dark:bg-slate-700 rounded-full text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -524,7 +524,7 @@ export const AddItem: React.FC<AddItemProps> = ({
             </div>
 
             {/* Search */}
-            <div className="p-4 pb-2">
+            <div className="p-4 pb-2 bg-white dark:bg-slate-800">
               <div className="relative">
                 <span className="absolute left-3 top-3 text-slate-400">
                   <svg
@@ -545,7 +545,7 @@ export const AddItem: React.FC<AddItemProps> = ({
                 <input
                   type="text"
                   placeholder="Cari nama surat..."
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 dark:text-white"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   autoFocus
@@ -554,7 +554,7 @@ export const AddItem: React.FC<AddItemProps> = ({
             </div>
 
             {/* List */}
-            <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto p-2 custom-scrollbar bg-white dark:bg-slate-800">
               {filteredSurahs.length === 0 ? (
                 <div className="text-center py-10 text-slate-400">
                   Surat tidak ditemukan.
@@ -566,15 +566,15 @@ export const AddItem: React.FC<AddItemProps> = ({
                     onClick={() => handleSelectSurah(s.number)}
                     className={`w-full flex items-center p-3 rounded-xl mb-1 transition-all ${
                       selectedSurahNumber === s.number
-                        ? "bg-indigo-50 border border-indigo-100"
-                        : "hover:bg-slate-50 border border-transparent"
+                        ? "bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800"
+                        : "hover:bg-slate-50 dark:hover:bg-slate-700/50 border border-transparent"
                     }`}
                   >
                     <div
                       className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold mr-4 ${
                         selectedSurahNumber === s.number
                           ? "bg-indigo-600 text-white"
-                          : "bg-slate-100 text-slate-500"
+                          : "bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300"
                       }`}
                     >
                       {s.number}
@@ -583,8 +583,8 @@ export const AddItem: React.FC<AddItemProps> = ({
                       <h4
                         className={`font-bold text-base ${
                           selectedSurahNumber === s.number
-                            ? "text-indigo-700"
-                            : "text-slate-800"
+                            ? "text-indigo-700 dark:text-indigo-300"
+                            : "text-slate-800 dark:text-white"
                         }`}
                       >
                         {s.name}
@@ -594,7 +594,7 @@ export const AddItem: React.FC<AddItemProps> = ({
                     {selectedSurahNumber === s.number && (
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-6 w-6 text-indigo-600"
+                        className="h-6 w-6 text-indigo-600 dark:text-indigo-400"
                         viewBox="0 0 20 20"
                         fill="currentColor"
                       >

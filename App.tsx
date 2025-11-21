@@ -9,12 +9,6 @@ import { Header, Footer, type ViewState } from "./components/Layout.tsx";
 export default function App() {
   const [view, setView] = useState<ViewState>("home");
 
-  useEffect(() => {
-    // Theme cleanup
-    document.documentElement.classList.remove("dark");
-    localStorage.removeItem("theme");
-  }, []);
-
   // Dynamic SEO Title
   useEffect(() => {
     const baseTitle = "NIZAMY";
@@ -34,7 +28,8 @@ export default function App() {
   }, [view]);
 
   // Base class for body depending on view for subtle theming
-  let bgClass = "bg-slate-50 text-slate-800";
+  let bgClass =
+    "bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300";
   if (view === "zakat")
     bgClass += " selection:bg-emerald-200 selection:text-emerald-900";
   else if (view === "faraidh")

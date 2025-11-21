@@ -15,8 +15,8 @@ import { exportZakatToPdf } from "../../services/pdf.service.ts";
 export const ViewSummaryButton = ({ onClick }: { onClick: () => void }) => (
   <div className="mt-8 pb-4 md:pb-0 animate-fade-in">
     {/* Desktop View: Static Button */}
-    <div className="hidden md:flex pt-4 border-t border-slate-100 justify-between items-center gap-4">
-      <p className="text-sm text-slate-500 italic flex items-center">
+    <div className="hidden md:flex pt-4 border-t border-slate-100 dark:border-slate-700 justify-between items-center gap-4">
+      <p className="text-sm text-slate-500 dark:text-slate-400 italic flex items-center">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className="h-4 w-4 mr-1 text-emerald-500"
@@ -33,7 +33,7 @@ export const ViewSummaryButton = ({ onClick }: { onClick: () => void }) => (
       </p>
       <button
         onClick={onClick}
-        className="group flex items-center justify-center px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200/50 font-bold text-sm"
+        className="group flex items-center justify-center px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200/50 dark:shadow-emerald-900/50 font-bold text-sm"
       >
         Lihat Hasil
         <svg
@@ -54,7 +54,7 @@ export const ViewSummaryButton = ({ onClick }: { onClick: () => void }) => (
     </div>
 
     {/* Mobile View: Sticky Bottom Bar */}
-    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 z-40 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 p-4 z-40 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
       <button
         onClick={onClick}
         className="w-full flex items-center justify-center px-6 py-3.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all active:scale-95 font-bold text-base shadow-md"
@@ -77,17 +77,23 @@ interface TabProps {
 export const FitrahView: React.FC<TabProps> = ({ state, onChange, onNext }) => (
   <div className="space-y-6 animate-fade-in pb-20 md:pb-0">
     <div className="md:hidden mb-2">
-      <h2 className="text-lg font-bold text-emerald-800">Zakat Fitrah</h2>
-      <p className="text-slate-500 text-xs">Wajib di bulan Ramadhan.</p>
+      <h2 className="text-lg font-bold text-emerald-800 dark:text-emerald-400">
+        Zakat Fitrah
+      </h2>
+      <p className="text-slate-500 dark:text-slate-400 text-xs">
+        Wajib di bulan Ramadhan.
+      </p>
     </div>
     <div className="hidden md:block">
-      <h2 className="text-2xl font-bold text-emerald-800">Zakat Fitrah</h2>
-      <p className="text-slate-600">
+      <h2 className="text-2xl font-bold text-emerald-800 dark:text-emerald-400">
+        Zakat Fitrah
+      </h2>
+      <p className="text-slate-600 dark:text-slate-300">
         Wajib bagi setiap Muslim yang mampu pada bulan Ramadhan.
       </p>
     </div>
 
-    <div className="bg-emerald-50 p-4 md:p-6 rounded-2xl border border-emerald-100 w-full">
+    <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 md:p-6 rounded-2xl border border-emerald-100 dark:border-emerald-800/50 w-full">
       <ZakatInputField
         label="Jumlah Orang"
         value={state.fitrahPeople}
@@ -95,12 +101,12 @@ export const FitrahView: React.FC<TabProps> = ({ state, onChange, onNext }) => (
         type="number"
       />
       <div className="mt-4 w-full">
-        <label className="block text-sm font-medium text-slate-700 mb-2">
+        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
           Metode Pembayaran
         </label>
         {/* Force full width on mobile with w-full and flex-col */}
         <div className="flex flex-col sm:flex-row gap-3 w-full">
-          <label className="relative flex items-center w-full cursor-pointer bg-white px-4 py-3 rounded-xl border border-emerald-200 hover:bg-emerald-50 transition-colors shadow-sm">
+          <label className="relative flex items-center w-full cursor-pointer bg-white dark:bg-slate-900 px-4 py-3 rounded-xl border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-colors shadow-sm">
             <input
               type="radio"
               name="fitrahMethod"
@@ -108,11 +114,11 @@ export const FitrahView: React.FC<TabProps> = ({ state, onChange, onNext }) => (
               onChange={() => onChange("fitrahMethod", "money")}
               className="text-emerald-600 focus:ring-emerald-500 w-5 h-5"
             />
-            <span className="ml-3 font-bold text-slate-700 flex-1">
+            <span className="ml-3 font-bold text-slate-700 dark:text-slate-200 flex-1">
               Uang (Rp)
             </span>
           </label>
-          <label className="relative flex items-center w-full cursor-pointer bg-white px-4 py-3 rounded-xl border border-emerald-200 hover:bg-emerald-50 transition-colors shadow-sm">
+          <label className="relative flex items-center w-full cursor-pointer bg-white dark:bg-slate-900 px-4 py-3 rounded-xl border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-colors shadow-sm">
             <input
               type="radio"
               name="fitrahMethod"
@@ -120,7 +126,7 @@ export const FitrahView: React.FC<TabProps> = ({ state, onChange, onNext }) => (
               onChange={() => onChange("fitrahMethod", "rice")}
               className="text-emerald-600 focus:ring-emerald-500 w-5 h-5"
             />
-            <span className="ml-3 font-bold text-slate-700 flex-1">
+            <span className="ml-3 font-bold text-slate-700 dark:text-slate-200 flex-1">
               Beras (Kg)
             </span>
           </label>
@@ -150,14 +156,18 @@ export const MaalView: React.FC<TabProps> = ({
   return (
     <div className="space-y-6 animate-fade-in pb-20 md:pb-0">
       <div className="md:hidden mb-2">
-        <h2 className="text-lg font-bold text-emerald-800">Zakat Maal</h2>
-        <p className="text-slate-500 text-xs">Harta simpanan 1 tahun (Haul).</p>
+        <h2 className="text-lg font-bold text-emerald-800 dark:text-emerald-400">
+          Zakat Maal
+        </h2>
+        <p className="text-slate-500 dark:text-slate-400 text-xs">
+          Harta simpanan 1 tahun (Haul).
+        </p>
       </div>
       <div className="hidden md:block">
-        <h2 className="text-2xl font-bold text-emerald-800">
+        <h2 className="text-2xl font-bold text-emerald-800 dark:text-emerald-400">
           Zakat Maal (Harta Simpanan)
         </h2>
-        <p className="text-slate-600">
+        <p className="text-slate-600 dark:text-slate-300">
           Dikenakan pada harta yang tersimpan selama 1 tahun (haul) dan mencapai
           nisab (setara 85g emas).
         </p>
@@ -185,7 +195,7 @@ export const MaalView: React.FC<TabProps> = ({
           onChange={(v) => onChange("otherAssets", v)}
         />
 
-        <div className="md:col-span-2 bg-red-50 p-4 rounded-xl border border-red-100">
+        <div className="md:col-span-2 bg-red-50 dark:bg-red-900/20 p-4 rounded-xl border border-red-100 dark:border-red-800">
           <ZakatInputField
             label="Hutang Jatuh Tempo (Pengurang)"
             sublabel="Hutang yang harus segera dibayar mengurangi kewajiban zakat."
@@ -194,16 +204,16 @@ export const MaalView: React.FC<TabProps> = ({
           />
         </div>
 
-        <div className="md:col-span-2 pt-6 mt-2 border-t border-slate-100">
+        <div className="md:col-span-2 pt-6 mt-2 border-t border-slate-100 dark:border-slate-700">
           <div className="flex items-center mb-2">
-            <h3 className="font-bold text-emerald-700 text-lg">
+            <h3 className="font-bold text-emerald-700 dark:text-emerald-400 text-lg">
               Zakat Rikaz (Temuan/Hadiah)
             </h3>
-            <span className="ml-2 text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold">
+            <span className="ml-2 text-[10px] bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full font-bold">
               Tarif 20%
             </span>
           </div>
-          <p className="text-xs md:text-sm text-slate-500 mb-4">
+          <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 mb-4">
             Dikenakan untuk harta karun temuan atau hadiah undian tak terduga
             (tanpa haul).
           </p>
@@ -231,15 +241,15 @@ export const GoldSilverView: React.FC<TabProps> = ({
   onNext,
 }) => (
   <div className="space-y-6 animate-fade-in pb-20 md:pb-0">
-    <h2 className="text-xl md:text-2xl font-bold text-emerald-800 hidden md:block">
+    <h2 className="text-xl md:text-2xl font-bold text-emerald-800 dark:text-emerald-400 hidden md:block">
       Zakat Emas & Perak
     </h2>
-    <h2 className="text-lg font-bold text-emerald-800 md:hidden">
+    <h2 className="text-lg font-bold text-emerald-800 dark:text-emerald-400 md:hidden">
       Emas & Perak
     </h2>
 
     <div className="grid md:grid-cols-2 gap-6">
-      <div className="bg-yellow-50/50 p-4 md:p-6 rounded-2xl border border-yellow-100">
+      <div className="bg-yellow-50/50 dark:bg-yellow-900/20 p-4 md:p-6 rounded-2xl border border-yellow-100 dark:border-yellow-800/50">
         <ZakatInputField
           label="Berat Emas (Gram)"
           sublabel="Nisab: 85 gram"
@@ -254,7 +264,7 @@ export const GoldSilverView: React.FC<TabProps> = ({
           unit="gram"
         />
       </div>
-      <div className="bg-slate-50 p-4 md:p-6 rounded-2xl border border-slate-200">
+      <div className="bg-slate-50 dark:bg-slate-800/50 p-4 md:p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
         <ZakatInputField
           label="Berat Perak (Gram)"
           sublabel="Nisab: 595 gram"
@@ -289,18 +299,20 @@ export const BusinessView: React.FC<TabProps> = ({
   return (
     <div className="space-y-6 animate-fade-in pb-20 md:pb-0">
       <div className="hidden md:block">
-        <h2 className="text-2xl font-bold text-emerald-800">
+        <h2 className="text-2xl font-bold text-emerald-800 dark:text-emerald-400">
           Zakat Perniagaan
         </h2>
-        <p className="text-slate-600">
+        <p className="text-slate-600 dark:text-slate-300">
           Dihitung dari aset lancar usaha dikurangi hutang jangka pendek.
         </p>
       </div>
       <div className="md:hidden">
-        <h2 className="text-lg font-bold text-emerald-800">Zakat Perniagaan</h2>
+        <h2 className="text-lg font-bold text-emerald-800 dark:text-emerald-400">
+          Zakat Perniagaan
+        </h2>
       </div>
 
-      <div className="grid md:grid-cols-1 gap-4 bg-slate-50 p-4 md:p-6 rounded-2xl border border-slate-200">
+      <div className="grid md:grid-cols-1 gap-4 bg-slate-50 dark:bg-slate-800/50 p-4 md:p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
         <ZakatInputField
           label="Nilai Aset Lancar (Kas, Bank)"
           value={state.bizAssets}
@@ -334,14 +346,14 @@ export const AgricultureView: React.FC<TabProps> = ({
   onNext,
 }) => (
   <div className="space-y-6 animate-fade-in pb-20 md:pb-0">
-    <h2 className="text-xl md:text-2xl font-bold text-emerald-800 hidden md:block">
+    <h2 className="text-xl md:text-2xl font-bold text-emerald-800 dark:text-emerald-400 hidden md:block">
       Zakat Pertanian
     </h2>
-    <h2 className="text-lg font-bold text-emerald-800 md:hidden">
+    <h2 className="text-lg font-bold text-emerald-800 dark:text-emerald-400 md:hidden">
       Zakat Pertanian
     </h2>
 
-    <div className="bg-green-50 p-4 md:p-6 rounded-2xl border border-green-100">
+    <div className="bg-green-50 dark:bg-green-900/20 p-4 md:p-6 rounded-2xl border border-green-100 dark:border-green-800">
       <ZakatInputField
         label="Nilai Hasil Panen (Rupiah)"
         sublabel="Konversikan total hasil panen ke Rupiah"
@@ -349,11 +361,11 @@ export const AgricultureView: React.FC<TabProps> = ({
         onChange={(v) => onChange("agriHarvest", v)}
       />
       <div className="mt-4">
-        <label className="block text-sm font-medium text-slate-700 mb-2">
+        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
           Sistem Pengairan
         </label>
         <select
-          className="w-full border border-slate-300 rounded-lg shadow-sm py-3 px-3 bg-white focus:ring-emerald-500 focus:border-emerald-500 h-12"
+          className="w-full border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm py-3 px-3 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-emerald-500 focus:border-emerald-500 h-12"
           value={state.agriMethod}
           onChange={(e) => onChange("agriMethod", e.target.value)}
         >
@@ -380,14 +392,14 @@ export const LivestockView: React.FC<TabProps> = ({
   const nisabGoldValue = 85 * settings.goldPrice;
   return (
     <div className="space-y-6 animate-fade-in pb-20 md:pb-0">
-      <h2 className="text-xl md:text-2xl font-bold text-emerald-800 hidden md:block">
+      <h2 className="text-xl md:text-2xl font-bold text-emerald-800 dark:text-emerald-400 hidden md:block">
         Zakat Peternakan
       </h2>
-      <h2 className="text-lg font-bold text-emerald-800 md:hidden">
+      <h2 className="text-lg font-bold text-emerald-800 dark:text-emerald-400 md:hidden">
         Zakat Peternakan
       </h2>
 
-      <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 text-sm text-amber-900 mb-4 flex items-start">
+      <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-xl border border-amber-200 dark:border-amber-800 text-sm text-amber-900 dark:text-amber-200 mb-4 flex items-start">
         <span className="text-xl mr-2">💡</span>
         <p>
           <strong>Mode Sederhana:</strong> Perhitungan menggunakan pendekatan
@@ -435,12 +447,12 @@ export const SummaryView: React.FC<SummaryProps> = ({
   return (
     <div className="space-y-6 animate-fade-in pb-20 md:pb-12">
       {/* Action Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-slate-100">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-slate-100 dark:border-slate-700">
         <div>
-          <h2 className="text-xl md:text-2xl font-bold text-slate-800">
+          <h2 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-white">
             Ringkasan & Kwitansi
           </h2>
-          <p className="text-slate-500 text-sm mt-1">
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
             Dibuat pada:{" "}
             {new Date(result.timestamp).toLocaleDateString("id-ID", {
               weekday: "long",
@@ -453,7 +465,7 @@ export const SummaryView: React.FC<SummaryProps> = ({
         <div className="flex gap-3 w-full sm:w-auto">
           <button
             onClick={onSaveHistory}
-            className="flex-1 sm:flex-none justify-center bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 px-4 py-2.5 rounded-xl text-sm font-bold flex items-center shadow-sm transition-colors"
+            className="flex-1 sm:flex-none justify-center bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 px-4 py-2.5 rounded-xl text-sm font-bold flex items-center shadow-sm transition-colors"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -497,20 +509,20 @@ export const SummaryView: React.FC<SummaryProps> = ({
       {/* Receipt Card */}
       <div
         ref={receiptRef}
-        className="bg-white border-2 border-slate-100 rounded-2xl p-6 md:p-8 shadow-sm print:shadow-none print:border-black"
+        className="bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm print:shadow-none print:border-black"
       >
         <div className="border-b-2 border-emerald-500 pb-4 mb-6 flex justify-between items-center">
           <div>
-            <h3 className="text-2xl md:text-3xl font-extrabold text-emerald-800 tracking-tight">
+            <h3 className="text-2xl md:text-3xl font-extrabold text-emerald-800 dark:text-emerald-400 tracking-tight">
               NIZAMY
             </h3>
-            <p className="text-emerald-600 font-medium text-xs md:text-sm tracking-wide uppercase">
+            <p className="text-emerald-600 dark:text-emerald-500 font-medium text-xs md:text-sm tracking-wide uppercase">
               Kalkulator Zakat Mandiri
             </p>
           </div>
           <div className="text-right hidden sm:block">
             <p className="text-xs text-slate-400">No. Ref</p>
-            <p className="text-sm font-mono text-slate-600">
+            <p className="text-sm font-mono text-slate-600 dark:text-slate-300">
               {Date.now().toString().slice(-8)}
             </p>
           </div>
@@ -518,7 +530,7 @@ export const SummaryView: React.FC<SummaryProps> = ({
 
         <div className="space-y-4">
           {result.items.length === 0 && (
-            <div className="text-center text-slate-500 py-8 italic bg-slate-50 rounded-lg border border-dashed border-slate-200">
+            <div className="text-center text-slate-500 dark:text-slate-400 py-8 italic bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-dashed border-slate-200 dark:border-slate-700">
               Belum ada data zakat yang dimasukkan.
             </div>
           )}
@@ -526,23 +538,27 @@ export const SummaryView: React.FC<SummaryProps> = ({
           {result.items.map((item) => (
             <div
               key={item.id}
-              className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-3 border-b border-slate-100 last:border-0 gap-2"
+              className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-3 border-b border-slate-100 dark:border-slate-700 last:border-0 gap-2"
             >
               <div className="flex-1 pr-4">
-                <h4 className="font-bold text-slate-700">{item.label}</h4>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                <h4 className="font-bold text-slate-700 dark:text-slate-200">
+                  {item.label}
+                </h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
                   {item.note}
                 </p>
                 {!item.isNisabReached && item.id !== "fitrah" && (
-                  <span className="inline-block mt-1 px-2 py-0.5 bg-slate-100 text-slate-500 text-[10px] uppercase rounded font-bold tracking-wide">
+                  <span className="inline-block mt-1 px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 text-[10px] uppercase rounded font-bold tracking-wide">
                     Tidak Wajib (Belum Nisab)
                   </span>
                 )}
               </div>
-              <div className="text-left sm:text-right w-full sm:w-auto bg-slate-50 sm:bg-transparent p-2 sm:p-0 rounded-lg">
+              <div className="text-left sm:text-right w-full sm:w-auto bg-slate-50 dark:bg-slate-700/30 sm:bg-transparent p-2 sm:p-0 rounded-lg">
                 <p
                   className={`font-mono font-bold text-lg ${
-                    item.zakatAmount > 0 ? "text-slate-800" : "text-slate-300"
+                    item.zakatAmount > 0
+                      ? "text-slate-800 dark:text-white"
+                      : "text-slate-300 dark:text-slate-600"
                   }`}
                 >
                   {item.formattedValue
@@ -550,7 +566,7 @@ export const SummaryView: React.FC<SummaryProps> = ({
                     : formatCurrency(item.zakatAmount)}
                 </p>
                 {item.rate > 0 && (
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-400 dark:text-slate-500">
                     Rate: {(item.rate * 100).toFixed(1)}%
                   </p>
                 )}
@@ -559,16 +575,16 @@ export const SummaryView: React.FC<SummaryProps> = ({
           ))}
         </div>
 
-        <div className="mt-8 pt-6 border-t-2 border-slate-800">
+        <div className="mt-8 pt-6 border-t-2 border-slate-800 dark:border-slate-200">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-            <span className="text-lg font-bold text-slate-800">
+            <span className="text-lg font-bold text-slate-800 dark:text-white">
               TOTAL ZAKAT
             </span>
-            <span className="text-2xl sm:text-3xl font-extrabold text-emerald-600 text-right">
+            <span className="text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 text-right">
               {result.formattedTotal}
             </span>
           </div>
-          <p className="text-left sm:text-right text-xs text-slate-500 mt-2 italic leading-relaxed">
+          <p className="text-left sm:text-right text-xs text-slate-500 dark:text-slate-400 mt-2 italic leading-relaxed">
             "Ambillah zakat dari sebagian harta mereka, dengan zakat itu kamu
             membersihkan dan mensucikan mereka..." (At-Taubah: 103)
           </p>
@@ -577,9 +593,9 @@ export const SummaryView: React.FC<SummaryProps> = ({
 
       {/* History Section */}
       {history.length > 0 && (
-        <div className="mt-12 pt-8 border-t border-slate-200">
+        <div className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-700">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-slate-700 flex items-center">
+            <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300 flex items-center">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-5 w-5 mr-2 text-slate-400"
@@ -598,7 +614,7 @@ export const SummaryView: React.FC<SummaryProps> = ({
             </h3>
             <button
               onClick={onClearHistory}
-              className="text-xs text-red-600 hover:text-red-800 font-medium hover:underline"
+              className="text-xs text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium hover:underline"
             >
               Hapus Semua
             </button>
@@ -607,19 +623,19 @@ export const SummaryView: React.FC<SummaryProps> = ({
             {history.map((entry) => (
               <div
                 key={entry.id}
-                className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex justify-between items-center hover:bg-white hover:shadow-md transition-all group"
+                className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 flex justify-between items-center hover:bg-white dark:hover:bg-slate-700/50 hover:shadow-md transition-all group"
               >
                 <div>
-                  <p className="font-bold text-emerald-700">
+                  <p className="font-bold text-emerald-700 dark:text-emerald-400">
                     {entry.result.formattedTotal}
                   </p>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                     {entry.timestamp}
                   </p>
                 </div>
                 <button
                   onClick={() => onLoadHistory(entry)}
-                  className="text-sm text-slate-500 hover:text-emerald-600 font-medium bg-white border border-slate-200 px-3 py-1.5 rounded-lg group-hover:border-emerald-200 transition-colors shadow-sm"
+                  className="text-sm text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-300 font-medium bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-1.5 rounded-lg group-hover:border-emerald-200 dark:group-hover:border-emerald-500 transition-colors shadow-sm"
                 >
                   Muat
                 </button>

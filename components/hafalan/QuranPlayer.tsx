@@ -122,7 +122,7 @@ export const QuranPlayer: React.FC<QuranPlayerProps> = ({
       UPDATED: Removed 'sticky top-0 z-30'. 
       The player is now a static block element controlled by the parent layout (ReviewSession).
     */
-    <div className="bg-white border-b border-slate-100 p-2 md:p-3 flex flex-col md:flex-row items-center justify-between gap-3 transition-all">
+    <div className="bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 p-2 md:p-3 flex flex-col md:flex-row items-center justify-between gap-3 transition-all">
       <audio
         ref={audioRef}
         onEnded={handleEnded}
@@ -139,7 +139,7 @@ export const QuranPlayer: React.FC<QuranPlayerProps> = ({
           onClick={() => setIsPlaying(!isPlaying)}
           className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm flex-shrink-0 ${
             isPlaying
-              ? "bg-indigo-100 text-indigo-700"
+              ? "bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300"
               : "bg-indigo-600 text-white hover:bg-indigo-700"
           }`}
         >
@@ -194,15 +194,15 @@ export const QuranPlayer: React.FC<QuranPlayerProps> = ({
         </button>
 
         <div className="flex-1 md:w-48">
-          <div className="text-xs font-bold text-slate-800 flex justify-between">
+          <div className="text-xs font-bold text-slate-800 dark:text-slate-200 flex justify-between">
             <span>Ayat {currentAyah}</span>
             {isPlaying && (
-              <span className="text-indigo-500 animate-pulse text-[10px]">
+              <span className="text-indigo-500 dark:text-indigo-400 animate-pulse text-[10px]">
                 Memutar...
               </span>
             )}
           </div>
-          <div className="w-full bg-slate-100 rounded-full h-1.5 mt-1 overflow-hidden">
+          <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5 mt-1 overflow-hidden">
             <div
               className="bg-indigo-500 h-1.5 rounded-full transition-all duration-300"
               style={{
@@ -215,10 +215,10 @@ export const QuranPlayer: React.FC<QuranPlayerProps> = ({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 border-slate-50 pt-2 md:pt-0">
+      <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 border-slate-50 dark:border-slate-700 pt-2 md:pt-0">
         <button
           onClick={toggleSpeed}
-          className="px-2 py-1 text-xs font-bold text-slate-600 bg-slate-100 rounded hover:bg-slate-200 min-w-[3rem]"
+          className="px-2 py-1 text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 min-w-[3rem]"
         >
           {playbackSpeed}x
         </button>
@@ -226,7 +226,7 @@ export const QuranPlayer: React.FC<QuranPlayerProps> = ({
         <select
           value={selectedQori}
           onChange={handleQoriChange}
-          className="text-xs border border-slate-200 rounded py-1 px-2 bg-white text-slate-700 outline-none focus:border-indigo-300 w-32 md:w-auto"
+          className="text-xs border border-slate-200 dark:border-slate-600 rounded py-1 px-2 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 outline-none focus:border-indigo-300 w-32 md:w-auto"
         >
           {QORI_LIST.map((q) => (
             <option key={q.id} value={q.id}>

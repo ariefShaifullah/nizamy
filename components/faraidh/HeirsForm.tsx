@@ -31,17 +31,19 @@ export const HeirsForm: React.FC<HeirsFormProps> = React.memo(
     };
 
     return (
-      <div className="bg-white p-6 rounded-2xl shadow-lg space-y-6 border border-slate-200">
+      <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg space-y-6 border border-slate-200 dark:border-slate-700 transition-colors">
         <div>
           <label
             htmlFor="estate"
-            className="block text-sm font-medium text-slate-700 mb-1"
+            className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
           >
             Total Harta Waris (Rp)
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span className="text-slate-500 sm:text-sm">Rp</span>
+              <span className="text-slate-500 dark:text-slate-400 sm:text-sm">
+                Rp
+              </span>
             </div>
             <input
               type="text"
@@ -49,7 +51,7 @@ export const HeirsForm: React.FC<HeirsFormProps> = React.memo(
               id="estate"
               value={formatInputValue(estate)}
               onChange={handleEstateChange}
-              className="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-lg font-semibold text-slate-900"
+              className="w-full pl-10 pr-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-lg font-semibold text-slate-900 dark:text-white"
               placeholder="0"
               disabled={loading}
             />
@@ -57,11 +59,13 @@ export const HeirsForm: React.FC<HeirsFormProps> = React.memo(
         </div>
 
         <div className="space-y-4">
-          <div className="flex justify-between items-center border-b border-slate-200 pb-2">
-            <h3 className="text-lg font-semibold text-slate-800">Ahli Waris</h3>
+          <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-2">
+            <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">
+              Ahli Waris
+            </h3>
             <button
               onClick={() => dispatch({ type: "RESET" })}
-              className="text-sm font-medium text-primary-600 hover:text-primary-500 disabled:opacity-50 transition-colors"
+              className="text-sm font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 disabled:opacity-50 transition-colors"
               disabled={loading}
             >
               Reset
@@ -72,7 +76,7 @@ export const HeirsForm: React.FC<HeirsFormProps> = React.memo(
           <div className="space-y-6 max-h-none lg:max-h-[50vh] overflow-y-visible lg:overflow-y-auto pr-0 lg:pr-2 custom-scrollbar pb-32 lg:pb-0">
             {HEIR_GROUPS.map((group) => (
               <div key={group.title}>
-                <h4 className="font-medium text-xs uppercase tracking-wider text-slate-500 mb-3">
+                <h4 className="font-medium text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
                   {group.title}
                 </h4>
                 <div className="space-y-2">
@@ -127,10 +131,9 @@ export const HeirsForm: React.FC<HeirsFormProps> = React.memo(
         </button>
 
         {/* Mobile Floating Button (Above Bottom Nav) */}
-        {/* UX IMPROVEMENT: Increased bottom spacing (bottom-[90px]) to create breathing room above the nav bar */}
         <div className="lg:hidden fixed bottom-[90px] left-4 right-4 z-30 pointer-events-none">
-          {/* Gradient fade behind button to separate it from scrolling content */}
-          <div className="absolute -inset-x-4 -bottom-4 h-24 bg-gradient-to-t from-white/90 via-white/50 to-transparent -z-10" />
+          {/* Gradient fade */}
+          <div className="absolute -inset-x-4 -bottom-4 h-24 bg-gradient-to-t from-white/90 dark:from-slate-900/90 via-white/50 dark:via-slate-900/50 to-transparent -z-10" />
 
           <button
             onClick={onCalculate}

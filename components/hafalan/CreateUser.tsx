@@ -25,7 +25,7 @@ export const CreateUser: React.FC<CreateUserProps> = ({
   };
 
   return (
-    <div className="max-w-xl mx-auto bg-white p-8 rounded-3xl shadow-xl border border-indigo-100 animate-fade-in-up mt-8">
+    <div className="max-w-xl mx-auto bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-xl border border-indigo-100 dark:border-slate-700 animate-fade-in-up mt-8">
       <div className="flex items-center mb-8">
         {hasUsers && (
           <button
@@ -33,7 +33,7 @@ export const CreateUser: React.FC<CreateUserProps> = ({
               audioService.playClick();
               onBack();
             }}
-            className="mr-4 text-slate-400 hover:text-slate-600 bg-slate-50 p-2 rounded-full"
+            className="mr-4 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 bg-slate-50 dark:bg-slate-700 p-2 rounded-full"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -51,25 +51,25 @@ export const CreateUser: React.FC<CreateUserProps> = ({
             </svg>
           </button>
         )}
-        <h2 className="text-2xl md:text-3xl font-bold text-indigo-900">
+        <h2 className="text-2xl md:text-3xl font-bold text-indigo-900 dark:text-indigo-300">
           Buat Profil Baru
         </h2>
       </div>
       <div className="space-y-6">
         <div>
-          <label className="block text-sm font-bold text-slate-700 mb-2">
+          <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
             Nama Panggilan
           </label>
           <input
             type="text"
-            className="w-full border border-slate-300 rounded-xl p-4 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+            className="w-full border border-slate-300 dark:border-slate-600 rounded-xl p-4 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Contoh: Abdullah"
           />
         </div>
         <div>
-          <label className="block text-sm font-bold text-slate-700 mb-2">
+          <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
             Beban Harian (Kecepatan)
           </label>
           <div className="grid grid-cols-3 gap-3">
@@ -82,8 +82,8 @@ export const CreateUser: React.FC<CreateUserProps> = ({
                 }}
                 className={`p-4 rounded-xl border-2 flex flex-col items-center justify-center transition-all ${
                   level === lvl
-                    ? "bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-200"
-                    : "bg-white text-slate-600 border-slate-100 hover:bg-slate-50"
+                    ? "bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-200 dark:shadow-none"
+                    : "bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-100 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600"
                 }`}
               >
                 <span className="capitalize font-bold text-sm md:text-base">
@@ -105,11 +105,11 @@ export const CreateUser: React.FC<CreateUserProps> = ({
           </div>
         </div>
         <div>
-          <label className="block text-sm font-bold text-slate-700 mb-2">
+          <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
             Target Hafalan
           </label>
           <select
-            className="w-full border border-slate-300 rounded-xl p-4 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
+            className="w-full border border-slate-300 dark:border-slate-600 rounded-xl p-4 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
             value={target}
             onChange={(e) => setTarget(Number(e.target.value))}
           >
@@ -124,7 +124,7 @@ export const CreateUser: React.FC<CreateUserProps> = ({
         </div>
         <button
           onClick={handleCreate}
-          className="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 mt-4"
+          className="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 dark:shadow-none mt-4"
         >
           Mulai Menghafal
         </button>

@@ -102,10 +102,10 @@ export const FaraidhCalculator: React.FC = () => {
     <div className="max-w-7xl mx-auto pb-24 lg:pb-0 animate-fade-in">
       {/* Header - Hidden on Mobile */}
       <div className="hidden lg:block text-center mb-8 lg:mb-12">
-        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
+        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-5xl">
           Kalkulator Waris Islam
         </h1>
-        <p className="mt-3 md:mt-4 max-w-2xl mx-auto text-base md:text-lg text-slate-600 px-4">
+        <p className="mt-3 md:mt-4 max-w-2xl mx-auto text-base md:text-lg text-slate-600 dark:text-slate-400 px-4">
           Hitung pembagian harta waris (faraidh) secara akurat dan transparan
           sesuai Al-Qur'an dan Sunnah.
         </p>
@@ -160,7 +160,7 @@ export const FaraidhCalculator: React.FC = () => {
             onClear={clearHistory}
           />
           {history.length === 0 && (
-            <div className="text-center py-12 text-slate-500 italic">
+            <div className="text-center py-12 text-slate-500 dark:text-slate-400 italic">
               Belum ada riwayat perhitungan.
             </div>
           )}
@@ -177,13 +177,13 @@ export const FaraidhCalculator: React.FC = () => {
       </div>
 
       {/* --- MOBILE BOTTOM NAVIGATION --- */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 pb-safe px-6 py-2 z-50 flex justify-between items-center shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 pb-safe px-6 py-2 z-50 flex justify-between items-center shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
         <button
           onClick={() => switchTab("input")}
           className={`flex flex-col items-center p-2 rounded-xl transition-all flex-1 ${
             activeTab === "input"
-              ? "text-primary-600 bg-blue-50"
-              : "text-slate-400 hover:text-slate-600"
+              ? "text-primary-600 dark:text-primary-400 bg-blue-50 dark:bg-primary-900/20"
+              : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
           }`}
         >
           <svg
@@ -207,8 +207,8 @@ export const FaraidhCalculator: React.FC = () => {
           onClick={() => switchTab("result")}
           className={`flex flex-col items-center p-2 rounded-xl transition-all flex-1 ${
             activeTab === "result"
-              ? "text-primary-600 bg-blue-50"
-              : "text-slate-400 hover:text-slate-600"
+              ? "text-primary-600 dark:text-primary-400 bg-blue-50 dark:bg-primary-900/20"
+              : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
           }`}
         >
           <div className="relative">
@@ -233,7 +233,7 @@ export const FaraidhCalculator: React.FC = () => {
               />
             </svg>
             {result && (
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
             )}
           </div>
           <span className="text-[10px] font-bold uppercase">Hasil</span>
@@ -243,8 +243,8 @@ export const FaraidhCalculator: React.FC = () => {
           onClick={() => switchTab("history")}
           className={`flex flex-col items-center p-2 rounded-xl transition-all flex-1 ${
             activeTab === "history"
-              ? "text-primary-600 bg-blue-50"
-              : "text-slate-400 hover:text-slate-600"
+              ? "text-primary-600 dark:text-primary-400 bg-blue-50 dark:bg-primary-900/20"
+              : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
           }`}
         >
           <svg

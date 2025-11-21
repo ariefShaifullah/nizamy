@@ -27,14 +27,18 @@ export const ZakatInputField: React.FC<ZakatInputFieldProps> = React.memo(
 
     return (
       <div className="mb-4">
-        <label className="block text-sm font-medium text-slate-700 mb-1">
+        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
           {label}
         </label>
-        {sublabel && <p className="text-xs text-slate-500 mb-2">{sublabel}</p>}
+        {sublabel && (
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+            {sublabel}
+          </p>
+        )}
         <div className="relative">
           {type === "currency" ? (
             <>
-              <span className="absolute left-3 top-2.5 text-slate-500 text-sm">
+              <span className="absolute left-3 top-2.5 text-slate-500 dark:text-slate-400 text-sm">
                 Rp
               </span>
               <input
@@ -42,7 +46,7 @@ export const ZakatInputField: React.FC<ZakatInputFieldProps> = React.memo(
                 inputMode="numeric"
                 value={value === 0 ? "" : formatNumber(value)}
                 onChange={handleChange}
-                className="w-full bg-white text-slate-900 border border-slate-300 rounded-md shadow-sm py-2 pl-10 pr-3 focus:ring-emerald-500 focus:border-emerald-500 font-medium placeholder-slate-400"
+                className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-600 rounded-md shadow-sm py-2 pl-10 pr-3 focus:ring-emerald-500 focus:border-emerald-500 font-medium placeholder-slate-400 dark:placeholder-slate-500"
                 placeholder="0"
               />
             </>
@@ -54,7 +58,7 @@ export const ZakatInputField: React.FC<ZakatInputFieldProps> = React.memo(
               step="any"
               value={value === 0 ? "" : value}
               onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
-              className="w-full bg-white text-slate-900 border border-slate-300 rounded-md shadow-sm py-2 pl-3 pr-3 focus:ring-emerald-500 focus:border-emerald-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none placeholder-slate-400"
+              className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-600 rounded-md shadow-sm py-2 pl-3 pr-3 focus:ring-emerald-500 focus:border-emerald-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none placeholder-slate-400 dark:placeholder-slate-500"
               placeholder="0"
             />
           )}

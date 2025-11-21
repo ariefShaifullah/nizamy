@@ -19,14 +19,14 @@ export const HeirInput: React.FC<HeirInputProps> = React.memo(
     }, [dispatch, heirKey]);
 
     return (
-      <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-slate-100 shadow-sm active:border-primary-200 transition-colors">
-        <span className="text-sm md:text-base font-medium text-slate-700 pr-2 leading-snug">
+      <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm active:border-primary-200 dark:active:border-primary-700 transition-colors">
+        <span className="text-sm md:text-base font-medium text-slate-700 dark:text-slate-300 pr-2 leading-snug">
           {label}
         </span>
-        <div className="flex items-center space-x-3 bg-slate-50 rounded-xl p-1.5 border border-slate-200">
+        <div className="flex items-center space-x-3 bg-slate-50 dark:bg-slate-800 rounded-xl p-1.5 border border-slate-200 dark:border-slate-700">
           <button
             onClick={onDecrement}
-            className="w-10 h-10 flex items-center justify-center rounded-lg bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-900 active:scale-95 transition-all shadow-sm border border-slate-200 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+            className="w-10 h-10 flex items-center justify-center rounded-lg bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 hover:text-slate-900 dark:hover:text-white active:scale-95 transition-all shadow-sm border border-slate-200 dark:border-slate-600 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
             disabled={count === 0}
             aria-label={`Kurangi jumlah ${label}`}
           >
@@ -43,12 +43,12 @@ export const HeirInput: React.FC<HeirInputProps> = React.memo(
               />
             </svg>
           </button>
-          <span className="w-8 text-center font-bold text-primary-700 text-lg tabular-nums">
+          <span className="w-8 text-center font-bold text-primary-700 dark:text-primary-400 text-lg tabular-nums">
             {count}
           </span>
           <button
             onClick={onIncrement}
-            className="w-10 h-10 flex items-center justify-center rounded-lg bg-white text-primary-600 hover:bg-primary-50 hover:text-primary-700 active:scale-95 transition-all shadow-sm border border-slate-200 touch-manipulation"
+            className="w-10 h-10 flex items-center justify-center rounded-lg bg-white dark:bg-slate-700 text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-slate-600 hover:text-primary-700 active:scale-95 transition-all shadow-sm border border-slate-200 dark:border-slate-600 touch-manipulation"
             aria-label={`Tambah jumlah ${label}`}
           >
             <svg

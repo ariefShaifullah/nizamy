@@ -24,35 +24,39 @@ export const NisabStatus: React.FC<NisabStatusProps> = ({
 
   return (
     <div
-      className={`mt-4 p-4 rounded-lg border ${
+      className={`mt-4 p-4 rounded-lg border transition-colors ${
         isReached
-          ? "bg-emerald-50 border-emerald-200"
-          : "bg-slate-50 border-slate-200"
+          ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800"
+          : "bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700"
       }`}
     >
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
         <div>
-          <div className="text-sm text-slate-500">
+          <div className="text-sm text-slate-500 dark:text-slate-400">
             Total/Proyeksi:{" "}
-            <span className="font-semibold text-slate-700">{displayValue}</span>
+            <span className="font-semibold text-slate-700 dark:text-slate-200">
+              {displayValue}
+            </span>
           </div>
-          <div className="text-sm text-slate-500">
-            Batas Nisab:{" "}
-            <span className="font-semibold text-slate-700">{displayNisab}</span>
+          <div className="text-sm text-slate-500 dark:text-slate-400">
+            Ambang Batas (Nisab):{" "}
+            <span className="font-semibold text-slate-700 dark:text-slate-200">
+              {displayNisab}
+            </span>
           </div>
         </div>
         <div
           className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center justify-center uppercase tracking-wide ${
             isReached
-              ? "bg-emerald-100 text-emerald-700"
-              : "bg-slate-200 text-slate-600"
+              ? "bg-emerald-100 dark:bg-emerald-800 text-emerald-700 dark:text-emerald-100"
+              : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
           }`}
         >
           {isReached ? "WAJIB ZAKAT" : "BELUM WAJIB"}
         </div>
       </div>
       {!isReached && (
-        <div className="mt-2 flex items-start text-sm text-slate-600 bg-white p-2 rounded border border-slate-100">
+        <div className="mt-2 flex items-start text-sm text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 p-2 rounded border border-slate-100 dark:border-slate-800">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-5 w-5 mr-2 text-slate-400 flex-shrink-0"
@@ -79,3 +83,4 @@ export const NisabStatus: React.FC<NisabStatusProps> = ({
     </div>
   );
 };
+  

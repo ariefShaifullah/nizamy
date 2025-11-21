@@ -130,7 +130,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       {/* --- HEADER SECTION --- */}
       {/* Mobile: Compact Flat Header. Desktop: Rounded Header */}
-      <div className="bg-gradient-to-br from-indigo-900 to-indigo-800 text-white md:rounded-3xl shadow-xl shadow-indigo-200 relative overflow-hidden p-5 md:p-8 flex flex-col md:flex-row gap-4 md:gap-6 justify-between items-start md:items-end -mx-4 md:mx-0 -mt-8 md:mt-0 pt-8 md:pt-8">
+      <div className="bg-gradient-to-br from-indigo-900 to-indigo-800 dark:from-indigo-950 dark:to-slate-900 text-white md:rounded-3xl shadow-xl shadow-indigo-200 dark:shadow-none relative overflow-hidden p-5 md:p-8 flex flex-col md:flex-row gap-4 md:gap-6 justify-between items-start md:items-end -mx-4 md:mx-0 -mt-8 md:mt-0 pt-8 md:pt-8 border border-indigo-800 dark:border-slate-800">
         {/* Hide SVG on mobile for compactness */}
         <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none hidden md:block">
           <svg
@@ -216,14 +216,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* LEFT COL: MAIN CONTENT (Tasks & List) */}
         {/* On Mobile: Show only if tab is NOT profile and NOT guide */}
         <div
-          className={`md:col-span-2 bg-white md:rounded-3xl shadow-sm md:shadow-lg md:shadow-slate-200/50 border-y md:border border-slate-100 overflow-hidden flex flex-col min-h-[500px] ${
+          className={`md:col-span-2 bg-white dark:bg-slate-800 md:rounded-3xl shadow-sm md:shadow-lg md:shadow-slate-200/50 dark:md:shadow-none border-y md:border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col min-h-[500px] ${
             activeTab === "profile" || activeTab === "guide"
               ? "hidden md:flex"
               : "flex"
           }`}
         >
           {/* Desktop Tabs (Hidden on Mobile) */}
-          <div className="hidden md:flex border-b border-slate-100 p-2 bg-slate-50/50 sticky top-0 z-20 backdrop-blur-md">
+          <div className="hidden md:flex border-b border-slate-100 dark:border-slate-700 p-2 bg-slate-50/50 dark:bg-slate-800/50 sticky top-0 z-20 backdrop-blur-md">
             <button
               onClick={() => {
                 audioService.playClick();
@@ -231,13 +231,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
               }}
               className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${
                 desktopContentTab === "schedule"
-                  ? "bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200"
-                  : "text-slate-500 hover:text-slate-700"
+                  ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-sm ring-1 ring-slate-200 dark:ring-slate-600"
+                  : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
               }`}
             >
               📅 Jadwal Murajaah
               {dueItems.length > 0 && (
-                <span className="ml-1 bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full text-[10px]">
+                <span className="ml-1 bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-200 px-1.5 py-0.5 rounded-full text-[10px]">
                   {dueItems.length}
                 </span>
               )}
@@ -249,20 +249,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
               }}
               className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${
                 desktopContentTab === "list"
-                  ? "bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200"
-                  : "text-slate-500 hover:text-slate-700"
+                  ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-sm ring-1 ring-slate-200 dark:ring-slate-600"
+                  : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
               }`}
             >
               📋 Daftar Hafalan
             </button>
           </div>
 
-          <div className="p-4 md:p-6 flex-1 bg-white">
+          <div className="p-4 md:p-6 flex-1 bg-white dark:bg-slate-800">
             {/* SCHEDULE VIEW */}
             {desktopContentTab === "schedule" ? (
               <div className="space-y-4 h-full flex flex-col">
                 <div className="flex justify-between items-center">
-                  <h3 className="font-bold text-slate-800 text-lg md:text-xl">
+                  <h3 className="font-bold text-slate-800 dark:text-white text-lg md:text-xl">
                     Murajaah Hari Ini
                   </h3>
                   {/* Desktop Add Button (Hidden on Mobile in favor of FAB) */}
@@ -271,7 +271,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       audioService.playClick();
                       onAddClick();
                     }}
-                    className="hidden md:block text-sm bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg font-bold hover:bg-indigo-100 transition-colors border border-indigo-100"
+                    className="hidden md:block text-sm bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-3 py-1.5 rounded-lg font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors border border-indigo-100 dark:border-indigo-800"
                   >
                     + Tambah
                   </button>
@@ -279,15 +279,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
                 {/* Empty/Celebration States */}
                 {state.items.length === 0 ? (
-                  <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4 p-4 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-                    <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-full flex items-center justify-center text-3xl md:text-4xl shadow-sm">
+                  <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4 p-4 bg-slate-50/50 dark:bg-slate-800/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+                    <div className="w-16 h-16 md:w-20 md:h-20 bg-white dark:bg-slate-700 rounded-full flex items-center justify-center text-3xl md:text-4xl shadow-sm">
                       🌱
                     </div>
                     <div>
-                      <h4 className="font-bold text-indigo-900 text-lg">
+                      <h4 className="font-bold text-indigo-900 dark:text-indigo-300 text-lg">
                         Awal Perjalanan
                       </h4>
-                      <p className="text-slate-500 text-sm max-w-xs mx-auto mt-1">
+                      <p className="text-slate-500 dark:text-slate-400 text-sm max-w-xs mx-auto mt-1">
                         Setiap hafiz mulai dari satu ayat. Yuk, mulai hafalan
                         pertamamu.
                       </p>
@@ -297,7 +297,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         audioService.playClick();
                         onAddClick();
                       }}
-                      className="bg-indigo-600 text-white px-8 py-3 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 transform hover:-translate-y-1"
+                      className="bg-indigo-600 text-white px-8 py-3 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 dark:shadow-none transform hover:-translate-y-1"
                     >
                       + Tambah Hafalan Baru
                     </button>
@@ -306,15 +306,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   <div
                     className={`flex-1 flex flex-col items-center justify-center text-center space-y-4 p-4 rounded-2xl border border-dashed ${
                       isQuotaFull
-                        ? "bg-green-50/50 border-green-200"
-                        : "bg-indigo-50/50 border-indigo-200"
+                        ? "bg-green-50/50 dark:bg-green-900/10 border-green-200 dark:border-green-800"
+                        : "bg-indigo-50/50 dark:bg-indigo-900/10 border-indigo-200 dark:border-indigo-800"
                     }`}
                   >
                     <div
                       className={`w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center text-3xl md:text-4xl shadow-inner ${
                         isQuotaFull
-                          ? "bg-green-100 animate-bounce"
-                          : "bg-indigo-100"
+                          ? "bg-green-100 dark:bg-green-900/50 animate-bounce"
+                          : "bg-indigo-100 dark:bg-indigo-900/50"
                       }`}
                     >
                       {isQuotaFull ? "🎉" : "⚡"}
@@ -322,7 +322,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     <div>
                       <h4
                         className={`font-bold text-lg ${
-                          isQuotaFull ? "text-green-900" : "text-indigo-900"
+                          isQuotaFull
+                            ? "text-green-900 dark:text-green-300"
+                            : "text-indigo-900 dark:text-indigo-300"
                         }`}
                       >
                         {isQuotaFull
@@ -332,8 +334,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       <p
                         className={`text-sm mt-1 max-w-xs mx-auto leading-relaxed ${
                           isQuotaFull
-                            ? "text-green-800/80"
-                            : "text-indigo-800/80"
+                            ? "text-green-800/80 dark:text-green-200/70"
+                            : "text-indigo-800/80 dark:text-indigo-200/70"
                         }`}
                       >
                         {isQuotaFull
@@ -348,7 +350,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                             audioService.playClick();
                             setShowSettings(true);
                           }}
-                          className="w-full bg-white border-2 border-green-200 text-green-700 px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-green-50 hover:border-green-300 transition-all"
+                          className="w-full bg-white dark:bg-slate-700 border-2 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-green-50 dark:hover:bg-slate-600 hover:border-green-300 transition-all"
                         >
                           Atur Target Harian
                         </button>
@@ -359,7 +361,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           audioService.playClick();
                           onAddClick();
                         }}
-                        className="bg-indigo-600 text-white shadow-lg shadow-indigo-200 px-6 py-3 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all transform hover:-translate-y-1"
+                        className="bg-indigo-600 text-white shadow-lg shadow-indigo-200 dark:shadow-none px-6 py-3 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all transform hover:-translate-y-1"
                       >
                         + Tambah Hafalan Baru
                       </button>
@@ -371,30 +373,30 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     {dueItems.map((item) => (
                       <div
                         key={item.id}
-                        className="bg-white p-4 md:p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-row justify-between items-center gap-3 md:gap-4 hover:border-indigo-300 hover:shadow-md transition-all group"
+                        className="bg-white dark:bg-slate-700/50 p-4 md:p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex flex-row justify-between items-center gap-3 md:gap-4 hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow-md transition-all group"
                       >
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1 flex-wrap">
-                            <h4 className="font-bold text-slate-800 text-base md:text-lg truncate">
+                            <h4 className="font-bold text-slate-800 dark:text-white text-base md:text-lg truncate">
                               {item.surahName}
                             </h4>
                             <span
                               className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide flex-shrink-0 ${
                                 item.stage === 0
-                                  ? "bg-indigo-100 text-indigo-700"
-                                  : "bg-amber-100 text-amber-700"
+                                  ? "bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300"
+                                  : "bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300"
                               }`}
                             >
                               {item.stage === 0 ? "Baru" : "Murajaah"}
                             </span>
                           </div>
-                          <p className="text-xs md:text-sm text-slate-500 font-medium truncate">
+                          <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 font-medium truncate">
                             Ayat {item.startAyah} - {item.endAyah}
                           </p>
                         </div>
                         <button
                           onClick={() => onStartReview(item)}
-                          className="shrink-0 bg-indigo-50 text-indigo-600 p-3 md:px-6 md:py-3 rounded-xl md:rounded-xl text-sm font-bold group-hover:bg-indigo-600 group-hover:text-white transition-all active:scale-95 flex items-center justify-center"
+                          className="shrink-0 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 p-3 md:px-6 md:py-3 rounded-xl md:rounded-xl text-sm font-bold group-hover:bg-indigo-600 group-hover:text-white transition-all active:scale-95 flex items-center justify-center"
                           aria-label="Mulai Murajaah"
                         >
                           {/* Icon on Mobile */}
@@ -422,7 +424,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               // LIST VIEW
               <div className="space-y-4 h-full flex flex-col">
                 <div className="flex justify-between items-center">
-                  <h3 className="font-bold text-slate-800 text-lg md:text-xl">
+                  <h3 className="font-bold text-slate-800 dark:text-white text-lg md:text-xl">
                     Daftar Hafalan
                   </h3>
                   <div className="flex gap-2">
@@ -431,7 +433,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         audioService.playClick();
                         exportHafalanToPdf(state);
                       }}
-                      className="text-xs bg-slate-50 text-slate-600 px-3 py-1.5 rounded-lg font-bold hover:bg-slate-100 border border-slate-200 flex items-center"
+                      className="text-xs bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-3 py-1.5 rounded-lg font-bold hover:bg-slate-100 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600 flex items-center"
                     >
                       PDF
                     </button>
@@ -450,16 +452,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           audioService.playClick();
                           setSelectedDetailItem(item);
                         }}
-                        className="p-4 rounded-2xl border flex justify-between items-center cursor-pointer hover:shadow-md transition-all bg-white border-slate-100 hover:border-indigo-200 group"
+                        className="p-4 rounded-2xl border flex justify-between items-center cursor-pointer hover:shadow-md transition-all bg-white dark:bg-slate-700/30 border-slate-100 dark:border-slate-700 hover:border-indigo-200 dark:hover:border-indigo-700 group"
                       >
                         <div>
-                          <p className="font-bold text-slate-800 text-sm group-hover:text-indigo-700">
+                          <p className="font-bold text-slate-800 dark:text-slate-200 text-sm group-hover:text-indigo-700 dark:group-hover:text-indigo-400">
                             {item.surahName}{" "}
-                            <span className="text-slate-400 font-normal ml-1">
+                            <span className="text-slate-400 dark:text-slate-500 font-normal ml-1">
                               ({item.startAyah}-{item.endAyah})
                             </span>
                           </p>
-                          <p className="text-xs text-slate-400 mt-1 flex items-center">
+                          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 flex items-center">
                             <span
                               className={`w-2 h-2 rounded-full mr-1.5 ${
                                 item.stage >= 5
@@ -473,8 +475,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         <span
                           className={`text-[10px] px-2 py-1 rounded-lg font-bold border ${
                             item.stage >= 5
-                              ? "bg-green-50 text-green-700 border-green-200"
-                              : "bg-slate-50 text-slate-600 border-slate-200"
+                              ? "bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800"
+                              : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600"
                           }`}
                         >
                           {item.stage >= 5 ? "Mutqin" : `Lvl ${item.stage}`}
@@ -495,22 +497,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
             activeTab === "profile" ? "block" : "hidden md:block"
           }`}
         >
-          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-lg shadow-orange-50/50">
-            <h4 className="font-bold text-slate-800 mb-4 flex items-center">
-              <span className="text-xl mr-2 p-1 bg-orange-100 rounded-lg">
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-lg shadow-orange-50/50 dark:shadow-none">
+            <h4 className="font-bold text-slate-800 dark:text-white mb-4 flex items-center">
+              <span className="text-xl mr-2 p-1 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
                 ⚔️
               </span>{" "}
               Weekly Challenge
             </h4>
             <div className="mt-2">
               <div className="flex justify-between text-xs font-medium mb-1">
-                <span className="text-slate-500">Progress</span>
-                <span className="text-orange-600">
+                <span className="text-slate-500 dark:text-slate-400">
+                  Progress
+                </span>
+                <span className="text-orange-600 dark:text-orange-400">
                   {state.gamification.weeklyChallengeProgress} /{" "}
                   {state.gamification.weeklyChallengeTarget} XP
                 </span>
               </div>
-              <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+              <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
                 <div
                   className="bg-orange-500 h-full rounded-full transition-all duration-1000 ease-out"
                   style={{
@@ -518,16 +522,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   }}
                 ></div>
               </div>
-              <p className="text-xs text-slate-400 mt-3 text-center">
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-3 text-center">
                 Kumpulkan {state.gamification.weeklyChallengeTarget} XP minggu
                 ini buat jaga Istiqomah!
               </p>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-lg shadow-indigo-50/50">
-            <h4 className="font-bold text-slate-800 mb-4 flex items-center">
-              <span className="text-xl mr-2 p-1 bg-indigo-100 rounded-lg">
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-lg shadow-indigo-50/50 dark:shadow-none">
+            <h4 className="font-bold text-slate-800 dark:text-white mb-4 flex items-center">
+              <span className="text-xl mr-2 p-1 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
                 🏅
               </span>{" "}
               Badges
@@ -538,8 +542,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   key={badge.id}
                   className={`aspect-square rounded-2xl flex items-center justify-center text-2xl transition-all duration-500 ${
                     state.gamification.badges.includes(badge.id)
-                      ? "bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 shadow-sm scale-100"
-                      : "bg-slate-50 opacity-30 grayscale scale-90"
+                      ? "bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-900/30 dark:to-slate-800 border border-indigo-100 dark:border-indigo-800 shadow-sm scale-100"
+                      : "bg-slate-50 dark:bg-slate-700 opacity-30 grayscale scale-90"
                   }`}
                   title={badge.name}
                 >
@@ -554,7 +558,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               audioService.playClick();
               onLogout();
             }}
-            className="w-full py-3 rounded-2xl border border-slate-200 text-slate-500 text-sm font-bold hover:bg-slate-50 transition-colors"
+            className="w-full py-3 rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
           >
             Ganti Akun / Keluar
           </button>
@@ -584,7 +588,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           audioService.playClick();
           onAddClick();
         }}
-        className={`md:hidden fixed bottom-24 right-4 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-xl shadow-indigo-500/40 flex items-center justify-center z-40 transition-transform active:scale-90 hover:scale-105 ${
+        className={`md:hidden fixed bottom-24 right-4 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-xl shadow-indigo-500/40 dark:shadow-black/40 flex items-center justify-center z-40 transition-transform active:scale-90 hover:scale-105 ${
           activeTab === "profile" || activeTab === "guide" ? "hidden" : "flex"
         }`}
         aria-label="Tambah Hafalan"
@@ -606,7 +610,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       </button>
 
       {/* --- MOBILE BOTTOM NAVIGATION --- */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 pb-safe px-2 py-2 z-50 flex justify-between items-center shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 pb-safe px-2 py-2 z-50 flex justify-between items-center shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
         <button
           onClick={() => {
             audioService.playClick();
@@ -614,8 +618,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
           }}
           className={`flex-1 flex flex-col items-center p-2 rounded-xl transition-all ${
             activeTab === "schedule"
-              ? "text-indigo-600 bg-indigo-50"
-              : "text-slate-400 hover:text-slate-600"
+              ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
+              : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
           }`}
         >
           <svg
@@ -642,8 +646,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
           }}
           className={`flex-1 flex flex-col items-center p-2 rounded-xl transition-all ${
             activeTab === "list"
-              ? "text-indigo-600 bg-indigo-50"
-              : "text-slate-400 hover:text-slate-600"
+              ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
+              : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
           }`}
         >
           <svg
@@ -670,8 +674,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
           }}
           className={`flex-1 flex flex-col items-center p-2 rounded-xl transition-all ${
             activeTab === "guide"
-              ? "text-indigo-600 bg-indigo-50"
-              : "text-slate-400 hover:text-slate-600"
+              ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
+              : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
           }`}
         >
           <svg
@@ -698,8 +702,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
           }}
           className={`flex-1 flex flex-col items-center p-2 rounded-xl transition-all ${
             activeTab === "profile"
-              ? "text-indigo-600 bg-indigo-50"
-              : "text-slate-400 hover:text-slate-600"
+              ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
+              : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
           }`}
         >
           <svg

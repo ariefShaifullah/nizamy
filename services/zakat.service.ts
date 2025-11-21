@@ -172,15 +172,15 @@ const calculateBusiness = (
  * Calculates Zakat Pertanian (Agriculture)
  * Input assumed to be Total Value in IDR for simplicity in this version,
  * or user calculates value manually.
- * Nisab: 5 Wasaq (~653kg gabah).
- * We'll check Nisab based on Value equivalent of 653kg Rice (approx).
+ * Nisab: 5 Wasaq (~653kg gabah GKG atau ~524kg beras).
+ * Since we use ricePrice as the multiplier, we must use the Rice weight equivalent (524kg).
  */
 const calculateAgriculture = (
   state: ZakatState,
   settings: ZakatSettings
 ): ZakatBreakdownItem => {
-  // Approx 653kg rice value equivalent
-  const nisabValue = 653 * settings.ricePrice;
+  // 524kg rice value equivalent
+  const nisabValue = 524 * settings.ricePrice;
   const rate =
     state.agriMethod === "natural" ? AGRI_RATE_NATURAL : AGRI_RATE_ARTIFICIAL;
   const isReached = state.agriHarvest >= nisabValue;
@@ -197,7 +197,7 @@ const calculateAgriculture = (
       state.agriMethod === "natural"
         ? "Alami/Hujan (10%)"
         : "Irigasi/Biaya (5%)"
-    }. Nisab setara 653kg beras.`,
+    }. Nisab setara 524kg beras.`,
   };
 };
 

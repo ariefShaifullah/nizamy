@@ -319,7 +319,7 @@ export const AgricultureView: React.FC<TabProps> = ({
     </div>
     <NisabStatus
       value={state.agriHarvest}
-      nisab={653 * settings.ricePrice}
+      nisab={524 * settings.ricePrice}
       label="Pertanian"
     />
     <ViewSummaryButton onClick={onNext} />

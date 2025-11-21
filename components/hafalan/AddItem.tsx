@@ -27,12 +27,16 @@ export const AddItem: React.FC<AddItemProps> = ({
   onSuccess,
   onBadgeEarned,
 }) => {
+  // State for form
   const [selectedSurahNumber, setSelectedSurahNumber] = useState(1);
   const [newAyahStart, setNewAyahStart] = useState(1);
   const [newAyahEnd, setNewAyahEnd] = useState(5);
+
+  // State for UI Logic
   const [inputError, setInputError] = useState<string | null>(null);
   const [quotaWarning, setQuotaWarning] = useState<string | null>(null);
   const [bypassQuota, setBypassQuota] = useState(false);
+  const [isSuggestionMode, setIsSuggestionMode] = useState(false); // Tracks if we are showing a smart suggestion
 
   const profile = state.profile!;
   const dailyLimit = getMaxAyatByLevel(profile.skillLevel);
@@ -50,41 +54,82 @@ export const AddItem: React.FC<AddItemProps> = ({
   );
   const isSelectionOverQuota = currentSelectionLoad > dailyRemaining;
 
-  // Initialize form based on profile target and progress
+  // --- SMART SUGGESTION LOGIC (ON MOUNT) ---
   useEffect(() => {
     setBypassQuota(false);
-    const availableSurahs = getAvailableSurahs(profile.targetJuz);
-    let currentSurahNum = selectedSurahNumber;
 
-    if (!availableSurahs.find((s) => s.number === currentSurahNum)) {
-      currentSurahNum = availableSurahs[0].number;
-      setSelectedSurahNumber(currentSurahNum);
-    }
+    // 1. Find the most recently ADDED item (by ID/Timestamp)
+    // Assuming items are appended, the last one in array is usually latest,
+    // but to be safe we sort by ID (timestamp) descending.
+    const lastAddedItem = [...state.items].sort(
+      (a, b) => Number(b.id) - Number(a.id)
+    )[0];
 
-    const lastAyah = getLastMemorizedAyah(state.items, currentSurahNum);
-    const nextStart = lastAyah + 1;
-    const surah = SURAH_DATA.find((s) => s.number === currentSurahNum);
+    let suggestedSurahNo = 1;
+    let suggestedStart = 1;
 
-    if (surah && nextStart > surah.verses) {
-      setNewAyahStart(surah.verses);
+    if (lastAddedItem) {
+      const surahRef = SURAH_DATA.find(
+        (s) => s.number === lastAddedItem.surahNo
+      );
+
+      if (surahRef) {
+        if (lastAddedItem.endAyah < surahRef.verses) {
+          // Case A: Continue current Surah
+          suggestedSurahNo = lastAddedItem.surahNo;
+          suggestedStart = lastAddedItem.endAyah + 1;
+          setIsSuggestionMode(true);
+        } else {
+          // Case B: Current Surah Finished, Suggest Next Surah
+          // Logic: If finished Surah 78, suggest 79. If 114, suggest 1.
+          const nextSurahNum =
+            lastAddedItem.surahNo === 114 ? 1 : lastAddedItem.surahNo + 1;
+
+          // Check if next surah is within user's target Juz scope
+          const available = getAvailableSurahs(profile.targetJuz);
+          const isNextAvailable = available.find(
+            (s) => s.number === nextSurahNum
+          );
+
+          if (isNextAvailable) {
+            suggestedSurahNo = nextSurahNum;
+            suggestedStart = 1;
+            setIsSuggestionMode(true);
+          } else {
+            // Fallback to default available logic if next surah is out of scope
+            suggestedSurahNo = available[0].number;
+            suggestedStart = 1;
+          }
+        }
+      }
     } else {
-      setNewAyahStart(nextStart);
+      // New user, default to first available in target
+      const available = getAvailableSurahs(profile.targetJuz);
+      suggestedSurahNo = available[0].number;
+      suggestedStart = 1;
     }
 
-    if (surah) {
+    // Apply Suggestion
+    setSelectedSurahNumber(suggestedSurahNo);
+    setNewAyahStart(suggestedStart);
+
+    // Calculate Suggested End based on Quota
+    const surahData = SURAH_DATA.find((s) => s.number === suggestedSurahNo);
+    if (surahData) {
       const limit = getMaxAyatByLevel(profile.skillLevel);
       const used = getDailyLoad(state.items);
       const remaining = Math.max(0, limit - used);
-      const suggestedCount = remaining > 0 ? remaining : 1;
+      // Default to at least 3 verses if quota is full/tight to encourage progress
+      const suggestedCount = remaining > 0 ? remaining : 3;
       const suggestedEnd = Math.min(
-        nextStart + suggestedCount - 1,
-        surah.verses
+        suggestedStart + suggestedCount - 1,
+        surahData.verses
       );
       setNewAyahEnd(suggestedEnd);
     }
-  }, [selectedSurahNumber, profile.targetJuz, state.items]);
+  }, []); // Run ONCE on mount
 
-  // Real-time Validation
+  // --- VALIDATION EFFECT ---
   useEffect(() => {
     setQuotaWarning(null);
     const surah = SURAH_DATA.find((s) => s.number === selectedSurahNumber);
@@ -143,6 +188,31 @@ export const AddItem: React.FC<AddItemProps> = ({
     }
 
     onSuccess("Hafalan Baru Disimpan!");
+  };
+
+  // Reset suggestion banner if user changes Surah manually
+  const handleSurahChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedSurahNumber(Number(e.target.value));
+    setIsSuggestionMode(false); // Remove the "suggestion" badge if they deviate
+
+    // Auto-set start ayah to 1 or last memorized + 1 for the NEWLY selected surah
+    const newSurahNum = Number(e.target.value);
+    const lastAyah = getLastMemorizedAyah(state.items, newSurahNum);
+    const nextStart = lastAyah + 1;
+    const surahRef = SURAH_DATA.find((s) => s.number === newSurahNum);
+
+    if (surahRef) {
+      if (nextStart <= surahRef.verses) {
+        setNewAyahStart(nextStart);
+        const limit = getMaxAyatByLevel(profile.skillLevel);
+        const remaining = Math.max(0, limit - dailyUsed);
+        const count = remaining > 0 ? remaining : 3;
+        setNewAyahEnd(Math.min(nextStart + count - 1, surahRef.verses));
+      } else {
+        setNewAyahStart(1); // Reset if surah full (though overlap check will catch it)
+        setNewAyahEnd(3);
+      }
+    }
   };
 
   return (
@@ -278,6 +348,20 @@ export const AddItem: React.FC<AddItemProps> = ({
             </div>
           )}
 
+          {/* SMART SUGGESTION BANNER */}
+          {isSuggestionMode && (
+            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-4 rounded-xl text-white shadow-md flex items-start animate-fade-in">
+              <span className="text-2xl mr-3">🚀</span>
+              <div>
+                <h4 className="font-bold text-sm">Lanjut Hafalan Terakhir</h4>
+                <p className="text-xs opacity-90 mt-1 leading-relaxed">
+                  Sistem otomatis menyarankan kelanjutan dari hafalan
+                  sebelumnya. Gas terus!
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="bg-blue-50 border border-blue-100 p-3 rounded-lg flex items-start text-xs text-blue-800">
             <span className="mr-2 text-lg">💡</span>
             <p className="mt-0.5">
@@ -294,7 +378,7 @@ export const AddItem: React.FC<AddItemProps> = ({
             <select
               className="w-full border border-slate-200 rounded-xl p-4 bg-slate-50 font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none appearance-none"
               value={selectedSurahNumber}
-              onChange={(e) => setSelectedSurahNumber(Number(e.target.value))}
+              onChange={handleSurahChange}
             >
               {getAvailableSurahs(profile.targetJuz).map((s) => (
                 <option key={s.number} value={s.number}>
@@ -317,7 +401,10 @@ export const AddItem: React.FC<AddItemProps> = ({
                     : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-200"
                 }`}
                 value={newAyahStart}
-                onChange={(e) => setNewAyahStart(Number(e.target.value))}
+                onChange={(e) => {
+                  setNewAyahStart(Number(e.target.value));
+                  setIsSuggestionMode(false);
+                }}
               />
             </div>
             <div>
@@ -332,7 +419,10 @@ export const AddItem: React.FC<AddItemProps> = ({
                     : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-200"
                 }`}
                 value={newAyahEnd}
-                onChange={(e) => setNewAyahEnd(Number(e.target.value))}
+                onChange={(e) => {
+                  setNewAyahEnd(Number(e.target.value));
+                  setIsSuggestionMode(false);
+                }}
               />
             </div>
           </div>
@@ -372,7 +462,7 @@ export const AddItem: React.FC<AddItemProps> = ({
               }
               className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl shadow-indigo-200 transform active:scale-95 mt-4"
             >
-              Simpan Hafalan
+              {isSuggestionMode ? "Simpan Lanjutan Hafalan" : "Simpan Hafalan"}
             </button>
           )}
         </div>

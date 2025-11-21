@@ -28,7 +28,7 @@ const INITIAL_STATE: HafalanState = {
     lastLoginDate: "",
     badges: [],
     weeklyChallengeProgress: 0,
-    weeklyChallengeTarget: 50,
+    weeklyChallengeTarget: 250,
   },
 };
 

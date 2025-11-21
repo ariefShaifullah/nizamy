@@ -118,7 +118,11 @@ export const QuranPlayer: React.FC<QuranPlayerProps> = ({
   };
 
   return (
-    <div className="bg-white/90 backdrop-blur-sm border-b border-slate-100 p-2 md:p-3 flex flex-col md:flex-row items-center justify-between gap-3 sticky top-0 z-30 shadow-sm transition-all">
+    /* 
+      UPDATED: Removed 'sticky top-0 z-30'. 
+      The player is now a static block element controlled by the parent layout (ReviewSession).
+    */
+    <div className="bg-white border-b border-slate-100 p-2 md:p-3 flex flex-col md:flex-row items-center justify-between gap-3 transition-all">
       <audio
         ref={audioRef}
         onEnded={handleEnded}

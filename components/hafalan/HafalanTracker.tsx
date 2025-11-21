@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useHafalan } from "../hooks/useHafalan.ts";
-import { audioService } from "../services/audio.service.ts";
-import { UserSelection } from "./hafalan/UserSelection.tsx";
-import { CreateUser } from "./hafalan/CreateUser.tsx";
-import { Dashboard } from "./hafalan/Dashboard.tsx";
-import { AddItem } from "./hafalan/AddItem.tsx";
-import { ReviewSession } from "./hafalan/ReviewSession.tsx";
+import { useHafalan } from "../../hooks/useHafalan.ts";
+import { audioService } from "../../services/audio.service.ts";
+import { UserSelection } from "./UserSelection.tsx";
+import { CreateUser } from "./CreateUser.tsx";
+import { Dashboard } from "./Dashboard.tsx";
+import { AddItem } from "./AddItem.tsx";
+import { ReviewSession } from "./ReviewSession.tsx";
 
 // --- TOAST COMPONENT ---
 const Toast = ({

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaraidhCalculator } from "./components/faraidh/FaraidhCalculator.tsx";
 import { ZakatCalculator } from "./components/zakat/ZakatCalculator.tsx";
-import { HafalanTracker } from "./components/HafalanTracker.tsx";
+import { HafalanTracker } from "./components/hafalan/HafalanTracker.tsx";
 import { Home } from "./components/Home.tsx";
 import { Header, Footer, type ViewState } from "./components/Layout.tsx";
 

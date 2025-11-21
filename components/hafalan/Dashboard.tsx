@@ -313,7 +313,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       >
                         {isQuotaFull
                           ? `Masya Allah, hari ini kamu produktif banget (Total ${dailyUsed} poin). Istirahat dulu ya, biar hafalan nempel sempurna.`
-                          : `Jadwal review udah bersih, tapi kuota harian kamu masih sisa ${dailyRemaining} poin. Sayang kalau nggak dipake, tambah hafalan baru yuk?`}
+                          : `Jadwal murajaah udah bersih, tapi kuota harian kamu masih sisa ${dailyRemaining} poin. Sayang kalau nggak dipake, tambah hafalan baru yuk?`}
                       </p>
                     </div>
                     {isQuotaFull ? (

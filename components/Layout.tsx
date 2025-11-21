@@ -9,20 +9,20 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ view, setView }) => {
   let titleColor = "text-primary-700";
-  let iconColor = "text-primary-600";
+  let iconBgClass = "bg-primary-600";
   let subtitle = "";
 
   if (view === "zakat") {
     titleColor = "text-emerald-700";
-    iconColor = "text-emerald-600";
+    iconBgClass = "bg-emerald-600";
     subtitle = "Kalkulator Zakat";
   } else if (view === "faraidh") {
     titleColor = "text-primary-700";
-    iconColor = "text-primary-600";
+    iconBgClass = "bg-primary-600";
     subtitle = "Kalkulator Waris Islam";
   } else if (view === "hafalan") {
     titleColor = "text-indigo-700";
-    iconColor = "text-indigo-600";
+    iconBgClass = "bg-indigo-600";
     subtitle = "Hafalan Quran Tracker";
   }
 
@@ -36,14 +36,19 @@ export const Header: React.FC<HeaderProps> = ({ view, setView }) => {
           <div
             className={`p-2 rounded-xl bg-slate-50 group-hover:bg-slate-100 transition-colors`}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              className={`w-6 h-6 md:w-8 md:h-8 ${iconColor} transition-transform group-hover:scale-110`}
-            >
-              <path d="M12.378 1.602a.75.75 0 0 0-.756 0L3 6.632l9 5.25 9-5.25-8.622-5.03ZM21.75 7.93l-9 5.25v9l8.628-5.032a.75.75 0 0 0 .372-.648V7.93ZM11.25 22.18v-9l-9-5.25v8.57a.75.75 0 0 0 .372.648L11.25 22.18Z" />
-            </svg>
+            <div
+              className={`w-6 h-6 md:w-8 md:h-8 ${iconBgClass} transition-transform group-hover:scale-110`}
+               style={{
+                maskImage: 'url(/images/logo_nizamy.png)',
+                maskSize: 'contain',
+                maskRepeat: 'no-repeat',
+                maskPosition: 'center',
+                WebkitMaskImage: 'url(/images/logo_nizamy.png)',
+                WebkitMaskSize: 'contain',
+                WebkitMaskRepeat: 'no-repeat',
+                WebkitMaskPosition: 'center',
+              }}
+            />
           </div>
           <div className="text-left">
             <p

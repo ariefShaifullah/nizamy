@@ -342,7 +342,7 @@ export const exportHafalanToPdf = async (state: HafalanState) => {
                     <tr style="background-color: #f1f5f9; color: #334155;">
                         <th style="padding: 12px; border-bottom: 1px solid #cbd5e1;">Surat & Ayat</th>
                         <th style="padding: 12px; border-bottom: 1px solid #cbd5e1;">Status (Level SRS)</th>
-                        <th style="padding: 12px; border-bottom: 1px solid #cbd5e1;">Jadwal Review</th>
+                        <th style="padding: 12px; border-bottom: 1px solid #cbd5e1;">Jadwal Murajaah</th>
                         <th style="padding: 12px; border-bottom: 1px solid #cbd5e1;">Kualitas</th>
                     </tr>
                 </thead>

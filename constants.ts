@@ -1,6 +1,9 @@
 import type { HeirInputState } from "./types.ts";
 import { Heir } from "./types.ts";
 
+// --- HAFALAN CONSTANTS ---
+export const SRS_INTERVALS = [0, 1, 3, 7, 14, 30];
+
 export const initialHeirsState: HeirInputState = {
   [Heir.Husband]: 0,
   [Heir.Wife]: 0,
@@ -372,6 +375,61 @@ export const SURAH_DATA = [
   { number: 113, name: "Al-Falaq", verses: 5 },
   { number: 114, name: "An-Nas", verses: 6 },
 ];
+
+// --- WEIGHTED SCORE SYSTEM ---
+// Defines verses that are significantly longer than average.
+export const HEAVY_VERSES: Record<string, number> = {
+  // --- QS. Al-Baqarah (2) ---
+  "2:102": 10,
+  "2:177": 5,
+  "2:196": 10,
+  "2:217": 7,
+  "2:233": 7,
+  "2:246": 9,
+  "2:255": 5,
+  "2:258": 6,
+  "2:259": 9,
+  "2:282": 15,
+  "2:283": 5,
+  "2:284": 3,
+  "2:285": 4,
+  "2:286": 7,
+
+  // --- QS. Ali 'Imran (3) ---
+  "3:154": 9,
+  "3:164": 4,
+
+  // --- QS. An-Nisa' (4) ---
+  "4:11": 9,
+  "4:12": 9,
+  "4:23": 6,
+  "4:176": 6,
+
+  // --- QS. Al-Ma'idah (5) ---
+  "5:3": 7,
+
+  // --- QS. Al-An'am (6) ---
+  "6:145": 5,
+
+  // --- QS. At-Taubah (9) ---
+  "9:60": 4,
+
+  // --- QS. An-Nur (24) ---
+  "24:31": 9,
+  "24:35": 6,
+  "24:61": 8,
+
+  // --- QS. Al-Ahzab (33) ---
+  "33:35": 5,
+  "33:50": 8,
+  "33:53": 9,
+
+  // --- QS. Al-Fath (48) ---
+  "48:29": 10,
+
+  // --- QS. Al-Muzzammil (73) ---
+  "73:20": 12,
+};
 
 export const BADGES = [
   // --- STARTER ---

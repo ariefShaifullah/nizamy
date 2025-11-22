@@ -1,10 +1,11 @@
 import React, { useCallback } from "react";
 import type { Heir } from "../../types.ts";
+import type { FaraidhAction } from "../../reducers/heirsReducer.ts";
 
 interface HeirInputProps {
   label: string;
   count: number;
-  dispatch: React.Dispatch<any>;
+  dispatch: React.Dispatch<FaraidhAction>;
   heirKey: Heir;
 }
 

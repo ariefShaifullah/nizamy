@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import type { HafalanState, HafalanSkillLevel } from "../../types.ts";
 import { audioService } from "../../services/audio.service.ts";
 import {
@@ -11,6 +11,7 @@ import { exportHafalanToPdf } from "../../services/pdf.service.ts";
 import { BADGES, HAFALAN_FAQ } from "../../constants.ts";
 import { FAQ } from "../FAQ.tsx";
 import { formatDate } from "../../utils.ts";
+import { useToast } from "../ui/Toast.tsx";
 import {
   HafalanTutorialModal,
   HafalanDetailModal,
@@ -29,7 +30,6 @@ interface DashboardProps {
     targetJuz: number;
   }) => void;
   onLogout: () => void;
-  onShowToast: (msg: string, type: "success" | "info") => void;
   earnedBadgesQueue: string[];
   onClearBadges: () => void;
 }
@@ -43,10 +43,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onStartPractice,
   onUpdateProfile,
   onLogout,
-  onShowToast,
   earnedBadgesQueue,
   onClearBadges,
 }) => {
+  const { showToast } = useToast();
   // Unified tab state.
   const [activeTab, setActiveTab] = useState<TabView>("schedule");
 
@@ -57,21 +57,43 @@ export const Dashboard: React.FC<DashboardProps> = ({
   );
 
   const profile = state.profile!;
-  const today = getLocalYYYYMMDD();
-  const dueItems = state.items
-    .filter((i) => i.nextReviewDate <= today)
-    .sort((a, b) => a.nextReviewDate.localeCompare(b.nextReviewDate));
-  const allItems = [...state.items].sort(
-    (a, b) => a.surahNo - b.surahNo || a.startAyah - b.startAyah
-  );
 
-  const dailyLimit = getMaxAyatByLevel(profile.skillLevel);
-  const dailyUsed = getDailyLoad(state.items);
+  // --- MEMOIZATION START ---
+  const dueItems = useMemo(() => {
+    const today = getLocalYYYYMMDD();
+    return state.items
+      .filter((i) => i.nextReviewDate <= today)
+      .sort((a, b) => a.nextReviewDate.localeCompare(b.nextReviewDate));
+  }, [state.items]);
+
+  const allItems = useMemo(() => {
+    return [...state.items].sort(
+      (a, b) => a.surahNo - b.surahNo || a.startAyah - b.startAyah
+    );
+  }, [state.items]);
+
+  const dailyLimit = useMemo(
+    () => getMaxAyatByLevel(profile.skillLevel),
+    [profile.skillLevel]
+  );
+  const dailyUsed = useMemo(() => getDailyLoad(state.items), [state.items]);
   const dailyRemaining = Math.max(0, dailyLimit - dailyUsed);
   const isQuotaFull = dailyRemaining === 0;
   const isMaxLevel = profile.skillLevel === "advanced";
 
-  // Desktop Compatibility: If tab is 'profile' or 'guide', desktop shows 'schedule' for content
+  const challengePercent = useMemo(() => {
+    return Math.min(
+      100,
+      (state.gamification.weeklyChallengeProgress /
+        state.gamification.weeklyChallengeTarget) *
+        100
+    );
+  }, [
+    state.gamification.weeklyChallengeProgress,
+    state.gamification.weeklyChallengeTarget,
+  ]);
+  // --- MEMOIZATION END ---
+
   const desktopContentTab =
     activeTab === "profile" || activeTab === "guide" ? "schedule" : activeTab;
 
@@ -90,13 +112,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
     audioService.playClick();
   };
 
-  const challengePercent = Math.min(
-    100,
-    (state.gamification.weeklyChallengeProgress /
-      state.gamification.weeklyChallengeTarget) *
-      100
-  );
-
   return (
     <div className="max-w-5xl mx-auto space-y-4 md:space-y-8 animate-fade-in pb-20 md:pb-12">
       {showTutorial && <HafalanTutorialModal onClose={handleCloseTutorial} />}
@@ -108,7 +123,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           onSave={(u) => {
             onUpdateProfile(u);
             setShowSettings(false);
-            onShowToast("Profil Diupdate", "success");
+            showToast("Profil berhasil diupdate!", "success");
           }}
         />
       )}
@@ -129,9 +144,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       )}
 
       {/* --- HEADER SECTION --- */}
-      {/* Mobile: Compact Flat Header. Desktop: Rounded Header */}
       <div className="bg-gradient-to-br from-indigo-900 to-indigo-800 dark:from-indigo-950 dark:to-slate-900 text-white md:rounded-3xl shadow-xl shadow-indigo-200 dark:shadow-none relative overflow-hidden p-5 md:p-8 flex flex-col md:flex-row gap-4 md:gap-6 justify-between items-start md:items-end -mx-4 md:mx-0 -mt-8 md:mt-0 pt-8 md:pt-8 border border-indigo-800 dark:border-slate-800">
-        {/* Hide SVG on mobile for compactness */}
         <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none hidden md:block">
           <svg
             className="w-64 h-64 text-white"
@@ -148,7 +161,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <h1 className="text-xl md:text-3xl font-bold flex items-center gap-2">
                 Ahlan, {profile.name}!
               </h1>
-              {/* Quote hidden on very small screens to save space */}
               <p className="text-indigo-200 text-xs md:text-sm mt-1 opacity-90 line-clamp-1">
                 "{getMotivationalQuote()}"
               </p>
@@ -190,7 +202,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
 
-        {/* Stats Grid: Compact on Mobile */}
         <div className="relative z-10 flex gap-3 w-full md:w-auto mt-2 md:mt-0">
           <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-xl md:rounded-2xl p-2 md:p-3 flex-1 md:flex-none text-center min-w-[80px] md:min-w-[100px]">
             <span className="block text-lg md:text-2xl font-bold">
@@ -214,7 +225,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* --- MAIN CONTENT GRID --- */}
       <div className="md:grid md:grid-cols-3 gap-6">
         {/* LEFT COL: MAIN CONTENT (Tasks & List) */}
-        {/* On Mobile: Show only if tab is NOT profile and NOT guide */}
         <div
           className={`md:col-span-2 bg-white dark:bg-slate-800 md:rounded-3xl shadow-sm md:shadow-lg md:shadow-slate-200/50 dark:md:shadow-none border-y md:border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col min-h-[500px] ${
             activeTab === "profile" || activeTab === "guide"
@@ -222,7 +232,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
               : "flex"
           }`}
         >
-          {/* Desktop Tabs (Hidden on Mobile) */}
           <div className="hidden md:flex border-b border-slate-100 dark:border-slate-700 p-2 bg-slate-50/50 dark:bg-slate-800/50 sticky top-0 z-20 backdrop-blur-md">
             <button
               onClick={() => {
@@ -265,7 +274,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   <h3 className="font-bold text-slate-800 dark:text-white text-lg md:text-xl">
                     Murajaah Hari Ini
                   </h3>
-                  {/* Desktop Add Button (Hidden on Mobile in favor of FAB) */}
                   <button
                     onClick={() => {
                       audioService.playClick();
@@ -277,7 +285,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   </button>
                 </div>
 
-                {/* Empty/Celebration States */}
                 {state.items.length === 0 ? (
                   <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4 p-4 bg-slate-50/50 dark:bg-slate-800/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
                     <div className="w-16 h-16 md:w-20 md:h-20 bg-white dark:bg-slate-700 rounded-full flex items-center justify-center text-3xl md:text-4xl shadow-sm">
@@ -368,7 +375,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     )}
                   </div>
                 ) : (
-                  // Tasks List
                   <div className="space-y-3 pb-20 md:pb-0">
                     {dueItems.map((item) => (
                       <div
@@ -399,7 +405,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           className="shrink-0 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 p-3 md:px-6 md:py-3 rounded-xl md:rounded-xl text-sm font-bold group-hover:bg-indigo-600 group-hover:text-white transition-all active:scale-95 flex items-center justify-center"
                           aria-label="Mulai Murajaah"
                         >
-                          {/* Icon on Mobile */}
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             className="h-5 w-5 md:hidden"
@@ -412,7 +417,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
                               clipRule="evenodd"
                             />
                           </svg>
-                          {/* Text on Desktop */}
                           <span className="hidden md:inline">Mulai &rarr;</span>
                         </button>
                       </div>
@@ -491,7 +495,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
         {/* RIGHT COL: PROFILE & GAMIFICATION (Sidebar) */}
-        {/* On Mobile: Show only if tab IS profile */}
         <div
           className={`space-y-6 ${
             activeTab === "profile" ? "block" : "hidden md:block"
@@ -582,7 +585,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
       </div>
 
       {/* --- FAB (FLOATING ACTION BUTTON) --- */}
-      {/* Only visible on Mobile when NOT in Profile or Guide tab */}
       <button
         onClick={() => {
           audioService.playClick();

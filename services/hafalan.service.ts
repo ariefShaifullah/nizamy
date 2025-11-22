@@ -6,71 +6,59 @@ import type {
   HafalanSkillLevel,
   UserSummary,
 } from "../types.ts";
-import { BADGES, SURAH_DATA } from "../constants.ts";
-
-// Constants for SRS Intervals (Days)
-export const SRS_INTERVALS = [0, 1, 3, 7, 14, 30];
+import {
+  BADGES,
+  SURAH_DATA,
+  HEAVY_VERSES,
+  SRS_INTERVALS,
+} from "../constants.ts";
 
 const STORAGE_KEY_USERS = "nizamy_hafalan_users";
 const STORAGE_PREFIX_DATA = "nizamy_hafalan_data_";
 const OLD_STORAGE_KEY = "hafalanState"; // For migration
+const API_TIMEOUT_MS = 10000; // 10 seconds timeout
 
-// --- WEIGHTED SCORE SYSTEM ---
-// Defines verses that are significantly longer than average.
-// Benchmark: 1 Line in Mushaf Madinah ≈ Weight 1.
-// Standard short verse ≈ Weight 1.
-// Al-Baqarah 282 (Full Page/15 Lines) = Weight 15.
-const HEAVY_VERSES: Record<string, number> = {
-  // --- QS. Al-Baqarah (2) ---
-  "2:102": 10, // Harut & Marut (~10 baris)
-  "2:177": 5, // Ayat Al-Birr (~5 baris)
-  "2:196": 10, // Ayat Haji & Dam (~10 baris)
-  "2:217": 7, // Perang di bulan haram (~7 baris)
-  "2:233": 7, // Hukum menyusui (~7 baris)
-  "2:246": 9, // Kisah Thalut (~9 baris)
-  "2:255": 5, // Ayat Kursi (~5 baris)
-  "2:258": 6, // Debat Ibrahim & Namrud (~6 baris)
-  "2:259": 9, // Kisah Uzair (~9 baris)
-  "2:282": 15, // Ayat Dayn / Utang Piutang (1 Halaman Penuh)
-  "2:283": 5, // Lanjutan Dayn/Rihan (~5 baris)
-  "2:284": 3, // Lillahi ma fissamawati... (~3 baris)
-  "2:285": 4, // Amanar Rasul 1 (~4 baris)
-  "2:286": 7, // Amanar Rasul 2 (~7 baris)
+// --- TYPE DEFINITIONS FOR API ---
+interface QuranApiResponse {
+  code: number;
+  status: string;
+  data: {
+    number: number;
+    name: string;
+    englishName: string;
+    englishNameTranslation: string;
+    revelationType: string;
+    numberOfAyahs: number;
+    ayahs: {
+      number: number;
+      text: string;
+      numberInSurah: number;
+      juz: number;
+      manzil: number;
+      page: number;
+      ruku: number;
+      hizbQuarter: number;
+      sajda: boolean;
+    }[];
+  }[];
+}
 
-  // --- QS. Ali 'Imran (3) ---
-  "3:154": 9, // Tsumma anzala... (~9 baris)
-  "3:164": 4, // Laqad mannallahu... (~4 baris)
+// Simple in-memory cache for Quran verses
+const versesCache: Record<string, { text: string; number: number }[]> = {};
 
-  // --- QS. An-Nisa' (4) ---
-  "4:11": 9, // Ayat Waris 1 (~9 baris)
-  "4:12": 9, // Ayat Waris 2 (~9 baris)
-  "4:23": 6, // Mahram wanita (~6 baris)
-  "4:176": 6, // Ayat Kalalah (~6 baris)
-
-  // --- QS. Al-Ma'idah (5) ---
-  "5:3": 7, // Diharamkan bagimu bangkai... (~7 baris)
-
-  // --- QS. Al-An'am (6) ---
-  "6:145": 5, // Qul la ajidu... (~5 baris)
-
-  // --- QS. At-Taubah (9) ---
-  "9:60": 4, // Asnaf Zakat (~4 baris)
-
-  // --- QS. An-Nur (24) ---
-  "24:31": 9, // Ayat Hijab/Menundukkan pandangan (~9 baris)
-  "24:35": 6, // Ayat Cahaya (Allah nurus samawat...) (~6 baris)
-  "24:61": 8, // Adab makan/memasuki rumah (~8 baris)
-
-  // --- QS. Al-Ahzab (33) ---
-  "33:35": 5, // Innal muslimina wal muslimat... (~5 baris)
-  "33:50": 8, // Khususiah Nabi (~8 baris)
-  "33:53": 9, // Adab bertamu ke rumah Nabi (~9 baris)
-
-  // --- QS. Al-Fath (48) ---
-  "48:29": 10, // Muhammadur Rasulullah... (~10 baris)
-
-  // --- QS. Al-Muzzammil (73) ---
-  "73:20": 12, // Inna rabbaka ya'lamu... (Ayat terakhir sangat panjang, ~12 baris)
+// --- HELPER: FETCH WITH TIMEOUT ---
+const fetchWithTimeout = async (
+  resource: string,
+  options: RequestInit = {}
+) => {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+  const response = await fetch(resource, {
+    ...options,
+    signal: controller.signal,
+  });
+  clearTimeout(id);
+  return response;
 };
 
 export const getVerseWeight = (surah: number, ayah: number): number => {
@@ -649,18 +637,27 @@ export const fetchQuranVerses = async (
   end: number
 ): Promise<{ text: string; number: number }[]> => {
   try {
-    const response = await fetch(
-      `https://api.alquran.cloud/v1/surah/${surahNo}/editions/quran-uthmani`
+    // 1. CHECK CACHE FIRST
+    const cacheKey = `${surahNo}:${start}-${end}`;
+    if (versesCache[cacheKey]) {
+      return versesCache[cacheKey];
+    }
+
+    // 2. FETCH IF NOT CACHED WITH TIMEOUT
+    // Optimization: Use offset and limit to fetch only required verses
+    const offset = start - 1; // API is 0-based index
+    const limit = end - start + 1;
+
+    const response = await fetchWithTimeout(
+      `https://api.alquran.cloud/v1/surah/${surahNo}/editions/quran-uthmani?offset=${offset}&limit=${limit}`
     );
-    const data = await response.json();
+    const data: QuranApiResponse = await response.json();
 
     if (data.code === 200 && data.data && data.data[0] && data.data[0].ayahs) {
-      const allAyahs = data.data[0].ayahs;
-      const filtered = allAyahs.filter(
-        (a: any) => a.numberInSurah >= start && a.numberInSurah <= end
-      );
+      // Data structure from offset/limit endpoint is still data[0].ayahs
+      const ayahs = data.data[0].ayahs;
 
-      return filtered.map((a: any) => {
+      const result = ayahs.map((a) => {
         let text = a.text;
         // Fix: Remove Bismillah from Ayah 1 for all Surahs except Al-Fatihah (Surah 1)
         // An-Naml (27) Ayah 30 also has Bismillah but should be KEPT.
@@ -671,10 +668,14 @@ export const fetchQuranVerses = async (
         }
         return { text: text, number: a.numberInSurah };
       });
+
+      // 3. SAVE TO CACHE
+      versesCache[cacheKey] = result;
+      return result;
     }
     return [];
   } catch (error) {
     console.error("Failed to fetch Quran verses", error);
-    return [];
+    throw error; // Re-throw to let caller handle it
   }
 };

@@ -1,0 +1,21 @@
+{
+  "name": "NIZAMY - Islam Apps Suite",
+  "short_name": "NIZAMY",
+  "description": "Aplikasi Ibadah Islam: Waris (Faraidh), Zakat, dan Hafalan Quran (SRS).",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3658/3658959.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3658/3658959.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

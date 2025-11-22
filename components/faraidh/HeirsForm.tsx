@@ -1,12 +1,13 @@
 import React from "react";
 import type { HeirInputState, Heir } from "../../types.ts";
+import type { FaraidhAction } from "../../reducers/heirsReducer.ts";
 import { HEIR_LABELS, HEIR_GROUPS } from "../../constants.ts";
 import { HeirInput } from "./HeirInput.tsx";
 import { formatNumber } from "../../utils.ts";
 
 interface HeirsFormProps {
   heirs: HeirInputState;
-  dispatch: React.Dispatch<any>;
+  dispatch: React.Dispatch<FaraidhAction>;
   estate: string;
   setEstate: (value: string) => void;
   onCalculate: () => void;

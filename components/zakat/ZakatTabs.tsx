@@ -9,6 +9,14 @@ import { ZakatInputField } from "./ZakatInputField.tsx";
 import { NisabStatus } from "./NisabStatus.tsx";
 import { formatCurrency } from "../../utils.ts";
 import { exportZakatToPdf } from "../../services/pdf.service.ts";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  Legend,
+} from "recharts";
 
 // --- SHARED COMPONENTS ---
 
@@ -425,6 +433,7 @@ export const LivestockView: React.FC<TabProps> = ({
 
 interface SummaryProps {
   result: ZakatResult | null;
+  state: ZakatState; // Added state prop for chart
   history: ZakatHistoryEntry[];
   onSaveHistory: () => void;
   onDownloadPDF: () => void;
@@ -433,8 +442,18 @@ interface SummaryProps {
   receiptRef: React.RefObject<HTMLDivElement>;
 }
 
+const COLORS = [
+  "#10b981",
+  "#3b82f6",
+  "#f59e0b",
+  "#8b5cf6",
+  "#ec4899",
+  "#6366f1",
+];
+
 export const SummaryView: React.FC<SummaryProps> = ({
   result,
+  state,
   history,
   onSaveHistory,
   onDownloadPDF,
@@ -443,6 +462,38 @@ export const SummaryView: React.FC<SummaryProps> = ({
   receiptRef,
 }) => {
   if (!result) return null;
+
+  // Prepare Chart Data
+  // Only show if there's value
+  const chartData = [
+    {
+      name: "Maal (Tunai/Simpanan)",
+      value: Math.max(
+        0,
+        state.cash +
+          state.savings +
+          state.investments +
+          state.otherAssets -
+          state.debts
+      ),
+    },
+    {
+      name: "Emas & Perak",
+      value: state.goldWeight * 2200000 + state.silverWeight * 25000,
+    }, // Approx visual value
+    {
+      name: "Perniagaan",
+      value: Math.max(
+        0,
+        state.bizAssets + state.bizInventory - state.bizLiabilities
+      ),
+    },
+    { name: "Pertanian", value: state.agriHarvest },
+    { name: "Peternakan", value: state.livestockValue },
+    { name: "Rikaz", value: state.rikazValue },
+  ].filter((item) => item.value > 0);
+
+  const hasChartData = chartData.length > 0;
 
   return (
     <div className="space-y-6 animate-fade-in pb-20 md:pb-12">
@@ -528,51 +579,126 @@ export const SummaryView: React.FC<SummaryProps> = ({
           </div>
         </div>
 
-        <div className="space-y-4">
-          {result.items.length === 0 && (
-            <div className="text-center text-slate-500 dark:text-slate-400 py-8 italic bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-dashed border-slate-200 dark:border-slate-700">
-              Belum ada data zakat yang dimasukkan.
+        <div className="flex flex-col lg:flex-row gap-8">
+          <div className="flex-1 space-y-4">
+            {result.items.length === 0 && (
+              <div className="text-center text-slate-500 dark:text-slate-400 py-8 italic bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-dashed border-slate-200 dark:border-slate-700">
+                Belum ada data zakat yang dimasukkan.
+              </div>
+            )}
+
+            {result.items.map((item) => (
+              <div
+                key={item.id}
+                className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-3 border-b border-slate-100 dark:border-slate-700 last:border-0 gap-2"
+              >
+                <div className="flex-1 pr-4">
+                  <h4 className="font-bold text-slate-700 dark:text-slate-200">
+                    {item.label}
+                  </h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                    {item.note}
+                  </p>
+                  {!item.isNisabReached && item.id !== "fitrah" && (
+                    <span className="inline-block mt-1 px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 text-[10px] uppercase rounded font-bold tracking-wide">
+                      Tidak Wajib (Belum Nisab)
+                    </span>
+                  )}
+                </div>
+                <div className="text-left sm:text-right w-full sm:w-auto bg-slate-50 dark:bg-slate-700/30 sm:bg-transparent p-2 sm:p-0 rounded-lg">
+                  <p
+                    className={`font-mono font-bold text-lg ${
+                      item.zakatAmount > 0
+                        ? "text-slate-800 dark:text-white"
+                        : "text-slate-300 dark:text-slate-600"
+                    }`}
+                  >
+                    {item.formattedValue
+                      ? item.formattedValue
+                      : formatCurrency(item.zakatAmount)}
+                  </p>
+                  {item.rate > 0 && (
+                    <p className="text-xs text-slate-400 dark:text-slate-500">
+                      Rate: {(item.rate * 100).toFixed(1)}%
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Simple Asset Composition Chart */}
+          {hasChartData && (
+            <div
+              data-html2canvas-ignore="true"
+              className="w-full lg:w-72 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-100 dark:border-slate-800"
+            >
+              <h5 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-4">
+                Komposisi Harta
+              </h5>
+              <div className="w-full h-48 relative">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={chartData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={40}
+                      outerRadius={60}
+                      paddingAngle={5}
+                      dataKey="value"
+                      stroke="none"
+                    >
+                      {chartData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value: number) => formatCurrency(value)}
+                      contentStyle={{
+                        backgroundColor: "rgba(255,255,255,0.9)",
+                        borderRadius: "8px",
+                        fontSize: "12px",
+                        border: "none",
+                        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="w-full text-xs space-y-1 mt-2">
+                {chartData.map((entry, index) => (
+                  <div
+                    key={index}
+                    className="flex justify-between items-center"
+                  >
+                    <div className="flex items-center">
+                      <span
+                        className="w-2 h-2 rounded-full mr-2"
+                        style={{
+                          backgroundColor: COLORS[index % COLORS.length],
+                        }}
+                      ></span>
+                      <span className="text-slate-600 dark:text-slate-300 truncate max-w-[100px]">
+                        {entry.name}
+                      </span>
+                    </div>
+                    <span className="font-medium text-slate-800 dark:text-slate-200">
+                      {(
+                        (entry.value /
+                          chartData.reduce((a, b) => a + b.value, 0)) *
+                        100
+                      ).toFixed(0)}
+                      %
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
-
-          {result.items.map((item) => (
-            <div
-              key={item.id}
-              className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-3 border-b border-slate-100 dark:border-slate-700 last:border-0 gap-2"
-            >
-              <div className="flex-1 pr-4">
-                <h4 className="font-bold text-slate-700 dark:text-slate-200">
-                  {item.label}
-                </h4>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                  {item.note}
-                </p>
-                {!item.isNisabReached && item.id !== "fitrah" && (
-                  <span className="inline-block mt-1 px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 text-[10px] uppercase rounded font-bold tracking-wide">
-                    Tidak Wajib (Belum Nisab)
-                  </span>
-                )}
-              </div>
-              <div className="text-left sm:text-right w-full sm:w-auto bg-slate-50 dark:bg-slate-700/30 sm:bg-transparent p-2 sm:p-0 rounded-lg">
-                <p
-                  className={`font-mono font-bold text-lg ${
-                    item.zakatAmount > 0
-                      ? "text-slate-800 dark:text-white"
-                      : "text-slate-300 dark:text-slate-600"
-                  }`}
-                >
-                  {item.formattedValue
-                    ? item.formattedValue
-                    : formatCurrency(item.zakatAmount)}
-                </p>
-                {item.rate > 0 && (
-                  <p className="text-xs text-slate-400 dark:text-slate-500">
-                    Rate: {(item.rate * 100).toFixed(1)}%
-                  </p>
-                )}
-              </div>
-            </div>
-          ))}
         </div>
 
         <div className="mt-8 pt-6 border-t-2 border-slate-800 dark:border-slate-200">

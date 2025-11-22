@@ -1,22 +1,16 @@
-import { useState, useEffect } from "react";
-import type {
-  HafalanState,
-  HafalanItem,
-  UserSummary,
-  HafalanSkillLevel,
-} from "../types.ts";
+import { useState, useEffect, useMemo } from "react";
+import type { HafalanState, HafalanItem, HafalanSkillLevel } from "../types.ts";
 import {
-  getAllUsers,
   loadUserData,
   saveUserData,
   createNewUser,
   updateUserProfile,
-  deleteUser,
-  processItemReview,
-  calculateLevel,
   checkBadges,
   checkGamificationSync,
+  processItemReview,
+  calculateLevel,
 } from "../services/hafalan.service.ts";
+import { useUserList } from "./useUserList.ts";
 
 const INITIAL_STATE: HafalanState = {
   profile: null,
@@ -33,8 +27,9 @@ const INITIAL_STATE: HafalanState = {
 };
 
 export const useHafalan = () => {
+  const { usersList, refreshUsers, handleDeleteUser } = useUserList();
+
   const [state, setState] = useState<HafalanState>(INITIAL_STATE);
-  const [usersList, setUsersList] = useState<UserSummary[]>([]);
   const [view, setView] = useState<
     | "user_selection"
     | "create_user"
@@ -47,14 +42,16 @@ export const useHafalan = () => {
     useState<HafalanItem | null>(null);
   const [isPracticeMode, setIsPracticeMode] = useState(false);
 
-  // Initial Load
+  // Initialize view based on users existence
   useEffect(() => {
-    const users = getAllUsers();
-    setUsersList(users);
-    if (users.length === 0) setView("create_user");
-    else setView("user_selection");
+    if (usersList.length === 0) {
+      setView("create_user");
+    } else if (!state.profile) {
+      // If users exist but no profile loaded, show selection
+      setView("user_selection");
+    }
     setLoading(false);
-  }, []);
+  }, [usersList.length, state.profile]);
 
   // Auto-save
   useEffect(() => {
@@ -63,130 +60,148 @@ export const useHafalan = () => {
     }
   }, [state, view]);
 
-  const actions = {
-    selectUser: (userId: string) => {
-      const userData = loadUserData(userId);
-      if (userData) {
-        // Check streak and handle weekly reset logic
-        const updatedGamification = checkGamificationSync(
-          userData.gamification
-        );
+  const actions = useMemo(
+    () => ({
+      selectUser: (userId: string) => {
+        const userData = loadUserData(userId);
+        if (userData) {
+          // Sync Gamification (Streak, Weekly Reset)
+          const updatedGamification = checkGamificationSync(
+            userData.gamification
+          );
+          const updatedState = {
+            ...userData,
+            gamification: updatedGamification,
+          };
 
-        const updatedState = { ...userData, gamification: updatedGamification };
-        setState(updatedState);
-        saveUserData(updatedState);
-        setView("dashboard");
-      }
-    },
-    createUser: (name: string, level: HafalanSkillLevel, target: number) => {
-      const newUserState = createNewUser(name, level, target);
-      setState(newUserState);
-      setUsersList(getAllUsers());
-      setView("dashboard");
-      return newUserState;
-    },
-    updateProfile: (updates: {
-      name: string;
-      skillLevel: HafalanSkillLevel;
-      targetJuz: number;
-    }) => {
-      if (!state.profile) return;
-      const updated = updateUserProfile(state.profile.userId, updates);
-      if (updated) setState(updated);
-    },
-    deleteUser: (userId: string) => {
-      deleteUser(userId);
-      const list = getAllUsers();
-      setUsersList(list);
-      if (list.length === 0) setView("create_user");
-    },
-    logout: () => {
-      setState(INITIAL_STATE);
-      setUsersList(getAllUsers());
-      setView("user_selection");
-    },
-    addItem: (item: HafalanItem) => {
-      // 1. Calculate potential badges with the new item included
-      const tempItems = [...state.items, item];
-      const tempState = { ...state, items: tempItems };
-      const badgesEarned = checkBadges(tempState);
-
-      // 2. Update State
-      setState((prev) => ({
-        ...prev,
-        items: [...prev.items, item],
-        gamification: {
-          ...prev.gamification,
-          badges: [...prev.gamification.badges, ...badgesEarned],
-        },
-      }));
-
-      setView("dashboard");
-      return badgesEarned; // Return badges so UI can trigger modal
-    },
-    startReview: (item: HafalanItem) => {
-      setActiveSessionItem(item);
-      setIsPracticeMode(false);
-      setView("review_session");
-    },
-    startPractice: (item: HafalanItem) => {
-      setActiveSessionItem(item);
-      setIsPracticeMode(true);
-      setView("review_session");
-    },
-    finishPractice: () => {
-      setActiveSessionItem(null);
-      setIsPracticeMode(false);
-      setView("dashboard");
-    },
-    submitReview: (result: "success" | "fail") => {
-      if (!activeSessionItem) return null;
-      const { updatedItem, xpGained } = processItemReview(
-        activeSessionItem,
-        result
-      );
-
-      let badgesEarned: string[] = [];
-
-      setState((prev) => {
-        const newItems = prev.items.map((i) =>
-          i.id === updatedItem.id ? updatedItem : i
-        );
-        const newXP = prev.gamification.xp + xpGained;
-        const newLevel = calculateLevel(newXP);
-        // Accumulate XP for the week (Not percentage anymore)
-        const newChallengeXP =
-          prev.gamification.weeklyChallengeProgress + xpGained;
-
-        const newState = {
-          ...prev,
-          items: newItems,
-          gamification: {
-            ...prev.gamification,
-            xp: newXP,
-            level: newLevel,
-            weeklyChallengeProgress: newChallengeXP,
-          },
-        };
-
-        const earned = checkBadges(newState);
-        if (earned.length > 0) {
-          newState.gamification.badges = [
-            ...newState.gamification.badges,
-            ...earned,
-          ];
-          badgesEarned = earned;
+          setState(updatedState);
+          saveUserData(updatedState);
+          setView("dashboard");
         }
-        return newState;
-      });
+      },
+      createUser: (name: string, level: HafalanSkillLevel, target: number) => {
+        const newUserState = createNewUser(name, level, target);
+        setState(newUserState);
+        refreshUsers(); // Update list in useUserList
+        setView("dashboard");
+        return newUserState;
+      },
+      updateProfile: (updates: {
+        name: string;
+        skillLevel: HafalanSkillLevel;
+        targetJuz: number;
+      }) => {
+        setState((prev) => {
+          if (!prev.profile) return prev;
+          const updated = updateUserProfile(prev.profile.userId, updates);
+          if (updated) refreshUsers(); // Name might have changed
+          return updated || prev;
+        });
+      },
+      deleteUser: (userId: string) => {
+        handleDeleteUser(userId);
+        // logic to handle view switch is in useEffect above
+      },
+      logout: () => {
+        setState(INITIAL_STATE);
+        refreshUsers();
+        setView("user_selection");
+      },
+      addItem: (item: HafalanItem) => {
+        let badgesEarned: string[] = [];
+        setState((prev) => {
+          const tempItems = [...prev.items, item];
+          const tempState = { ...prev, items: tempItems };
+          badgesEarned = checkBadges(tempState);
 
-      setView("dashboard");
-      setActiveSessionItem(null);
-      return { xpGained, badgesEarned };
-    },
-    setView,
-    setState,
-  };
+          return {
+            ...prev,
+            items: tempItems,
+            gamification: {
+              ...prev.gamification,
+              badges: [...prev.gamification.badges, ...badgesEarned],
+            },
+          };
+        });
+
+        setView("dashboard");
+        return badgesEarned;
+      },
+      startReview: (item: HafalanItem) => {
+        setActiveSessionItem(item);
+        setIsPracticeMode(false);
+        setView("review_session");
+      },
+      startPractice: (item: HafalanItem) => {
+        setActiveSessionItem(item);
+        setIsPracticeMode(true);
+        setView("review_session");
+      },
+      finishPractice: () => {
+        setActiveSessionItem(null);
+        setIsPracticeMode(false);
+        setView("dashboard");
+      },
+      // Internal implementation needed to capture current state in closure
+      _submitReviewImplementation: (
+        item: HafalanItem,
+        result: "success" | "fail"
+      ) => {
+        const { updatedItem, xpGained } = processItemReview(item, result);
+        let badgesEarned: string[] = [];
+
+        setState((prev) => {
+          const newItems = prev.items.map((i) =>
+            i.id === updatedItem.id ? updatedItem : i
+          );
+          const newXP = prev.gamification.xp + xpGained;
+          const newLevel = calculateLevel(newXP);
+          const newChallengeXP =
+            prev.gamification.weeklyChallengeProgress + xpGained;
+
+          const newState = {
+            ...prev,
+            items: newItems,
+            gamification: {
+              ...prev.gamification,
+              xp: newXP,
+              level: newLevel,
+              weeklyChallengeProgress: newChallengeXP,
+            },
+          };
+
+          const earned = checkBadges(newState);
+          if (earned.length > 0) {
+            newState.gamification.badges = [
+              ...newState.gamification.badges,
+              ...earned,
+            ];
+            badgesEarned = earned;
+          }
+          return newState;
+        });
+
+        setView("dashboard");
+        setActiveSessionItem(null);
+        return { xpGained, badgesEarned };
+      },
+      setView,
+      setState,
+    }),
+    [refreshUsers, handleDeleteUser]
+  );
+
+  // Stable Actions wrapper
+  const stableActions = useMemo(
+    () => ({
+      ...actions,
+      submitReview: (result: "success" | "fail") => {
+        if (!activeSessionItem) return null;
+        return actions._submitReviewImplementation(activeSessionItem, result);
+      },
+    }),
+    [actions, activeSessionItem]
+  );
 
   return {
     state,
@@ -195,6 +210,6 @@ export const useHafalan = () => {
     loading,
     activeSessionItem,
     isPracticeMode,
-    actions,
+    actions: stableActions,
   };
 };

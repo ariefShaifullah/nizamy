@@ -1,18 +1,23 @@
-import { jsPDF } from "jspdf";
-import html2canvas from "html2canvas";
 import type React from "react";
 import type { CalculationResult, HafalanState } from "../types.ts";
-import { SRS_INTERVALS } from "./hafalan.service.ts";
+import type { jsPDF } from "jspdf";
+import { SRS_INTERVALS } from "../constants.ts";
 import { formatDate } from "../utils.ts";
 
-// A4 width in pixels at 96 DPI is approximately 794px.
-// We use 800px to ensure good padding.
+// Constants
 const PRINT_WIDTH = 800;
 
 /**
+ * Helper to load PDF libraries dynamically
+ */
+const loadPdfLibs = async () => {
+  const { jsPDF } = await import("jspdf");
+  const html2canvas = (await import("html2canvas")).default;
+  return { jsPDF, html2canvas };
+};
+
+/**
  * Helper to generate PDF from an element with fixed width cloning
- * Compatible with jsPDF v3.x and v2.5.x
- * Uses off-screen rendering instead of visibility:hidden to prevent blank pages
  */
 const generatePdfFromElement = async (
   element: HTMLElement,
@@ -21,6 +26,8 @@ const generatePdfFromElement = async (
   let printContainer: HTMLElement | null = null;
 
   try {
+    const { jsPDF, html2canvas } = await loadPdfLibs();
+
     // 1. Create hidden container with fixed width (A4-like)
     printContainer = document.createElement("div");
     printContainer.style.position = "fixed";
@@ -129,6 +136,7 @@ export const exportToPdf = async (
   let printRoot: HTMLElement | null = null;
 
   try {
+    const { jsPDF, html2canvas } = await loadPdfLibs();
     const contentWidth = PRINT_WIDTH;
     printRoot = document.createElement("div");
     printRoot.style.position = "fixed";
@@ -319,6 +327,8 @@ export const exportHafalanToPdf = async (state: HafalanState) => {
   let printContainer: HTMLElement | null = null;
 
   try {
+    const { jsPDF, html2canvas } = await loadPdfLibs();
+
     printContainer = document.createElement("div");
     printContainer.className = "p-8 bg-white text-slate-800 font-sans";
     printContainer.style.width = `${PRINT_WIDTH}px`;

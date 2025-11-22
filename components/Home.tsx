@@ -1,4 +1,7 @@
-import React from "react";
+import React, { useState } from 'react';
+import { usePWA } from "../hooks/usePWA.ts";
+import { IOSInstallModal } from './IOSInstallModal.tsx';
+
 import {
   FaBalanceScale,
   FaHandsHelping,
@@ -12,6 +15,8 @@ interface HomeProps {
 }
 
 export const Home: React.FC<HomeProps> = ({ setView }) => {
+  const { isInstallable, isIOS, isStandalone, installApp } = usePWA();
+  const [showIOSGuide, setShowIOSGuide] = useState(false);
   const features = [
     {
       id: "hafalan",
@@ -72,13 +77,20 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
       },
     },
   ];
+  
+  
+  // Logic to show install button: 
+  // 1. Android/Chrome (isInstallable true) 
+  // 2. iOS (isIOS true AND NOT Standalone)
+  const showInstallBtn = isInstallable || (isIOS && !isStandalone);
 
-  // Wrap entire UI in an IconContext.Provider to supply default className/size
   return (
     <IconContext.Provider value={{ className: "h-7 w-7" }}>
       <div className="max-w-6xl mx-auto px-4 md:px-4 py-2 md:py-8 animate-fade-in">
+              {showIOSGuide && <IOSInstallModal onClose={() => setShowIOSGuide(false)} />}
+
         {/* HEADER */}
-        <div className="text-center mb-6 md:mb-12 pt-2 md:pt-4">
+        <div className="text-center mb-6 md:mb-12 pt-2 md:pt-4 relative">
           <span className="inline-block py-3 px-8 md:py-4 md:px-12 rounded-full bg-white dark:bg-slate-800/80 text-primary-700 dark:text-amber-400 font-arabic text-xl md:text-3xl mb-4 md:mb-8 border border-primary-100 dark:border-amber-500/20 shadow-sm dark:shadow-amber-900/10 leading-[2.5] md:leading-[3] select-none">
             بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
           </span>
@@ -96,6 +108,32 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
           <p className="md:hidden text-sm text-slate-500 dark:text-slate-400 px-6">
             Waris, Zakat & Hafalan Quran
           </p>
+          {/* INSTALL APP BUTTON */}
+        {showInstallBtn && (
+            <div className="mt-6 animate-fade-in-up">
+              <button
+                    onClick={() => isIOS ? setShowIOSGuide(true) : installApp()}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full font-bold shadow-xl hover:scale-105 transition-transform active:scale-95"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Install Aplikasi
+              </button>
+              <p className="text-xs text-slate-400 mt-2">
+                Akses offline & lebih cepat
+              </p>
+            </div>
+          )}
         </div>
         {/* MOBILE */}
         <div className="md:hidden mb-8 -mx-4">

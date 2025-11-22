@@ -1,6 +1,7 @@
 import React from "react";
 import type { UserSummary } from "../../types.ts";
 import { audioService } from "../../services/audio.service.ts";
+import { useConfirm } from "../ui/ConfirmContext.tsx";
 
 interface UserSelectionProps {
   users: UserSummary[];
@@ -15,6 +16,25 @@ export const UserSelection: React.FC<UserSelectionProps> = ({
   onDelete,
   onCreateClick,
 }) => {
+  const { confirm } = useConfirm();
+
+  const handleDelete = async (e: React.MouseEvent, user: UserSummary) => {
+    e.stopPropagation();
+    audioService.playClick();
+
+    const isConfirmed = await confirm({
+      title: "Hapus Profil?",
+      message: `Yakin ingin menghapus profil ${user.name}? Data hafalan akan hilang permanen.`,
+      confirmText: "Hapus",
+      cancelText: "Batal",
+      variant: "danger",
+    });
+
+    if (isConfirmed) {
+      onDelete(user.id);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 animate-fade-in py-8 md:py-10">
       <div className="text-center mb-8 md:mb-12">
@@ -57,13 +77,7 @@ export const UserSelection: React.FC<UserSelectionProps> = ({
 
             {/* Delete Button Desktop: Absolute top-right, hover only */}
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                audioService.playClick();
-                if (window.confirm(`Hapus ${user.name}?`)) {
-                  onDelete(user.id);
-                }
-              }}
+              onClick={(e) => handleDelete(e, user)}
               className="md:absolute md:top-3 md:right-3 md:opacity-0 md:group-hover:opacity-100 md:transition-all
                            hidden md:block
                            bg-red-50 dark:bg-red-900/30 text-red-400 dark:text-red-400 p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900/50 hover:text-red-600 dark:hover:text-red-300 shadow-sm"
@@ -85,13 +99,7 @@ export const UserSelection: React.FC<UserSelectionProps> = ({
 
             {/* Delete Button Mobile: Fixed right position, distinct click area */}
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                audioService.playClick();
-                if (window.confirm(`Hapus ${user.name}?`)) {
-                  onDelete(user.id);
-                }
-              }}
+              onClick={(e) => handleDelete(e, user)}
               className="md:hidden absolute top-1/2 -translate-y-1/2 right-2 p-3 text-slate-300 dark:text-slate-600 hover:text-red-500 active:text-red-600 z-10 active:scale-95 transition-transform"
             >
               <svg

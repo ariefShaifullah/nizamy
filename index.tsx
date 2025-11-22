@@ -1,12 +1,29 @@
 
-import React, { type ReactNode } from "react";
+import React, { Component, type ReactNode } from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import { ThemeProvider } from "./components/ThemeContext.tsx";
+import { ToastProvider } from "./components/ui/Toast.tsx";
+import { ConfirmProvider } from "./components/ui/ConfirmContext.tsx";
 
-const rootElement = document.getElementById('root');
+const rootElement = document.getElementById("root");
 if (!rootElement) {
   throw new Error("Could not find root element to mount to");
+}
+
+// --- SERVICE WORKER REGISTRATION ---
+// Cast import.meta to any to bypass TypeScript error when vite types are not fully recognized in certain contexts
+if ("serviceWorker" in navigator && (import.meta as any).env?.PROD) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").then(
+      (registration) => {
+        console.log("SW registered: ", registration);
+      },
+      (registrationError) => {
+        console.log("SW registration failed: ", registrationError);
+      }
+    );
+  });
 }
 
 interface ErrorBoundaryProps {
@@ -18,16 +35,9 @@ interface ErrorBoundaryState {
   error: Error | null;
 }
 
-class ErrorBoundary extends React.Component<
-  ErrorBoundaryProps,
-  ErrorBoundaryState
-> {
-  state: { hasError: boolean; error: any };
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  public state: ErrorBoundaryState = { hasError: false, error: null };
   props: any;
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
 
   static getDerivedStateFromError(error: any) {
     return { hasError: true, error };
@@ -63,9 +73,13 @@ const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
     <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-      <ErrorBoundary>
-        <App />
-      </ErrorBoundary>
+      <ToastProvider>
+        <ConfirmProvider>
+          <ErrorBoundary>
+            <App />
+          </ErrorBoundary>
+        </ConfirmProvider>
+      </ToastProvider>
     </ThemeProvider>
   </React.StrictMode>
 );

@@ -1,6 +1,8 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { getAyahAudioUrl } from "../../services/hafalan.service.ts";
 import { QORI_LIST } from "../../constants.ts";
+import { useToast } from "../ui/Toast.tsx";
 
 interface QuranPlayerProps {
   surahNo: number;
@@ -19,6 +21,7 @@ export const QuranPlayer: React.FC<QuranPlayerProps> = ({
   autoPlay = false,
   jumpToAyah,
 }) => {
+  const { showToast } = useToast();
   const [currentAyah, setCurrentAyah] = useState(startAyah);
   const [isPlaying, setIsPlaying] = useState(false);
   const [selectedQori, setSelectedQori] = useState(
@@ -118,10 +121,6 @@ export const QuranPlayer: React.FC<QuranPlayerProps> = ({
   };
 
   return (
-    /* 
-      UPDATED: Removed 'sticky top-0 z-30'. 
-      The player is now a static block element controlled by the parent layout (ReviewSession).
-    */
     <div className="bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 p-2 md:p-3 flex flex-col md:flex-row items-center justify-between gap-3 transition-all">
       <audio
         ref={audioRef}
@@ -130,13 +129,15 @@ export const QuranPlayer: React.FC<QuranPlayerProps> = ({
         onPlaying={() => setIsBuffering(false)}
         onError={() => {
           setIsPlaying(false);
-          alert("Gagal memuat audio. Periksa koneksi internet.");
+          setIsBuffering(false);
+          showToast("Gagal memuat audio. Cek koneksi internet.", "error");
         }}
       />
 
       <div className="flex items-center w-full md:w-auto gap-2">
         <button
           onClick={() => setIsPlaying(!isPlaying)}
+          aria-label={isPlaying ? "Jeda Audio" : "Putar Audio"}
           className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm flex-shrink-0 ${
             isPlaying
               ? "bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300"
@@ -218,6 +219,7 @@ export const QuranPlayer: React.FC<QuranPlayerProps> = ({
       <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 border-slate-50 dark:border-slate-700 pt-2 md:pt-0">
         <button
           onClick={toggleSpeed}
+          aria-label="Ubah Kecepatan"
           className="px-2 py-1 text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 min-w-[3rem]"
         >
           {playbackSpeed}x
@@ -226,6 +228,7 @@ export const QuranPlayer: React.FC<QuranPlayerProps> = ({
         <select
           value={selectedQori}
           onChange={handleQoriChange}
+          aria-label="Pilih Qori"
           className="text-xs border border-slate-200 dark:border-slate-600 rounded py-1 px-2 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 outline-none focus:border-indigo-300 w-32 md:w-auto"
         >
           {QORI_LIST.map((q) => (

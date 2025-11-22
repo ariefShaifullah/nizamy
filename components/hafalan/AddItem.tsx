@@ -11,12 +11,12 @@ import {
   createNewItem,
   getLastMemorizedAyah,
 } from "../../services/hafalan.service.ts";
+import { useToast } from "../ui/Toast.tsx";
 
 interface AddItemProps {
   state: HafalanState;
   onBack: () => void;
   onAddItem: (item: HafalanItem) => string[]; // Returns badges
-  onSuccess: (msg: string) => void;
   onBadgeEarned: (badges: string[]) => void;
 }
 
@@ -24,9 +24,9 @@ export const AddItem: React.FC<AddItemProps> = ({
   state,
   onBack,
   onAddItem,
-  onSuccess,
   onBadgeEarned,
 }) => {
+  const { showToast } = useToast();
   // State for form
   const [selectedSurahNumber, setSelectedSurahNumber] = useState(1);
   const [newAyahStart, setNewAyahStart] = useState(1);
@@ -36,7 +36,7 @@ export const AddItem: React.FC<AddItemProps> = ({
   const [inputError, setInputError] = useState<string | null>(null);
   const [quotaWarning, setQuotaWarning] = useState<string | null>(null);
   const [bypassQuota, setBypassQuota] = useState(false);
-  const [isSuggestionMode, setIsSuggestionMode] = useState(false); // Tracks if we are showing a smart suggestion
+  const [isSuggestionMode, setIsSuggestionMode] = useState(false);
 
   // CUSTOM SELECTOR STATE
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
@@ -139,7 +139,7 @@ export const AddItem: React.FC<AddItemProps> = ({
       );
       setNewAyahEnd(suggestedEnd);
     }
-  }, []); // Run ONCE on mount
+  }, []);
 
   // --- VALIDATION EFFECT ---
   useEffect(() => {
@@ -179,7 +179,7 @@ export const AddItem: React.FC<AddItemProps> = ({
 
     if (validation.status === "error") {
       audioService.playFail();
-      alert(validation.message);
+      showToast(validation.message, "error");
       return;
     }
 
@@ -199,7 +199,7 @@ export const AddItem: React.FC<AddItemProps> = ({
       audioService.playSuccess();
     }
 
-    onSuccess("Hafalan Baru Disimpan!");
+    showToast("Hafalan Baru Disimpan!", "success");
   };
 
   // --- HANDLERS ---

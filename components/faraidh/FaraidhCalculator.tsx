@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useReducer, useCallback } from "react";
+import React, { useState, useReducer, useCallback } from "react";
 import { HeirsForm } from "./HeirsForm.tsx";
 import { ResultsDisplay } from "./ResultsDisplay.tsx";
 import { HistoryPanel } from "./HistoryPanel.tsx";
@@ -7,35 +7,33 @@ import { calculateFaraidh } from "../../services/faraidh.service.ts";
 import type { CalculationResult, HistoryEntry } from "../../types.ts";
 import { initialHeirsState, FARAIDH_FAQ } from "../../constants.ts";
 import { heirsReducer } from "../../reducers/heirsReducer.ts";
+import { useLocalStorage } from "../../hooks/useLocalStorage.ts";
+import { useToast } from "../ui/Toast.tsx";
+import { useConfirm } from "../ui/ConfirmContext.tsx";
 
 type FaraidhTab = "input" | "result" | "history";
 
-export const FaraidhCalculator: React.FC = () => {
+const FaraidhCalculator: React.FC = () => {
+  const { showToast } = useToast();
+  const { confirm } = useConfirm();
   const [heirs, dispatch] = useReducer(heirsReducer, initialHeirsState);
   const [estate, setEstate] = useState<string>("100000000");
   const [result, setResult] = useState<CalculationResult | null>(null);
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // Custom Hook for persistence (DRY)
+  const [history, setHistory] = useLocalStorage<HistoryEntry[]>(
+    "faraidhHistory",
+    []
+  );
 
   // Mobile Tab State
   const [activeTab, setActiveTab] = useState<FaraidhTab>("input");
 
-  useEffect(() => {
-    try {
-      const storedHistory = localStorage.getItem("faraidhHistory");
-      if (storedHistory) {
-        setHistory(JSON.parse(storedHistory));
-      }
-    } catch (error) {
-      console.error("Failed to parse history from localStorage", error);
-      localStorage.removeItem("faraidhHistory");
-    }
-  }, []);
-
   const handleCalculate = useCallback(() => {
     const estateValue = parseFloat(estate);
     if (isNaN(estateValue) || estateValue <= 0) {
-      alert("Mohon masukkan nilai harta yang valid.");
+      showToast("Mohon masukkan nilai harta yang valid.", "error");
       return;
     }
     setLoading(true);
@@ -53,9 +51,12 @@ export const FaraidhCalculator: React.FC = () => {
           result: calculationResult,
         };
 
-        const updatedHistory = [newHistoryEntry, ...history].slice(0, 10);
-        setHistory(updatedHistory);
-        localStorage.setItem("faraidhHistory", JSON.stringify(updatedHistory));
+        // Functional update for history to ensure we have latest state
+        setHistory((prevHistory) =>
+          [newHistoryEntry, ...prevHistory].slice(0, 10)
+        );
+
+        showToast("Perhitungan selesai!", "success");
 
         // Auto-switch to results on mobile
         if (window.innerWidth < 1024) {
@@ -64,34 +65,41 @@ export const FaraidhCalculator: React.FC = () => {
         }
       } catch (error) {
         console.error("Calculation failed:", error);
-        alert("Terjadi kesalahan dalam perhitungan. Mohon periksa input Anda.");
+        showToast("Terjadi kesalahan dalam perhitungan.", "error");
       } finally {
         setLoading(false);
       }
     }, 300); // Slight delay for UX feeling
-  }, [estate, heirs, history]);
+  }, [estate, heirs, setHistory, showToast]);
 
-  const loadFromHistory = useCallback((entry: HistoryEntry) => {
-    setEstate(String(entry.estate));
-    dispatch({ type: "LOAD_STATE", payload: entry.heirs });
-    setResult(entry.result);
+  const loadFromHistory = useCallback(
+    (entry: HistoryEntry) => {
+      setEstate(String(entry.estate));
+      dispatch({ type: "LOAD_STATE", payload: entry.heirs });
+      setResult(entry.result);
 
-    if (window.innerWidth < 1024) {
-      setActiveTab("result");
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  }, []);
+      if (window.innerWidth < 1024) {
+        setActiveTab("result");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+      showToast("Data riwayat dimuat", "info");
+    },
+    [showToast]
+  );
 
-  const clearHistory = useCallback(() => {
-    if (
-      window.confirm(
-        "Apakah Anda yakin ingin menghapus semua riwayat perhitungan?"
-      )
-    ) {
+  const clearHistory = useCallback(async () => {
+    const isConfirmed = await confirm({
+      title: "Hapus Riwayat",
+      message: "Apakah Anda yakin ingin menghapus semua riwayat perhitungan?",
+      confirmText: "Ya, Hapus",
+      variant: "danger",
+    });
+
+    if (isConfirmed) {
       setHistory([]);
-      localStorage.removeItem("faraidhHistory");
+      showToast("Riwayat dihapus", "info");
     }
-  }, []);
+  }, [setHistory, confirm, showToast]);
 
   const switchTab = (tab: FaraidhTab) => {
     setActiveTab(tab);
@@ -267,3 +275,5 @@ export const FaraidhCalculator: React.FC = () => {
     </div>
   );
 };
+
+export default FaraidhCalculator;

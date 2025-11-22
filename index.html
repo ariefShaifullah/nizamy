@@ -3,9 +3,20 @@
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="/manifest.json">
     <title>NIZAMY: Aplikasi Ibadah Islam (Waris, Zakat, Hafalan)</title>
+
+    <!-- Preconnect to Critical Origins -->
+    <link rel="preconnect" href="https://api.alquran.cloud" crossorigin>
+    <link rel="preconnect" href="https://everyayah.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn-icons-png.flaticon.com" crossorigin>
 
     <!-- SEO Meta Tags -->
     <meta name="description" content="NIZAMY Islam Apps Suite: Kalkulator Waris (Faraidh) & Zakat akurat, serta Hafalan Quran Tracker dengan metode SRS & Gamification. Gratis, Privasi Terjaga, Tanpa Iklan." />
@@ -34,8 +45,6 @@
     <meta property="twitter:image" content="https://nizamy.com/og-image.png">
     
       <!-- Google Fonts: Inter & Amiri (Arabic) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 
@@ -88,6 +97,11 @@
       .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
         background-color: #64748b;
       }
+      
+      /* Safe Area padding for mobile devices with notches/home bars */
+      .pb-safe {
+        padding-bottom: env(safe-area-inset-bottom, 20px);
+      }
     </style>
 
     <!-- Tailwind CSS - Load script first, then config -->
@@ -134,6 +148,26 @@
               'sans': ['Inter', 'sans-serif'],
               'serif': ['Georgia', 'Cambria', 'Times New Roman', 'Times', 'serif'],
               'arabic': ['Amiri', 'Kitab', '"Traditional Arabic"', 'Arial', 'sans-serif']
+            },
+            animation: {
+              'fade-in': 'fadeIn 0.5s ease-out',
+              'fade-in-up': 'fadeInUp 0.5s ease-out',
+              'fade-in-down': 'fadeInDown 0.5s ease-out',
+              'bounce-slow': 'bounce 3s infinite',
+            },
+            keyframes: {
+              fadeIn: {
+                '0%': { opacity: '0' },
+                '100%': { opacity: '1' },
+              },
+              fadeInUp: {
+                '0%': { opacity: '0', transform: 'translateY(20px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              fadeInDown: {
+                '0%': { opacity: '0', transform: 'translateY(-20px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              }
             }
           }
         }

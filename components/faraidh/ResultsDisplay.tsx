@@ -5,7 +5,6 @@ import {
   Pie,
   Cell,
   ResponsiveContainer,
-  Legend,
   Tooltip,
   Label,
 } from "recharts";
@@ -14,19 +13,20 @@ import { formatCurrency } from "../../utils.ts";
 import { exportToPdf } from "../../services/pdf.service.ts";
 import { InfoTooltip, ResultCard, CustomChartTooltip } from "./FaraidhUI.tsx";
 
+// Vibrant Palette similar to Zakat for better distinction
 const COLORS = [
-  "#0ea5e9",
-  "#0284c7",
-  "#38bdf8",
-  "#7dd3fc",
-  "#0369a1",
-  "#075985",
-  "#0c4a6e",
-  "#082f49",
-  "#64748b",
-  "#94a3b8",
-  "#cbd5e1",
-  "#e2e8f0",
+  "#10b981", // Emerald
+  "#3b82f6", // Blue
+  "#f59e0b", // Amber
+  "#8b5cf6", // Violet
+  "#ec4899", // Pink
+  "#06b6d4", // Cyan
+  "#f43f5e", // Rose
+  "#84cc16", // Lime
+  "#6366f1", // Indigo
+  "#d946ef", // Fuchsia
+  "#eab308", // Yellow
+  "#14b8a6", // Teal
 ];
 
 interface ResultsDisplayProps {
@@ -69,7 +69,6 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
       name: `${h.name} (${h.count})`,
       value: h.percentage,
       finalValue: h.value,
-      fill: "",
     }));
 
   const hasReceivingHeirs = chartData.length > 0;
@@ -187,8 +186,9 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
         {/* Chart & Details */}
         {hasReceivingHeirs && (
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-8">
-            <div className="lg:col-span-2 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900/30 rounded-xl p-4 border border-slate-100 dark:border-slate-700/50 min-h-[400px]">
-              <div className="w-full h-full relative flex-1 min-h-[350px]">
+            {/* Left Column: Chart & Custom Legend */}
+            <div className="lg:col-span-2 flex flex-col bg-slate-50 dark:bg-slate-900/30 rounded-xl p-6 border border-slate-100 dark:border-slate-700/50">
+              <div className="w-full h-64 relative mb-6">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -197,7 +197,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
                       cy="50%"
                       innerRadius={60}
                       outerRadius={80}
-                      paddingAngle={5}
+                      paddingAngle={3}
                       dataKey="value"
                       stroke="none"
                     >
@@ -207,7 +207,6 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
                           fill={COLORS[index % COLORS.length]}
                         />
                       ))}
-                      {/* Using Recharts Label Component to ensure text stays in the center of the Donut regardless of Legend shift */}
                       <Label
                         position="center"
                         content={({ viewBox }) => {
@@ -243,22 +242,50 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
                       />
                     </Pie>
                     <Tooltip content={<CustomChartTooltip />} />
-                    <Legend
-                      iconType="circle"
-                      layout="horizontal"
-                      verticalAlign="bottom"
-                      align="center"
-                      wrapperStyle={{ paddingTop: "20px", fontSize: "12px" }}
-                    />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
+
+              {/* Custom Legend List (Better Contrast) */}
+              <div className="w-full space-y-3">
+                <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                  Komposisi
+                </h5>
+                {chartData.map((entry, index) => (
+                  <div
+                    key={index}
+                    className="flex justify-between items-center group"
+                  >
+                    <div className="flex items-center overflow-hidden">
+                      <span
+                        className="w-3 h-3 rounded-full mr-3 flex-shrink-0"
+                        style={{
+                          backgroundColor: COLORS[index % COLORS.length],
+                        }}
+                      ></span>
+                      <span className="text-slate-700 dark:text-slate-300 text-sm font-medium truncate">
+                        {entry.name}
+                      </span>
+                    </div>
+                    <div className="text-right pl-4 flex-shrink-0">
+                      <span className="block font-bold text-slate-900 dark:text-white text-sm">
+                        {entry.value.toFixed(1)}%
+                      </span>
+                      <span className="block text-[10px] text-slate-500 dark:text-slate-400">
+                        {formatCurrency(entry.finalValue)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
+
+            {/* Right Column: Detail Cards */}
             <div className="lg:col-span-3 space-y-4">
               <h4 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 border-b border-slate-100 dark:border-slate-700 pb-2">
                 Rincian Bagian
               </h4>
-              <div className="result-card-wrapper space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+              <div className="result-card-wrapper space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                 {result.heirResults.map((heir, idx) => (
                   <ResultCard key={idx} heir={heir} />
                 ))}

@@ -1,7 +1,5 @@
 import type React from "react";
 import type { CalculationResult, HafalanState } from "../types.ts";
-import type { jsPDF } from "jspdf";
-import { SRS_INTERVALS } from "../constants.ts";
 import { formatDate } from "../utils.ts";
 
 // Constants
@@ -17,22 +15,28 @@ const loadPdfLibs = async () => {
 };
 
 /**
- * Helper to generate PDF from an element with fixed width cloning
+ * MASTER FUNCTION: Generate PDF from any HTML Element
+ * Uses "Snapshot & Slice" technique:
+ * 1. Clones element
+ * 2. Applies manipulators (expand scrollbars, remove buttons)
+ * 3. Snapshots to Canvas
+ * 4. Slices into A4 pages
  */
 const generatePdfFromElement = async (
   element: HTMLElement,
-  filename: string
+  filename: string,
+  onClone?: (clonedElement: HTMLElement) => void
 ) => {
   let printContainer: HTMLElement | null = null;
 
   try {
     const { jsPDF, html2canvas } = await loadPdfLibs();
 
-    // 1. Create hidden container with fixed width (A4-like)
+    // 1. Create hidden container with fixed width (A4-like quality)
     printContainer = document.createElement("div");
     printContainer.style.position = "fixed";
     printContainer.style.top = "0";
-    printContainer.style.left = "-10000px"; // Move off-screen instead of hidden
+    printContainer.style.left = "-10000px"; // Off-screen
     printContainer.style.width = `${PRINT_WIDTH}px`;
     printContainer.style.zIndex = "-9999";
     printContainer.style.backgroundColor = "#ffffff";
@@ -40,7 +44,7 @@ const generatePdfFromElement = async (
     // 2. Clone the element
     const clone = element.cloneNode(true) as HTMLElement;
 
-    // 3. Reset styles on clone to ensure full expansion
+    // 3. Reset base styles on clone to ensure clean print look
     clone.style.width = "100%";
     clone.style.height = "auto";
     clone.style.overflow = "visible";
@@ -48,43 +52,54 @@ const generatePdfFromElement = async (
     clone.style.position = "relative";
     clone.style.transform = "none";
     clone.style.margin = "0";
-    clone.style.padding = "20px"; // Add padding for better PDF look
+    clone.style.padding = "40px"; // Generous padding for paper margins
+    clone.style.backgroundColor = "#ffffff"; // Force white bg
+    clone.style.color = "#1e293b"; // Force slate-800 text
 
-    const scrollables = clone.querySelectorAll(
-      ".overflow-y-auto, .custom-scrollbar"
+    // Remove screen-specific styles
+    clone.classList.remove(
+      "shadow-lg",
+      "shadow-xl",
+      "dark:bg-slate-800",
+      "dark:border-slate-700",
+      "rounded-2xl"
     );
-    scrollables.forEach((el) => {
-      (el as HTMLElement).style.overflow = "visible";
-      (el as HTMLElement).style.maxHeight = "none";
-    });
+    clone.classList.add("text-slate-900");
+
+    // 4. Apply custom manipulators (e.g. expand specific lists)
+    if (onClone) {
+      onClone(clone);
+    }
 
     printContainer.appendChild(clone);
     document.body.appendChild(printContainer);
 
-    // 4. Capture using html2canvas
+    // 5. Capture using html2canvas
     const canvas = await html2canvas(printContainer, {
-      scale: 2, // High resolution
+      scale: 2, // High resolution (Retina-like)
       backgroundColor: "#ffffff",
-      useCORS: true,
+      useCORS: true, // For external images/fonts
       logging: false,
       width: PRINT_WIDTH,
       windowWidth: PRINT_WIDTH,
       height: printContainer.scrollHeight,
       windowHeight: printContainer.scrollHeight,
+      ignoreElements: (el) => {
+        // Automatically ignore elements with this attribute
+        return el.hasAttribute("data-html2canvas-ignore");
+      },
       onclone: (clonedDoc) => {
-        // Ensure SVGs (Recharts) are visible
+        // Fix: Ensure SVGs (Recharts) are visible and text renders correctly (if any remain)
         const svgs = clonedDoc.getElementsByTagName("svg");
         for (let i = 0; i < svgs.length; i++) {
           svgs[i].setAttribute("width", "100%");
-          // Fix for some browsers not rendering svg text in canvas
           svgs[i].style.fontFamily = "sans-serif";
         }
       },
     });
 
-    // 5. Generate PDF
+    // 6. Generate PDF with Page Slicing
     const imgData = canvas.toDataURL("image/png");
-
     const pdf = new jsPDF({
       orientation: "p",
       unit: "mm",
@@ -93,17 +108,20 @@ const generatePdfFromElement = async (
 
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
+
     const imgProps = pdf.getImageProperties(imgData);
     const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
     let heightLeft = imgHeight;
     let position = 0;
 
+    // First Page
     pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight);
     heightLeft -= pdfHeight;
 
+    // Subsequent Pages (Slice)
     while (heightLeft > 0) {
-      position = heightLeft - imgHeight;
+      position = heightLeft - imgHeight; // Negative offset moves image up
       pdf.addPage();
       pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight);
       heightLeft -= pdfHeight;
@@ -120,6 +138,9 @@ const generatePdfFromElement = async (
   }
 };
 
+/**
+ * Export Faraidh (Waris) Result
+ */
 export const exportToPdf = async (
   resultsRef: React.RefObject<HTMLDivElement>,
   result: CalculationResult | null
@@ -127,202 +148,163 @@ export const exportToPdf = async (
   const input = resultsRef.current;
   if (!(input instanceof HTMLElement) || !result) return;
 
-  // Hide export button during capture
-  const exportButton = input.querySelector<HTMLElement>(
-    '[data-html2canvas-ignore="true"]'
-  );
-  if (exportButton) exportButton.style.display = "none";
+  const filename = `NIZAMY_Waris_${new Date().toISOString().split("T")[0]}.pdf`;
 
-  let printRoot: HTMLElement | null = null;
-
-  try {
-    const { jsPDF, html2canvas } = await loadPdfLibs();
-    const contentWidth = PRINT_WIDTH;
-    printRoot = document.createElement("div");
-    printRoot.style.position = "fixed";
-    printRoot.style.left = "-10000px"; // Off-screen
-    printRoot.style.top = "0";
-    printRoot.style.width = `${contentWidth}px`;
-    printRoot.style.zIndex = "-9999";
-    printRoot.style.backgroundColor = "#ffffff";
-    document.body.appendChild(printRoot);
-
-    const pdf = new jsPDF({
-      orientation: "p",
-      unit: "mm",
-      format: "a4",
-    });
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
-
-    const fullContentClone = input.cloneNode(true) as HTMLElement;
-    fullContentClone.style.width = `${contentWidth}px`; // Force width
-    fullContentClone.style.height = "auto";
-    fullContentClone.style.overflow = "visible";
-    fullContentClone.style.maxHeight = "none";
-
-    // FIX: Reset scrollable containers to ensure full content capture
-    // Explicitly target the result wrapper to fix truncation issue
-    const scrollables = fullContentClone.querySelectorAll(
-      ".overflow-y-auto, .custom-scrollbar, .result-card-wrapper"
+  await generatePdfFromElement(input, filename, (clone) => {
+    // --- 1. REMOVE CHART (As requested for cleaner PDF) ---
+    const chartContainer = clone.querySelector(
+      ".recharts-responsive-container"
     );
-    scrollables.forEach((el) => {
-      const element = el as HTMLElement;
-      element.style.overflow = "visible";
-      element.style.maxHeight = "none";
-      element.style.height = "auto";
-    });
-
-    // --- PAGE 1: Header & Chart ---
-    const headerClone = fullContentClone.cloneNode(true) as HTMLElement;
-
-    // Remove the detailed list from the first page clone using correct selector
-    // We remove the whole wrapper to keep Page 1 clean (Chart + Notes)
-    const listInHeader = headerClone.querySelector(".result-card-wrapper");
-    if (listInHeader && listInHeader.parentNode) {
-      // Optional: Remove the title "Rincian Bagian" if it exists immediately before
-      const parent = listInHeader.parentNode;
-      const prevSibling = listInHeader.previousElementSibling;
-      if (prevSibling && prevSibling.tagName === "H4") {
-        parent.removeChild(prevSibling);
-      }
-      parent.removeChild(listInHeader);
-    }
-
-    // Add padding/styling
-    headerClone.style.padding = "20px";
-    printRoot.innerHTML = "";
-    printRoot.appendChild(headerClone);
-
-    const headerCanvas = await html2canvas(printRoot, {
-      scale: 2,
-      backgroundColor: "#ffffff",
-      width: contentWidth,
-      windowWidth: contentWidth,
-      onclone: (clonedDoc) => {
-        const svgs = clonedDoc.getElementsByTagName("svg");
-        for (let i = 0; i < svgs.length; i++) {
-          svgs[i].setAttribute("width", "100%");
-          svgs[i].style.fontFamily = "sans-serif";
-        }
-      },
-    });
-    const headerImgData = headerCanvas.toDataURL("image/png");
-    const headerImgHeight =
-      (headerCanvas.height * pdfWidth) / headerCanvas.width;
-
-    let currentY = 0;
-    if (headerImgHeight > 0) {
-      // Check if header is taller than a page (unlikely but possible)
-      if (headerImgHeight > pdfHeight) {
-        // Scale down if needed or just print what fits (simple approach: fit width)
-        pdf.addImage(headerImgData, "PNG", 0, 0, pdfWidth, headerImgHeight);
-        pdf.addPage();
-        currentY = 10;
-      } else {
-        pdf.addImage(headerImgData, "PNG", 0, 0, pdfWidth, headerImgHeight);
-        currentY = headerImgHeight;
-      }
-    }
-
-    // --- PAGE 2+: Detailed List Cards ---
-    // We render cards individually to handle page breaks better
-    // Select cards from the fullContentClone (which has scrollbars removed)
-    const allResultCards = Array.from(
-      fullContentClone.querySelectorAll(".result-card-wrapper > div")
-    );
-
-    if (allResultCards.length > 0) {
-      // Prepare container for card rendering
-      printRoot.innerHTML = "";
-      const cardContainer = document.createElement("div");
-      cardContainer.className = "results-list-container bg-white";
-      cardContainer.style.width = "100%";
-      cardContainer.style.padding = "20px";
-      printRoot.appendChild(cardContainer);
-
-      // Title for the list section
-      const titleDiv = document.createElement("div");
-      titleDiv.innerHTML = `<h4 class="text-lg font-bold mb-5 text-slate-700 flex items-center pt-4 border-t border-slate-200"><span class="w-1.5 h-6 bg-blue-500 rounded-full mr-2"></span>Rincian Per Ahli Waris</h4>`;
-      cardContainer.appendChild(titleDiv);
-
-      // Check space for title
-      if (currentY + 30 > pdfHeight) {
-        pdf.addPage();
-        currentY = 10;
-      } else {
-        currentY += 5; // spacer
-      }
-
-      // Render Title
-      const titleCanvas = await html2canvas(printRoot, {
-        scale: 2,
-        backgroundColor: "#ffffff",
-        width: contentWidth,
-        windowWidth: contentWidth,
-      });
-      const titleHeight = (titleCanvas.height * pdfWidth) / titleCanvas.width;
-      pdf.addImage(
-        titleCanvas.toDataURL("image/png"),
-        "PNG",
-        0,
-        currentY,
-        pdfWidth,
-        titleHeight
+    if (chartContainer) {
+      // Find the wrapper card of the chart and hide it completely
+      // The chart is usually in a rounded box with class bg-slate-50
+      const parentCard = chartContainer.closest(
+        ".bg-slate-50, .dark\\:bg-slate-900\\/30"
       );
-      currentY += titleHeight;
-
-      // Loop through cards
-      for (let i = 0; i < allResultCards.length; i++) {
-        const card = allResultCards[i] as HTMLElement;
-
-        // Clear previous content
-        cardContainer.innerHTML = "";
-        const tempWrapper = document.createElement("div");
-        tempWrapper.className = "space-y-4 mb-4";
-        tempWrapper.appendChild(card.cloneNode(true));
-        cardContainer.appendChild(tempWrapper);
-
-        const cardCanvas = await html2canvas(printRoot, {
-          scale: 2,
-          backgroundColor: "#ffffff",
-          width: contentWidth,
-          windowWidth: contentWidth,
-        });
-        const cardImgHeight = (cardCanvas.height * pdfWidth) / cardCanvas.width;
-
-        // Check if we need a new page
-        if (currentY + cardImgHeight > pdfHeight - 10) {
-          pdf.addPage();
-          currentY = 10; // Top margin for new page
-        }
-
-        const cardImgData = cardCanvas.toDataURL("image/png");
-        pdf.addImage(cardImgData, "PNG", 0, currentY, pdfWidth, cardImgHeight);
-        currentY += cardImgHeight;
-      }
+      if (parentCard) (parentCard as HTMLElement).style.display = "none";
     }
 
-    pdf.save(`NIZAMY_Faraidh_${new Date().toISOString().split("T")[0]}.pdf`);
-  } catch (e) {
-    console.error(e);
-    alert("Gagal mengunduh PDF Waris.");
-  } finally {
-    if (exportButton) exportButton.style.display = "block";
-    if (printRoot && document.body.contains(printRoot))
-      document.body.removeChild(printRoot);
-  }
+    // --- 2. LINEARIZE LAYOUT (Single Column) ---
+    // Remove grid layout to allow simple vertical stacking
+    const gridElements = clone.querySelectorAll(".grid");
+    gridElements.forEach((el) => {
+      (el as HTMLElement).style.display = "block";
+    });
+
+    // Reset column spans so items take full width
+    const colSpanElements = clone.querySelectorAll(
+      ".lg\\:col-span-2, .lg\\:col-span-3"
+    );
+    colSpanElements.forEach((el) => {
+      const element = el as HTMLElement;
+      element.style.width = "100%";
+      element.style.maxWidth = "none";
+      element.style.display = "block";
+      element.style.marginBottom = "20px"; // Add spacing between sections
+    });
+
+    // --- 3. EXPAND LISTS ---
+    const listWrapper = clone.querySelector(".result-card-wrapper");
+    if (listWrapper) {
+      const el = listWrapper as HTMLElement;
+      el.style.maxHeight = "none";
+      el.style.overflow = "visible";
+      el.style.height = "auto";
+    }
+
+    // --- 4. STYLING FOR PRINT ---
+    // Add a Document Title since we might have hidden the header
+    const headerDiv = document.createElement("div");
+    headerDiv.innerHTML = `
+            <div style="margin-bottom: 24px; border-bottom: 2px solid #0ea5e9; padding-bottom: 16px;">
+                <h1 style="font-size: 24px; font-weight: 800; color: #0f172a;">Laporan Pembagian Waris Islam</h1>
+                <p style="color: #64748b; font-size: 14px;">Dihitung menggunakan NIZAMY Apps sesuai Syariat.</p>
+                <p style="color: #94a3b8; font-size: 12px; margin-top: 4px;">Tanggal: ${new Date().toLocaleDateString(
+                  "id-ID",
+                  {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  }
+                )}</p>
+            </div>
+        `;
+    clone.prepend(headerDiv);
+
+    // Clean up Cards
+    const cards = clone.querySelectorAll(".result-card-wrapper > div");
+    cards.forEach((c) => {
+      const card = c as HTMLElement;
+      card.classList.remove("hover:shadow-md", "hover:border-slate-200");
+      card.style.boxShadow = "none";
+      card.style.border = "1px solid #cbd5e1"; // solid border
+      card.style.marginBottom = "12px"; // Spacing to prevent visual crowding
+      card.style.pageBreakInside = "avoid"; // Hint for print engines
+
+      // Force text colors for readability
+      const titles = card.querySelectorAll("h4");
+      titles.forEach((t) => ((t as HTMLElement).style.color = "#0f172a"));
+
+      const values = card.querySelectorAll("p");
+      values.forEach((p) => {
+        // If it's a primary color (amount), keep it dark/bold
+        if (p.classList.contains("text-primary-600")) {
+          p.style.color = "#0284c7";
+        } else if (
+          p.classList.contains("text-slate-500") ||
+          p.classList.contains("text-slate-400")
+        ) {
+          p.style.color = "#475569"; // Darker gray for print
+        } else {
+          p.style.color = "#1e293b";
+        }
+      });
+    });
+
+    // Fix Dark Mode Text inside clone (Force everything to print colors)
+    const allText = clone.querySelectorAll("*");
+    allText.forEach((el) => {
+      if (el instanceof HTMLElement) {
+        // Force background to white/transparent
+        if (getComputedStyle(el).backgroundColor !== "rgba(0, 0, 0, 0)") {
+          el.style.backgroundColor = "#ffffff";
+        }
+        // Borders
+        if (
+          el.classList.contains("border-slate-100") ||
+          el.classList.contains("dark:border-slate-700")
+        ) {
+          el.style.borderColor = "#e2e8f0";
+        }
+      }
+    });
+
+    // Ensure the Total Estate Card looks good (it has a gradient)
+    const totalCard = clone.querySelector(".bg-gradient-to-r");
+    if (totalCard) {
+      (totalCard as HTMLElement).style.background = "#f8fafc";
+      (totalCard as HTMLElement).style.border = "2px solid #0ea5e9";
+      (totalCard as HTMLElement).style.color = "#0f172a";
+      const labels = totalCard.querySelectorAll("p");
+      labels.forEach((l) => ((l as HTMLElement).style.color = "#0f172a"));
+    }
+  });
 };
 
+/**
+ * Export Zakat Result
+ */
 export const exportZakatToPdf = async (
   elementRef: React.RefObject<HTMLDivElement>,
   filename: string
 ) => {
   const element = elementRef.current;
   if (!element) return;
-  await generatePdfFromElement(element, filename);
+
+  await generatePdfFromElement(element, filename, (clone) => {
+    // Clean up Zakat specific styles
+    clone.classList.remove("rounded-2xl", "border-2", "shadow-sm");
+    clone.style.border = "none";
+
+    // Ensure dark mode text is fixed
+    const texts = clone.querySelectorAll("*");
+    texts.forEach((el) => {
+      if (el instanceof HTMLElement) {
+        el.style.color = "#1e293b"; // Force dark text
+      }
+    });
+
+    // Enhance Title for Print
+    const header = clone.querySelector("h3");
+    if (header) header.style.color = "#047857"; // Emerald-700
+  });
 };
 
+/**
+ * Export Hafalan Report (Custom Builder)
+ * This one generates HTML from data directly, so it doesn't use the DOM cloner above.
+ */
 export const exportHafalanToPdf = async (state: HafalanState) => {
   let printContainer: HTMLElement | null = null;
 
@@ -334,7 +316,7 @@ export const exportHafalanToPdf = async (state: HafalanState) => {
     printContainer.style.width = `${PRINT_WIDTH}px`;
     printContainer.style.position = "fixed";
     printContainer.style.top = "0";
-    printContainer.style.left = "-10000px"; // Off-screen
+    printContainer.style.left = "-10000px";
     printContainer.style.zIndex = "-9999";
 
     const dateStr = new Date().toLocaleDateString("id-ID", {
@@ -447,7 +429,7 @@ export const exportHafalanToPdf = async (state: HafalanState) => {
     printContainer.innerHTML = htmlContent;
     document.body.appendChild(printContainer);
 
-    // Use standard a4 sizing from helper logic
+    // Capture using the same logic
     const canvas = await html2canvas(printContainer, {
       scale: 2,
       backgroundColor: "#ffffff",

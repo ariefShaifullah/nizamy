@@ -31,40 +31,102 @@ export const InfoTooltip: React.FC<{ term: keyof typeof FIQH_DEFINITIONS }> = ({
   if (!data) return null;
 
   return (
-    <div className="relative inline-flex items-center ml-2">
-      <button
-        onMouseEnter={() => setIsOpen(true)}
-        onMouseLeave={() => setIsOpen(false)}
-        onClick={(e) => {
-          e.preventDefault();
-          setIsOpen(!isOpen);
-        }}
-        className="cursor-pointer text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors focus:outline-none"
-        aria-label={`Info tentang ${data.title}`}
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-4 w-4"
-          viewBox="0 0 20 20"
-          fill="currentColor"
+    <>
+      <div className="relative inline-flex items-center ml-2">
+        <button
+          onMouseEnter={() => {
+            if (window.innerWidth >= 768) setIsOpen(true);
+          }}
+          onMouseLeave={() => {
+            if (window.innerWidth >= 768) setIsOpen(false);
+          }}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsOpen(!isOpen);
+          }}
+          className="cursor-pointer text-slate-400 hover:text-primary-600 dark:text-slate-500 dark:hover:text-primary-400 transition-colors focus:outline-none p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
+          aria-label={`Info tentang ${data.title}`}
         >
-          <path
-            fillRule="evenodd"
-            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-            clipRule="evenodd"
-          />
-        </svg>
-      </button>
-      {isOpen && (
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 p-3 bg-slate-800 dark:bg-slate-700 text-white text-sm rounded-lg shadow-xl z-50 border border-slate-700 dark:border-slate-600">
-          <h5 className="font-bold mb-1 text-primary-400">{data.title}</h5>
-          <p className="text-xs text-slate-300 leading-relaxed">
-            {data.definition}
-          </p>
-          <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-0 h-0 border-x-8 border-x-transparent border-t-8 border-t-slate-800 dark:border-t-slate-700"></div>
-        </div>
-      )}
-    </div>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-4 w-4"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </button>
+
+        {isOpen && (
+          <>
+            {/* MOBILE BACKDROP: Fixed overlay to focus user attention & catch clicks */}
+            <div
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] md:hidden animate-fade-in"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsOpen(false);
+              }}
+            />
+
+            {/* ADAPTIVE CONTAINER */}
+            <div
+              className={`
+                /* Common Styles */
+                p-5 bg-white dark:bg-slate-800 text-sm rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 z-[70]
+                
+                /* MOBILE STYLES: Fixed Centered Modal */
+                fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-xs
+                
+                /* DESKTOP STYLES: Absolute Tooltip positioned above icon */
+                md:absolute md:fixed-none md:top-auto md:bottom-full md:left-1/2 md:-translate-x-1/2 md:translate-y-0 md:mb-3 md:w-72 md:rounded-xl md:p-4 md:shadow-xl
+              `}
+              onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside content
+            >
+              {/* Mobile Close Button Header */}
+              <div className="flex justify-between items-start mb-3 md:hidden border-b border-slate-100 dark:border-slate-700 pb-2">
+                <h5 className="font-bold text-primary-600 dark:text-primary-400 text-lg">
+                  {data.title}
+                </h5>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="text-slate-400 hover:text-slate-600 p-1 -mr-2 -mt-2 bg-slate-50 dark:bg-slate-700 rounded-full"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Desktop Title (Hidden on Mobile because shown in header above) */}
+              <h5 className="hidden md:block font-bold mb-2 text-primary-600 dark:text-primary-400 text-base">
+                {data.title}
+              </h5>
+
+              <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-sm">
+                {data.definition}
+              </p>
+
+              {/* Arrow for Desktop Tooltip Only */}
+              <div className="hidden md:block absolute bottom-[-6px] left-1/2 -translate-x-1/2 w-3 h-3 bg-white dark:bg-slate-800 border-r border-b border-slate-200 dark:border-slate-700 rotate-45"></div>
+            </div>
+          </>
+        )}
+      </div>
+    </>
   );
 };
 

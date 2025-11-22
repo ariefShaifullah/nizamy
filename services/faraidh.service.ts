@@ -1,6 +1,11 @@
-import type { HeirInputState, CalculationResult, HeirResult, Share } from '../types.ts';
-import { Heir } from '../types.ts';
-import { HEIR_LABELS, QURAN_REFS, LEGAL_BASIS } from '../constants.ts';
+import type {
+  HeirInputState,
+  CalculationResult,
+  HeirResult,
+  Share,
+} from "../types.ts";
+import { Heir } from "../types.ts";
+import { HEIR_LABELS, QURAN_REFS, LEGAL_BASIS } from "../constants.ts";
 import { gcd, lcm } from "../utils.ts";
 
 type PresentHeirs = { [key in Heir]: number };
@@ -13,13 +18,19 @@ const addShares = (s1: Share, s2: Share): Share => {
   if (s1.numerator === 0) return s2;
   if (s2.numerator === 0) return s1;
   const denominator = lcm(s1.denominator, s2.denominator);
-  const numerator = (s1.numerator * (denominator / s1.denominator)) + (s2.numerator * (denominator / s2.denominator));
-  return { numerator, denominator, type: 'furudh' };
+  const numerator =
+    s1.numerator * (denominator / s1.denominator) +
+    s2.numerator * (denominator / s2.denominator);
+  return { numerator, denominator, type: "furudh" };
 };
 
 // --- CORE LOGIC FUNCTIONS ---
 
-function applyHajbRules(present: PresentHeirs, results: Results, specialCases: { isAkdariyyah: boolean }) {
+function applyHajbRules(
+  present: PresentHeirs,
+  results: Results,
+  specialCases: { isAkdariyyah: boolean }
+) {
   const sonExists = present.son > 0;
   const daughterExists = present.daughter > 0;
   const fatherExists = present.father > 0;
@@ -507,6 +518,15 @@ export const calculateFaraidh = (
     heirs.paternalSister +
     heirs.maternalBrother +
     heirs.maternalSister;
+
+  // DETEKSI PENGECUALIAN KHI (Pasal 185)
+  // Jika ada Anak Laki-laki DAN Cucu (baik Lk/Pr), Cucu pasti terhalang di Fiqh.
+  // Kita tambahkan catatan edukasi.
+  if (sonExists && (grandsonExists || granddaughterExists)) {
+    notes.push(
+      "INFO KHI (Hukum Indonesia): Dalam Fiqh Syafi'i/Jumhur, Cucu terhalang oleh Anak Laki-laki. Namun berdasarkan KHI Pasal 185, Cucu yang orang tuanya meninggal lebih dulu bisa menjadi 'Ahli Waris Pengganti'. Silakan konsultasi ke Pengadilan Agama untuk pembagian ini."
+    );
+  }
 
   applyHajbRules(present, results, { isAkdariyyah });
 

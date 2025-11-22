@@ -148,15 +148,38 @@ export const exportToPdf = async (
     const pdfHeight = pdf.internal.pageSize.getHeight();
 
     const fullContentClone = input.cloneNode(true) as HTMLElement;
-    fullContentClone.style.width = "100%";
+    fullContentClone.style.width = `${contentWidth}px`; // Force width
     fullContentClone.style.height = "auto";
+    fullContentClone.style.overflow = "visible";
+    fullContentClone.style.maxHeight = "none";
+
+    // FIX: Reset scrollable containers to ensure full content capture
+    // Explicitly target the result wrapper to fix truncation issue
+    const scrollables = fullContentClone.querySelectorAll(
+      ".overflow-y-auto, .custom-scrollbar, .result-card-wrapper"
+    );
+    scrollables.forEach((el) => {
+      const element = el as HTMLElement;
+      element.style.overflow = "visible";
+      element.style.maxHeight = "none";
+      element.style.height = "auto";
+    });
 
     // --- PAGE 1: Header & Chart ---
     const headerClone = fullContentClone.cloneNode(true) as HTMLElement;
-    // Remove the detailed list from the first page clone
-    const listInHeader = headerClone.querySelector(".results-list-container");
-    if (listInHeader && listInHeader.parentNode)
-      listInHeader.parentNode.removeChild(listInHeader);
+
+    // Remove the detailed list from the first page clone using correct selector
+    // We remove the whole wrapper to keep Page 1 clean (Chart + Notes)
+    const listInHeader = headerClone.querySelector(".result-card-wrapper");
+    if (listInHeader && listInHeader.parentNode) {
+      // Optional: Remove the title "Rincian Bagian" if it exists immediately before
+      const parent = listInHeader.parentNode;
+      const prevSibling = listInHeader.previousElementSibling;
+      if (prevSibling && prevSibling.tagName === "H4") {
+        parent.removeChild(prevSibling);
+      }
+      parent.removeChild(listInHeader);
+    }
 
     // Add padding/styling
     headerClone.style.padding = "20px";
@@ -168,6 +191,13 @@ export const exportToPdf = async (
       backgroundColor: "#ffffff",
       width: contentWidth,
       windowWidth: contentWidth,
+      onclone: (clonedDoc) => {
+        const svgs = clonedDoc.getElementsByTagName("svg");
+        for (let i = 0; i < svgs.length; i++) {
+          svgs[i].setAttribute("width", "100%");
+          svgs[i].style.fontFamily = "sans-serif";
+        }
+      },
     });
     const headerImgData = headerCanvas.toDataURL("image/png");
     const headerImgHeight =
@@ -175,14 +205,23 @@ export const exportToPdf = async (
 
     let currentY = 0;
     if (headerImgHeight > 0) {
-      pdf.addImage(headerImgData, "PNG", 0, 0, pdfWidth, headerImgHeight);
-      currentY = headerImgHeight;
+      // Check if header is taller than a page (unlikely but possible)
+      if (headerImgHeight > pdfHeight) {
+        // Scale down if needed or just print what fits (simple approach: fit width)
+        pdf.addImage(headerImgData, "PNG", 0, 0, pdfWidth, headerImgHeight);
+        pdf.addPage();
+        currentY = 10;
+      } else {
+        pdf.addImage(headerImgData, "PNG", 0, 0, pdfWidth, headerImgHeight);
+        currentY = headerImgHeight;
+      }
     }
 
     // --- PAGE 2+: Detailed List Cards ---
     // We render cards individually to handle page breaks better
+    // Select cards from the fullContentClone (which has scrollbars removed)
     const allResultCards = Array.from(
-      fullContentClone.querySelectorAll(".result-card-wrapper")
+      fullContentClone.querySelectorAll(".result-card-wrapper > div")
     );
 
     if (allResultCards.length > 0) {
@@ -199,7 +238,7 @@ export const exportToPdf = async (
       titleDiv.innerHTML = `<h4 class="text-lg font-bold mb-5 text-slate-700 flex items-center pt-4 border-t border-slate-200"><span class="w-1.5 h-6 bg-blue-500 rounded-full mr-2"></span>Rincian Per Ahli Waris</h4>`;
       cardContainer.appendChild(titleDiv);
 
-      // If not enough space on first page for title, add page
+      // Check space for title
       if (currentY + 30 > pdfHeight) {
         pdf.addPage();
         currentY = 10;

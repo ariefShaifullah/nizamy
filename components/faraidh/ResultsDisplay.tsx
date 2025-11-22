@@ -7,6 +7,7 @@ import {
   ResponsiveContainer,
   Legend,
   Tooltip,
+  Label,
 } from "recharts";
 import { FIQH_DEFINITIONS } from "../../constants.ts";
 import { formatCurrency } from "../../utils.ts";
@@ -186,8 +187,8 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
         {/* Chart & Details */}
         {hasReceivingHeirs && (
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-8">
-            <div className="lg:col-span-2 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900/30 rounded-xl p-4 border border-slate-100 dark:border-slate-700/50">
-              <div className="w-full h-64 relative">
+            <div className="lg:col-span-2 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900/30 rounded-xl p-4 border border-slate-100 dark:border-slate-700/50 min-h-[400px]">
+              <div className="w-full h-full relative flex-1 min-h-[350px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -206,6 +207,40 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
                           fill={COLORS[index % COLORS.length]}
                         />
                       ))}
+                      {/* Using Recharts Label Component to ensure text stays in the center of the Donut regardless of Legend shift */}
+                      <Label
+                        position="center"
+                        content={({ viewBox }) => {
+                          const { cx, cy } = viewBox as any;
+                          return (
+                            <text
+                              x={cx}
+                              y={cy}
+                              textAnchor="middle"
+                              dominantBaseline="central"
+                            >
+                              <tspan
+                                x={cx}
+                                y={cy - 10}
+                                dy="0"
+                                fontSize="10"
+                                className="fill-slate-400 font-bold uppercase"
+                              >
+                                Total
+                              </tspan>
+                              <tspan
+                                x={cx}
+                                y={cy + 10}
+                                dy="5"
+                                fontSize="16"
+                                className="fill-slate-800 dark:fill-slate-200 font-bold"
+                              >
+                                100%
+                              </tspan>
+                            </text>
+                          );
+                        }}
+                      />
                     </Pie>
                     <Tooltip content={<CustomChartTooltip />} />
                     <Legend
@@ -213,19 +248,10 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
                       layout="horizontal"
                       verticalAlign="bottom"
                       align="center"
-                      wrapperStyle={{ fontSize: "12px", paddingTop: "20px" }}
+                      wrapperStyle={{ paddingTop: "20px", fontSize: "12px" }}
                     />
                   </PieChart>
                 </ResponsiveContainer>
-                {/* Center Text Overlay */}
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none mb-4">
-                  <span className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase">
-                    Total
-                  </span>
-                  <span className="block text-slate-800 dark:text-slate-200 font-bold">
-                    100%
-                  </span>
-                </div>
               </div>
             </div>
             <div className="lg:col-span-3 space-y-4">

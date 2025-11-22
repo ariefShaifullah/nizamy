@@ -4,12 +4,7 @@ const QURAN_CACHE = 'nizamy-quran-data-v1';
 const AUDIO_CACHE = 'nizamy-audio-cache-v1';
 const ASSET_CACHE = 'nizamy-external-assets-v1';
 
-const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/vite.svg'
-];
+const urlsToCache = ["/", "/index.html", "/manifest.json"];
 
 // Install SW
 self.addEventListener('install', (event) => {

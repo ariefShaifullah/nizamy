@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, Suspense } from "react";
 import { Home } from "./components/Home.tsx";
 import { Header, Footer, type ViewState } from "./components/Layout.tsx";
@@ -150,18 +149,18 @@ export default function App() {
     }
   }, [view]);
 
-  // Base class for body depending on view for subtle theming
-  let bgClass =
-    "bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300";
+  // Base text color - removed background class because body handles it now
+  let textClass =
+    "text-slate-800 dark:text-slate-100 transition-colors duration-300";
   if (view === "zakat")
-    bgClass += " selection:bg-emerald-200 selection:text-emerald-900";
+    textClass += " selection:bg-emerald-200 selection:text-emerald-900";
   else if (view === "faraidh")
-    bgClass += " selection:bg-blue-200 selection:text-blue-900";
+    textClass += " selection:bg-blue-200 selection:text-blue-900";
   else if (view === "hafalan")
-    bgClass += " selection:bg-indigo-200 selection:text-indigo-900";
+    textClass += " selection:bg-indigo-200 selection:text-indigo-900";
 
   return (
-    <div className={`min-h-screen font-sans flex flex-col ${bgClass}`}>
+    <div className={`min-h-screen font-sans flex flex-col ${textClass}`}>
       <Header view={view} setView={setView} />
 
       {/* PWA Update Banner */}

@@ -112,29 +112,29 @@ export const PrayerWidget: React.FC = () => {
   ];
 
   const getGradient = () => {
-    if (!nextPrayer) return "from-emerald-600 via-teal-500 to-cyan-600"; // Default Elegant Teal
+    if (!nextPrayer) return "from-slate-700 via-slate-800 to-slate-900";
 
-    // Logic: The gradient represents the CURRENT sky condition leading UP TO the next prayer.
+    // Logic: Gradient represents the CURRENT SKY condition leading up to the NEXT prayer.
     switch (nextPrayer.name) {
-      // Menuju Subuh (Malam/Dini Hari) -> Deep Midnight to Twilight
+      // Menuju Subuh (Saat ini Malam/Isya): Deep Midnight Blue (Misterius & Tenang)
       case "Subuh":
-        return "from-slate-900 via-indigo-950 to-slate-800";
+        return "from-slate-900 via-indigo-950 to-slate-900";
 
-      // Menuju Dzuhur (Pagi) -> Fresh Morning Sky
+      // Menuju Dzuhur (Saat ini Pagi/Subuh): Fresh Morning Sky (Energi & Produktivitas)
       case "Dzuhur":
-        return "from-sky-400 via-blue-500 to-indigo-500";
+        return "from-sky-400 via-blue-400 to-indigo-400";
 
-      // Menuju Ashar (Siang Terik) -> Bright Azure
+      // Menuju Ashar (Saat ini Siang/Dzuhur): Bright Azure (Cerah)
       case "Ashar":
-        return "from-blue-500 via-sky-500 to-cyan-500";
+        return "from-blue-500 via-cyan-500 to-sky-500";
 
-      // Menuju Maghrib (Sore/Golden Hour) -> Warm Amber/Orange
+      // Menuju Maghrib (Saat ini Sore/Ashar): Golden Hour (Gradasi Emas ke Oranye)
       case "Maghrib":
-        return "from-amber-500 via-orange-500 to-rose-500";
+        return "from-amber-400 via-orange-500 to-red-500";
 
-      // Menuju Isya (Senja/Twilight) -> Dramatic Sunset Purple
+      // Menuju Isya (Saat ini Senja/Maghrib): Twilight (Pink, Ungu, Biru Tua)
       case "Isya":
-        return "from-rose-600 via-purple-700 to-indigo-900";
+        return "from-pink-600 via-purple-800 to-indigo-900";
 
       default:
         return "from-emerald-600 via-teal-500 to-cyan-600";

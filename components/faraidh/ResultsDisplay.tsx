@@ -38,8 +38,8 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
 
   if (!result) {
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh] lg:h-[70vh] bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8 text-center transition-colors">
-        <div className="w-24 h-24 bg-slate-50 dark:bg-slate-900 rounded-full flex items-center justify-center mb-6 text-slate-300 dark:text-slate-600">
+      <div className="flex flex-col items-center justify-center min-h-[300px] lg:h-[600px] bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 p-8 text-center transition-colors sticky top-24">
+        <div className="w-24 h-24 bg-slate-50 dark:bg-slate-900 rounded-full flex items-center justify-center mb-6 text-slate-300 dark:text-slate-600 animate-pulse">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -50,14 +50,14 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
           </svg>
         </div>
         <h3 className="text-2xl font-bold text-slate-700 dark:text-slate-200">
-          Hasil Perhitungan
+          Menunggu Input
         </h3>
-        <p className="text-slate-500 dark:text-slate-400 mt-2 max-w-sm leading-relaxed">
-          Isi data ahli waris di panel kiri, lalu klik tombol{" "}
-          <span className="font-semibold text-primary-600 dark:text-primary-400">
-            Hitung Pembagian
-          </span>{" "}
-          untuk melihat detailnya di sini.
+        <p className="text-slate-500 dark:text-slate-400 mt-2 leading-relaxed text-sm max-w-xs mx-auto">
+          Isi data ahli waris di sebelah kiri, lalu klik tombol{" "}
+          <span className="font-semibold text-blue-600 dark:text-blue-400">
+            Hitung Waris
+          </span>
+          .
         </p>
       </div>
     );
@@ -76,26 +76,27 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
   return (
     <div
       ref={resultsRef}
-      className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-100 dark:border-slate-700 relative transition-colors"
+      className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl shadow-blue-100/20 dark:shadow-none border border-slate-100 dark:border-slate-700 relative transition-colors overflow-hidden"
     >
       {/* Header & Actions */}
-      <div className="p-6 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 flex justify-between items-center rounded-t-2xl">
+      <div className="p-5 border-b border-slate-100 dark:border-slate-700 bg-gradient-to-b from-slate-50 to-white dark:from-slate-800 dark:to-slate-800 flex justify-between items-center">
         <div>
-          <h3 className="text-xl font-bold text-slate-800 dark:text-white">
-            Ringkasan Hasil
+          <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center">
+            <span className="w-2 h-2 bg-blue-500 rounded-full mr-2 animate-pulse"></span>
+            Hasil Perhitungan
           </h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-500 dark:text-slate-400 ml-4">
             Asal Masalah: {result.aslAlMasalah} &rarr; {result.finalDenominator}
           </p>
         </div>
         <button
           data-html2canvas-ignore="true"
           onClick={() => exportToPdf(resultsRef, result)}
-          className="flex items-center px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 text-sm font-medium rounded-lg hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors shadow-sm"
+          className="flex items-center px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors shadow-sm"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4 mr-2 text-red-500"
+            className="h-4 w-4 mr-1.5 text-red-500"
             viewBox="0 0 20 20"
             fill="currentColor"
           >
@@ -105,24 +106,25 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
               clipRule="evenodd"
             />
           </svg>
-          PDF
+          Unduh PDF
         </button>
       </div>
 
-      <div className="p-6">
+      <div className="p-5">
         {/* Total Estate Card */}
-        <div className="bg-gradient-to-r from-primary-600 to-primary-700 dark:from-primary-700 dark:to-primary-900 p-6 rounded-xl text-white shadow-md mb-6">
-          <p className="text-primary-100 text-sm font-medium mb-1">
-            Total Harta Waris Dibagi
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-700 dark:to-indigo-900 p-6 rounded-2xl text-white shadow-lg shadow-blue-500/20 dark:shadow-none mb-6 relative overflow-hidden">
+          <div className="absolute -right-6 -top-6 bg-white/10 w-24 h-24 rounded-full blur-2xl"></div>
+          <p className="text-blue-100 text-xs font-bold mb-1 uppercase tracking-widest opacity-80">
+            Total Dibagi
           </p>
-          <p className="text-3xl md:text-4xl font-bold tracking-tight">
+          <p className="text-3xl font-extrabold tracking-tight">
             {formatCurrency(result.estate)}
           </p>
         </div>
 
         {/* Notes (Aul/Radd/Etc) */}
         {result.notes.length > 0 && (
-          <div className="mb-8 p-4 bg-amber-50 dark:bg-amber-900/30 border-l-4 border-amber-400 dark:border-amber-500 rounded-r-lg space-y-3">
+          <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-400 dark:border-amber-500 rounded-r-xl space-y-2">
             {result.notes.map((note, index) => {
               let term: keyof typeof FIQH_DEFINITIONS | null = null;
               if (note.includes("'Aul")) term = "AUL";
@@ -135,7 +137,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
                 <div key={index} className="flex items-start">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 text-amber-500 mr-2 mt-0.5 flex-shrink-0"
+                    className="h-5 w-5 text-amber-500 mr-2.5 mt-0.5 flex-shrink-0"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                   >
@@ -145,11 +147,15 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
                       clipRule="evenodd"
                     />
                   </svg>
-                  <div>
-                    <span className="text-sm font-semibold text-amber-900 dark:text-amber-200">
+                  <div className="flex-1">
+                    <span className="text-sm font-bold text-amber-900 dark:text-amber-200 leading-snug block">
                       {note}
                     </span>
-                    {term && <InfoTooltip term={term} />}
+                    {term && (
+                      <div className="mt-1.5">
+                        <InfoTooltip term={term} />
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -159,8 +165,8 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
 
         {/* Empty State */}
         {!hasReceivingHeirs && (
-          <div className="my-8 flex flex-col items-center justify-center text-center p-8 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700 border-dashed">
-            <div className="w-16 h-16 bg-slate-200 dark:bg-slate-800 rounded-full flex items-center justify-center text-slate-400 dark:text-slate-500 mb-4">
+          <div className="my-8 flex flex-col items-center justify-center text-center p-8 bg-slate-50 dark:bg-slate-900/30 rounded-2xl border-2 border-slate-100 dark:border-slate-700 border-dashed">
+            <div className="w-14 h-14 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center text-slate-300 dark:text-slate-600 mb-3 shadow-sm">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-8 w-8"
@@ -176,19 +182,18 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
                 />
               </svg>
             </div>
-            <p className="text-slate-500 dark:text-slate-400 font-medium">
-              Tidak ada ahli waris yang menerima bagian (Mahjub/Terhalang semua
-              atau Data Kosong).
+            <p className="text-sm text-slate-500 dark:text-slate-400 font-bold">
+              Tidak ada ahli waris yang menerima bagian.
             </p>
           </div>
         )}
 
-        {/* Chart & Details */}
+        {/* Chart & Details Stacked Vertical for Sidebar */}
         {hasReceivingHeirs && (
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-8">
-            {/* Left Column: Chart & Custom Legend */}
-            <div className="lg:col-span-2 flex flex-col bg-slate-50 dark:bg-slate-900/30 rounded-xl p-6 border border-slate-100 dark:border-slate-700/50">
-              <div className="w-full h-64 relative mb-6">
+          <div className="space-y-6">
+            {/* Chart Section */}
+            <div className="bg-slate-50 dark:bg-slate-900/30 rounded-2xl p-6 border border-slate-100 dark:border-slate-700/50">
+              <div className="w-full h-56 relative mb-6">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -197,7 +202,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
                       cy="50%"
                       innerRadius={60}
                       outerRadius={80}
-                      paddingAngle={3}
+                      paddingAngle={4}
                       dataKey="value"
                       stroke="none"
                     >
@@ -220,21 +225,20 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
                             >
                               <tspan
                                 x={cx}
-                                y={cy - 10}
-                                dy="0"
-                                fontSize="10"
-                                className="fill-slate-400 font-bold uppercase"
+                                y={cy}
+                                fontSize="24"
+                                fontWeight="bold"
+                                className="fill-slate-800 dark:fill-white"
                               >
-                                Total
+                                100%
                               </tspan>
                               <tspan
                                 x={cx}
-                                y={cy + 10}
-                                dy="5"
-                                fontSize="16"
-                                className="fill-slate-800 dark:fill-slate-200 font-bold"
+                                y={cy + 20}
+                                fontSize="12"
+                                className="fill-slate-400 dark:fill-slate-500"
                               >
-                                100%
+                                Terbagi
                               </tspan>
                             </text>
                           );
@@ -246,15 +250,12 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
                 </ResponsiveContainer>
               </div>
 
-              {/* Custom Legend List (Better Contrast) */}
+              {/* Legend */}
               <div className="w-full space-y-3">
-                <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-                  Komposisi
-                </h5>
                 {chartData.map((entry, index) => (
                   <div
                     key={index}
-                    className="flex justify-between items-center group"
+                    className="flex justify-between items-center group text-sm"
                   >
                     <div className="flex items-center overflow-hidden">
                       <span
@@ -263,16 +264,13 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
                           backgroundColor: COLORS[index % COLORS.length],
                         }}
                       ></span>
-                      <span className="text-slate-700 dark:text-slate-300 text-sm font-medium truncate">
+                      <span className="text-slate-600 dark:text-slate-300 font-medium truncate max-w-[140px]">
                         {entry.name}
                       </span>
                     </div>
-                    <div className="text-right pl-4 flex-shrink-0">
-                      <span className="block font-bold text-slate-900 dark:text-white text-sm">
+                    <div className="text-right pl-2 flex-shrink-0">
+                      <span className="font-bold text-slate-900 dark:text-white">
                         {entry.value.toFixed(1)}%
-                      </span>
-                      <span className="block text-[10px] text-slate-500 dark:text-slate-400">
-                        {formatCurrency(entry.finalValue)}
                       </span>
                     </div>
                   </div>
@@ -280,12 +278,24 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
               </div>
             </div>
 
-            {/* Right Column: Detail Cards */}
-            <div className="lg:col-span-3 space-y-4">
-              <h4 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 border-b border-slate-100 dark:border-slate-700 pb-2">
-                Rincian Bagian
+            {/* Detail Cards */}
+            <div>
+              <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4 flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4 mr-2 text-slate-400"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Rincian Pembagian
               </h4>
-              <div className="result-card-wrapper space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+              <div className="result-card-wrapper space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                 {result.heirResults.map((heir, idx) => (
                   <ResultCard key={idx} heir={heir} />
                 ))}

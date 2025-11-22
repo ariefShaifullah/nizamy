@@ -1,11 +1,15 @@
-
 import React, { useState, useEffect, useRef, useReducer } from "react";
-import type { ZakatState, ZakatSettings, ZakatResult, ZakatHistoryEntry } from '../../types.ts';
-import { calculateTotalZakat } from '../../services/zakat.service.ts';
-import { formatNumber, formatCurrency } from '../../utils.ts';
-import { FAQ } from '../FAQ.tsx';
-import { ZAKAT_FAQ } from '../../constants.ts';
-import { exportZakatToPdf } from '../../services/pdf.service.ts';
+import type {
+  ZakatState,
+  ZakatSettings,
+  ZakatResult,
+  ZakatHistoryEntry,
+} from "../../types.ts";
+import { calculateTotalZakat } from "../../services/zakat.service.ts";
+import { formatNumber, formatCurrency } from "../../utils.ts";
+import { FAQ } from "../FAQ.tsx";
+import { ZAKAT_FAQ } from "../../constants.ts";
+import { exportZakatToPdf } from "../../services/pdf.service.ts";
 import {
   zakatReducer,
   initialZakatState,
@@ -13,22 +17,22 @@ import {
 import { useLocalStorage } from "../../hooks/useLocalStorage.ts";
 import { useToast } from "../ui/Toast.tsx";
 import { useConfirm } from "../ui/ConfirmContext.tsx";
-import { 
-    FitrahView, 
-    MaalView, 
-    GoldSilverView, 
-    BusinessView, 
-    AgricultureView, 
-    LivestockView, 
-    SummaryView 
-} from './ZakatTabs.tsx';
+import {
+  FitrahView,
+  MaalView,
+  GoldSilverView,
+  BusinessView,
+  AgricultureView,
+  LivestockView,
+  SummaryView,
+} from "./ZakatTabs.tsx";
 
 const INITIAL_SETTINGS: ZakatSettings = {
-    goldPrice: 2200000,
-    silverPrice: 25000,
-    ricePrice: 15000,
-    riceKgPerPerson: 2.5,
-    currency: 'IDR'
+  goldPrice: 2200000,
+  silverPrice: 25000,
+  ricePrice: 15000,
+  riceKgPerPerson: 2.5,
+  currency: "IDR",
 };
 
 const TABS = [
@@ -174,7 +178,7 @@ const ZakatCalculator: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto animate-fade-in pb-0 lg:pb-12">
       <div className="hidden lg:block text-center mb-8">
-        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-emerald-900 dark:text-emerald-400 sm:text-5xl">
+        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-emerald-900 dark:text-emerald-400 sm:text-5xl drop-shadow-sm">
           Kalkulator Zakat
         </h1>
         <p className="mt-3 max-w-2xl mx-auto text-base md:text-lg text-slate-600 dark:text-slate-400 px-4">
@@ -183,9 +187,10 @@ const ZakatCalculator: React.FC = () => {
         </p>
       </div>
 
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 mb-6 flex flex-col md:flex-row justify-between items-center gap-4 mt-4 lg:mt-0">
+      {/* Glass Settings Bar */}
+      <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl shadow-lg shadow-emerald-100/20 dark:shadow-none border border-white/50 dark:border-slate-700/50 p-4 mb-6 flex flex-col md:flex-row justify-between items-center gap-4 mt-4 lg:mt-0">
         <div className="flex flex-wrap justify-center md:justify-start gap-2 md:gap-6 text-sm w-full md:w-auto">
-          <div className="flex items-center bg-emerald-50/50 dark:bg-emerald-900/20 px-3 py-2 rounded-lg border border-emerald-100 dark:border-emerald-800">
+          <div className="flex items-center bg-emerald-50/80 dark:bg-emerald-900/30 px-3 py-2 rounded-lg border border-emerald-100 dark:border-emerald-800">
             <span className="text-slate-500 dark:text-slate-400 mr-2 text-xs md:text-sm">
               Emas/g:
             </span>
@@ -193,7 +198,7 @@ const ZakatCalculator: React.FC = () => {
               {formatCurrency(settings.goldPrice)}
             </span>
           </div>
-          <div className="flex items-center bg-emerald-50/50 dark:bg-emerald-900/20 px-3 py-2 rounded-lg border border-emerald-100 dark:border-emerald-800">
+          <div className="flex items-center bg-emerald-50/80 dark:bg-emerald-900/30 px-3 py-2 rounded-lg border border-emerald-100 dark:border-emerald-800">
             <span className="text-slate-500 dark:text-slate-400 mr-2 text-xs md:text-sm">
               Beras/kg:
             </span>
@@ -236,7 +241,7 @@ const ZakatCalculator: React.FC = () => {
       </div>
 
       {showSettings && (
-        <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-emerald-100 dark:border-emerald-800 p-6 mb-8 animate-fade-in-down shadow-inner">
+        <div className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-md rounded-xl border border-emerald-100 dark:border-emerald-800 p-6 mb-8 animate-fade-in-down shadow-inner">
           <h3 className="font-bold text-emerald-800 dark:text-emerald-400 mb-4 flex items-center">
             <span className="bg-emerald-200 dark:bg-emerald-800 text-emerald-700 dark:text-emerald-200 w-6 h-6 rounded-full flex items-center justify-center text-xs mr-2">
               ⚙️
@@ -298,9 +303,8 @@ const ZakatCalculator: React.FC = () => {
       <div className="flex flex-col lg:flex-row gap-6 md:gap-8 items-start">
         {/* TABS CONTAINER */}
         <div className="w-full lg:w-64 flex-shrink-0 sticky top-[74px] lg:top-24 z-30 py-2 lg:py-0 mb-2 lg:mb-0">
-          {/* Mobile Wrapper: Floating Island Style */}
-          {/* FIX: Allow overflow on desktop to prevent clipping of translate effect */}
-          <div className="relative bg-slate-100/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm lg:bg-transparent lg:border-0 lg:shadow-none lg:rounded-none lg:backdrop-blur-none overflow-hidden lg:overflow-visible">
+          {/* Mobile Wrapper: Floating Island Style with Glass effect */}
+          <div className="relative bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-white/20 dark:border-slate-700 rounded-2xl shadow-lg lg:bg-transparent lg:border-0 lg:shadow-none lg:rounded-none lg:backdrop-blur-none overflow-hidden lg:overflow-visible">
             <div
               ref={navRef}
               className="flex lg:flex-col overflow-x-auto lg:overflow-visible space-x-2 lg:space-x-0 lg:space-y-2 hide-scrollbar p-2 lg:p-0"
@@ -313,7 +317,7 @@ const ZakatCalculator: React.FC = () => {
                   className={`whitespace-nowrap px-4 py-2.5 text-sm font-bold rounded-xl transition-all flex items-center flex-shrink-0 border ${
                     activeTab === tab.id
                       ? "bg-emerald-600 text-white shadow-md shadow-emerald-200/50 dark:shadow-none border-emerald-600 lg:translate-x-2"
-                      : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:text-emerald-700 dark:hover:text-emerald-400"
+                      : "bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border-transparent hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:text-emerald-700 dark:hover:text-emerald-400"
                   }`}
                 >
                   <span className="mr-2">{tab.icon}</span>
@@ -323,12 +327,13 @@ const ZakatCalculator: React.FC = () => {
               <div className="w-2 flex-shrink-0 lg:hidden"></div>
             </div>
             {/* Mobile Gradient Masks for Soft Cutoff */}
-            <div className="lg:hidden absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-slate-100 dark:from-slate-900 to-transparent pointer-events-none"></div>
-            <div className="lg:hidden absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-slate-100 dark:from-slate-900 to-transparent pointer-events-none"></div>
+            <div className="lg:hidden absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white dark:from-slate-900 to-transparent pointer-events-none"></div>
+            <div className="lg:hidden absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-white dark:from-slate-900 to-transparent pointer-events-none"></div>
           </div>
         </div>
 
-        <div className="flex-1 w-full min-w-0 bg-white dark:bg-slate-800 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-700 md:min-h-[500px] p-5 md:p-8 relative">
+        {/* Main Content Glass Container */}
+        <div className="flex-1 w-full min-w-0 bg-white/70 dark:bg-slate-800/60 backdrop-blur-xl rounded-[2rem] shadow-xl shadow-emerald-100/20 dark:shadow-none border border-white/50 dark:border-slate-700/50 md:min-h-[500px] p-5 md:p-8 relative">
           {activeTab === "fitrah" && (
             <FitrahView
               state={state}
@@ -401,6 +406,6 @@ const ZakatCalculator: React.FC = () => {
       </div>
     </div>
   );
-}
+};
 
 export default ZakatCalculator;

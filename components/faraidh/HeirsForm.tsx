@@ -31,125 +31,233 @@ export const HeirsForm: React.FC<HeirsFormProps> = React.memo(({ heirs, dispatch
     }
   };
   
-  // Fix: Explicitly cast to number[] to avoid TS "unknown" type error
-  const totalHeirs = (Object.values(heirs) as number[]).reduce((a, b) => a + b, 0);
+  const totalHeirs = (Object.values(heirs) as number[]).reduce(
+    (a, b) => a + b,
+    0
+  );
+
+  // Split groups for Desktop Layout
+  const leftColumnGroups = [HEIR_GROUPS[0], HEIR_GROUPS[1]];
+  const rightColumnGroups = [HEIR_GROUPS[2], HEIR_GROUPS[3], HEIR_GROUPS[4]];
 
   return (
-    <div className="bg-white dark:bg-slate-800 p-5 md:p-8 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-700 transition-all">
-      {/* Estate Input Section */}
-      <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-2xl border border-blue-100 dark:border-blue-800 mb-8">
-        <label htmlFor="estate" className="block text-xs font-bold uppercase tracking-wider text-blue-800 dark:text-blue-300 mb-2">
-          Total Harta Waris
-        </label>
-        <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <span className="text-blue-500 dark:text-blue-400 font-bold text-lg">Rp</span>
-            </div>
-            <input
-              type="text"
-              inputMode="numeric"
-              id="estate"
-              value={formatInputValue(estate)}
-              onChange={handleEstateChange}
-              className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-900 border-2 border-blue-100 dark:border-blue-800 rounded-xl shadow-sm focus:outline-none focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900 focus:border-blue-400 text-xl md:text-2xl font-extrabold text-slate-900 dark:text-white placeholder-blue-200 transition-all"
-              placeholder="0"
-              disabled={loading}
-            />
-        </div>
-        <p className="text-xs text-blue-600/70 dark:text-blue-400/70 mt-2">
-            Masukkan nilai bersih setelah hutang & wasiat.
-        </p>
-      </div>
+    <>
+      <div className="flex flex-col gap-8 pb-32 lg:pb-0">
+        {/* 1. Premium Hero Estate Input */}
+        <div className="relative group rounded-[2rem] p-1 bg-gradient-to-br from-blue-100 via-blue-50 to-white dark:from-blue-900 dark:via-slate-800 dark:to-slate-900 shadow-xl shadow-blue-100/50 dark:shadow-none transition-all duration-500 hover:shadow-2xl hover:shadow-blue-200/50 dark:hover:shadow-none">
+          <div className="absolute inset-0 bg-white dark:bg-slate-900 rounded-[1.9rem] m-[1px]"></div>
 
-      <div className="space-y-6">
-        <div className="flex justify-between items-end border-b border-slate-100 dark:border-slate-700 pb-4">
-            <div>
-                <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">Ahli Waris</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400">Siapa saja yang ditinggalkan?</p>
+          <div className="relative p-6 md:p-8 flex flex-col justify-center h-full overflow-hidden rounded-[1.9rem]">
+            {/* Decorative Background Pattern */}
+            <div className="absolute top-0 right-0 -mr-8 -mt-8 opacity-[0.03] dark:opacity-[0.05] transition-transform duration-700 group-hover:rotate-12 group-hover:scale-110 pointer-events-none">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-56 w-56 text-blue-600 dark:text-blue-400"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M12 7.5a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5z" />
+                <path
+                  fillRule="evenodd"
+                  d="M1.5 4.875C1.5 3.839 2.34 3 3.375 3h17.25c1.035 0 1.875.84 1.875 1.875v9.75c0 1.036-.84 1.875-1.875 1.875H3.375A1.875 1.875 0 011.5 14.625v-9.75zM8.25 9.75a3.75 3.75 0 117.5 0 3.75 3.75 0 01-7.5 0zM18.75 9a.75.75 0 00-.75.75v.008c0 .414.336.75.75.75h.008a.75.75 0 00.75-.75V9.75a.75.75 0 00-.75-.75h-.008zM4.5 9.75A.75.75 0 015.25 9h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75H5.25a.75.75 0 01-.75-.75V9.75z"
+                  clipRule="evenodd"
+                />
+                <path d="M2.25 18a.75.75 0 000 1.5c5.4 0 10.63.722 15.6 2.075 1.19.324 2.4-.558 2.4-1.82V18.75a.75.75 0 00-.75-.75H2.25z" />
+              </svg>
             </div>
-            {totalHeirs > 0 && (
-                <button 
-                  onClick={() => dispatch({type: 'RESET'})} 
-                  className="text-xs bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 px-3 py-1.5 rounded-lg font-bold transition-colors"
-                  disabled={loading}
-                >
-                    Reset Pilihan
-                </button>
-            )}
+
+            <label
+              htmlFor="estate"
+              className="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-3 ml-1"
+            >
+              Total Harta Waris (Netto)
+            </label>
+
+            <div className="relative flex items-center">
+              <span className="absolute left-0 text-blue-600 dark:text-blue-400 font-bold text-2xl md:text-3xl pointer-events-none">
+                Rp
+              </span>
+              <input
+                type="text"
+                inputMode="numeric"
+                id="estate"
+                value={formatInputValue(estate)}
+                onChange={handleEstateChange}
+                className="w-full bg-transparent border-b-2 border-slate-200 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-400 pl-12 pr-4 py-2 text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white placeholder-slate-300 focus:outline-none transition-colors tracking-tight"
+                placeholder="0"
+                disabled={loading}
+              />
+            </div>
+          </div>
         </div>
-        
-        <div className="space-y-8 max-h-none lg:max-h-[50vh] overflow-y-visible lg:overflow-y-auto pr-0 lg:pr-2 custom-scrollbar pb-32 lg:pb-0">
-            {HEIR_GROUPS.map((group, idx) => (
-                <div key={group.title} className="animate-fade-in" style={{ animationDelay: `${idx * 100}ms` }}>
-                    <div className="flex items-center mb-3">
-                        <span className="w-1 h-4 bg-blue-400 rounded-full mr-2"></span>
-                        <h4 className="font-bold text-sm text-slate-700 dark:text-slate-300">{group.title}</h4>
-                    </div>
-                    <div className="space-y-3">
-                    {group.heirs.map((heirKey) => (
-                        <HeirInput
-                            key={heirKey}
-                            label={HEIR_LABELS[heirKey as Heir]}
-                            count={heirs[heirKey as Heir]}
-                            dispatch={dispatch}
-                            heirKey={heirKey as Heir}
-                        />
-                    ))}
-                    </div>
+
+        {/* 2. Desktop Split Layout */}
+        <div className="flex flex-col xl:flex-row gap-8 items-start">
+          {/* Left Column (Core) */}
+          <div className="flex-1 space-y-8 w-full">
+            {leftColumnGroups.map((group) => (
+              <div key={group.title} className="space-y-4">
+                <div className="flex items-center px-2">
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent"></div>
+                  <h4 className="mx-4 font-bold text-xs text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                    {group.title}
+                  </h4>
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent"></div>
                 </div>
+                <div className="grid grid-cols-1 gap-4">
+                  {group.heirs.map((heirKey) => (
+                    <HeirInput
+                      key={heirKey}
+                      label={HEIR_LABELS[heirKey as Heir]}
+                      count={heirs[heirKey as Heir]}
+                      dispatch={dispatch}
+                      heirKey={heirKey as Heir}
+                    />
+                  ))}
+                </div>
+              </div>
             ))}
+          </div>
+
+          {/* Right Column (Extended) */}
+          <div className="flex-1 space-y-8 w-full">
+            {rightColumnGroups.map((group) => (
+              <div key={group.title} className="space-y-4">
+                <div className="flex items-center px-2">
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent"></div>
+                  <h4 className="mx-4 font-bold text-xs text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                    {group.title}
+                  </h4>
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent"></div>
+                </div>
+                <div className="grid grid-cols-1 gap-4">
+                  {group.heirs.map((heirKey) => (
+                    <HeirInput
+                      key={heirKey}
+                      label={HEIR_LABELS[heirKey as Heir]}
+                      count={heirs[heirKey as Heir]}
+                      dispatch={dispatch}
+                      heirKey={heirKey as Heir}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 3. Desktop Action Buttons */}
+        <div className="hidden lg:flex items-center justify-end mt-8 gap-4">
+          {totalHeirs > 0 && (
+            <button
+              onClick={() => dispatch({ type: "RESET" })}
+              className="px-6 py-3.5 rounded-xl font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md"
+              disabled={loading}
+            >
+              Reset Data
+            </button>
+          )}
+
+          <button
+            onClick={onCalculate}
+            disabled={loading}
+            className={`group relative flex items-center justify-center bg-blue-600 text-white font-bold py-3.5 px-10 rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900 transition-all transform hover:-translate-y-1 shadow-xl shadow-blue-500/30 disabled:bg-slate-300 disabled:cursor-not-allowed disabled:shadow-none disabled:transform-none`}
+          >
+            {loading ? (
+              <>
+                <svg
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Memproses...
+              </>
+            ) : (
+              <span className="flex items-center text-lg tracking-wide">
+                Hitung Pembagian
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </span>
+            )}
+          </button>
         </div>
       </div>
 
-      {/* Desktop Static Button */}
-      <div className="hidden lg:block mt-8 pt-6 border-t border-slate-100 dark:border-slate-700">
-          <button
-            onClick={onCalculate}
-            disabled={loading}
-            className="w-full flex items-center justify-center bg-blue-600 text-white font-bold py-4 px-6 rounded-2xl hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900 transition-all transform hover:-translate-y-1 shadow-lg shadow-blue-200/50 dark:shadow-blue-900/50 disabled:bg-slate-300 disabled:cursor-not-allowed disabled:shadow-none disabled:transform-none"
-          >
-            {loading ? (
-                <>
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Sedang Menghitung...
-                </>
-            ) : (
-                <span className="flex items-center text-lg">
-                    Hitung Pembagian
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                </span>
-            )}
-          </button>
+      {/* 4. Mobile Fixed Action - CLEAN & FLOATING */}
+      {/* Removed bg-gradient container. Added pointer-events handling to allow clicking through transparent area */}
+      <div className="lg:hidden fixed bottom-[80px] left-0 right-0 z-30 px-6 pointer-events-none flex justify-center">
+        <button
+          onClick={onCalculate}
+          disabled={loading}
+          className="pointer-events-auto w-full max-w-sm flex items-center justify-center bg-blue-600/90 backdrop-blur-xl text-white font-bold py-4 px-6 rounded-full hover:bg-blue-700 active:scale-95 transition-all shadow-2xl shadow-blue-900/20 disabled:bg-slate-500 disabled:cursor-not-allowed border border-white/10"
+        >
+          {loading ? (
+            <svg
+              className="animate-spin h-5 w-5 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+          ) : (
+            <>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 mr-2.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                />
+              </svg>
+              <span className="text-base tracking-wide">Hitung Pembagian</span>
+            </>
+          )}
+        </button>
       </div>
-      
-      {/* Mobile Floating Button (Above Bottom Nav) */}
-      <div className="lg:hidden fixed bottom-[72px] left-0 right-0 z-40 p-4 bg-gradient-to-t from-white via-white/90 to-transparent dark:from-slate-900 dark:via-slate-900/90 pb-6">
-          <button
-            onClick={onCalculate}
-            disabled={loading}
-            className="w-full flex items-center justify-center bg-blue-600 text-white font-bold py-4 px-4 rounded-2xl hover:bg-blue-700 active:scale-95 transition-all shadow-xl shadow-blue-500/30 disabled:bg-slate-400 disabled:cursor-not-allowed"
-          >
-            {loading ? (
-                <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-            ) : (
-                <>
-                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                    </svg>
-                    Hitung Pembagian
-                </>
-            )}
-          </button>
-      </div>
-
-    </div>
+    </>
   );
 });

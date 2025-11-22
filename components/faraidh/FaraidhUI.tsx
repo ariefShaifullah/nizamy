@@ -198,10 +198,12 @@ export const ResultCard: React.FC<{ heir: HeirResult }> = React.memo(
           <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
             {heir.reason}
           </p>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1.5 font-mono flex items-center">
-            <span className="inline-block w-2 h-2 bg-slate-300 dark:bg-slate-600 rounded-full mr-2"></span>
-            Dalil: {heir.evidence}
-          </p>
+          {heir.evidence && (
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1.5 font-mono flex items-center">
+              <span className="inline-block w-2 h-2 bg-slate-300 dark:bg-slate-600 rounded-full mr-2"></span>
+              Dalil: {heir.evidence}
+            </p>
+          )}
         </div>
       </div>
     );

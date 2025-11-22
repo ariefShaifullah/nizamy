@@ -81,21 +81,21 @@
       .custom-scrollbar::-webkit-scrollbar-track {
         background: transparent;
       }
-      .custom-scrollbar::-webkit-scrollbar-thumb {
-        background-color: #cbd5e1;
+      .custom-scrollbar::-webkit-scrollbar-thumb {  
+        background-color: rgba(148, 163, 184, 0.5);
         border-radius: 20px;
         
       }
       .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background-color: #94a3b8;
+        background-color: rgba(148, 163, 184, 0.8);
       }
 
         /* Dark mode scrollbar adjustments */
       .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-        background-color: #475569;
+        background-color: rgba(71, 85, 105, 0.5);
       }
       .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background-color: #64748b;
+        background-color: rgba(71, 85, 105, 0.8);
       }
       
       /* Safe Area padding for mobile devices with notches/home bars */
@@ -204,7 +204,7 @@
     }
     </script>
 </head>
-  <body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans antialiased transition-colors duration-300">
+  <body class="bg-gradient-to-br from-indigo-50 via-white to-cyan-50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 bg-fixed min-h-screen text-slate-800 dark:text-slate-100 font-sans antialiased transition-colors duration-500">
     <div id="root">
         <!-- Static content for SEO and non-JS users -->
         <div style="text-align: center; padding: 40px; font-family: 'Inter', sans-serif;">

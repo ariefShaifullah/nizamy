@@ -43,7 +43,8 @@ export const Header: React.FC<HeaderProps> = ({ view, setView }) => {
   return (
     <>
       {/* Added pt-[env(safe-area-inset-top)] for iOS Notch compatibility */}
-      <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm sticky top-0 z-30 border-b border-slate-200/60 dark:border-slate-800 transition-all duration-300 pt-[env(safe-area-inset-top)]">
+      {/* Glassmorphism Header */}
+      <header className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl shadow-sm sticky top-0 z-30 border-b border-white/20 dark:border-slate-700/50 transition-all duration-300 pt-[env(safe-area-inset-top)]">
         <div className="container mx-auto px-4 py-3 md:py-4 flex justify-between items-center">
           <button
             onClick={() => setView("home")}
@@ -55,11 +56,11 @@ export const Header: React.FC<HeaderProps> = ({ view, setView }) => {
                 <img
                   src="/images/logo_nizamy.png"
                   alt="NIZAMY Logo"
-                  className="w-10 h-10 object-contain transition-all duration-500"
+                  className="w-10 h-10 object-contain transition-all duration-500 drop-shadow-sm"
                   style={{ filter: logoFilter }}
                 />
               ) : (
-                <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                <div className="p-2 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-md border border-white/20 dark:border-slate-700 text-slate-600 dark:text-slate-300 shadow-sm">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
@@ -82,13 +83,13 @@ export const Header: React.FC<HeaderProps> = ({ view, setView }) => {
             <img
               src="/images/logo_nizamy.png"
               alt="NIZAMY Logo"
-              className="hidden md:block w-11 h-11 object-contain transition-all duration-500"
+              className="hidden md:block w-11 h-11 object-contain transition-all duration-500 drop-shadow-sm"
               style={{ filter: logoFilter }}
             />
 
             <div className="text-left">
               <p
-                className={`text-lg md:text-2xl font-extrabold tracking-tight leading-none ${titleColor}`}
+                className={`text-lg md:text-2xl font-extrabold tracking-tight leading-none ${titleColor} drop-shadow-sm`}
               >
                 NIZAMY
               </p>
@@ -104,7 +105,7 @@ export const Header: React.FC<HeaderProps> = ({ view, setView }) => {
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
-              className="p-2 md:p-2.5 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-indigo-500 dark:hover:text-yellow-400 border border-slate-200 dark:border-slate-700 transition-all"
+              className="p-2 md:p-2.5 rounded-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-md text-slate-600 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700 hover:text-indigo-500 dark:hover:text-yellow-400 border border-white/20 dark:border-slate-700 transition-all shadow-sm"
               aria-label="Toggle Theme"
             >
               {/* Sun Icon (Visible in Dark Mode) */}
@@ -142,7 +143,7 @@ export const Header: React.FC<HeaderProps> = ({ view, setView }) => {
             {/* Global Settings Button */}
             <button
               onClick={() => setIsSettingsOpen(true)}
-              className="p-2 md:p-2.5 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-all"
+              className="p-2 md:p-2.5 rounded-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-md text-slate-600 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700 border border-white/20 dark:border-slate-700 transition-all shadow-sm"
               aria-label="Pengaturan Aplikasi"
             >
               <svg
@@ -170,7 +171,7 @@ export const Header: React.FC<HeaderProps> = ({ view, setView }) => {
             {!isHome && (
               <button
                 onClick={() => setView("home")}
-                className="hidden md:flex items-center text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 px-3 py-2 md:px-4 md:py-2 rounded-full transition-all active:scale-95 border border-slate-200 dark:border-slate-700"
+                className="hidden md:flex items-center text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-white/50 dark:bg-slate-800/50 backdrop-blur-md hover:bg-white/80 dark:hover:bg-slate-700 px-3 py-2 md:px-4 md:py-2 rounded-full transition-all active:scale-95 border border-white/20 dark:border-slate-700 shadow-sm"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -205,7 +206,7 @@ export const Header: React.FC<HeaderProps> = ({ view, setView }) => {
 };
 
 export const Footer: React.FC = () => (
-  <footer className="hidden md:block text-center py-8 mt-12 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 transition-colors duration-300">
+  <footer className="hidden md:block text-center py-8 mt-12 border-t border-white/20 dark:border-slate-700 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md transition-colors duration-300">
     <div className="container mx-auto px-4">
       <p className="text-slate-500 dark:text-slate-400 text-sm flex items-center justify-center gap-1">
         &copy; {new Date().getFullYear()} NIZAMY{" "}

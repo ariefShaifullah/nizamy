@@ -21,15 +21,15 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
       desc: "Jaga hafalan Al-Quran dengan metode Spaced Repetition System dan Gamification.", // Desktop only
       icon: <FaQuran />,
       colors: {
-        bg: "bg-indigo-50 dark:bg-indigo-900/30",
+        bg: "bg-indigo-100/80 dark:bg-indigo-900/50",
         text: "text-indigo-600 dark:text-indigo-400",
         hoverText:
           "group-hover:text-indigo-600 dark:group-hover:text-indigo-300",
-        border: "hover:border-indigo-200 dark:hover:border-indigo-700",
-        shadow: "shadow-indigo-100/50 dark:shadow-indigo-900/20",
+        // Glass styles:
+        border: "border-white/50 dark:border-slate-700/50",
+        shadow: "shadow-xl shadow-indigo-100/20 dark:shadow-none",
         hoverShadow:
-          "hover:shadow-indigo-200/50 dark:hover:shadow-indigo-900/40",
-        cta: "bg-indigo-50 dark:bg-indigo-900/50",
+          "hover:shadow-2xl hover:shadow-indigo-200/40 dark:hover:shadow-indigo-900/20",
       },
     },
     {
@@ -39,15 +39,15 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
       desc: "Hitung Zakat Maal, Fitrah, Profesi, dan Emas dengan acuan Nisab & Haul terkini.",
       icon: <FaHandsHelping />,
       colors: {
-        bg: "bg-emerald-50 dark:bg-emerald-900/30",
+        bg: "bg-emerald-100/80 dark:bg-emerald-900/50",
         text: "text-emerald-600 dark:text-emerald-400",
         hoverText:
           "group-hover:text-emerald-600 dark:group-hover:text-emerald-300",
-        border: "hover:border-emerald-200 dark:hover:border-emerald-700",
-        shadow: "shadow-emerald-100/50 dark:shadow-emerald-900/20",
+        // Glass styles:
+        border: "border-white/50 dark:border-slate-700/50",
+        shadow: "shadow-xl shadow-emerald-100/20 dark:shadow-none",
         hoverShadow:
-          "hover:shadow-emerald-200/50 dark:hover:shadow-emerald-900/40",
-        cta: "bg-emerald-50 dark:bg-emerald-900/50",
+          "hover:shadow-2xl hover:shadow-emerald-200/40 dark:hover:shadow-emerald-900/20",
       },
     },
     {
@@ -57,13 +57,14 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
       desc: "Kalkulator pembagian harta warisan otomatis sesuai syariat Islam dan dalil Al-Quran.",
       icon: <FaBalanceScale />,
       colors: {
-        bg: "bg-blue-50 dark:bg-blue-900/30",
+        bg: "bg-blue-100/80 dark:bg-blue-900/50",
         text: "text-blue-600 dark:text-blue-400",
         hoverText: "group-hover:text-blue-600 dark:group-hover:text-blue-300",
-        border: "hover:border-blue-200 dark:hover:border-blue-700",
-        shadow: "shadow-blue-100/50 dark:shadow-blue-900/20",
-        hoverShadow: "hover:shadow-blue-200/50 dark:hover:shadow-blue-900/40",
-        cta: "bg-blue-50 dark:bg-blue-900/50",
+        // Glass styles:
+        border: "border-white/50 dark:border-slate-700/50",
+        shadow: "shadow-xl shadow-blue-100/20 dark:shadow-none",
+        hoverShadow:
+          "hover:shadow-2xl hover:shadow-blue-200/40 dark:hover:shadow-blue-900/20",
       },
     },
   ];
@@ -80,7 +81,7 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
       {/* 1. GREETING HEADER (Simplified) */}
       <div className="text-center mb-6">
         <div className="inline-block mb-3">
-          <span className="px-4 py-1.5 rounded-full bg-white/50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 font-arabic text-lg border border-slate-200 dark:border-slate-700">
+          <span className="px-5 py-2 rounded-full bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/40 dark:border-white/10 text-slate-600 dark:text-slate-300 font-arabic text-xl shadow-sm">
             بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
           </span>
         </div>
@@ -92,7 +93,7 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
       {/* 3. APP FEATURES GRID */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4 px-1">
-          <h3 className="text-lg font-bold text-slate-800 dark:text-white">
+          <h3 className="text-lg font-bold text-slate-800 dark:text-white drop-shadow-sm">
             Aplikasi Ibadah
           </h3>
         </div>
@@ -103,11 +104,16 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
             <button
               key={feature.id}
               onClick={() => setView(feature.id as any)}
-              className="snap-start shrink-0 w-[75vw] bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col justify-between active:scale-[0.98] transition-transform text-left h-36 relative overflow-hidden group"
+              className={`snap-start shrink-0 w-[75vw] 
+                bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl 
+                p-5 rounded-3xl border ${feature.colors.border}
+                flex flex-col justify-between active:scale-[0.98] transition-all duration-300 text-left h-36 relative overflow-hidden group
+                ${feature.colors.shadow}
+              `}
             >
               {/* Background Icon Watermark (Mobile) */}
               <div
-                className={`absolute -right-4 -top-4 ${feature.colors.text} opacity-[0.05] pointer-events-none transform rotate-12`}
+                className={`absolute -right-4 -top-4 ${feature.colors.text} opacity-[0.08] pointer-events-none transform rotate-12`}
               >
                 <IconContext.Provider value={{ className: "w-32 h-32" }}>
                   {feature.icon}
@@ -116,7 +122,7 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
 
               <div className="flex justify-between items-start z-10">
                 <div
-                  className={`w-12 h-12 rounded-xl flex items-center justify-center ${feature.colors.bg} ${feature.colors.text}`}
+                  className={`w-12 h-12 rounded-2xl flex items-center justify-center ${feature.colors.bg} ${feature.colors.text} backdrop-blur-sm`}
                 >
                   <IconContext.Provider value={{ className: "w-6 h-6" }}>
                     {feature.icon}
@@ -128,7 +134,7 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white leading-tight">
                   {feature.title}
                 </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
                   {feature.shortDesc}
                 </p>
               </div>
@@ -144,11 +150,16 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
             <button
               key={feature.id}
               onClick={() => setView(feature.id as any)}
-              className={`group relative bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 text-left border border-slate-100 dark:border-slate-700 hover:-translate-y-1 flex flex-col h-full overflow-hidden`}
+              className={`group relative 
+                bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl 
+                p-6 rounded-[2rem] border ${feature.colors.border}
+                text-left hover:-translate-y-2 transition-all duration-300 ease-out flex flex-col h-full overflow-hidden
+                ${feature.colors.shadow} ${feature.colors.hoverShadow}
+              `}
             >
               {/* Background Icon Watermark (Desktop) */}
               <div
-                className={`absolute -right-8 -top-8 ${feature.colors.text} opacity-[0.05] group-hover:opacity-[0.08] pointer-events-none transform rotate-12 group-hover:rotate-6 group-hover:scale-110 transition-all duration-500 ease-out`}
+                className={`absolute -right-8 -top-8 ${feature.colors.text} opacity-[0.05] group-hover:opacity-[0.1] pointer-events-none transform rotate-12 group-hover:rotate-6 group-hover:scale-110 transition-all duration-500 ease-out`}
               >
                 <IconContext.Provider value={{ className: "w-48 h-48" }}>
                   {feature.icon}
@@ -156,7 +167,7 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
               </div>
 
               <div
-                className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-4 ${feature.colors.bg} ${feature.colors.text} shadow-sm z-10 relative`}
+                className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-4 ${feature.colors.bg} ${feature.colors.text} shadow-sm z-10 relative backdrop-blur-sm`}
               >
                 <IconContext.Provider value={{ className: "w-7 h-7" }}>
                   {feature.icon}
@@ -184,11 +195,11 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
       </div>
 
       {/* 4. FOOTER CONTENT (INSTALL & INFO) */}
-      <div className="mt-auto text-center pt-8 border-t border-slate-100 dark:border-slate-800">
+      <div className="mt-auto text-center pt-8 border-t border-slate-200/50 dark:border-slate-800/50">
         {showInstallBtn && (
           <button
             onClick={() => (isIOS ? setShowIOSGuide(true) : installApp())}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full font-bold shadow-lg hover:scale-105 transition-transform active:scale-95 mb-6"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900/90 dark:bg-white/90 backdrop-blur text-white dark:text-slate-900 rounded-full font-bold shadow-xl hover:scale-105 transition-transform active:scale-95 mb-6"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -206,7 +217,7 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
           </button>
         )}
 
-        <p className="text-xs text-slate-400 dark:text-slate-500">
+        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
           Data Privasi Terjaga. Tersimpan di Browser (Local Storage).
         </p>
       </div>

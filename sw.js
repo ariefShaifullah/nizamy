@@ -126,3 +126,28 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
+
+// Handle Notification Clicks
+self.addEventListener('notificationclick', function(event) {
+  event.notification.close(); // Close the notification
+
+  // Focus on existing window or open a new one
+  event.waitUntil(
+    clients.matchAll({
+      type: 'window',
+      includeUncontrolled: true
+    }).then(function(clientList) {
+      // If a window is already open, focus it
+      for (var i = 0; i < clientList.length; i++) {
+        var client = clientList[i];
+        if (client.url === '/' && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // Otherwise open a new window
+      if (clients.openWindow) {
+        return clients.openWindow('/');
+      }
+    })
+  );
+});

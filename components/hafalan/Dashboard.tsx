@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import type { HafalanState, HafalanSkillLevel } from "../../types.ts";
 import { audioService } from "../../services/audio.service.ts";
+import { notificationService } from "../../services/notification.service.ts";
 import {
   getMotivationalQuote,
   getDailyLoad,
@@ -65,6 +66,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
       .filter((i) => i.nextReviewDate <= today)
       .sort((a, b) => a.nextReviewDate.localeCompare(b.nextReviewDate));
   }, [state.items]);
+
+  // --- NOTIFICATION & BADGING TRIGGER ---
+  useEffect(() => {
+    // Update App Badge (Red Dot on Icon)
+    notificationService.updateAppBadge(dueItems.length);
+
+    // Trigger Local Notification if enabled and items are due
+    if (dueItems.length > 0 && notificationService.isEnabled()) {
+      notificationService.sendReminder(dueItems.length);
+    }
+  }, [dueItems.length]);
 
   const allItems = useMemo(() => {
     return [...state.items].sort(

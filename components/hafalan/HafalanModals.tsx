@@ -7,6 +7,7 @@ import type {
 } from "../../types.ts";
 import { BADGES } from "../../constants.ts";
 import { audioService } from "../../services/audio.service.ts";
+import { notificationService } from "../../services/notification.service.ts";
 
 // --- HELPER ---
 const formatSafeDate = (dateStr: string) => {
@@ -258,9 +259,43 @@ export const HafalanSettingsModal: React.FC<SettingsModalProps> = ({
   );
   const [target, setTarget] = useState(currentProfile.targetJuz);
 
+  // Notification State
+  const [notifEnabled, setNotifEnabled] = useState(
+    notificationService.isEnabled()
+  );
+
   const handleSave = () => {
     if (!name.trim()) return alert("Nama tidak boleh kosong");
     onSave({ name, skillLevel: level, targetJuz: target });
+  };
+
+  const handleToggleNotif = async () => {
+    audioService.playClick();
+
+    if (!notifEnabled) {
+      // Try enabling
+      const permissionState = notificationService.getPermissionState();
+
+      if (permissionState === "denied") {
+        alert(
+          "Izin notifikasi telah diblokir di browser ini. Silakan buka pengaturan situs (ikon gembok di URL bar) dan izinkan notifikasi secara manual."
+        );
+        return;
+      }
+
+      const granted = await notificationService.requestPermission();
+      if (granted) {
+        setNotifEnabled(true);
+        notificationService.sendReminder(0); // Test notification to confirm
+      } else {
+        // Handle dismissal or new denial
+        setNotifEnabled(false);
+      }
+    } else {
+      // Disabling is just a logic switch in our app, we can't revoke browser permission via JS
+      notificationService.setEnabled(false);
+      setNotifEnabled(false);
+    }
   };
 
   return (
@@ -318,10 +353,6 @@ export const HafalanSettingsModal: React.FC<SettingsModalProps> = ({
               </button>
             ))}
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 italic">
-            Ubah level bakal nyesuain batas maksimal ayat harian kamu. Tenang
-            aja, data lama gak akan ilang kok.
-          </p>
         </div>
 
         <div>
@@ -339,6 +370,34 @@ export const HafalanSettingsModal: React.FC<SettingsModalProps> = ({
             <option value={114}>30 Juz (Khatam)</option>
           </select>
         </div>
+
+        {/* NOTIFICATION TOGGLE */}
+        {notificationService.isSupported() && (
+          <div className="bg-slate-50 dark:bg-slate-700/30 p-4 rounded-xl border border-slate-100 dark:border-slate-700 flex justify-between items-center">
+            <div>
+              <h4 className="font-bold text-slate-800 dark:text-white text-sm">
+                Notifikasi & Badge
+              </h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Tampilkan tanda titik merah di ikon aplikasi & pengingat harian.
+              </p>
+            </div>
+            <button
+              onClick={handleToggleNotif}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
+                notifEnabled
+                  ? "bg-indigo-600"
+                  : "bg-slate-200 dark:bg-slate-600"
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  notifEnabled ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
+          </div>
+        )}
 
         <button
           onClick={handleSave}

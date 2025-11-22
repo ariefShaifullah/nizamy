@@ -13,30 +13,26 @@ export const Header: React.FC<HeaderProps> = ({ view, setView }) => {
   const { theme, setTheme } = useTheme();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
+  const isHome = view === "home";
+
   let titleColor = "text-primary-700 dark:text-primary-400";
-
-  let iconBgClass = "bg-primary-600";
-
-  let iconColor = "text-primary-600 dark:text-primary-400";
   let subtitle = "";
+
+  // Determine logo hue rotation based on theme color assumption (Base logo = Blue/Primary)
+  let logoFilter = "none";
 
   if (view === "zakat") {
     titleColor = "text-emerald-700 dark:text-emerald-400";
-    iconBgClass = "bg-emerald-600";
-
-    iconColor = "text-emerald-600 dark:text-emerald-400";
     subtitle = "Kalkulator Zakat";
+    logoFilter = "hue-rotate(-60deg)"; // Blue -> Emerald
   } else if (view === "faraidh") {
     titleColor = "text-primary-700 dark:text-primary-400";
-    iconBgClass = "bg-primary-600";
-    iconColor = "text-primary-600 dark:text-primary-400";
     subtitle = "Kalkulator Waris Islam";
+    logoFilter = "none"; // Blue Base
   } else if (view === "hafalan") {
     titleColor = "text-indigo-700 dark:text-indigo-400";
-    iconBgClass = "bg-indigo-600";
-
-    iconColor = "text-indigo-600 dark:text-indigo-400";
     subtitle = "Hafalan Quran Tracker";
+    logoFilter = "hue-rotate(30deg)"; // Blue -> Indigo
   }
 
   const toggleTheme = () => {
@@ -46,37 +42,58 @@ export const Header: React.FC<HeaderProps> = ({ view, setView }) => {
 
   return (
     <>
-      <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm sticky top-0 z-30 border-b border-slate-200/60 dark:border-slate-800 transition-all duration-300">
+      {/* Added pt-[env(safe-area-inset-top)] for iOS Notch compatibility */}
+      <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm sticky top-0 z-30 border-b border-slate-200/60 dark:border-slate-800 transition-all duration-300 pt-[env(safe-area-inset-top)]">
         <div className="container mx-auto px-4 py-3 md:py-4 flex justify-between items-center">
           <button
             onClick={() => setView("home")}
-            className="flex items-center space-x-3 hover:opacity-80 transition-opacity group"
+            className="flex items-center space-x-3 hover:opacity-80 transition-opacity group focus:outline-none"
           >
-            <div
-              className={`p-2 rounded-xl bg-slate-50 dark:bg-slate-800 group-hover:bg-slate-100 dark:group-hover:bg-slate-700 transition-colors`}
-            >
-              <div
-                className={`w-6 h-6 md:w-8 md:h-8 ${iconBgClass} transition-transform group-hover:scale-110`}
-                style={{
-                  maskImage: "url(/images/logo_nizamy.png)",
-                  maskSize: "contain",
-                  maskRepeat: "no-repeat",
-                  maskPosition: "center",
-                  WebkitMaskImage: "url(/images/logo_nizamy.png)",
-                  WebkitMaskSize: "contain",
-                  WebkitMaskRepeat: "no-repeat",
-                  WebkitMaskPosition: "center",
-                }}
-              />
+            {/* Mobile: Contextual Icon (Logo on Home, Back Arrow on Inner Pages) */}
+            <div className="md:hidden">
+              {isHome ? (
+                <img
+                  src="/images/logo_nizamy.png"
+                  alt="NIZAMY Logo"
+                  className="w-10 h-10 object-contain transition-all duration-500"
+                  style={{ filter: logoFilter }}
+                />
+              ) : (
+                <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    className="w-5 h-5 animate-fade-in"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15.75 19.5L8.25 12l7.5-7.5"
+                    />
+                  </svg>
+                </div>
+              )}
             </div>
+
+            {/* Desktop: Always Logo */}
+            <img
+              src="/images/logo_nizamy.png"
+              alt="NIZAMY Logo"
+              className="hidden md:block w-11 h-11 object-contain transition-all duration-500"
+              style={{ filter: logoFilter }}
+            />
+
             <div className="text-left">
               <p
-                className={`text-lg md:text-2xl font-bold tracking-tight leading-none ${titleColor}`}
+                className={`text-lg md:text-2xl font-extrabold tracking-tight leading-none ${titleColor}`}
               >
                 NIZAMY
               </p>
-              {view !== "home" && (
-                <p className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-medium mt-0.5 truncate max-w-[150px] md:max-w-none">
+              {!isHome && (
+                <p className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-medium mt-0.5 truncate max-w-[150px] md:max-w-none animate-fade-in">
                   {subtitle}
                 </p>
               )}
@@ -90,7 +107,7 @@ export const Header: React.FC<HeaderProps> = ({ view, setView }) => {
               className="p-2 md:p-2.5 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-indigo-500 dark:hover:text-yellow-400 border border-slate-200 dark:border-slate-700 transition-all"
               aria-label="Toggle Theme"
             >
-              {/* Sun Icon */}
+              {/* Sun Icon (Visible in Dark Mode) */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-5 w-5 hidden dark:block"
@@ -105,7 +122,7 @@ export const Header: React.FC<HeaderProps> = ({ view, setView }) => {
                   d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
                 />
               </svg>
-              {/* Moon Icon */}
+              {/* Moon Icon (Visible in Light Mode) */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-5 w-5 block dark:hidden"
@@ -150,7 +167,7 @@ export const Header: React.FC<HeaderProps> = ({ view, setView }) => {
               </svg>
             </button>
 
-            {view !== "home" && (
+            {!isHome && (
               <button
                 onClick={() => setView("home")}
                 className="hidden md:flex items-center text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 px-3 py-2 md:px-4 md:py-2 rounded-full transition-all active:scale-95 border border-slate-200 dark:border-slate-700"

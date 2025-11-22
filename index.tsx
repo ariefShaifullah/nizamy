@@ -1,26 +1,39 @@
 
-import React, { Component, type ReactNode } from "react";
-import ReactDOM from "react-dom/client";
-import App from "./App.tsx";
-import { ThemeProvider } from "./components/ThemeContext.tsx";
-import { ToastProvider } from "./components/ui/Toast.tsx";
-import { ConfirmProvider } from "./components/ui/ConfirmContext.tsx";
+import React, { Component, type ReactNode } from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App.tsx';
+import { ThemeProvider } from './components/ThemeContext.tsx';
+import { ToastProvider } from './components/ui/Toast.tsx';
+import { ConfirmProvider } from './components/ui/ConfirmContext.tsx';
 
-const rootElement = document.getElementById("root");
+// Polyfill/Type definition for import.meta.env to prevent runtime crashes in non-Vite environments
+// safely check if import.meta.env exists before accessing it.
+const isProduction = (() => {
+  try {
+    // @ts-ignore
+    return import.meta.env && import.meta.env.PROD;
+  } catch (e) {
+    return false;
+  }
+})();
+
+const rootElement = document.getElementById('root');
 if (!rootElement) {
   throw new Error("Could not find root element to mount to");
 }
 
 // --- SERVICE WORKER REGISTRATION ---
-// Cast import.meta to any to bypass TypeScript error when vite types are not fully recognized in certain contexts
-if ("serviceWorker" in navigator && (import.meta as any).env?.PROD) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").then(
+// Register SW if browser supports it and we are in a "production-like" environment (or if env var is explicitly set)
+// Fallback: If import.meta.env is missing (native ES modules), we skip SW or enable based on hostname if needed.
+// For this setup, we'll enable it if not explicitly in DEV mode or if safely checked.
+if ('serviceWorker' in navigator && isProduction) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').then(
       (registration) => {
-        console.log("SW registered: ", registration);
+        console.log('SW registered scope:', registration.scope);
       },
-      (registrationError) => {
-        console.log("SW registration failed: ", registrationError);
+      (error) => {
+        console.error('SW registration failed:', error);
       }
     );
   });
@@ -35,11 +48,14 @@ interface ErrorBoundaryState {
   error: Error | null;
 }
 
-class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+class ErrorBoundary extends Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
   public state: ErrorBoundaryState = { hasError: false, error: null };
   props: any;
 
-  static getDerivedStateFromError(error: any) {
+  static getDerivedStateFromError(error: Error) {
     return { hasError: true, error };
   }
 
@@ -53,12 +69,12 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
           <p className="text-slate-600 dark:text-slate-300 mb-4">
             Mohon maaf, terjadi masalah saat memuat aplikasi.
           </p>
-          <pre className="bg-slate-100 dark:bg-slate-800 dark:text-slate-200 p-4 rounded text-left overflow-auto text-xs mb-4 max-w-2xl mx-auto">
-            {this.state.error?.toString()}
+          <pre className="bg-slate-100 dark:bg-slate-800 dark:text-slate-200 p-4 rounded text-left overflow-auto text-xs mb-4 max-w-2xl mx-auto border border-slate-200 dark:border-slate-700">
+            {this.state.error?.message}
           </pre>
           <button
             onClick={() => window.location.reload()}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="bg-blue-600 text-white px-6 py-2.5 rounded-full font-bold hover:bg-blue-700 transition-colors shadow-lg"
           >
             Muat Ulang Halaman
           </button>

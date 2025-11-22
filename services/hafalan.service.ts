@@ -1,3 +1,4 @@
+
 import type {
   HafalanItem,
   HafalanState,
@@ -6,12 +7,7 @@ import type {
   HafalanSkillLevel,
   UserSummary,
 } from "../types.ts";
-import {
-  BADGES,
-  SURAH_DATA,
-  HEAVY_VERSES,
-  SRS_INTERVALS,
-} from "../constants.ts";
+import { BADGES, SURAH_DATA, HEAVY_VERSES, SRS_INTERVALS } from "../constants.ts";
 
 const STORAGE_KEY_USERS = "nizamy_hafalan_users";
 const STORAGE_PREFIX_DATA = "nizamy_hafalan_data_";
@@ -47,10 +43,7 @@ interface QuranApiResponse {
 const versesCache: Record<string, { text: string; number: number }[]> = {};
 
 // --- HELPER: FETCH WITH TIMEOUT ---
-const fetchWithTimeout = async (
-  resource: string,
-  options: RequestInit = {}
-) => {
+const fetchWithTimeout = async (resource: string, options: RequestInit = {}) => {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
   const response = await fetch(resource, {
@@ -568,10 +561,10 @@ export const validateNewItem = (
   maxAyahCount: number,
   skillLevel: HafalanSkillLevel
 ): ValidationResult => {
-  if (start < 1 || end > maxAyahCount || start > end) {
+  if (start < 1 || end > maxAyahCount || start > end || isNaN(start) || isNaN(end)) {
     return {
       status: "error",
-      message: `Nomor ayat nggak pas nih. Surat ini cuma punya ${maxAyahCount} ayat.`,
+      message: `Nomor ayat nggak pas. Surat ini cuma punya ${maxAyahCount} ayat.`,
     };
   }
 

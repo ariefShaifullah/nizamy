@@ -1,5 +1,5 @@
 {
   "name": "nizamy",
   "description": "A comprehensive, accurate, and easy-to-use Islamic inheritance (faraidh) calculator and zakat calculator based on the Qur'an and Sunnah. All calculations are performed on the client-side for privacy and speed.",
-  "requestFramePermissions": []
+  "requestFramePermissions": ["geolocation"]
 }

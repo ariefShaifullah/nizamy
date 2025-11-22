@@ -296,27 +296,35 @@ const ZakatCalculator: React.FC = () => {
       )}
 
       <div className="flex flex-col lg:flex-row gap-6 md:gap-8 items-start">
-        <div className="w-full lg:w-64 flex-shrink-0 sticky top-0 lg:top-24 z-30 bg-slate-50/95 dark:bg-slate-950/95 lg:bg-transparent backdrop-blur-sm lg:backdrop-blur-none py-2 lg:py-0 -mx-4 px-4 lg:mx-0 lg:px-0 border-b border-slate-200 dark:border-slate-800 lg:border-0">
-          <div
-            ref={navRef}
-            className="flex lg:flex-col overflow-x-auto lg:overflow-visible space-x-2 lg:space-x-0 lg:space-y-2 hide-scrollbar py-1"
-            aria-label="Tabs"
-          >
-            {TABS.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => handleSwitchTab(tab.id)}
-                className={`whitespace-nowrap px-4 py-2.5 text-sm font-bold rounded-full lg:rounded-xl transition-all flex items-center flex-shrink-0 border ${
-                  activeTab === tab.id
-                    ? "bg-emerald-600 text-white shadow-md shadow-emerald-200 dark:shadow-none border-emerald-600 lg:translate-x-2"
-                    : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:text-emerald-700 dark:hover:text-emerald-400"
-                }`}
-              >
-                <span className="mr-2">{tab.icon}</span>
-                {tab.label}
-              </button>
-            ))}
-            <div className="w-4 flex-shrink-0 lg:hidden"></div>
+        {/* TABS CONTAINER */}
+        <div className="w-full lg:w-64 flex-shrink-0 sticky top-[74px] lg:top-24 z-30 py-2 lg:py-0 mb-2 lg:mb-0">
+          {/* Mobile Wrapper: Floating Island Style */}
+          {/* FIX: Allow overflow on desktop to prevent clipping of translate effect */}
+          <div className="relative bg-slate-100/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm lg:bg-transparent lg:border-0 lg:shadow-none lg:rounded-none lg:backdrop-blur-none overflow-hidden lg:overflow-visible">
+            <div
+              ref={navRef}
+              className="flex lg:flex-col overflow-x-auto lg:overflow-visible space-x-2 lg:space-x-0 lg:space-y-2 hide-scrollbar p-2 lg:p-0"
+              aria-label="Tabs"
+            >
+              {TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => handleSwitchTab(tab.id)}
+                  className={`whitespace-nowrap px-4 py-2.5 text-sm font-bold rounded-xl transition-all flex items-center flex-shrink-0 border ${
+                    activeTab === tab.id
+                      ? "bg-emerald-600 text-white shadow-md shadow-emerald-200/50 dark:shadow-none border-emerald-600 lg:translate-x-2"
+                      : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:text-emerald-700 dark:hover:text-emerald-400"
+                  }`}
+                >
+                  <span className="mr-2">{tab.icon}</span>
+                  {tab.label}
+                </button>
+              ))}
+              <div className="w-2 flex-shrink-0 lg:hidden"></div>
+            </div>
+            {/* Mobile Gradient Masks for Soft Cutoff */}
+            <div className="lg:hidden absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-slate-100 dark:from-slate-900 to-transparent pointer-events-none"></div>
+            <div className="lg:hidden absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-slate-100 dark:from-slate-900 to-transparent pointer-events-none"></div>
           </div>
         </div>
 
@@ -393,6 +401,6 @@ const ZakatCalculator: React.FC = () => {
       </div>
     </div>
   );
-};
+}
 
 export default ZakatCalculator;

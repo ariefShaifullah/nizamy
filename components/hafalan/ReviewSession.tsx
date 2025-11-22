@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import type { HafalanItem } from "../../types.ts";
 import { audioService } from "../../services/audio.service.ts";
 import { fetchQuranVerses } from "../../services/hafalan.service.ts";
@@ -30,6 +30,9 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
   const [activeAudioAyah, setActiveAudioAyah] = useState<number>(0);
   const [showPlayer, setShowPlayer] = useState(isPractice);
   const [manualJumpAyah, setManualJumpAyah] = useState<number | null>(null);
+  
+  // Wake Lock Reference
+  const wakeLockRef = useRef<any>(null);
 
   const loadVerses = () => {
     setIsLoadingText(true);
@@ -53,7 +56,7 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
     loadVerses();
   }, [item]);
 
-  // AUTO-SCROLL Logic
+  // --- AUTO-SCROLL Logic ---
   useEffect(() => {
     if (activeAudioAyah > 0) {
         const element = document.getElementById(`ayah-${activeAudioAyah}`);
@@ -63,11 +66,50 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
     }
   }, [activeAudioAyah]);
 
-  // Lock Scroll Body Logic
+  // --- SCROLL LOCK & WAKE LOCK ---
   useEffect(() => {
+    // 1. Scroll Lock: Safe Implementation
+    const originalStyle = window.getComputedStyle(document.body).overflow;
     document.body.style.overflow = 'hidden';
+
+    // 2. Wake Lock: Keep screen on
+    const requestWakeLock = async () => {
+      if ('wakeLock' in navigator) {
+        try {
+          wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
+        } catch (err) {
+          console.debug('Wake Lock request failed:', err);
+        }
+      }
+    };
+
+    const releaseWakeLock = async () => {
+      if (wakeLockRef.current) {
+        try {
+          await wakeLockRef.current.release();
+          wakeLockRef.current = null;
+        } catch (err) {
+          console.debug('Wake Lock release failed:', err);
+        }
+      }
+    };
+
+    // Request on mount
+    requestWakeLock();
+
+    // Re-request if visibility changes (e.g. user switches tabs and comes back)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        requestWakeLock();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Cleanup
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = originalStyle;
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      releaseWakeLock();
     };
   }, []);
 
@@ -93,7 +135,7 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
         <div className="w-full h-full flex flex-col md:max-w-5xl md:mx-auto md:bg-white md:dark:bg-slate-900 md:rounded-[2.5rem] md:shadow-2xl md:shadow-slate-200/70 md:dark:shadow-none md:border md:border-slate-100 md:dark:border-slate-800 md:overflow-hidden md:relative md:min-h-[600px] md:h-[85vh]">
           
           {/* 1. HEADER SECTION */}
-          <div className="flex-none bg-white dark:bg-slate-900 z-20 relative shadow-sm border-b border-slate-100 dark:border-slate-800">
+          <div className="flex-none bg-white dark:bg-slate-900 z-20 relative shadow-sm border-b border-slate-100 dark:border-slate-800 pt-[env(safe-area-inset-top)]">
             <div className="flex justify-between items-center py-3 px-4 md:py-4 md:px-8 border-b border-slate-50 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <div

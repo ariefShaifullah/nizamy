@@ -6,7 +6,6 @@ import { useToast } from "./components/ui/Toast.tsx";
 import { usePWA } from "./hooks/usePWA.ts";
 
 // Lazy Load Components to optimize initial bundle size
-// Note: These components now use default exports for simpler lazy loading
 const FaraidhCalculator = React.lazy(
   () => import("./components/faraidh/FaraidhCalculator.tsx")
 );
@@ -31,9 +30,76 @@ const PageLoader = () => (
 );
 
 export default function App() {
-  const [view, setView] = useState<ViewState>("home");
+  // Helper to determine view from URL Query Params (Safe for all environments)
+  const getInitialView = (): ViewState => {
+    if (typeof window === "undefined") return "home";
+    const params = new URLSearchParams(window.location.search);
+    const viewParam = params.get("view");
+    if (
+      viewParam === "faraidh" ||
+      viewParam === "zakat" ||
+      viewParam === "hafalan"
+    ) {
+      return viewParam as ViewState;
+    }
+    return "home";
+  };
+
+  const [view, setViewInternal] = useState<ViewState>(getInitialView);
   const { showToast } = useToast();
   const { needRefresh, updateServiceWorker } = usePWA();
+
+  // --- NAVIGATION HANDLER (History API) ---
+  useEffect(() => {
+    // Handle browser back/forward buttons
+    const handlePopState = (event: PopStateEvent) => {
+      if (event.state && event.state.view) {
+        setViewInternal(event.state.view);
+      } else {
+        // Fallback to parsing URL if state is missing
+        setViewInternal(getInitialView());
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    // Initialize History State
+    try {
+      if (!window.history.state) {
+        const currentView = getInitialView();
+        // Use Query Params '?view=...' instead of Path to prevent Origin errors in restricted envs
+        const url =
+          currentView === "home"
+            ? window.location.pathname
+            : `?view=${currentView}`;
+        window.history.replaceState({ view: currentView }, "", url);
+      }
+    } catch (e) {
+      console.warn("History API initialization restricted:", e);
+    }
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
+
+  const setView = (newView: ViewState) => {
+    if (newView === view) return;
+
+    setViewInternal(newView);
+
+    // Push new state using Query Params
+    try {
+      const url =
+        newView === "home" ? window.location.pathname : `?view=${newView}`;
+      window.history.pushState({ view: newView }, "", url);
+    } catch (e) {
+      console.warn("History API push failed:", e);
+    }
+
+    // Scroll to top on navigation
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   // Network Status Monitoring
   useEffect(() => {

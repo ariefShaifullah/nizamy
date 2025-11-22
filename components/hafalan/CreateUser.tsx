@@ -106,20 +106,44 @@ export const CreateUser: React.FC<CreateUserProps> = ({
         </div>
         <div>
           <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
-            Target Hafalan
+            Fokus Hafalan
           </label>
-          <select
-            className="w-full border border-slate-300 dark:border-slate-600 rounded-xl p-4 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-            value={target}
-            onChange={(e) => setTarget(Number(e.target.value))}
-          >
-            <option value={30}>Juz 30 (Juz Amma)</option>
-            <option value={29}>Juz 29 (Tabarak)</option>
-            <option value={1}>Juz 1 (Al-Baqarah)</option>
-            <option value={114}>30 Juz (Khatam)</option>
-          </select>
-          <p className="text-xs text-slate-400 mt-1 ml-1 italic">
-            Pilihan surat nanti bakal disesuain sama target ini.
+          <div className="relative">
+            <select
+              className="w-full border border-slate-300 dark:border-slate-600 rounded-xl p-4 pr-10 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-white appearance-none font-medium"
+              value={target}
+              onChange={(e) => setTarget(Number(e.target.value))}
+            >
+              <option value={30}>Juz 30 (Juz Amma)</option>
+              <option value={29}>Juz 29 (Juz Tabarak)</option>
+              <option value={1}>Urut dari Awal (Khatam)</option>
+              <option value={114}>Bebas Pilih (Fleksibel)</option>
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-slate-500">
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M19 9l-7 7-7-7"
+                ></path>
+              </svg>
+            </div>
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+            {target === 30 &&
+              "Surat-surat pendek (An-Naba s.d. An-Nas). Cocok untuk pemula."}
+            {target === 29 &&
+              "Lanjutan setelah Juz Amma (Al-Mulk s.d. Al-Mursalat)."}
+            {target === 1 &&
+              "Menghafal urut dari Al-Fatihah, Al-Baqarah, dan seterusnya."}
+            {target === 114 &&
+              "Pilih surat apapun (Al-Kahfi, Yasin, dll) tanpa batasan urutan."}
           </p>
         </div>
         <button

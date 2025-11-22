@@ -357,7 +357,7 @@ export const HafalanSettingsModal: React.FC<SettingsModalProps> = ({
 
         <div>
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-            Target Hafalan
+            Fokus Hafalan
           </label>
           <select
             className="w-full border border-slate-300 dark:border-slate-600 rounded-lg p-3 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500"
@@ -365,9 +365,9 @@ export const HafalanSettingsModal: React.FC<SettingsModalProps> = ({
             onChange={(e) => setTarget(Number(e.target.value))}
           >
             <option value={30}>Juz 30 (Juz Amma)</option>
-            <option value={29}>Juz 29 (Tabarak)</option>
-            <option value={1}>Juz 1 (Al-Baqarah)</option>
-            <option value={114}>30 Juz (Khatam)</option>
+            <option value={29}>Juz 29 (Juz Tabarak)</option>
+            <option value={1}>Urut dari Awal (Khatam)</option>
+            <option value={114}>Bebas Pilih (Fleksibel)</option>
           </select>
         </div>
 

@@ -86,6 +86,7 @@ export const AddItem: React.FC<AddItemProps> = ({
 
     let suggestedSurahNo = 1;
     let suggestedStart = 1;
+    let enableSuggestion = false;
 
     if (lastAddedItem) {
       const surahRef = SURAH_DATA.find(
@@ -94,38 +95,59 @@ export const AddItem: React.FC<AddItemProps> = ({
 
       if (surahRef) {
         if (lastAddedItem.endAyah < surahRef.verses) {
-          // Case A: Continue current Surah
+          // Case A: Continue current Surah (Applies to ALL modes)
           suggestedSurahNo = lastAddedItem.surahNo;
           suggestedStart = lastAddedItem.endAyah + 1;
-          setIsSuggestionMode(true);
+          enableSuggestion = true;
         } else {
-          // Case B: Current Surah Finished, Suggest Next Surah
-          const nextSurahNum =
-            lastAddedItem.surahNo === 114 ? 1 : lastAddedItem.surahNo + 1;
-          const available = getAvailableSurahs(profile.targetJuz);
-          const isNextAvailable = available.find(
-            (s) => s.number === nextSurahNum
-          );
+          // Case B: Current Surah Finished
 
-          if (isNextAvailable) {
-            suggestedSurahNo = nextSurahNum;
+          // Logic Differentiation: "Bebas Pilih" (114) vs "Urut" (1/29/30)
+          if (profile.targetJuz === 114) {
+            // Mode Explorer: Stop suggestion, let user choose freely.
+            // Default to Al-Fatihah (1) to reset focus, but disable suggestion banner.
+            suggestedSurahNo = 1;
             suggestedStart = 1;
-            setIsSuggestionMode(true);
+            enableSuggestion = false;
           } else {
-            suggestedSurahNo = available[0].number;
-            suggestedStart = 1;
+            // Mode Guided (Urut / Juz 30 / Juz 29): Suggest Next Surah
+            const nextSurahNum =
+              lastAddedItem.surahNo === 114 ? 1 : lastAddedItem.surahNo + 1;
+
+            // Check if next surah is within target scope (e.g. Juz 30 only)
+            // Note: targetJuz 1 returns ALL surahs in getAvailableSurahs
+            const available = getAvailableSurahs(profile.targetJuz);
+            const isNextAvailable = available.find(
+              (s) => s.number === nextSurahNum
+            );
+
+            if (isNextAvailable) {
+              suggestedSurahNo = nextSurahNum;
+              suggestedStart = 1;
+              enableSuggestion = true;
+            } else {
+              // End of cycle (e.g. finished Juz 30)
+              suggestedSurahNo = available[0].number;
+              suggestedStart = 1;
+              enableSuggestion = false; // Reset, no strong suggestion
+            }
           }
         }
       }
     } else {
+      // No History (New User)
       const available = getAvailableSurahs(profile.targetJuz);
       suggestedSurahNo = available[0].number;
       suggestedStart = 1;
+
+      // DISABLE suggestion banner for very first item to avoid "Continue" confusion
+      enableSuggestion = false;
     }
 
     // Apply Suggestion
     setSelectedSurahNumber(suggestedSurahNo);
     setNewAyahStart(suggestedStart);
+    setIsSuggestionMode(enableSuggestion);
 
     const surahData = SURAH_DATA.find((s) => s.number === suggestedSurahNo);
     if (surahData) {
@@ -370,10 +392,14 @@ export const AddItem: React.FC<AddItemProps> = ({
               <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-4 rounded-xl text-white shadow-md flex items-start animate-fade-in">
                 <span className="text-2xl mr-3">🚀</span>
                 <div>
-                  <h4 className="font-bold text-sm">Lanjut Hafalan Terakhir</h4>
+                  <h4 className="font-bold text-sm">
+                    {profile.targetJuz === 1
+                      ? "Lanjut Rutin (Urut)"
+                      : "Lanjut Hafalan Terakhir"}
+                  </h4>
                   <p className="text-xs opacity-90 mt-1 leading-relaxed">
-                    Sistem otomatis menyarankan kelanjutan dari hafalan
-                    sebelumnya. Gas terus!
+                    Otomatis lanjut dari ayat terakhir. Jaga momentum biar
+                    hafalan tetap nyambung!
                   </p>
                 </div>
               </div>

@@ -540,11 +540,9 @@ export const getAvailableSurahs = (targetJuz: number) => {
     // Juz 29: Al-Mulk (67) to Al-Mursalat (77)
     return SURAH_DATA.filter((s) => s.number >= 67 && s.number <= 77);
   }
-  if (targetJuz === 1) {
-    // Juz 1: Al-Fatihah (1) to Al-Baqarah (2) [Simplified, usually ends at 141]
-    return SURAH_DATA.filter((s) => s.number === 1 || s.number === 2);
-  }
-  // Default / Khatam (114) -> All Surahs
+  // IF target is 1 (Urut dari Depan), we return ALL SURAHS.
+  // This ensures that after finishing Al-Baqarah (2), user can seamlessly access Ali Imran (3), etc.
+  // The distinction is purely visual/mental model in the selection UI.
   return SURAH_DATA;
 };
 

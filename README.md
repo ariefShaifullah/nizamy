@@ -1,118 +1,151 @@
-# Nizamy - Kalkulator Islami
+# NIZAMY - Islamic Apps Suite
 
-Nizamy adalah sebuah aplikasi web yang menyediakan kumpulan alat bantu kalkulator Islami, dirancang untuk membantu umat Muslim dalam menjalankan kewajiban finansial sesuai dengan syariat Al-Qur'an dan Sunnah. Aplikasi ini bersifat _privacy-first_, di mana semua perhitungan dilakukan sepenuhnya di sisi klien (browser Anda) dan tidak ada data yang dikirim atau disimpan di server.
+![Nizamy Banner](public/images/android-chrome-192x192.png)
 
-## Fitur Utama
+**NIZAMY** adalah *Progressive Web Application* (PWA) komprehensif yang menyediakan solusi digital untuk kebutuhan ibadah umat Islam, meliputi perhitungan waris (Faraidh), kalkulator Zakat, dan pelacak hafalan Al-Quran berbasis metode *Spaced Repetition System* (SRS).
 
-Aplikasi ini terdiri dari dua kalkulator utama:
+Aplikasi ini dibangun dengan prinsip **Local-First** dan **Privacy-Focused**, di mana seluruh pemrosesan data dan perhitungan dilakukan di sisi klien (browser) tanpa mengirim data sensitif ke server eksternal.
+
+---
+
+## 📋 Daftar Isi
+- [Fitur Utama](#-fitur-utama)
+- [Tech Stack](#-tech-stack)
+- [Audit Kode & Arsitektur](#-audit-kode--arsitektur)
+- [Struktur Proyek](#-struktur-proyek)
+- [Algoritma Inti](#-algoritma-inti)
+- [Instalasi & Pengembangan](#-instalasi--pengembangan)
+
+---
+
+## 🌟 Fitur Utama
 
 ### 1. Kalkulator Waris (Faraidh)
-
-- **Perhitungan Akurat**: Menghitung pembagian harta warisan berdasarkan porsi yang telah ditetapkan dalam Al-Qur'an dan hadits.
-- **Penanganan Kasus Kompleks**: Mendukung penyelesaian kasus 'Aul (peningkatan penyebut) dan Radd (pengembalian sisa harta).
-- **Detail Ahli Waris**: Menyediakan daftar lengkap ahli waris beserta bagiannya masing-masing.
-- **Dalil & Referensi**: Menampilkan dalil atau dasar hukum untuk setiap bagian waris.
-- **Riwayat Perhitungan**: Menyimpan beberapa perhitungan terakhir untuk referensi di masa mendatang.
+- **Sesuai Syariat:** Mengimplementasikan aturan hijab (penghalang), 'Aul (pembilang > penyebut), dan Radd (pembilang < penyebut).
+- **Kasus Khusus:** Menangani kasus kompleks seperti *Umariyyatain*, *Al-Musytarakah*, dan *Al-Akdariyyah*.
+- **Visualisasi:** Grafik distribusi harta dan rincian dalil per ahli waris.
+- **Export:** Cetak laporan pembagian waris ke PDF.
 
 ### 2. Kalkulator Zakat
+- **Multi-Jenis:** Zakat Fitrah, Maal, Emas/Perak, Perniagaan, Pertanian, Peternakan, dan Rikaz.
+- **Real-time Calculation:** Perhitungan otomatis berdasarkan input dan *settings* harga emas/beras terkini.
+- **Kwitansi:** Pembuatan bukti hitung zakat digital.
 
-- **Komprehensif**: Menghitung berbagai jenis zakat, termasuk:
-  - Zakat Fitrah
-  - Zakat Maal (harta simpanan, tunai, tabungan, investasi)
-  - Zakat Emas dan Perak
-  - Zakat Perniagaan
-  - Zakat Pertanian
-  - Zakat Peternakan (dengan pendekatan qiyas perniagaan)
-- **Konfigurasi Fleksibel**: Pengguna dapat menyesuaikan parameter penting seperti harga emas (untuk nisab), harga perak, dan harga beras.
-- **Status Nisab Jelas**: Memberikan indikator visual yang jelas apakah harta telah mencapai ambang batas (nisab) atau belum.
-- **Unduh Kwitansi**: Menghasilkan ringkasan perhitungan zakat yang dapat diunduh dalam format PDF sebagai bukti atau catatan pribadi.
+### 3. Hafalan Quran Tracker (SRS)
+- **Metode SRS:** Algoritma pengulangan berjarak (*Spaced Repetition*) untuk menjaga hafalan jangka panjang (Mutqin).
+- **Gamifikasi:** Sistem Level, XP, Streak, dan Badges untuk motivasi.
+- **Audio:** Integrasi audio Qori (via *EveryAyah API*) untuk pengecekan tajwid.
+- **Multi-User:** Mendukung banyak profil pengguna dalam satu perangkat.
 
-## Tampilan Aplikasi
+### 4. Utilitas Tambahan
+- **Jadwal Sholat:** Integrasi API Aladhan dengan deteksi lokasi otomatis.
+- **Mode Gelap:** Dukungan *Dark Mode* penuh.
+- **PWA:** Dapat diinstal di Android & iOS, berjalan offline.
 
-_(Catatan: Gambar di bawah ini adalah representasi visual)_
+---
 
-**Halaman Utama**
-![image](https://github.com/user-attachments/assets/b377f45b-723a-403a-811a-815845312345)
+## 🛠 Tech Stack
 
-**Kalkulator Waris**
-![image](https://github.com/user-attachments/assets/195624c2-819a-4111-810b-101234567890)
+- **Core:** React 18 (TypeScript)
+- **Build Tool:** Vite
+- **Styling:** Tailwind CSS
+- **State Management:** React Context API + `useReducer` + Custom Hooks
+- **Persistence:** `localStorage` (via `useLocalStorage` hook)
+- **Visualisasi:** Recharts
+- **PDF Generation:** `jspdf` & `html2canvas`
+- **Audio:** Web Audio API (Synthesizer) + HTML5 Audio
+- **Icons:** React Icons
 
-**Kalkulator Zakat**
-![image](https://github.com/user-attachments/assets/98765432-1234-5678-90ab-cdef12345678)
+---
 
-## Teknologi yang Digunakan
+## 🔍 Audit Kode & Arsitektur
 
-- **Frontend**: React, TypeScript
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS
-- **PDF Generation**: jsPDF, html2canvas
-- **State Management**: React Hooks (`useState`, `useReducer`)
+### Kekuatan (Strengths)
+1.  **Separation of Concerns (SoC):** Logika bisnis yang berat dipisahkan dengan sangat baik ke dalam folder `services/` (contoh: `faraidh.service.ts`, `zakat.service.ts`). Komponen UI hanya berfokus pada rendering.
+2.  **Type Safety:** Penggunaan TypeScript yang ketat (banyak interface dan type definitions di `types/`) mengurangi potensi *runtime errors*.
+3.  **Performance:**
+    - Penggunaan `React.lazy` dan `Suspense` untuk *code splitting* per modul (Faraidh, Zakat, Hafalan).
+    - PWA Service Worker (`sw.js`) dengan strategi *caching* yang agresif untuk aset statis dan API Quran.
+    - Penggunaan `React.memo` dan `useMemo` untuk mencegah re-render yang tidak perlu pada kalkulasi berat.
+4.  **Offline-First:** Seluruh data disimpan di `localStorage`. Service worker menangani aset agar aplikasi tetap bisa dibuka tanpa internet.
+5.  **Clean UI/UX:** Implementasi Tailwind CSS yang konsisten dengan *glassmorphism* dan transisi yang halus.
 
-## Struktur Proyek
+### Area Optimasi (Improvements)
+1.  **Routing:** Saat ini menggunakan *State-based Routing* manual (`window.history`). Untuk skalabilitas jangka panjang, migrasi ke `react-router-dom` disarankan untuk manajemen URL dan *deep linking* yang lebih robust.
+2.  **Storage Limit:** Ketergantungan pada `localStorage` (max ~5-10MB) aman untuk teks, namun jika fitur berkembang (misal: simpan rekaman suara user), perlu migrasi ke `IndexedDB`.
+3.  **Testing:** Logika Faraidh sangat kompleks. Disarankan menambahkan *Unit Testing* (Vitest/Jest) khusus untuk `faraidh.service.ts` guna memastikan akurasi perhitungan syariah.
 
-```
+---
+
+## 📂 Struktur Proyek
+
+```text
 /
-├─── src/
-│    ├─── components/      # Komponen UI (FaraidhCalculator, ZakatCalculator, dll.)
-│    ├─── services/        # Logika bisnis inti (faraidh.service.ts, zakat.service.ts)
-│    ├─── reducers/        # Fungsi reducer untuk state management (heirsReducer.ts)
-│    ├─── constants.ts     # Konstanta aplikasi (misal: data FAQ)
-│    ├─── types.ts         # Definisi tipe TypeScript
-│    ├─── utils.ts         # Fungsi utilitas (format mata uang, dll.)
-│    ├─── App.tsx          # Komponen utama dan routing aplikasi
-│    └─── index.tsx        # Titik masuk aplikasi React
-├─── package.json         # Dependensi dan skrip proyek
-└─── README.md            # Dokumentasi ini
+├── components/          # Komponen UI (Atomic design)
+│   ├── faraidh/         # Komponen spesifik modul Waris
+│   ├── zakat/           # Komponen spesifik modul Zakat
+│   ├── hafalan/         # Komponen spesifik modul Hafalan
+│   ├── ui/              # Komponen generik (Toast, Modal, dll)
+│   └── ...
+├── services/            # Logika Bisnis Murni (Tanpa UI)
+│   ├── faraidh.service.ts
+│   ├── zakat.service.ts
+│   ├── hafalan.service.ts
+│   ├── audio.service.ts
+│   └── ...
+├── hooks/               # Custom React Hooks (Logic Reuse)
+├── types/               # Definisi TypeScript
+├── reducers/            # State logic untuk useReducer
+├── constants.ts         # Data statis (Ayat, Aturan, Config)
+├── App.tsx              # Entry point & Routing logic
+├── index.tsx            # Mounting point
+└── sw.js                # Service Worker (PWA Cache)
 ```
 
-## Instalasi dan Menjalankan Secara Lokal
+---
 
-Untuk menjalankan proyek ini di lingkungan lokal Anda, ikuti langkah-langkah berikut:
+## 🧠 Algoritma Inti
 
-**Prasyarat:**
+### Faraidh Engine (`faraidh.service.ts`)
+1.  **Hajb Detection:** Mendeteksi ahli waris yang terhalang (mahjub) oleh ahli waris lain (misal: Cucu terhalang Anak Laki-laki).
+2.  **Share Calculation:** Menghitung bagian pasti (*Furudh*) masing-masing ahli waris.
+3.  **Ashabah Handling:** Mendistribusikan sisa harta kepada ahli waris *Ashabah*.
+4.  **Correction:**
+    - **'Aul:** Jika total bagian > 1, penyebut dinaikkan (bagian mengecil).
+    - **Radd:** Jika total bagian < 1 & tidak ada Ashabah, sisa dikembalikan proporsional.
 
-- Node.js (versi 18 atau lebih baru)
-- npm atau package manager lainnya
+### Hafalan SRS (`hafalan.service.ts`)
+Menggunakan interval pengulangan eksponensial:
+- **Stage 0:** Baru
+- **Stage 1:** 1 hari
+- **Stage 2:** 3 hari
+- **Stage 3:** 7 hari
+- **Stage 4:** 14 hari
+- **Stage 5:** 30 hari (Mutqin)
 
-**Langkah-langkah:**
+---
 
-1.  **Clone repository ini:**
+## 🚀 Instalasi & Pengembangan
 
-    ```bash
-    git clone https://github.com/ariefShaifullah/nizamy.git
-    cd nizamy
-    ```
+Karena proyek ini menggunakan ES Modules dan Vite, langkah standarnya:
 
-2.  **Install dependensi:**
-
+1.  **Install Dependencies**
     ```bash
     npm install
     ```
 
-3.  **Jalankan server development:**
+2.  **Run Development Server**
     ```bash
     npm run dev
     ```
 
-## Cara Menggunakan
+3.  **Build for Production**
+    ```bash
+    npm run build
+    ```
 
-### Kalkulator Waris
-
-1.  Buka aplikasi dan pilih "Kalkulator Waris".
-2.  Masukkan jumlah total harta yang akan diwariskan di kolom "Total Harta Peninggalan".
-3.  Pilih ahli waris yang ada dari daftar yang tersedia (misalnya, Suami, Istri, Anak Laki-laki, dll.).
-4.  Klik tombol **"Hitung Warisan"**.
-5.  Hasil perhitungan akan ditampilkan secara rinci, termasuk bagian masing-masing ahli waris, dalilnya, dan total harta yang diterima.
-
-### Kalkulator Zakat
-
-1.  Dari halaman utama, pilih "Kalkulator Zakat".
-2.  (Opsional) Klik ikon **Pengaturan** untuk menyesuaikan harga emas dan beras sesuai dengan harga pasar saat ini.
-3.  Pilih jenis zakat yang ingin dihitung dari tab navigasi (misalnya, Fitrah, Maal, Emas/Perak).
-4.  Isi data harta Anda pada kolom yang sesuai.
-5.  Kalkulator akan secara otomatis menampilkan status nisab dan jumlah zakat yang harus dibayarkan untuk kategori tersebut.
-6.  Buka tab **"Ringkasan"** untuk melihat total kewajiban zakat dari semua kategori dan untuk mengunduh kwitansi PDF.
+**Catatan:** Aplikasi ini tidak memerlukan backend server. Seluruh logika berjalan di browser.
 
 ---
 
-&copy; 2025 Nizamy. All rights reserved.
+*Dibuat dengan ❤️ oleh si Pengembang NIZAMY*

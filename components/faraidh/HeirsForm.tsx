@@ -42,7 +42,7 @@ export const HeirsForm: React.FC<HeirsFormProps> = React.memo(({ heirs, dispatch
 
   return (
     <>
-      <div className="flex flex-col gap-8 pb-32 lg:pb-0">
+      <div className="flex flex-col gap-8 pb-40 lg:pb-0">
         {/* 1. Premium Hero Estate Input */}
         <div className="relative group rounded-[2rem] p-1 bg-gradient-to-br from-blue-100 via-blue-50 to-white dark:from-blue-900 dark:via-slate-800 dark:to-slate-900 shadow-xl shadow-blue-100/50 dark:shadow-none transition-all duration-500 hover:shadow-2xl hover:shadow-blue-200/50 dark:hover:shadow-none">
           <div className="absolute inset-0 bg-white dark:bg-slate-900 rounded-[1.9rem] m-[1px]"></div>
@@ -208,9 +208,9 @@ export const HeirsForm: React.FC<HeirsFormProps> = React.memo(({ heirs, dispatch
         </div>
       </div>
 
-      {/* 4. Mobile Fixed Action - CLEAN & FLOATING */}
-      {/* Removed bg-gradient container. Added pointer-events handling to allow clicking through transparent area */}
-      <div className="lg:hidden fixed bottom-[80px] left-0 right-0 z-30 px-6 pointer-events-none flex justify-center">
+      {/* 4. Mobile Fixed Action - FLOATING PILL */}
+      {/* Updated position to bottom-[calc(5.5rem+env(safe-area-inset-bottom))] to sit comfortably above the safe-area-padded nav */}
+      <div className="lg:hidden fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] left-0 right-0 z-30 px-6 pointer-events-none flex justify-center">
         <button
           onClick={onCalculate}
           disabled={loading}

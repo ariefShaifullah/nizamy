@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useTheme } from "./ThemeContext.tsx";
 import { GlobalSettings } from "./GlobalSettings.tsx";
+import { LegalModal, type LegalType } from "./LegalModal.tsx";
 
 export type ViewState = "home" | "faraidh" | "zakat" | "hafalan";
 
@@ -205,14 +206,37 @@ export const Header: React.FC<HeaderProps> = ({ view, setView }) => {
   );
 };
 
-export const Footer: React.FC = () => (
-  <footer className="hidden md:block text-center py-8 mt-12 border-t border-white/20 dark:border-slate-700 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md transition-colors duration-300">
-    <div className="container mx-auto px-4">
-      <p className="text-slate-500 dark:text-slate-400 text-sm flex items-center justify-center gap-1">
-        &copy; {new Date().getFullYear()} NIZAMY{" "}
-        <span className="hidden sm:inline">| Islam Apps Suite</span>. Dibuat
-        dengan <span className="text-red-500 animate-pulse">♥</span>
-      </p>
-    </div>
-  </footer>
-);
+export const Footer: React.FC = () => {
+  const [legalType, setLegalType] = useState<LegalType>(null);
+
+  return (
+    <>
+      <footer className="hidden md:block text-center py-8 mt-12 border-t border-white/20 dark:border-slate-700 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md transition-colors duration-300">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-center gap-6 mb-4 text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400">
+            <button
+              onClick={() => setLegalType("terms")}
+              className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+            >
+              Syarat & Ketentuan
+            </button>
+            <button
+              onClick={() => setLegalType("privacy")}
+              className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+            >
+              Kebijakan Privasi
+            </button>
+          </div>
+          <p className="text-slate-500 dark:text-slate-400 text-sm flex items-center justify-center gap-1">
+            &copy; {new Date().getFullYear()} NIZAMY{" "}
+            <span className="hidden sm:inline">| Islam Apps Suite</span>. Dibuat
+            dengan <span className="text-red-500 animate-pulse">♥</span>
+          </p>
+        </div>
+      </footer>
+
+      {/* Render Legal Modal */}
+      <LegalModal type={legalType} onClose={() => setLegalType(null)} />
+    </>
+  );
+};

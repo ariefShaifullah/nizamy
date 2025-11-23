@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { Modal } from "./Modal.tsx";
 import {
   exportData,
@@ -7,6 +7,7 @@ import {
 } from "../services/data.service.ts";
 import { useToast } from "./ui/Toast.tsx";
 import { useConfirm } from "./ui/ConfirmContext.tsx";
+import { LegalModal, type LegalType } from "./LegalModal.tsx";
 
 interface GlobalSettingsProps {
   isOpen: boolean;
@@ -20,6 +21,9 @@ export const GlobalSettings: React.FC<GlobalSettingsProps> = ({
   const { showToast } = useToast();
   const { confirm } = useConfirm();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // State untuk membuka Legal Modal dari dalam Settings
+  const [legalType, setLegalType] = useState<LegalType>(null);
 
   const handleBackup = () => {
     exportData();
@@ -73,30 +77,105 @@ export const GlobalSettings: React.FC<GlobalSettingsProps> = ({
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Pengaturan & Data"
-      maxWidth="max-w-md"
-    >
-      <div className="p-6 space-y-6">
-        <div className="space-y-4">
-          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800">
-            <h4 className="font-bold text-blue-800 dark:text-blue-200 mb-1">
-              Backup & Restore
-            </h4>
-            <p className="text-xs text-blue-600 dark:text-blue-300 mb-4">
-              Simpan data aplikasi (Waris, Zakat, Hafalan) ke file agar tidak
-              hilang saat clear cache atau ganti perangkat.
-            </p>
-            <div className="flex gap-3">
+    <>
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Pengaturan & Data"
+        maxWidth="max-w-md"
+      >
+        <div className="p-6 space-y-6">
+          <div className="space-y-4">
+            {/* SECTION: BACKUP & RESTORE */}
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800">
+              <h4 className="font-bold text-blue-800 dark:text-blue-200 mb-1">
+                Backup & Restore
+              </h4>
+              <p className="text-xs text-blue-600 dark:text-blue-300 mb-4">
+                Simpan data aplikasi (Waris, Zakat, Hafalan) ke file agar tidak
+                hilang saat clear cache atau ganti perangkat.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleBackup}
+                  className="flex-1 flex items-center justify-center gap-2 bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 py-2.5 rounded-lg text-sm font-bold hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    />
+                  </svg>
+                  Backup
+                </button>
+                <button
+                  onClick={handleRestoreClick}
+                  className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white py-2.5 rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                    />
+                  </svg>
+                  Restore
+                </button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept=".json"
+                  className="hidden"
+                />
+              </div>
+            </div>
+
+            {/* SECTION: LEGAL & INFO */}
+            <div className="border-t border-slate-100 dark:border-slate-700 pt-4">
+              <h4 className="font-bold text-slate-800 dark:text-slate-200 mb-3 text-sm">
+                Tentang Aplikasi
+              </h4>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setLegalType("terms")}
+                  className="text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 p-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors text-left"
+                >
+                  📜 Syarat & Ketentuan
+                </button>
+                <button
+                  onClick={() => setLegalType("privacy")}
+                  className="text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 p-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors text-left"
+                >
+                  🛡️ Kebijakan Privasi
+                </button>
+              </div>
+            </div>
+
+            {/* SECTION: DANGER ZONE */}
+            <div className="border-t border-slate-100 dark:border-slate-700 pt-4">
               <button
-                onClick={handleBackup}
-                className="flex-1 flex items-center justify-center gap-2 bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 py-2.5 rounded-lg text-sm font-bold hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
+                onClick={handleResetApp}
+                className="w-full flex items-center justify-center gap-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 py-3 rounded-xl transition-colors text-sm font-bold"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4"
+                  className="h-5 w-5"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -105,73 +184,26 @@ export const GlobalSettings: React.FC<GlobalSettingsProps> = ({
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="2"
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                   />
                 </svg>
-                Backup
+                Reset Total Aplikasi
               </button>
-              <button
-                onClick={handleRestoreClick}
-                className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white py-2.5 rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-                  />
-                </svg>
-                Restore
-              </button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                accept=".json"
-                className="hidden"
-              />
             </div>
           </div>
 
-          <div className="border-t border-slate-100 dark:border-slate-700 pt-4">
-            <button
-              onClick={handleResetApp}
-              className="w-full flex items-center justify-center gap-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 py-3 rounded-xl transition-colors text-sm font-bold"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                />
-              </svg>
-              Reset Total Aplikasi
-            </button>
+          <div className="text-center text-[10px] text-slate-400 dark:text-slate-500">
+            <p>NIZAMY Version 1.0.0</p>
+            <p>
+              Local Storage Usage:{" "}
+              {(JSON.stringify(localStorage).length / 1024).toFixed(2)} KB
+            </p>
           </div>
         </div>
+      </Modal>
 
-        <div className="text-center text-[10px] text-slate-400 dark:text-slate-500">
-          <p>NIZAMY Version 1.2.0</p>
-          <p>
-            Local Storage Usage:{" "}
-            {(JSON.stringify(localStorage).length / 1024).toFixed(2)} KB
-          </p>
-        </div>
-      </div>
-    </Modal>
+      {/* Render Legal Modal on top of Settings if active */}
+      <LegalModal type={legalType} onClose={() => setLegalType(null)} />
+    </>
   );
 };

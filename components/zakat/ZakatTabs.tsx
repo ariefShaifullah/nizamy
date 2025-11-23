@@ -21,9 +21,9 @@ import {
 // --- SHARED COMPONENTS ---
 
 export const ViewSummaryButton = ({ onClick }: { onClick: () => void }) => (
-  <div className="mt-8 pb-4 md:pb-0 animate-fade-in">
-    {/* Desktop View: Static Button */}
-    <div className="hidden md:flex pt-4 border-t border-slate-100 dark:border-slate-700 justify-between items-center gap-4">
+  <div className="mt-8 pb-4 md:pb-0 animate-fade-in hidden md:block">
+    {/* Desktop View: Static Button (Visible only on MD+) */}
+    <div className="flex pt-4 border-t border-slate-100 dark:border-slate-700 justify-between items-center gap-4">
       <p className="text-sm text-slate-500 dark:text-slate-400 italic flex items-center">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -60,16 +60,6 @@ export const ViewSummaryButton = ({ onClick }: { onClick: () => void }) => (
         </svg>
       </button>
     </div>
-
-    {/* Mobile View: Sticky Bottom Bar */}
-    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 p-4 z-40 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
-      <button
-        onClick={onClick}
-        className="w-full flex items-center justify-center px-6 py-3.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all active:scale-95 font-bold text-base shadow-md"
-      >
-        Lihat Hasil
-      </button>
-    </div>
   </div>
 );
 
@@ -83,7 +73,7 @@ interface TabProps {
 }
 
 export const FitrahView: React.FC<TabProps> = ({ state, onChange, onNext }) => (
-  <div className="space-y-6 animate-fade-in pb-20 md:pb-0">
+  <div className="space-y-6 animate-fade-in pb-24 md:pb-0">
     <div className="md:hidden mb-2">
       <h2 className="text-lg font-bold text-emerald-800 dark:text-emerald-400">
         Zakat Fitrah
@@ -162,7 +152,7 @@ export const MaalView: React.FC<TabProps> = ({
   const nisabGoldValue = 85 * settings.goldPrice;
 
   return (
-    <div className="space-y-6 animate-fade-in pb-20 md:pb-0">
+    <div className="space-y-6 animate-fade-in pb-24 md:pb-0">
       <div className="md:hidden mb-2">
         <h2 className="text-lg font-bold text-emerald-800 dark:text-emerald-400">
           Zakat Maal
@@ -248,7 +238,7 @@ export const GoldSilverView: React.FC<TabProps> = ({
   onChange,
   onNext,
 }) => (
-  <div className="space-y-6 animate-fade-in pb-20 md:pb-0">
+  <div className="space-y-6 animate-fade-in pb-24 md:pb-0">
     <h2 className="text-xl md:text-2xl font-bold text-emerald-800 dark:text-emerald-400 hidden md:block">
       Zakat Emas & Perak
     </h2>
@@ -305,7 +295,7 @@ export const BusinessView: React.FC<TabProps> = ({
   const nisabGoldValue = 85 * settings.goldPrice;
 
   return (
-    <div className="space-y-6 animate-fade-in pb-20 md:pb-0">
+    <div className="space-y-6 animate-fade-in pb-24 md:pb-0">
       <div className="hidden md:block">
         <h2 className="text-2xl font-bold text-emerald-800 dark:text-emerald-400">
           Zakat Perniagaan
@@ -353,7 +343,7 @@ export const AgricultureView: React.FC<TabProps> = ({
   onChange,
   onNext,
 }) => (
-  <div className="space-y-6 animate-fade-in pb-20 md:pb-0">
+  <div className="space-y-6 animate-fade-in pb-24 md:pb-0">
     <h2 className="text-xl md:text-2xl font-bold text-emerald-800 dark:text-emerald-400 hidden md:block">
       Zakat Pertanian
     </h2>
@@ -399,7 +389,7 @@ export const LivestockView: React.FC<TabProps> = ({
 }) => {
   const nisabGoldValue = 85 * settings.goldPrice;
   return (
-    <div className="space-y-6 animate-fade-in pb-20 md:pb-0">
+    <div className="space-y-6 animate-fade-in pb-24 md:pb-0">
       <h2 className="text-xl md:text-2xl font-bold text-emerald-800 dark:text-emerald-400 hidden md:block">
         Zakat Peternakan
       </h2>
@@ -467,30 +457,30 @@ export const SummaryView: React.FC<SummaryProps> = ({
   // Only show if there's value
   const chartData = [
     {
-      name: "Maal (Tunai/Simpanan)",
-      value: Math.max(
-        0,
-        state.cash +
-          state.savings +
-          state.investments +
-          state.otherAssets -
-          state.debts
-      ),
+      name: "Fitrah",
+      value: result.items.find((i) => i.id === "fitrah")?.zakatAmount || 0,
     },
     {
-      name: "Emas & Perak",
-      value: state.goldWeight * 2200000 + state.silverWeight * 25000,
-    }, // Approx visual value
-    {
-      name: "Perniagaan",
-      value: Math.max(
-        0,
-        state.bizAssets + state.bizInventory - state.bizLiabilities
-      ),
+      name: "Maal",
+      value: result.items.find((i) => i.id === "maal")?.zakatAmount || 0,
     },
-    { name: "Pertanian", value: state.agriHarvest },
-    { name: "Peternakan", value: state.livestockValue },
-    { name: "Rikaz", value: state.rikazValue },
+    {
+      name: "Emas/Perak",
+      value:
+        (result.items.find((i) => i.id === "gold")?.zakatAmount || 0) +
+        (result.items.find((i) => i.id === "silver")?.zakatAmount || 0),
+    },
+    {
+      name: "Niaga",
+      value: result.items.find((i) => i.id === "business")?.zakatAmount || 0,
+    },
+    {
+      name: "Lainnya",
+      value:
+        (result.items.find((i) => i.id === "agriculture")?.zakatAmount || 0) +
+        (result.items.find((i) => i.id === "livestock")?.zakatAmount || 0) +
+        (result.items.find((i) => i.id === "rikaz")?.zakatAmount || 0),
+    },
   ].filter((item) => item.value > 0);
 
   const hasChartData = chartData.length > 0;
@@ -634,7 +624,7 @@ export const SummaryView: React.FC<SummaryProps> = ({
               className="w-full lg:w-72 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-100 dark:border-slate-800"
             >
               <h5 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-4">
-                Komposisi Harta
+                Komposisi Zakat
               </h5>
               <div className="w-full h-48 relative">
                 <ResponsiveContainer width="100%" height="100%">

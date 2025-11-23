@@ -176,7 +176,7 @@ const ZakatCalculator: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto animate-fade-in pb-0 lg:pb-12">
+    <div className="max-w-7xl mx-auto animate-fade-in pb-0 lg:pb-12 relative">
       <div className="hidden lg:block text-center mb-8">
         <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-emerald-900 dark:text-emerald-400 sm:text-5xl drop-shadow-sm">
           Kalkulator Zakat
@@ -404,6 +404,33 @@ const ZakatCalculator: React.FC = () => {
           data={ZAKAT_FAQ}
         />
       </div>
+
+      {/* MOBILE FLOATING ACTION BUTTON (Global) */}
+      {/* Positioned outside any glass container to ensure fixed behavior */}
+      {activeTab !== "summary" && (
+        <div className="lg:hidden fixed bottom-[calc(2rem+env(safe-area-inset-bottom))] left-0 right-0 z-50 px-6 pointer-events-none flex justify-center">
+          <button
+            onClick={goToSummary}
+            className="pointer-events-auto w-full max-w-sm flex items-center justify-center bg-emerald-600/90 backdrop-blur-xl text-white font-bold py-4 px-6 rounded-full hover:bg-emerald-700 active:scale-95 transition-all shadow-2xl shadow-emerald-900/20 border border-white/10"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 mr-2.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              />
+            </svg>
+            <span className="text-base tracking-wide">Lihat Hasil</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };

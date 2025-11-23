@@ -1,5 +1,5 @@
 
-import React, { Component, type ReactNode } from 'react';
+import React, { type ReactNode, type ErrorInfo } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 import { ThemeProvider } from './components/ThemeContext.tsx';
@@ -10,7 +10,7 @@ import { ConfirmProvider } from './components/ui/ConfirmContext.tsx';
 // safely check if import.meta.env exists before accessing it.
 const isProduction = (() => {
   try {
-    // @ts-ignore
+    // @ts-ignore: Vite specific
     return import.meta.env && import.meta.env.PROD;
   } catch (e) {
     return false;
@@ -23,9 +23,6 @@ if (!rootElement) {
 }
 
 // --- SERVICE WORKER REGISTRATION ---
-// Register SW if browser supports it and we are in a "production-like" environment (or if env var is explicitly set)
-// Fallback: If import.meta.env is missing (native ES modules), we skip SW or enable based on hostname if needed.
-// For this setup, we'll enable it if not explicitly in DEV mode or if safely checked.
 if ('serviceWorker' in navigator && isProduction) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').then(
@@ -40,7 +37,7 @@ if ('serviceWorker' in navigator && isProduction) {
 }
 
 interface ErrorBoundaryProps {
-  children?: ReactNode;
+  children: ReactNode;
 }
 
 interface ErrorBoundaryState {
@@ -48,15 +45,18 @@ interface ErrorBoundaryState {
   error: Error | null;
 }
 
-class ErrorBoundary extends Component<
+class ErrorBoundary extends React.Component<
   ErrorBoundaryProps,
   ErrorBoundaryState
 > {
   public state: ErrorBoundaryState = { hasError: false, error: null };
-  props: any;
 
-  static getDerivedStateFromError(error: Error) {
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("Uncaught error:", error, errorInfo);
   }
 
   render() {

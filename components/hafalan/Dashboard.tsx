@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from "react";
 import type { HafalanState, HafalanSkillLevel } from "../../types.ts";
 import { audioService } from "../../services/audio.service.ts";
@@ -58,7 +59,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   );
 
   const profile = state.profile!;
-
+  
   // --- MEMOIZATION START ---
   const dueItems = useMemo(() => {
     const today = getLocalYYYYMMDD();
@@ -74,7 +75,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
     // Trigger Local Notification if enabled and items are due
     if (dueItems.length > 0 && notificationService.isEnabled()) {
-      notificationService.sendReminder(dueItems.length);
+        notificationService.sendReminder(dueItems.length);
     }
   }, [dueItems.length]);
 
@@ -84,26 +85,29 @@ export const Dashboard: React.FC<DashboardProps> = ({
     );
   }, [state.items]);
 
-  const dailyLimit = useMemo(
-    () => getMaxAyatByLevel(profile.skillLevel),
-    [profile.skillLevel]
-  );
-  const dailyUsed = useMemo(() => getDailyLoad(state.items), [state.items]);
-  const dailyRemaining = Math.max(0, dailyLimit - dailyUsed);
-  const isQuotaFull = dailyRemaining === 0;
-  const isMaxLevel = profile.skillLevel === "advanced";
+  // Optimization: Memoize daily stats calculation
+  const { dailyLimit, dailyUsed, dailyRemaining, isQuotaFull, isMaxLevel } = useMemo(() => {
+      const limit = getMaxAyatByLevel(profile.skillLevel);
+      const used = getDailyLoad(state.items);
+      const remaining = Math.max(0, limit - used);
+      return {
+          dailyLimit: limit,
+          dailyUsed: used,
+          dailyRemaining: remaining,
+          isQuotaFull: remaining === 0,
+          isMaxLevel: profile.skillLevel === "advanced"
+      };
+  }, [profile.skillLevel, state.items]);
 
   const challengePercent = useMemo(() => {
+    if (state.gamification.weeklyChallengeTarget === 0) return 0;
     return Math.min(
-      100,
-      (state.gamification.weeklyChallengeProgress /
+        100,
+        (state.gamification.weeklyChallengeProgress /
         state.gamification.weeklyChallengeTarget) *
         100
     );
-  }, [
-    state.gamification.weeklyChallengeProgress,
-    state.gamification.weeklyChallengeTarget,
-  ]);
+  }, [state.gamification.weeklyChallengeProgress, state.gamification.weeklyChallengeTarget]);
   // --- MEMOIZATION END ---
 
   const desktopContentTab =
@@ -341,9 +345,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     <div>
                       <h4
                         className={`font-bold text-lg ${
-                          isQuotaFull
-                            ? "text-green-900 dark:text-green-300"
-                            : "text-indigo-900 dark:text-indigo-300"
+                          isQuotaFull ? "text-green-900 dark:text-green-300" : "text-indigo-900 dark:text-indigo-300"
                         }`}
                       >
                         {isQuotaFull
@@ -521,9 +523,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </h4>
             <div className="mt-2">
               <div className="flex justify-between text-xs font-medium mb-1">
-                <span className="text-slate-500 dark:text-slate-400">
-                  Progress
-                </span>
+                <span className="text-slate-500 dark:text-slate-400">Progress</span>
                 <span className="text-orange-600 dark:text-orange-400">
                   {state.gamification.weeklyChallengeProgress} /{" "}
                   {state.gamification.weeklyChallengeTarget} XP

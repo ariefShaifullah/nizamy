@@ -1,9 +1,10 @@
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import type { HafalanItem } from "../../types.ts";
 import { audioService } from "../../services/audio.service.ts";
 import { fetchQuranVerses } from "../../services/hafalan.service.ts";
 import { QuranPlayer } from "./QuranPlayer.tsx";
+import { useWakeLock } from "../../hooks/useWakeLock.ts";
 
 interface ReviewSessionProps {
   item: HafalanItem;
@@ -31,8 +32,8 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
   const [showPlayer, setShowPlayer] = useState(isPractice);
   const [manualJumpAyah, setManualJumpAyah] = useState<number | null>(null);
   
-  // Wake Lock Reference
-  const wakeLockRef = useRef<any>(null);
+  // Use Custom Hook for Wake Lock
+  const { requestLock, releaseLock } = useWakeLock();
 
   const loadVerses = () => {
     setIsLoadingText(true);
@@ -72,46 +73,15 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
     const originalStyle = window.getComputedStyle(document.body).overflow;
     document.body.style.overflow = 'hidden';
 
-    // 2. Wake Lock: Keep screen on
-    const requestWakeLock = async () => {
-      if ('wakeLock' in navigator) {
-        try {
-          wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
-        } catch (err) {
-          console.debug('Wake Lock request failed:', err);
-        }
-      }
-    };
-
-    const releaseWakeLock = async () => {
-      if (wakeLockRef.current) {
-        try {
-          await wakeLockRef.current.release();
-          wakeLockRef.current = null;
-        } catch (err) {
-          console.debug('Wake Lock release failed:', err);
-        }
-      }
-    };
-
-    // Request on mount
-    requestWakeLock();
-
-    // Re-request if visibility changes (e.g. user switches tabs and comes back)
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        requestWakeLock();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    // 2. Request Wake Lock
+    requestLock();
 
     // Cleanup
     return () => {
       document.body.style.overflow = originalStyle;
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      releaseWakeLock();
+      releaseLock();
     };
-  }, []);
+  }, [requestLock, releaseLock]);
 
   const handleAyahClick = (ayahNumber: number) => {
     if (isPractice) {

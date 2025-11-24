@@ -1,202 +1,358 @@
 /**
  * Advanced Tajwid Analysis Helper
- * Handles Intra-word rules, Inter-word rules (Nun Mati/Tanwin), and Special Cases (Isymam, etc.)
+ * Handles Intra-word rules, Inter-word rules (Nun Mati/Tanwin, Mad), and Special Cases.
  */
 
 interface TajwidRule {
-    name: string;
-    description: string;
-    color: string; // Tailwind class for badge
+  name: string;
+  description: string;
+  color: string; // Tailwind class for badge
 }
 
 // --- REGEX PATTERNS (ARABIC UNICODE) ---
-// Harakat
-const FATHA = '\u064E';
-const KASRA = '\u0650';
-const DAMMA = '\u064F';
-const SUKUN = '\u0652';
-const SHADDA = '\u0651';
+// Harakat & Diacritics
+const FATHA = "\u064E";
+const DAMMA = "\u064F";
+const KASRA = "\u0650";
+const SUKUN = "\u0652";
+const SHADDA = "\u0651";
+const MADDA_SIGN = "\u0653"; // Tanda layar/alis
+const SMALL_ALIF = "\u0670"; // Alif Khanjareeya
 
 // Tanwin
-const FATHATAIN = '\u064B';
-const DAMMATAIN = '\u064C';
-const KASRATAIN = '\u064D';
+const FATHATAIN = "\u064B";
+const DAMMATAIN = "\u064C";
+const KASRATAIN = "\u064D";
 
 // Letters Groups
-const HURUF_HALQI = '[ءأإهعحغخ]'; // Izhar Halqi
-const HURUF_IDGHAM_BIGUNNAH = '[يمنو]';
-const HURUF_IDGHAM_BILAGUNNAH = '[لر]';
-const HURUF_IQLAB = 'ب';
-const HURUF_IKHFA = '[تثجدذزسشصضطظفقك]';
-const HURUF_QALQALAH = '[قطبجد]';
-const HURUF_MIM = 'م';
-const HURUF_BA = 'ب';
+const HURUF_HALQI = "[ءأإهعحغخ]";
+const HURUF_IDGHAM_BIGUNNAH = "[يمنو]";
+const HURUF_IDGHAM_BILAGUNNAH = "[لر]";
+const HURUF_IQLAB = "ب";
+const HURUF_IKHFA = "[تثجدذزسشصضطظفقك]";
+const HURUF_QALQALAH = "[قطبجد]";
+const HURUF_MIM = "م";
+const HURUF_BA = "ب";
+const HURUF_MAD = "[اويى]";
+const HAMZAH_FORMS = "[ءأإ]";
 
 // Special Cases Lookup (Location based: "surah:ayah:wordPosition")
-// Updated indices based on standard Uthmani word segmentation
 const SPECIAL_RULES: Record<string, TajwidRule> = {
-    // IMALAH: QS Hud (11:41) - Majreeha (Word 6 approx)
-    "11:41:6": {
-        name: "Imalah (Gharib)",
-        description: "Bacaan 'Majreeha' dibaca miring antara Fatah dan Kasrah (seperti bunyi 'Re' pada sate).",
-        color: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 border border-purple-200 dark:border-purple-700"
-    },
-    // ISYMAM: QS Yusuf (12:11) - Ta'manna (Word 6)
-    "12:11:6": { // Corrected from 5
-        name: "Isymam (Gharib)",
-        description: "Mencucu (isyarat bibir) di tengah dengung tanpa suara pada kata 'Laa Ta'manna'.",
-        color: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 border border-purple-200 dark:border-purple-700"
-    },
-    // TASHIL: QS Fussilat (41:44) - A'jamiyyun (Word 10)
-    "41:44:10": { // Corrected from 2
-        name: "Tashil (Gharib)",
-        description: "Hamzah kedua dibaca samar/ringan (antara Hamzah dan Alif).",
-        color: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 border border-purple-200 dark:border-purple-700"
-    },
-    // SAKTAH: QS Al-Qiyamah (75:27) - Man (Word 3)
-    "75:27:3": { // Corrected from 2
-        name: "Saktah (Gharib)",
-        description: "Berhenti sejenak tanpa mengambil napas.",
-        color: "bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200 border border-rose-200 dark:border-rose-700"
-    },
-    // SAKTAH: QS Al-Kahf (18:1) - 'Iwaja (Word 9 approx)
-    "18:1:9": { 
-        name: "Saktah (Gharib)",
-        description: "Berhenti sejenak tanpa mengambil napas sebelum lanjut ke ayat berikutnya.",
-        color: "bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200 border border-rose-200 dark:border-rose-700"
-    },
-    // SAKTAH: QS Yasin (36:52) - Marqadina (Word 6)
-    "36:52:6": { 
-        name: "Saktah (Gharib)",
-        description: "Berhenti sejenak tanpa mengambil napas.",
-        color: "bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200 border border-rose-200 dark:border-rose-700"
-    },
-    // SAKTAH: QS Al-Mutaffifin (83:14) - Bal (Word 2)
-    "83:14:2": { 
-        name: "Saktah (Gharib)",
-        description: "Berhenti sejenak tanpa mengambil napas.",
-        color: "bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200 border border-rose-200 dark:border-rose-700"
-    }
+  "11:41:6": {
+    name: "Imalah (Gharib)",
+    description:
+      "Bacaan 'Majreeha' dibaca miring (seperti bunyi 'Re' pada sate).",
+    color:
+      "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 border border-purple-200 dark:border-purple-700",
+  },
+  "12:11:6": {
+    name: "Isymam (Gharib)",
+    description: "Isyarat bibir mencucu di tengah dengung tanpa suara.",
+    color:
+      "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 border border-purple-200 dark:border-purple-700",
+  },
+  "41:44:10": {
+    name: "Tashil (Gharib)",
+    description: "Hamzah kedua dibaca samar/ringan.",
+    color:
+      "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 border border-purple-200 dark:border-purple-700",
+  },
+  "75:27:3": {
+    name: "Saktah (Gharib)",
+    description: "Berhenti sejenak tanpa mengambil napas.",
+    color:
+      "bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200 border border-rose-200 dark:border-rose-700",
+  },
+  "18:1:9": {
+    name: "Saktah (Gharib)",
+    description:
+      "Berhenti sejenak tanpa mengambil napas sebelum ayat berikutnya.",
+    color:
+      "bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200 border border-rose-200 dark:border-rose-700",
+  },
+  "36:52:6": {
+    name: "Saktah (Gharib)",
+    description: "Berhenti sejenak tanpa mengambil napas.",
+    color:
+      "bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200 border border-rose-200 dark:border-rose-700",
+  },
+  "83:14:2": {
+    name: "Saktah (Gharib)",
+    description: "Berhenti sejenak tanpa mengambil napas.",
+    color:
+      "bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200 border border-rose-200 dark:border-rose-700",
+  },
 };
 
-export const analyzeTajwid = (text: string, nextText?: string, location?: string): TajwidRule[] => {
-    const rules: TajwidRule[] = [];
-    
-    // 0. Check Special Rules (Gharib) - High Priority
-    // Checks if the specific location exists in our map
-    if (location) {
-        // Direct match
-        if (SPECIAL_RULES[location]) {
-            rules.push(SPECIAL_RULES[location]);
-        } 
-        // Fallback: sometimes API splitting is inconsistent, we can add fuzzy logic here later if needed.
-    }
+export const analyzeTajwid = (
+  text: string,
+  nextText?: string,
+  location?: string
+): TajwidRule[] => {
+  const rules: TajwidRule[] = [];
 
-    // Normalize Text (Remove some marks for easier regex but keep Harakat for precision)
-    const cleanText = text; 
-    const lastChar = cleanText.slice(-1); 
-    const nextFirstChar = nextText ? nextText.trim().charAt(0) : ''; 
+  // 0. Check Special Rules (Gharib)
+  if (location && SPECIAL_RULES[location]) {
+    rules.push(SPECIAL_RULES[location]);
+  }
 
-    // Helpers
-    const endsWithNunSakinah = new RegExp(`ن${SUKUN}$`).test(cleanText);
-    const endsWithTanwin = new RegExp(`[${FATHATAIN}${DAMMATAIN}${KASRATAIN}]$`).test(cleanText);
-    const endsWithMimSakinah = new RegExp(`م${SUKUN}$`).test(cleanText);
+  const cleanText = text.trim();
+  // Uthmani Script nuances: Nun Sukun is often written as just 'Nun' without harakat when followed by Idgham/Ikhfa
+  // So we check for Nun ending with Sukun OR Nun ending with no vowels.
+  const lastChar = cleanText.slice(-1);
 
-    // --- 1. HUKUM NUN MATI & TANWIN (Inter-word & Intra-word) ---
-    
-    // A. Intra-word (Dalam satu kata)
-    if (/نْ[تثجدذزسشصضطظفقك]/.test(cleanText)) {
-        rules.push({ name: "Ikhfa Haqiqi", description: "Samarkan bunyi Nun Mati, tahan dengung 2-3 harakat.", color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200" });
-    }
-    if (/نْ[ب]/.test(cleanText) || /ۢ/.test(cleanText)) { // Small Meem (Iqlab marker)
-        rules.push({ name: "Iqlab", description: "Ganti bunyi Nun menjadi Mim, tahan dengung.", color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" });
-    }
-    if (/نْ[ءأإهعحغخ]/.test(cleanText)) {
-        rules.push({ name: "Izhar Halqi", description: "Baca Nun Mati dengan jelas tanpa dengung.", color: "bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-200" });
-    }
+  // Get first char of next word (strip Alif Lam Syamsiyah markers if needed, but raw is usually fine)
+  const nextClean = nextText ? nextText.trim() : "";
+  const nextFirstChar = nextClean.charAt(0);
 
-    // B. Inter-word (Antara dua kata)
-    if ((endsWithNunSakinah || endsWithTanwin) && nextFirstChar) {
-        if (new RegExp(HURUF_IDGHAM_BIGUNNAH).test(nextFirstChar)) {
-            rules.push({ name: "Idgham Bigunnah", description: "Lelehkan bunyi ke huruf depannya dengan dengung (Ghunnah).", color: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200" });
-        } else if (new RegExp(HURUF_IDGHAM_BILAGUNNAH).test(nextFirstChar)) {
-            rules.push({ name: "Idgham Bilagunnah", description: "Lelehkan bunyi ke huruf depannya TANPA dengung.", color: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200" });
-        } else if (new RegExp(HURUF_IQLAB).test(nextFirstChar)) {
-            rules.push({ name: "Iqlab", description: "Bunyi Nun/Tanwin berubah menjadi Mim samar dengan dengung.", color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" });
-        } else if (new RegExp(HURUF_IKHFA).test(nextFirstChar)) {
-            rules.push({ name: "Ikhfa Haqiqi", description: "Samarkan bunyi Nun/Tanwin, tahan dengung.", color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200" });
-        } else if (new RegExp(HURUF_HALQI).test(nextFirstChar)) {
-            rules.push({ name: "Izhar Halqi", description: "Jelaskan bunyi Nun/Tanwin tanpa dengung.", color: "bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-200" });
-        }
-    }
+  // Detect Nun Mati / Tanwin at End of Word
+  const hasNunSakinahSuffix = /ن$|نْ$/.test(cleanText); // Nun at end or Nun Sukun
+  const hasTanwinSuffix = new RegExp(
+    `[${FATHATAIN}${DAMMATAIN}${KASRATAIN}]$`
+  ).test(cleanText);
+  const isNunOrTanwin = hasNunSakinahSuffix || hasTanwinSuffix;
 
-    // --- 2. HUKUM MIM MATI ---
-    if (endsWithMimSakinah && nextFirstChar) {
-        if (new RegExp(HURUF_MIM).test(nextFirstChar)) {
-            rules.push({ name: "Idgham Mimi (Mutamatsilain)", description: "Mim bertemu Mim. Masukkan dengan dengung sempurna.", color: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200" });
-        } else if (new RegExp(HURUF_BA).test(nextFirstChar)) {
-            rules.push({ name: "Ikhfa Syafawi", description: "Mim bertemu Ba. Samarkan bunyi Mim di bibir dengan dengung.", color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200" });
-        } else {
-            rules.push({ name: "Izhar Syafawi", description: "Mim bertemu huruf lain. Baca jelas di bibir tanpa dengung.", color: "bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-200" });
-        }
+  // --- 1. HUKUM NUN MATI & TANWIN (ANTAR KATA) ---
+  if (isNunOrTanwin && nextFirstChar) {
+    if (new RegExp(HURUF_IDGHAM_BIGUNNAH).test(nextFirstChar)) {
+      rules.push({
+        name: "Idgham Bigunnah",
+        description: "Leburkan bunyi N ke huruf depannya dengan dengung.",
+        color:
+          "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200 border border-pink-200 dark:border-pink-800",
+      });
+    } else if (new RegExp(HURUF_IDGHAM_BILAGUNNAH).test(nextFirstChar)) {
+      rules.push({
+        name: "Idgham Bilagunnah",
+        description: "Leburkan bunyi N ke huruf depannya TANPA dengung.",
+        color:
+          "bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600",
+      });
+    } else if (new RegExp(HURUF_IQLAB).test(nextFirstChar)) {
+      rules.push({
+        name: "Iqlab",
+        description: "Bunyi N berubah menjadi Mim samar dengan dengung.",
+        color:
+          "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 border border-blue-200 dark:border-blue-800",
+      });
+    } else if (new RegExp(HURUF_IKHFA).test(nextFirstChar)) {
+      rules.push({
+        name: "Ikhfa Haqiqi",
+        description: "Samarkan bunyi N, tahan dengung 2-3 harakat.",
+        color:
+          "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-800",
+      });
+    } else if (new RegExp(HURUF_HALQI).test(nextFirstChar)) {
+      rules.push({
+        name: "Izhar Halqi",
+        description: "Baca N dengan jelas, tegas, tanpa dengung.",
+        color:
+          "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600",
+      });
     }
+  }
 
-    // --- 3. QALQALAH ---
-    if (new RegExp(`${HURUF_QALQALAH}${SUKUN}`).test(cleanText)) {
-        rules.push({
-            name: "Qalqalah Sugra",
-            description: "Pantulkan suara huruf mati di tengah kata dengan ringan.",
-            color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-        });
-    }
-    // Check end of word for potential Qalqalah Kubra (if stopped)
-    if (new RegExp(`[${HURUF_QALQALAH.replace('[','').replace(']','')}]$`).test(cleanText) || new RegExp(`${HURUF_QALQALAH}[${FATHA}${KASRA}${DAMMA}]`).test(cleanText)) {
-         // Only suggest if it's the last letter
-         const lastLetter = cleanText.trim().slice(-1);
-         if ('قطبجد'.includes(lastLetter)) {
-             rules.push({
-                name: "Qalqalah Kubra (Jika Waqaf)",
-                description: "Jika berhenti di sini, pantulkan suara huruf akhir dengan kuat.",
-                color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-            });
-         }
-    }
+  // --- 2. HUKUM NUN MATI (DALAM KATA / INTRA-WORD) ---
+  if (/نْ[تثجدذزسشصضطظفقك]/.test(cleanText)) {
+    rules.push({
+      name: "Ikhfa Haqiqi (Satu Kata)",
+      description: "Samarkan bunyi Nun di tengah kata.",
+      color:
+        "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
+    });
+  }
+  if (/نْ[ب]/.test(cleanText) || /ۢ/.test(cleanText)) {
+    rules.push({
+      name: "Iqlab",
+      description: "Nun Mati bertemu Ba di satu kata.",
+      color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+    });
+  }
+  // Izhar Mutlaq (Worldly Izhar) - Specific Words
+  if (/(دنْيَا|بنْيَان|قنْوَان|صنْوَان)/.test(cleanText)) {
+    rules.push({
+      name: "Izhar Mutlaq",
+      description:
+        "Pengecualian: Nun mati bertemu Ya/Waw dalam satu kata. Baca JELAS.",
+      color:
+        "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 border border-orange-200 dark:border-orange-800",
+    });
+  }
 
-    // --- 4. GHUNNAH MUSYADADAH ---
-    // Nun atau Mim bertasydid
-    if (/نّ|مّ/.test(cleanText) || new RegExp(`[نم]${SHADDA}`).test(cleanText)) {
-        rules.push({
-            name: "Ghunnah Musyadadah",
-            description: "Nun/Mim bertasydid. Tahan dengung yang kuat (2-3 harakat).",
-            color: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200"
-        });
+  // --- 3. HUKUM MIM MATI ---
+  // Check ending Mim Sakinah
+  const endsWithMimSakinah = /م$|مْ$/.test(cleanText);
+  if (endsWithMimSakinah && nextFirstChar) {
+    if (new RegExp(HURUF_MIM).test(nextFirstChar)) {
+      rules.push({
+        name: "Idgham Mimi",
+        description: "Mim bertemu Mim. Masukkan dengan dengung sempurna.",
+        color: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
+      });
+    } else if (new RegExp(HURUF_BA).test(nextFirstChar)) {
+      rules.push({
+        name: "Ikhfa Syafawi",
+        description: "Mim bertemu Ba. Samarkan bibir dengan dengung.",
+        color:
+          "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
+      });
+    } else {
+      rules.push({
+        name: "Izhar Syafawi",
+        description:
+          "Mim bertemu huruf lain. Baca jelas di bibir tanpa dengung.",
+        color:
+          "bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-200",
+      });
     }
+  }
 
-    // --- 5. MAD (Basic Detection) ---
-    if (/\u0653/.test(cleanText) || /ۤ/.test(cleanText)) { // Madda sign
-        rules.push({
-            name: "Mad Wajib/Jaiz",
-            description: "Terdapat tanda layar/alis. Panjangkan 4-5 harakat.",
-            color: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200"
-        });
-    }
-    else if (/(َ[\u0627\u0649]|ِيْ|ُو)/.test(cleanText) && rules.length === 0) { 
-         rules.push({
-            name: "Mad Thabi'i",
-            description: "Panjangkan bacaan 2 harakat (ayunan normal).",
-            color: "bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-200"
-        });
-    }
+  // --- 4. HUKUM MAD (PANJANG) ---
 
-    // --- 6. LAM JALALAH ---
-    if (cleanText.includes('ٱللَّه') || cleanText.includes('لِلَّهِ')) {
-        rules.push({
-            name: "Lam Jalalah",
-            description: "Lafaz Allah. Tafkhim (tebal) jika didahului Fathah/Dammah, Tarqiq (tipis) jika Kasrah.",
-            color: "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200"
-        });
-    }
+  // Mad Jaiz Munfasil (Antar Kata)
+  // Pattern: Ends with Mad Letter (Alif/Waw/Ya) + Next word starts with Hamzah/Alif
+  // Uthmani often puts a madd sign (~) on top if it meets Hamzah
+  const hasMaddSign = cleanText.includes(MADDA_SIGN);
 
-    // Remove duplicates based on name
-    return rules.filter((v,i,a)=>a.findIndex(v2=>(v2.name===v.name))===i);
+  if (
+    hasMaddSign &&
+    nextFirstChar &&
+    new RegExp(HAMZAH_FORMS).test(nextFirstChar)
+  ) {
+    rules.push({
+      name: "Mad Jaiz Munfasil",
+      description: "Mad bertemu Hamzah di lain kata. Panjangkan 4-5 harakat.",
+      color:
+        "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200 border border-indigo-200 dark:border-indigo-800",
+    });
+  }
+  // Mad Wajib Muttasil (Dalam Kata)
+  // Pattern: Mad + Hamzah in same word. Usually marked with Madd Sign inside word followed by Hamzah
+  else if (hasMaddSign && new RegExp(`${HAMZAH_FORMS}`).test(cleanText)) {
+    rules.push({
+      name: "Mad Wajib Muttasil",
+      description:
+        "Mad bertemu Hamzah dalam satu kata. Wajib panjang 4-5 harakat.",
+      color:
+        "bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200 border border-violet-200 dark:border-violet-800",
+    });
+  }
+  // Mad Lazim (Simplistic detection via Madd Sign + Shadda/Sukun)
+  else if (
+    hasMaddSign &&
+    (cleanText.includes(SHADDA) || cleanText.includes(SUKUN))
+  ) {
+    rules.push({
+      name: "Mad Lazim",
+      description: "Mad bertemu Tasydid/Sukun. Panjangkan 6 harakat (berat).",
+      color:
+        "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 border border-purple-200 dark:border-purple-800",
+    });
+  }
+
+  // Mad Thabi'i (Generic)
+  // Check for Fatha+Alif, Kasra+Ya, Damma+Waw NOT followed by Hamzah/Sukun immediately
+  // This is a fallback rule if no specific Mad rules apply
+  const hasMadPattern = /(َ[اى]|ِ[يۦ]|ُ[و])/.test(cleanText);
+  if (hasMadPattern && rules.length === 0) {
+    rules.push({
+      name: "Mad Thabi'i",
+      description: "Panjangkan 2 harakat (ayunan normal).",
+      color:
+        "bg-slate-50 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700",
+    });
+  }
+
+  // --- 5. ALIF LAM (SYAMSIYAH & QAMARIYAH) ---
+  if (cleanText.startsWith("ٱل")) {
+    // Check 3rd character (after Alif + Lam)
+    const thirdChar = cleanText[2] || cleanText[3]; // Sometimes indexes shift due to tashkeel
+    if (thirdChar && cleanText.includes(SHADDA)) {
+      // Check if Shadda exists early in word
+      rules.push({
+        name: "Alif Lam Syamsiyah",
+        description:
+          "Lam dianggap tidak ada. Masuk langsung ke huruf bertasydid.",
+        color:
+          "bg-orange-50 text-orange-800 dark:bg-orange-900/50 dark:text-orange-200",
+      });
+    } else {
+      rules.push({
+        name: "Alif Lam Qamariyah",
+        description: "Lam sukun dibaca jelas.",
+        color: "bg-sky-50 text-sky-800 dark:bg-sky-900/50 dark:text-sky-200",
+      });
+    }
+  }
+
+  // --- 6. QALQALAH ---
+  // Sugra (Tengah)
+  if (new RegExp(`${HURUF_QALQALAH}${SUKUN}`).test(cleanText)) {
+    rules.push({
+      name: "Qalqalah Sugra",
+      description: "Pantulan ringan di tengah kata.",
+      color:
+        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 border border-yellow-200 dark:border-yellow-800",
+    });
+  }
+  // Kubra (Akhir - Jika Waqaf)
+  const lastLetter = cleanText.replace(/[ًٌٍَُِّْ]/g, "").slice(-1); // Strip harakat to get raw letter
+  if ("قطبجد".includes(lastLetter)) {
+    rules.push({
+      name: "Qalqalah Kubra (Jika Waqaf)",
+      description: "Jika berhenti, pantulkan suara huruf akhir dengan kuat.",
+      color:
+        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 border border-yellow-200 dark:border-yellow-800",
+    });
+  }
+
+  // --- 7. GHUNNAH MUSYADADAH ---
+  if (/نّ|مّ/.test(cleanText) || new RegExp(`[نم]${SHADDA}`).test(cleanText)) {
+    rules.push({
+      name: "Ghunnah Musyadadah",
+      description: "Nun/Mim bertasydid. Tahan dengung yang kuat (2-3 harakat).",
+      color:
+        "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200 border border-pink-200 dark:border-pink-800",
+    });
+  }
+
+  // --- 8. HUKUM RO (TAFKHIM/TARQIQ) ---
+  // Ro Fatha/Damma -> Tafkhim
+  if (
+    new RegExp(`ر${FATHA}|ر${DAMMA}|ر${FATHATAIN}|ر${DAMMATAIN}`).test(
+      cleanText
+    )
+  ) {
+    rules.push({
+      name: "Ro Tafkhim",
+      description: "Huruf Ro dibaca tebal (mulut membulat).",
+      color:
+        "bg-stone-100 text-stone-800 dark:bg-stone-800 dark:text-stone-300 border border-stone-200 dark:border-stone-700",
+    });
+  }
+  // Ro Kasra -> Tarqiq
+  else if (new RegExp(`ر${KASRA}|ر${KASRATAIN}`).test(cleanText)) {
+    rules.push({
+      name: "Ro Tarqiq",
+      description: "Huruf Ro dibaca tipis (meringis).",
+      color:
+        "bg-stone-100 text-stone-800 dark:bg-stone-800 dark:text-stone-300 border border-stone-200 dark:border-stone-700",
+    });
+  }
+
+  // --- 9. LAM JALALAH (ALLAH) ---
+  if (cleanText.includes("ٱللَّه")) {
+    rules.push({
+      name: "Lam Jalalah",
+      description:
+        "Lafaz Allah. Tebal jika didahului Fathah/Dammah, Tipis jika Kasrah.",
+      color:
+        "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200 border border-teal-200 dark:border-teal-800",
+    });
+  }
+
+  // Remove duplicates based on name
+  return rules.filter(
+    (v, i, a) => a.findIndex((v2) => v2.name === v.name) === i
+  );
 };

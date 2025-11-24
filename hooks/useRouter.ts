@@ -8,7 +8,7 @@ export const useRouter = () => {
     if (typeof window === 'undefined') return 'home';
     const params = new URLSearchParams(window.location.search);
     const viewParam = params.get('view');
-    if (viewParam === 'faraidh' || viewParam === 'zakat' || viewParam === 'hafalan') {
+    if (viewParam === 'faraidh' || viewParam === 'zakat' || viewParam === 'hafalan' || viewParam === 'mushaf') {
         return viewParam as ViewState;
     }
     return 'home';
@@ -28,7 +28,7 @@ export const useRouter = () => {
 
     window.addEventListener('popstate', handlePopState);
 
-    // Initialize History State kalo kosong
+    // Initialize History State if empty
     try {
         if (!window.history.state) {
             const currentView = getInitialView();

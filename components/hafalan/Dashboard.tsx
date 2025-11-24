@@ -1,10 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from "react";
-import type {
-  HafalanState,
-  HafalanSkillLevel,
-  HafalanItem,
-} from "../../types.ts";
+import type { HafalanState, HafalanSkillLevel, HafalanItem } from "../../types.ts";
 import { audioService } from "../../services/audio.service.ts";
 import { notificationService } from "../../services/notification.service.ts";
 import {
@@ -24,8 +20,75 @@ import {
   HafalanSettingsModal,
   CelebrationModal,
 } from "./HafalanModals.tsx";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 
-// --- SUB-COMPONENTS (Internal Refactoring) ---
+// --- SUB-COMPONENTS ---
+
+const ProgressChart: React.FC<{ items: HafalanItem[] }> = React.memo(({ items }) => {
+    const data = useMemo(() => {
+        const counts = {
+            new: 0, // Stage 0
+            learning: 0, // Stage 1-4
+            mastered: 0 // Stage 5
+        };
+        
+        items.forEach(i => {
+            if (i.stage === 0) counts.new++;
+            else if (i.stage >= 5) counts.mastered++;
+            else counts.learning++;
+        });
+
+        return [
+            { name: 'Baru', value: counts.new, color: '#818cf8' },
+            { name: 'Sedang Menghafal', value: counts.learning, color: '#fbbf24' },
+            { name: 'Mutqin (Lancar)', value: counts.mastered, color: '#34d399' }
+        ].filter(d => d.value > 0);
+    }, [items]);
+
+    if (items.length === 0) return null;
+
+    return (
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-lg shadow-emerald-50/50 dark:shadow-none">
+            <h4 className="font-bold text-slate-800 dark:text-white mb-4 flex items-center"><span className="text-xl mr-2 p-1 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">📊</span> Peta Hafalan</h4>
+            <div className="h-48 w-full relative">
+                <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                        <Pie
+                            data={data}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={40}
+                            outerRadius={70}
+                            paddingAngle={5}
+                            dataKey="value"
+                            stroke="none"
+                        >
+                            {data.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                        </Pie>
+                        <RechartsTooltip 
+                            contentStyle={{ backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: '12px', fontSize: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                            itemStyle={{ color: '#1e293b' }}
+                        />
+                    </PieChart>
+                </ResponsiveContainer>
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                    <span className="block text-2xl font-bold text-slate-800 dark:text-white">{items.length}</span>
+                    <span className="text-[10px] text-slate-400 uppercase tracking-widest">Total</span>
+                </div>
+            </div>
+            <div className="flex flex-wrap gap-3 mt-2 justify-center">
+                {data.map(d => (
+                    <div key={d.name} className="flex items-center text-xs text-slate-500 dark:text-slate-400">
+                        <span className="w-2 h-2 rounded-full mr-1.5" style={{ backgroundColor: d.color }}></span>
+                        {d.name} ({d.value})
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+});
 
 const StatsHeader: React.FC<{ 
     profile: any; 
@@ -126,11 +189,7 @@ interface DashboardProps {
   onAddClick: () => void;
   onStartReview: (item: any) => void;
   onStartPractice: (item: any) => void;
-  onUpdateProfile: (updates: {
-    name: string;
-    skillLevel: HafalanSkillLevel;
-    targetJuz: number;
-  }) => void;
+  onUpdateProfile: (updates: { name: string; skillLevel: HafalanSkillLevel; targetJuz: number; }) => void;
   onLogout: () => void;
   earnedBadgesQueue: string[];
   onClearBadges: () => void;
@@ -152,12 +211,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [activeTab, setActiveTab] = useState<TabView>("schedule");
   const [showTutorial, setShowTutorial] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [selectedDetailItem, setSelectedDetailItem] = useState<any | null>(
-    null
-  );
+  const [selectedDetailItem, setSelectedDetailItem] = useState<any | null>(null);
 
   const profile = state.profile!;
-
+  
   // Memoized Data
   const dueItems = useMemo(() => {
     const today = getLocalYYYYMMDD();
@@ -167,144 +224,62 @@ export const Dashboard: React.FC<DashboardProps> = ({
   }, [state.items]);
 
   const allItems = useMemo(() => {
-    return [...state.items].sort(
-      (a, b) => a.surahNo - b.surahNo || a.startAyah - b.startAyah
-    );
+    return [...state.items].sort((a, b) => a.surahNo - b.surahNo || a.startAyah - b.startAyah);
   }, [state.items]);
 
   const { dailyLimit, dailyUsed, dailyRemaining, isQuotaFull } = useMemo(() => {
-    const limit = getMaxAyatByLevel(profile.skillLevel);
-    const used = getDailyLoad(state.items);
-    const remaining = Math.max(0, limit - used);
-    return {
-      dailyLimit: limit,
-      dailyUsed: used,
-      dailyRemaining: remaining,
-      isQuotaFull: remaining === 0,
-    };
+      const limit = getMaxAyatByLevel(profile.skillLevel);
+      const used = getDailyLoad(state.items);
+      const remaining = Math.max(0, limit - used);
+      return { dailyLimit: limit, dailyUsed: used, dailyRemaining: remaining, isQuotaFull: remaining === 0 };
   }, [profile.skillLevel, state.items]);
 
   const challengePercent = useMemo(() => {
     if (state.gamification.weeklyChallengeTarget === 0) return 0;
-    return Math.min(
-      100,
-      (state.gamification.weeklyChallengeProgress /
-        state.gamification.weeklyChallengeTarget) *
-        100
-    );
-  }, [
-    state.gamification.weeklyChallengeProgress,
-    state.gamification.weeklyChallengeTarget,
-  ]);
+    return Math.min(100, (state.gamification.weeklyChallengeProgress / state.gamification.weeklyChallengeTarget) * 100);
+  }, [state.gamification.weeklyChallengeProgress, state.gamification.weeklyChallengeTarget]);
 
   useEffect(() => {
     notificationService.updateAppBadge(dueItems.length);
     if (dueItems.length > 0 && notificationService.isEnabled()) {
-      notificationService.sendReminder(dueItems.length);
+        notificationService.sendReminder(dueItems.length);
     }
   }, [dueItems.length]);
 
   useEffect(() => {
-    const hasSeenTutorial = localStorage.getItem(
-      "nizamy_hafalan_tutorial_seen"
-    );
+    const hasSeenTutorial = localStorage.getItem("nizamy_hafalan_tutorial_seen");
     if (state.items.length === 0 && !showTutorial && !hasSeenTutorial) {
       setShowTutorial(true);
     }
   }, [state.items.length, showTutorial]);
 
   const handleSettingsClick = () => {
-    audioService.playClick();
-    setShowSettings(true);
+      audioService.playClick();
+      setShowSettings(true);
   };
 
-  const desktopContentTab =
-    activeTab === "profile" || activeTab === "guide" ? "schedule" : activeTab;
+  const desktopContentTab = activeTab === "profile" || activeTab === "guide" ? "schedule" : activeTab;
 
   return (
     <div className="max-w-5xl mx-auto space-y-4 md:space-y-8 animate-fade-in pb-20 md:pb-12">
-      {showTutorial && (
-        <HafalanTutorialModal
-          onClose={() => {
-            localStorage.setItem("nizamy_hafalan_tutorial_seen", "true");
-            setShowTutorial(false);
-            audioService.playClick();
-          }}
-        />
-      )}
-      {showSettings && (
-        <HafalanSettingsModal
-          currentProfile={profile}
-          onClose={() => setShowSettings(false)}
-          onSave={(u) => {
-            onUpdateProfile(u);
-            setShowSettings(false);
-            showToast("Profil berhasil diupdate!", "success");
-          }}
-        />
-      )}
-      {selectedDetailItem && (
-        <HafalanDetailModal
-          item={selectedDetailItem}
-          onClose={() => setSelectedDetailItem(null)}
-          onPractice={() => {
-            onStartPractice(selectedDetailItem);
-            setSelectedDetailItem(null);
-          }}
-        />
-      )}
-      {earnedBadgesQueue.length > 0 && (
-        <CelebrationModal badges={earnedBadgesQueue} onClose={onClearBadges} />
-      )}
+      {showTutorial && <HafalanTutorialModal onClose={() => { localStorage.setItem("nizamy_hafalan_tutorial_seen", "true"); setShowTutorial(false); audioService.playClick(); }} />}
+      {showSettings && <HafalanSettingsModal currentProfile={profile} onClose={() => setShowSettings(false)} onSave={(u) => { onUpdateProfile(u); setShowSettings(false); showToast("Profil berhasil diupdate!", "success"); }} />}
+      {selectedDetailItem && <HafalanDetailModal item={selectedDetailItem} onClose={() => setSelectedDetailItem(null)} onPractice={() => { onStartPractice(selectedDetailItem); setSelectedDetailItem(null); }} />}
+      {earnedBadgesQueue.length > 0 && <CelebrationModal badges={earnedBadgesQueue} onClose={onClearBadges} />}
 
-      <StatsHeader
-        profile={profile}
-        gamification={state.gamification}
-        itemCount={state.items.length}
-        onSettings={handleSettingsClick}
-      />
+      <StatsHeader profile={profile} gamification={state.gamification} itemCount={state.items.length} onSettings={handleSettingsClick} />
 
       {/* --- MAIN CONTENT GRID --- */}
       <div className="md:grid md:grid-cols-3 gap-6">
         {/* LEFT COL: MAIN CONTENT */}
-        <div
-          className={`md:col-span-2 bg-white dark:bg-slate-800 md:rounded-3xl shadow-sm md:shadow-lg md:shadow-slate-200/50 dark:md:shadow-none border-y md:border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col min-h-[500px] ${
-            activeTab === "profile" || activeTab === "guide"
-              ? "hidden md:flex"
-              : "flex"
-          }`}
-        >
+        <div className={`md:col-span-2 bg-white dark:bg-slate-800 md:rounded-3xl shadow-sm md:shadow-lg md:shadow-slate-200/50 dark:md:shadow-none border-y md:border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col min-h-[500px] ${activeTab === "profile" || activeTab === "guide" ? "hidden md:flex" : "flex"}`}>
           {/* Desktop Tabs */}
           <div className="hidden md:flex border-b border-slate-100 dark:border-slate-700 p-2 bg-slate-50/50 dark:bg-slate-800/50 sticky top-0 z-20 backdrop-blur-md">
-            <button
-              onClick={() => {
-                audioService.playClick();
-                setActiveTab("schedule");
-              }}
-              className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${
-                desktopContentTab === "schedule"
-                  ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-sm ring-1 ring-slate-200 dark:ring-slate-600"
-                  : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
-              }`}
-            >
+            <button onClick={() => { audioService.playClick(); setActiveTab("schedule"); }} className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${desktopContentTab === "schedule" ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-sm ring-1 ring-slate-200 dark:ring-slate-600" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"}`}>
               📅 Jadwal Murajaah
-              {dueItems.length > 0 && (
-                <span className="ml-1 bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-200 px-1.5 py-0.5 rounded-full text-[10px]">
-                  {dueItems.length}
-                </span>
-              )}
+              {dueItems.length > 0 && <span className="ml-1 bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-200 px-1.5 py-0.5 rounded-full text-[10px]">{dueItems.length}</span>}
             </button>
-            <button
-              onClick={() => {
-                audioService.playClick();
-                setActiveTab("list");
-              }}
-              className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${
-                desktopContentTab === "list"
-                  ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-sm ring-1 ring-slate-200 dark:ring-slate-600"
-                  : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
-              }`}
-            >
+            <button onClick={() => { audioService.playClick(); setActiveTab("list"); }} className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${desktopContentTab === "list" ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-sm ring-1 ring-slate-200 dark:ring-slate-600" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"}`}>
               📋 Daftar Hafalan
             </button>
           </div>
@@ -313,147 +288,48 @@ export const Dashboard: React.FC<DashboardProps> = ({
             {desktopContentTab === "schedule" ? (
               <div className="space-y-4 h-full flex flex-col">
                 <div className="flex justify-between items-center">
-                  <h3 className="font-bold text-slate-800 dark:text-white text-lg md:text-xl">
-                    Murajaah Hari Ini
-                  </h3>
-                  <button
-                    onClick={() => {
-                      audioService.playClick();
-                      onAddClick();
-                    }}
-                    className="hidden md:block text-sm bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-3 py-1.5 rounded-lg font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors border border-indigo-100 dark:border-indigo-800"
-                  >
-                    + Tambah
-                  </button>
+                  <h3 className="font-bold text-slate-800 dark:text-white text-lg md:text-xl">Murajaah Hari Ini</h3>
+                  <button onClick={() => { audioService.playClick(); onAddClick(); }} className="hidden md:block text-sm bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-3 py-1.5 rounded-lg font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors border border-indigo-100 dark:border-indigo-800">+ Tambah</button>
                 </div>
 
                 {state.items.length === 0 ? (
-                  <EmptyState
-                    onAdd={() => {
-                      audioService.playClick();
-                      onAddClick();
-                    }}
-                  />
+                  <EmptyState onAdd={() => { audioService.playClick(); onAddClick(); }} />
                 ) : dueItems.length === 0 ? (
-                  <div
-                    className={`flex-1 flex flex-col items-center justify-center text-center space-y-4 p-4 rounded-2xl border border-dashed ${
-                      isQuotaFull
-                        ? "bg-green-50/50 dark:bg-green-900/10 border-green-200 dark:border-green-800"
-                        : "bg-indigo-50/50 dark:bg-indigo-900/10 border-indigo-200 dark:border-indigo-800"
-                    }`}
-                  >
-                    <div
-                      className={`w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center text-3xl md:text-4xl shadow-inner ${
-                        isQuotaFull
-                          ? "bg-green-100 dark:bg-green-900/50 animate-bounce"
-                          : "bg-indigo-100 dark:bg-indigo-900/50"
-                      }`}
-                    >
+                  <div className={`flex-1 flex flex-col items-center justify-center text-center space-y-4 p-4 rounded-2xl border border-dashed ${isQuotaFull ? "bg-green-50/50 dark:bg-green-900/10 border-green-200 dark:border-green-800" : "bg-indigo-50/50 dark:bg-indigo-900/10 border-indigo-200 dark:border-indigo-800"}`}>
+                    <div className={`w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center text-3xl md:text-4xl shadow-inner ${isQuotaFull ? "bg-green-100 dark:bg-green-900/50 animate-bounce" : "bg-indigo-100 dark:bg-indigo-900/50"}`}>
                       {isQuotaFull ? "🎉" : "⚡"}
                     </div>
                     <div>
-                      <h4
-                        className={`font-bold text-lg ${
-                          isQuotaFull
-                            ? "text-green-900 dark:text-green-300"
-                            : "text-indigo-900 dark:text-indigo-300"
-                        }`}
-                      >
-                        {isQuotaFull
-                          ? "Target Harian Tuntas!"
-                          : "Murajaah Beres!"}
-                      </h4>
-                      <p
-                        className={`text-sm mt-1 max-w-xs mx-auto leading-relaxed ${
-                          isQuotaFull
-                            ? "text-green-800/80 dark:text-green-200/70"
-                            : "text-indigo-800/80 dark:text-indigo-200/70"
-                        }`}
-                      >
-                        {isQuotaFull
-                          ? `Masya Allah, hari ini kamu produktif banget (Total ${dailyUsed} poin).`
-                          : `Jadwal murajaah bersih, sisa kuota ${dailyRemaining} poin.`}
+                      <h4 className={`font-bold text-lg ${isQuotaFull ? "text-green-900 dark:text-green-300" : "text-indigo-900 dark:text-indigo-300"}`}>{isQuotaFull ? "Target Harian Tuntas!" : "Murajaah Beres!"}</h4>
+                      <p className={`text-sm mt-1 max-w-xs mx-auto leading-relaxed ${isQuotaFull ? "text-green-800/80 dark:text-green-200/70" : "text-indigo-800/80 dark:text-indigo-200/70"}`}>
+                        {isQuotaFull ? `Masya Allah, hari ini kamu produktif banget (Total ${dailyUsed} poin).` : `Jadwal murajaah bersih, sisa kuota ${dailyRemaining} poin.`}
                       </p>
                     </div>
-                    <button
-                      onClick={() => {
-                        audioService.playClick();
-                        onAddClick();
-                      }}
-                      className="bg-indigo-600 text-white shadow-lg shadow-indigo-200 dark:shadow-none px-6 py-3 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all transform hover:-translate-y-1"
-                    >
+                    <button onClick={() => { audioService.playClick(); onAddClick(); }} className="bg-indigo-600 text-white shadow-lg shadow-indigo-200 dark:shadow-none px-6 py-3 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all transform hover:-translate-y-1">
                       + Tambah Hafalan Baru
                     </button>
                   </div>
                 ) : (
-                  <MurajaahList
-                    items={dueItems}
-                    onStartReview={onStartReview}
-                  />
+                  <MurajaahList items={dueItems} onStartReview={onStartReview} />
                 )}
               </div>
             ) : (
               // LIST VIEW
               <div className="space-y-4 h-full flex flex-col">
                 <div className="flex justify-between items-center">
-                  <h3 className="font-bold text-slate-800 dark:text-white text-lg md:text-xl">
-                    Daftar Hafalan
-                  </h3>
-                  <button
-                    onClick={() => {
-                      audioService.playClick();
-                      exportHafalanToPdf(state);
-                    }}
-                    className="text-xs bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-3 py-1.5 rounded-lg font-bold hover:bg-slate-100 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600"
-                  >
-                    PDF
-                  </button>
+                  <h3 className="font-bold text-slate-800 dark:text-white text-lg md:text-xl">Daftar Hafalan</h3>
+                  <button onClick={() => { audioService.playClick(); exportHafalanToPdf(state); }} className="text-xs bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-3 py-1.5 rounded-lg font-bold hover:bg-slate-100 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600">PDF</button>
                 </div>
                 <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-2 pb-20 md:pb-0">
-                  {allItems.length === 0 ? (
-                    <div className="text-center py-12 text-slate-400 italic text-sm">
-                      Belum ada data.
-                    </div>
-                  ) : (
-                    allItems.map((item) => (
-                      <div
-                        key={item.id}
-                        onClick={() => {
-                          audioService.playClick();
-                          setSelectedDetailItem(item);
-                        }}
-                        className="p-4 rounded-2xl border flex justify-between items-center cursor-pointer hover:shadow-md transition-all bg-white dark:bg-slate-700/30 border-slate-100 dark:border-slate-700 hover:border-indigo-200 dark:hover:border-indigo-700 group"
-                      >
-                        <div>
-                          <p className="font-bold text-slate-800 dark:text-slate-200 text-sm group-hover:text-indigo-700 dark:group-hover:text-indigo-400">
-                            {item.surahName}{" "}
-                            <span className="text-slate-400 dark:text-slate-500 font-normal ml-1">
-                              ({item.startAyah}-{item.endAyah})
-                            </span>
-                          </p>
-                          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 flex items-center">
-                            <span
-                              className={`w-2 h-2 rounded-full mr-1.5 ${
-                                item.stage >= 5
-                                  ? "bg-green-400"
-                                  : "bg-amber-400"
-                              }`}
-                            ></span>
-                            Next: {formatDate(item.nextReviewDate)}
-                          </p>
-                        </div>
-                        <span
-                          className={`text-[10px] px-2 py-1 rounded-lg font-bold border ${
-                            item.stage >= 5
-                              ? "bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800"
-                              : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600"
-                          }`}
-                        >
-                          {item.stage >= 5 ? "Mutqin" : `Lvl ${item.stage}`}
-                        </span>
+                  {allItems.length === 0 ? <div className="text-center py-12 text-slate-400 italic text-sm">Belum ada data.</div> : allItems.map((item) => (
+                    <div key={item.id} onClick={() => { audioService.playClick(); setSelectedDetailItem(item); }} className="p-4 rounded-2xl border flex justify-between items-center cursor-pointer hover:shadow-md transition-all bg-white dark:bg-slate-700/30 border-slate-100 dark:border-slate-700 hover:border-indigo-200 dark:hover:border-indigo-700 group">
+                      <div>
+                        <p className="font-bold text-slate-800 dark:text-slate-200 text-sm group-hover:text-indigo-700 dark:group-hover:text-indigo-400">{item.surahName} <span className="text-slate-400 dark:text-slate-500 font-normal ml-1">({item.startAyah}-{item.endAyah})</span></p>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 flex items-center"><span className={`w-2 h-2 rounded-full mr-1.5 ${item.stage >= 5 ? "bg-green-400" : "bg-amber-400"}`}></span>Next: {formatDate(item.nextReviewDate)}</p>
                       </div>
-                    ))
-                  )}
+                      <span className={`text-[10px] px-2 py-1 rounded-lg font-bold border ${item.stage >= 5 ? "bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800" : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600"}`}>{item.stage >= 5 ? "Mutqin" : `Lvl ${item.stage}`}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -461,163 +337,53 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
         {/* RIGHT COL: SIDEBAR */}
-        <div
-          className={`space-y-6 ${
-            activeTab === "profile" ? "block" : "hidden md:block"
-          }`}
-        >
+        <div className={`space-y-6 ${activeTab === "profile" ? "block" : "hidden md:block"}`}>
+          {/* NEW: Progress Chart */}
+          <ProgressChart items={state.items} />
+
           <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-lg shadow-orange-50/50 dark:shadow-none">
-            <h4 className="font-bold text-slate-800 dark:text-white mb-4 flex items-center">
-              <span className="text-xl mr-2 p-1 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                ⚔️
-              </span>{" "}
-              Weekly Challenge
-            </h4>
+            <h4 className="font-bold text-slate-800 dark:text-white mb-4 flex items-center"><span className="text-xl mr-2 p-1 bg-orange-100 dark:bg-orange-900/30 rounded-lg">⚔️</span> Weekly Challenge</h4>
             <div className="mt-2">
-              <div className="flex justify-between text-xs font-medium mb-1">
-                <span className="text-slate-500 dark:text-slate-400">
-                  Progress
-                </span>
-                <span className="text-orange-600 dark:text-orange-400">
-                  {state.gamification.weeklyChallengeProgress} /{" "}
-                  {state.gamification.weeklyChallengeTarget} XP
-                </span>
-              </div>
-              <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
-                <div
-                  className="bg-orange-500 h-full rounded-full transition-all duration-1000 ease-out"
-                  style={{ width: `${challengePercent}%` }}
-                ></div>
-              </div>
+              <div className="flex justify-between text-xs font-medium mb-1"><span className="text-slate-500 dark:text-slate-400">Progress</span><span className="text-orange-600 dark:text-orange-400">{state.gamification.weeklyChallengeProgress} / {state.gamification.weeklyChallengeTarget} XP</span></div>
+              <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-3 overflow-hidden"><div className="bg-orange-500 h-full rounded-full transition-all duration-1000 ease-out" style={{ width: `${challengePercent}%` }}></div></div>
             </div>
           </div>
 
           <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-lg shadow-indigo-50/50 dark:shadow-none">
-            <h4 className="font-bold text-slate-800 dark:text-white mb-4 flex items-center">
-              <span className="text-xl mr-2 p-1 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
-                🏅
-              </span>{" "}
-              Badges
-            </h4>
+            <h4 className="font-bold text-slate-800 dark:text-white mb-4 flex items-center"><span className="text-xl mr-2 p-1 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">🏅</span> Badges</h4>
             <div className="grid grid-cols-4 gap-2">
               {BADGES.map((badge) => (
-                <div
-                  key={badge.id}
-                  className={`aspect-square rounded-2xl flex items-center justify-center text-2xl transition-all duration-500 ${
-                    state.gamification.badges.includes(badge.id)
-                      ? "bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-900/30 dark:to-slate-800 border border-indigo-100 dark:border-indigo-800 shadow-sm scale-100"
-                      : "bg-slate-50 dark:bg-slate-700 opacity-30 grayscale scale-90"
-                  }`}
-                  title={badge.name}
-                >
-                  {badge.icon}
-                </div>
+                <div key={badge.id} className={`aspect-square rounded-2xl flex items-center justify-center text-2xl transition-all duration-500 ${state.gamification.badges.includes(badge.id) ? "bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-900/30 dark:to-slate-800 border border-indigo-100 dark:border-indigo-800 shadow-sm scale-100" : "bg-slate-50 dark:bg-slate-700 opacity-30 grayscale scale-90"}`} title={badge.name}>{badge.icon}</div>
               ))}
             </div>
           </div>
 
-          <button
-            onClick={() => {
-              audioService.playClick();
-              onLogout();
-            }}
-            className="w-full py-3 rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-          >
-            Ganti Akun / Keluar
-          </button>
+          <button onClick={() => { audioService.playClick(); onLogout(); }} className="w-full py-3 rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">Ganti Akun / Keluar</button>
         </div>
 
         {/* MOBILE GUIDE TAB */}
-        <div
-          className={`${activeTab === "guide" ? "block" : "hidden md:hidden"}`}
-        >
-          <FAQ
-            title="Panduan"
-            subtitle="Metode SRS NIZAMY"
-            data={HAFALAN_FAQ}
-          />
+        <div className={`${activeTab === "guide" ? "block" : "hidden md:hidden"}`}>
+          <FAQ title="Panduan" subtitle="Metode SRS NIZAMY" data={HAFALAN_FAQ} />
         </div>
       </div>
 
       {/* FAB */}
-      <button
-        onClick={() => {
-          audioService.playClick();
-          onAddClick();
-        }}
-        className={`md:hidden fixed bottom-24 right-4 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-xl shadow-indigo-500/40 dark:shadow-black/40 flex items-center justify-center z-40 transition-transform active:scale-90 hover:scale-105 ${
-          activeTab === "profile" || activeTab === "guide" ? "hidden" : "flex"
-        }`}
-        aria-label="Tambah Hafalan"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-8 w-8"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M12 4v16m8-8H4"
-          />
-        </svg>
+      <button onClick={() => { audioService.playClick(); onAddClick(); }} className={`md:hidden fixed bottom-24 right-4 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-xl shadow-indigo-500/40 dark:shadow-black/40 flex items-center justify-center z-40 transition-transform active:scale-90 hover:scale-105 ${activeTab === "profile" || activeTab === "guide" ? "hidden" : "flex"}`} aria-label="Tambah Hafalan">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
       </button>
 
       {/* MOBILE NAV */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 px-2 z-50 flex justify-between items-center shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
         {[
-          {
-            id: "schedule",
-            icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",
-            label: "Jadwal",
-          },
-          {
-            id: "list",
-            icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2",
-            label: "List",
-          },
-          {
-            id: "guide",
-            icon: "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253",
-            label: "Panduan",
-          },
-          {
-            id: "profile",
-            icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z",
-            label: "Profil",
-          },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => {
-              audioService.playClick();
-              setActiveTab(tab.id as TabView);
-            }}
-            className={`flex-1 flex flex-col items-center p-2 rounded-xl transition-all ${
-              activeTab === tab.id
-                ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
-                : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
-            }`}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 mb-1"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d={tab.icon}
-              />
-            </svg>
-            <span className="text-[10px] font-bold uppercase">{tab.label}</span>
-          </button>
+            { id: "schedule", icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z", label: "Jadwal" },
+            { id: "list", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2", label: "List" },
+            { id: "guide", icon: "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253", label: "Panduan" },
+            { id: "profile", icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z", label: "Profil" }
+        ].map(tab => (
+            <button key={tab.id} onClick={() => { audioService.playClick(); setActiveTab(tab.id as TabView); }} className={`flex-1 flex flex-col items-center p-2 rounded-xl transition-all ${activeTab === tab.id ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20" : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"}`}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={tab.icon} /></svg>
+                <span className="text-[10px] font-bold uppercase">{tab.label}</span>
+            </button>
         ))}
       </div>
     </div>

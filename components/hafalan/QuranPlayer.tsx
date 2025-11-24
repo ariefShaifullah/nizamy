@@ -59,32 +59,43 @@ export const QuranPlayer: React.FC<QuranPlayerProps> = ({
 
     if (isPlaying) {
       const url = getAyahAudioUrl(selectedQori, surahNo, currentAyah);
-      // Only reload if src is different to prevent reload on re-render
-      // But we must handle the case where currentAyah changed
       const currentSrc = audioRef.current.src;
 
+      // Check if src needs update or just resume
       if (currentSrc !== url) {
         setIsBuffering(true);
         audioRef.current.src = url;
         audioRef.current.playbackRate = playbackSpeed;
-        audioRef.current.load();
-
+        
         const playPromise = audioRef.current.play();
         if (playPromise !== undefined) {
           playPromise
             .then(() => setIsBuffering(false))
             .catch((e) => {
-              console.warn("Audio play interrupted", e);
-              setIsBuffering(false);
-              setIsPlaying(false);
+              if (e.name === 'AbortError') {
+                  // Do nothing, intended interruption
+              } else {
+                  console.warn("Audio play failed", e);
+                  setIsBuffering(false);
+                  setIsPlaying(false);
+                  if (e.name === 'NotSupportedError' || e.message?.includes('no supported source')) {
+                      showToast("Format audio tidak didukung", "error");
+                  }
+              }
             });
         }
       } else if (audioRef.current.paused) {
         // Resume case
         audioRef.current.playbackRate = playbackSpeed;
-        audioRef.current.play().catch(() => setIsPlaying(false));
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+            playPromise.catch((e) => {
+                if (e.name !== 'AbortError') setIsPlaying(false);
+            });
+        }
       }
     } else {
+      // Pause
       audioRef.current.pause();
     }
   }, [

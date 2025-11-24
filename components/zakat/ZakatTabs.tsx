@@ -203,18 +203,63 @@ export const AgricultureView: React.FC<TabProps> = ({ state, settings, onChange,
 
 export const LivestockView: React.FC<TabProps> = ({ state, settings, onChange, onNext }) => {
     const nisabGoldValue = 85 * settings.goldPrice;
+    const isClassic = state.livestockType === 'classic';
+
     return (
         <ZakatTabLayout
             title="Zakat Peternakan"
-            subtitle="Perhitungan sederhana menggunakan pendekatan nilai komersial (Qiyas Zakat Perniagaan)."
+            subtitle={isClassic ? "Perhitungan Fiqh Klasik berdasarkan jumlah ekor (Saimah/Digembalakan)." : "Perhitungan komersial berdasarkan nilai jual ternak (Tijarah)."}
             onNext={onNext}
         >
-            <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-xl border border-amber-200 dark:border-amber-800 text-sm text-amber-900 dark:text-amber-200 mb-4 flex items-start">
-                <span className="text-xl mr-2">💡</span>
-                <p><strong>Catatan Fiqh:</strong> Kalkulator ini menggunakan metode konversi nilai (2.5%) untuk memudahkan. Jika Anda ingin menghitung berdasarkan jumlah ekor (misal: 40 kambing = 1 kambing), disarankan konsultasi manual.</p>
+            {/* Type Switcher */}
+            <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl mb-6">
+                <button 
+                    onClick={() => onChange("livestockType", "commercial")}
+                    className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${!isClassic ? 'bg-white dark:bg-slate-700 shadow-sm text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                >
+                    💰 Komersial (Nilai)
+                </button>
+                <button 
+                    onClick={() => onChange("livestockType", "classic")}
+                    className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${isClassic ? 'bg-white dark:bg-slate-700 shadow-sm text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                >
+                    🐏 Klasik (Ekor)
+                </button>
             </div>
-            <ZakatInputField label="Total Nilai Hewan Ternak (Rp)" value={state.livestockValue} onChange={(v) => onChange("livestockValue", v)} />
-            <NisabStatus value={state.livestockValue} nisab={nisabGoldValue} label="Peternakan" />
+
+            {isClassic ? (
+                <div className="grid md:grid-cols-2 gap-6 animate-fade-in">
+                    <div className="bg-amber-50 dark:bg-amber-900/20 p-4 md:p-6 rounded-2xl border border-amber-100 dark:border-amber-800">
+                        <h4 className="font-bold text-amber-800 dark:text-amber-200 mb-3">Kambing / Domba</h4>
+                        <ZakatInputField label="Jumlah Ekor" sublabel="Nisab: 40 Ekor" value={state.sheepCount} onChange={(v) => onChange("sheepCount", v)} type="number" />
+                        
+                        {state.sheepCount >= 40 && (
+                            <div className="mt-2 p-3 bg-white/50 dark:bg-slate-900/50 rounded-lg text-xs text-amber-900 dark:text-amber-100">
+                                <strong>Info Nisab:</strong> 40-120 (1 ekor), 121-200 (2 ekor), dst.
+                            </div>
+                        )}
+                    </div>
+                    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 md:p-6 rounded-2xl border border-blue-100 dark:border-blue-800">
+                        <h4 className="font-bold text-blue-800 dark:text-blue-200 mb-3">Sapi / Kerbau</h4>
+                        <ZakatInputField label="Jumlah Ekor" sublabel="Nisab: 30 Ekor" value={state.cowCount} onChange={(v) => onChange("cowCount", v)} type="number" />
+                        
+                        {state.cowCount >= 30 && (
+                            <div className="mt-2 p-3 bg-white/50 dark:bg-slate-900/50 rounded-lg text-xs text-blue-900 dark:text-blue-100">
+                                <strong>Info Nisab:</strong> 30-39 (1 Tabi'), 40-59 (1 Musinnah), dst.
+                            </div>
+                        )}
+                    </div>
+                </div>
+            ) : (
+                <div className="animate-fade-in">
+                    <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700 text-sm text-slate-600 dark:text-slate-300 mb-4 flex items-start">
+                        <span className="text-xl mr-2">💡</span>
+                        <p>Gunakan mode ini jika ternak Anda adalah <strong>aset dagang</strong> atau <strong>dikandangkan (diberi pakan beli)</strong>, di mana zakatnya dihitung setara zakat perniagaan (2.5%).</p>
+                    </div>
+                    <ZakatInputField label="Total Nilai Hewan Ternak (Rp)" value={state.livestockValue} onChange={(v) => onChange("livestockValue", v)} />
+                    <NisabStatus value={state.livestockValue} nisab={nisabGoldValue} label="Peternakan" />
+                </div>
+            )}
         </ZakatTabLayout>
     );
 };
@@ -305,7 +350,7 @@ export const SummaryView: React.FC<SummaryProps> = ({ result, state, history, on
                                     )}
                                 </div>
                                 <div className="text-left sm:text-right w-full sm:w-auto bg-slate-50 dark:bg-slate-700/30 sm:bg-transparent p-2 sm:p-0 rounded-lg">
-                                    <p className={`font-mono font-bold text-lg ${item.zakatAmount > 0 ? 'text-slate-800 dark:text-white' : 'text-slate-300 dark:text-slate-600'}`}>
+                                    <p className={`font-mono font-bold text-lg ${item.zakatAmount > 0 || item.formattedValue ? 'text-slate-800 dark:text-white' : 'text-slate-300 dark:text-slate-600'}`}>
                                         {item.formattedValue ? item.formattedValue : formatCurrency(item.zakatAmount)}
                                     </p>
                                     {item.rate > 0 && (

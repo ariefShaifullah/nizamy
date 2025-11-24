@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import type { PrayerData } from '../types.ts';
 import { getCoordinates, fetchPrayerTimes, getNextPrayer, formatTimeLeft, savePrayerCache, getCachedPrayerData } from '../services/prayer.service.ts';
 
@@ -7,54 +7,55 @@ export const PrayerWidget: React.FC = () => {
     const [prayerData, setPrayerData] = useState<PrayerData | null>(null);
     const [nextPrayerName, setNextPrayerName] = useState<string | null>(null);
     const [timeLeft, setTimeLeft] = useState<string>("00:00:00");
-    const [locationName, setLocationName] = useState("Jakarta (Default)");
+    const [locationName, setLocationName] = useState("Jakarta");
     const [loading, setLoading] = useState(true);
 
-    // Initial Load
-    useEffect(() => {
-        const initData = async () => {
+    const loadData = useCallback(async (forceRefresh = false) => {
+        setLoading(true);
+        
+        if (!forceRefresh) {
             const cached = getCachedPrayerData();
             if (cached) {
                 setPrayerData(cached.data);
                 setLocationName(cached.city);
                 setLoading(false);
+                return;
             }
+        }
 
-            try {
-                if (!cached) {
-                    const coords = await getCoordinates();
-                    const data = await fetchPrayerTimes(coords.latitude, coords.longitude);
-                    if (data) {
-                        setPrayerData(data);
-                        setLocationName("Lokasi Anda");
-                        savePrayerCache(data, "Lokasi Anda");
-                    }
-                }
-            } catch (error) {
-                if (!cached) {
-                    const data = await fetchPrayerTimes(-6.1702, 106.8314);
-                    if (data) {
-                        setPrayerData(data);
-                        setLocationName("Jakarta Pusat");
-                        savePrayerCache(data, "Jakarta Pusat");
-                    }
-                }
-            } finally {
-                setLoading(false);
+        try {
+            const coords = await getCoordinates();
+            const data = await fetchPrayerTimes(coords.latitude, coords.longitude);
+            if (data) {
+                setPrayerData(data);
+                setLocationName("Lokasi Anda");
+                savePrayerCache(data, "Lokasi Anda");
             }
-        };
-        initData();
+        } catch (error) {
+            const data = await fetchPrayerTimes(-6.1702, 106.8314);
+            if (data) {
+                setPrayerData(data);
+                setLocationName("Jakarta Pusat");
+                if (!forceRefresh) savePrayerCache(data, "Jakarta Pusat");
+            }
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
-    // Countdown Ticker
+    useEffect(() => {
+        loadData();
+        const handleRefresh = () => loadData(true);
+        window.addEventListener('nizamy-refresh-prayer', handleRefresh);
+        return () => window.removeEventListener('nizamy-refresh-prayer', handleRefresh);
+    }, [loadData]);
+
     useEffect(() => {
         if (!prayerData) return;
 
         const updateTimer = () => {
             const next = getNextPrayer(prayerData.timings);
-            
-            // Only update name if changed to avoid triggering gradient recalc
-            setNextPrayerName(prev => prev !== next.name ? next.name : prev);
+            setNextPrayerName(next.name);
 
             const now = new Date();
             const [h, m] = next.time.split(':').map(Number);
@@ -66,7 +67,7 @@ export const PrayerWidget: React.FC = () => {
             setTimeLeft(diff <= 0 ? "00:00:00" : formatTimeLeft(diff));
         };
 
-        updateTimer(); // Immediate call
+        updateTimer();
         const timer = setInterval(updateTimer, 1000);
         return () => clearInterval(timer);
     }, [prayerData]);
@@ -79,75 +80,53 @@ export const PrayerWidget: React.FC = () => {
         { key: 'Isha', label: 'Isya' },
     ];
 
-    // Memoize gradient to prevent recalculation on every second tick
-    const bgGradient = useMemo(() => {
-        if (!nextPrayerName) return 'from-slate-700 via-slate-800 to-slate-900'; 
-        switch (nextPrayerName) {
-            case 'Subuh': return 'from-slate-900 via-indigo-950 to-slate-900'; 
-            case 'Dzuhur': return 'from-sky-400 via-blue-400 to-indigo-400'; 
-            case 'Ashar': return 'from-blue-500 via-cyan-500 to-sky-500'; 
-            case 'Maghrib': return 'from-amber-400 via-orange-500 to-red-500'; 
-            case 'Isya': return 'from-pink-600 via-purple-800 to-indigo-900'; 
-            default: return 'from-emerald-600 via-teal-500 to-cyan-600';
-        }
-    }, [nextPrayerName]);
-
     if (loading) return (
-        <div className="w-full h-40 bg-slate-200 dark:bg-slate-800 rounded-3xl animate-pulse mb-8"></div>
+        <div className="w-full h-40 bg-white dark:bg-slate-800 rounded-3xl animate-pulse shadow-xl flex items-center justify-center text-slate-300">
+            <span className="sr-only">Memuat Jadwal...</span>
+        </div>
     );
 
     if (!prayerData) return null;
 
     return (
-        <div className={`relative w-full rounded-3xl overflow-hidden shadow-xl bg-gradient-to-br ${bgGradient} text-white mb-8 transition-colors duration-1000 animate-fade-in ring-1 ring-white/10`}>
-            {/* Background Pattern Overlay */}
-            <div className="absolute inset-0 opacity-20 pointer-events-none mix-blend-overlay">
-                <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                    <path d="M0 100 C 20 0 50 0 100 100 Z" fill="white" />
-                    <circle cx="80" cy="20" r="30" fill="url(#grad1)" opacity="0.3" />
-                    <defs>
-                        <radialGradient id="grad1" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-                            <stop offset="0%" style={{stopColor:'white', stopOpacity:1}} />
-                            <stop offset="100%" style={{stopColor:'white', stopOpacity:0}} />
-                        </radialGradient>
-                    </defs>
-                </svg>
-            </div>
-
-            <div className="relative z-10 p-6 md:p-8">
-                {/* Top Row: Location & Date */}
-                <div className="flex justify-between items-start mb-6">
-                    <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 shadow-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+        <div className="relative w-full bg-white dark:bg-slate-800 rounded-3xl shadow-[0_20px_40px_-12px_rgba(0,0,0,0.1)] dark:shadow-black/50 border border-slate-100 dark:border-slate-700 overflow-hidden transform transition-transform hover:scale-[1.01] duration-500">
+            <div className="p-6 md:p-8">
+                {/* Top Row: Location & Hijri */}
+                <div className="flex justify-between items-center mb-6 text-xs md:text-sm font-medium text-slate-400">
+                    <div className="flex items-center gap-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-teal-500" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
                         </svg>
-                        <span className="text-xs font-bold truncate max-w-[150px] text-white drop-shadow-md">{locationName}</span>
+                        <span>{locationName}</span>
                     </div>
-                    <div className="text-right text-white/90">
-                        <p className="text-sm font-bold font-arabic drop-shadow-md">{prayerData.date.hijri.day} {prayerData.date.hijri.month.en} {prayerData.date.hijri.year}</p>
-                        <p className="text-[10px] uppercase tracking-wider font-medium opacity-80">{prayerData.date.readable}</p>
-                    </div>
+                    <span className="font-arabic text-slate-500 dark:text-slate-300">
+                        {prayerData.date.hijri.day} {prayerData.date.hijri.month.en} {prayerData.date.hijri.year}
+                    </span>
                 </div>
 
-                {/* Main Countdown */}
-                <div className="flex flex-col items-center justify-center mb-8 text-center">
-                    <p className="text-xs md:text-sm font-bold uppercase tracking-[0.2em] text-white/80 mb-2 drop-shadow-sm">Menuju {nextPrayerName || "..."}</p>
-                    <h2 className="text-5xl md:text-7xl font-black tracking-tight font-mono tabular-nums drop-shadow-lg text-white">
+                {/* Middle Row: Countdown */}
+                <div className="text-center mb-8">
+                    <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-1 font-bold">Menuju {nextPrayerName}</p>
+                    <h2 className="text-5xl md:text-6xl font-black tracking-tight font-mono tabular-nums text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-indigo-600 dark:from-teal-400 dark:to-indigo-400">
                         {timeLeft}
                     </h2>
                 </div>
 
-                {/* Prayer Times List */}
-                <div className="grid grid-cols-5 gap-2 md:gap-4">
+                {/* Bottom Row: Grid Times */}
+                <div className="grid grid-cols-5 gap-1 md:gap-4 border-t border-slate-50 dark:border-slate-700/50 pt-6">
                     {PRAYER_LIST.map((p) => {
                         const time = prayerData.timings[p.key as keyof typeof prayerData.timings];
                         const isActive = nextPrayerName === p.label;
                         
                         return (
-                            <div key={p.key} className={`flex flex-col items-center p-2 md:p-3 rounded-2xl transition-all duration-300 ${isActive ? 'bg-white/20 backdrop-blur-lg shadow-lg scale-110 border border-white/30' : 'hover:bg-white/10 border border-transparent'}`}>
-                                <span className={`text-[10px] font-bold uppercase mb-1 ${isActive ? 'text-white' : 'text-white/60'}`}>{p.label}</span>
-                                <span className={`text-xs md:text-sm font-bold ${isActive ? 'text-white' : 'text-white/90'}`}>{time}</span>
+                            <div key={p.key} className="flex flex-col items-center group">
+                                <span className={`text-[10px] font-bold uppercase mb-1 transition-colors ${isActive ? 'text-teal-600 dark:text-teal-400' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`}>
+                                    {p.label}
+                                </span>
+                                <span className={`text-xs md:text-sm font-bold transition-all ${isActive ? 'text-slate-900 dark:text-white scale-110' : 'text-slate-600 dark:text-slate-400'}`}>
+                                    {time}
+                                </span>
+                                {isActive && <div className="w-1 h-1 rounded-full bg-teal-500 mt-1"></div>}
                             </div>
                         );
                     })}

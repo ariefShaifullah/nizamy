@@ -10,6 +10,7 @@ import { OfflineBanner } from './components/ui/OfflineBanner.tsx';
 const FaraidhCalculator = React.lazy(() => import('./components/faraidh/FaraidhCalculator.tsx'));
 const ZakatCalculator = React.lazy(() => import('./components/zakat/ZakatCalculator.tsx'));
 const HafalanTracker = React.lazy(() => import('./components/hafalan/HafalanTracker.tsx'));
+const MushafApp = React.lazy(() => import('./components/mushaf/MushafApp.tsx'));
 
 // Loading Fallback Component
 const PageLoader = () => (
@@ -56,6 +57,10 @@ export default function App() {
         document.title = `${baseTitle} | Hafalan Quran Tracker (SRS)`;
         themeColor = "#4338ca"; // Indigo
         break;
+      case 'mushaf':
+        document.title = `${baseTitle} | Mushaf Digital & Kamus Tajwid`;
+        themeColor = "#0d9488"; // Teal
+        break;
       default:
         document.title = `${baseTitle}: Aplikasi Ibadah Islam (Waris, Zakat, Hafalan)`;
         themeColor = "#4f46e5";
@@ -72,6 +77,7 @@ export default function App() {
   if (view === 'zakat') textClass += ' selection:bg-emerald-200 selection:text-emerald-900';
   else if (view === 'faraidh') textClass += ' selection:bg-blue-200 selection:text-blue-900';
   else if (view === 'hafalan') textClass += ' selection:bg-indigo-200 selection:text-indigo-900';
+  else if (view === 'mushaf') textClass += ' selection:bg-teal-200 selection:text-teal-900';
 
   return (
     <div className={`min-h-screen font-sans flex flex-col ${textClass}`}>
@@ -99,6 +105,7 @@ export default function App() {
           {view === 'faraidh' && <FaraidhCalculator />}
           {view === 'zakat' && <ZakatCalculator />}
           {view === 'hafalan' && <HafalanTracker />}
+          {view === 'mushaf' && <MushafApp />}
         </Suspense>
       </main>
       <Footer />

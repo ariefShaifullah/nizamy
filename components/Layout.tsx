@@ -46,14 +46,6 @@ export const Header: React.FC<HeaderProps> = ({ view, setView }) => {
       else setTheme('dark');
     };
 
-    // New: Manual Refresh Trigger
-    const handleRefresh = () => {
-        // Dispatch custom event for widgets to listen
-        window.dispatchEvent(new Event('nizamy-refresh-prayer'));
-        // Small vibration feedback
-        if (navigator.vibrate) navigator.vibrate(50);
-    };
-
     return (
       <>
       {/* Added pt-[env(safe-area-inset-top)] for iOS Notch compatibility */}
@@ -99,18 +91,6 @@ export const Header: React.FC<HeaderProps> = ({ view, setView }) => {
           </button>
           
           <div className="flex items-center gap-2 md:gap-3">
-              {/* Refresh Button (New) */}
-              <button
-                  onClick={handleRefresh}
-                  className="p-2 md:p-2.5 rounded-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-md text-slate-600 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700 border border-white/20 dark:border-slate-700 transition-all shadow-sm active:rotate-180 duration-500"
-                  aria-label="Refresh Data"
-                  title="Muat Ulang Data"
-              >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-              </button>
-
               {/* Theme Toggle */}
               <button 
                   onClick={toggleTheme}

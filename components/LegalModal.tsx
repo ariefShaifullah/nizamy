@@ -79,6 +79,9 @@ const TermsContent = () => (
 
         <SectionTitle>6. Hukum yang Berlaku</SectionTitle>
         <p>Ketentuan ini diatur oleh hukum Republik Indonesia.</p>
+
+        <SectionTitle>7. Kontak</SectionTitle>
+        <p>Jika Anda memiliki pertanyaan mengenai Syarat dan Ketentuan ini, silakan hubungi kami melalui email: <strong>aryan@nizamy.com</strong>.</p>
     </div>
 );
 
@@ -115,6 +118,6 @@ const PrivacyContent = () => (
         <p>Karena data tersimpan di perangkat, keamanannya bergantung pada akses fisik ke perangkat Anda (Gunakan kunci layar). Menghapus cache browser atau uninstall aplikasi akan menghapus data permanen.</p>
 
         <SectionTitle>5. Kontak</SectionTitle>
-        <p>Jika ada pertanyaan, silakan hubungi kami melalui repositori resmi proyek ini.</p>
+        <p>Jika ada pertanyaan, silakan hubungi kami melalui email: <strong>aryan@nizamy.com</strong>.</p>
     </div>
 );

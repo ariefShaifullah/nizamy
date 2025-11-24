@@ -11,7 +11,6 @@ interface AyahRendererProps {
     wordMode: boolean;
     fontSize: number;
     showTranslation: boolean;
-    // Callbacks from parent must be stable
     onTapAyah: (ayah: QuranAyah) => void; 
     onLongPressAyah: (ayah: QuranAyah) => void;
     onTapWord: (word: QuranWord) => void;
@@ -23,10 +22,6 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
     onTapAyah, onLongPressAyah, onTapWord, onLongPressWord 
 }) => {
     
-    // OPTIMIZATION: Wrap handlers in useCallback.
-    // This ensures that 'handleTap' and 'handleLongPress' maintain stable references
-    // unless their dependencies change. This allows useLongPress to return stable event handlers,
-    // which in turn allows React.memo to skip re-rendering this component if props haven't changed.
     const handleTap = useCallback(() => {
         onTapAyah(ayah);
     }, [onTapAyah, ayah]);
@@ -41,36 +36,43 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
         { delay: 600, shouldPreventDefault: true }
     );
 
-    const lineHeight = fontSize * 2.3; 
+    // UX Improvement: Increased Line Height multiplier for Arabic (Amiri font needs space)
+    // Default loose leading ensures harakat doesn't overlap.
+    const lineHeight = fontSize * 2.6; 
 
     return (
         <div 
             data-verse-index={globalIndex}
             data-verse-number={ayah.verse_number}
-            className={`relative px-5 py-8 transition-all duration-500 border-b border-slate-50 dark:border-slate-800 select-none ${
+            className={`relative px-4 md:px-8 py-8 md:py-10 transition-colors duration-500 border-b border-slate-50 dark:border-slate-800/50 select-none ${
                 isPlaying 
-                ? 'bg-teal-50/50 dark:bg-teal-900/10' 
-                : 'bg-transparent hover:bg-slate-50/50 dark:hover:bg-slate-800/30'
+                ? 'bg-teal-50/60 dark:bg-teal-900/20' 
+                : 'bg-transparent hover:bg-slate-50/80 dark:hover:bg-slate-800/20'
             }`}
-            onContextMenu={(e) => e.preventDefault()} // Block context menu
+            onContextMenu={(e) => e.preventDefault()}
         >
-            {/* Audio Playing Indicator */}
-            {isPlaying && (
-                <div className="absolute left-4 top-4 flex gap-0.5 items-end h-3">
-                    <div className="w-1 bg-teal-500 rounded-full animate-[bounce_1s_infinite]"></div>
-                    <div className="w-1 bg-teal-500 rounded-full animate-[bounce_1.2s_infinite]"></div>
-                    <div className="w-1 bg-teal-500 rounded-full animate-[bounce_0.8s_infinite]"></div>
-                </div>
-            )}
+            {/* Number Badge (Floating Top Right for Desktop, or Inline for mobile) */}
+            <div className="absolute left-4 top-4 flex gap-2 items-center opacity-50">
+                <span className="text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 px-2 py-1 rounded-md font-sans">
+                    {ayah.verse_key}
+                </span>
+                {isPlaying && (
+                    <div className="flex gap-0.5 items-end h-3">
+                        <div className="w-1 bg-teal-500 rounded-full animate-[bounce_1s_infinite]"></div>
+                        <div className="w-1 bg-teal-500 rounded-full animate-[bounce_1.2s_infinite]"></div>
+                        <div className="w-1 bg-teal-500 rounded-full animate-[bounce_0.8s_infinite]"></div>
+                    </div>
+                )}
+            </div>
 
             {/* ARABIC TEXT AREA */}
             <div 
-                className="w-full text-right mb-6 touch-manipulation" 
+                className="w-full text-right mb-8 mt-4 touch-manipulation" 
                 dir="rtl"
                 {...(!wordMode ? ayahGestures : {})}
             >
                 <div 
-                    className="inline leading-relaxed"
+                    className="inline leading-relaxed text-slate-800 dark:text-slate-100"
                     style={{ lineHeight: `${lineHeight}px` }}
                 >
                     {ayah.words.map((word, index) => (
@@ -86,9 +88,15 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
                         />
                     ))}
                     
-                    {/* End of Ayah Marker */}
+                    {/* End of Ayah Marker - Scaled relative to font size */}
                     <span 
-                        className={`inline-flex items-center justify-center w-9 h-9 mx-2 bg-[url('/images/ayah-end.svg')] bg-contain bg-center bg-no-repeat text-[12px] font-bold font-sans align-middle relative -top-1 select-none ${isPlaying ? 'text-teal-700 dark:text-teal-400' : 'text-slate-400 dark:text-slate-600'}`}
+                        className={`inline-flex items-center justify-center mx-2 bg-[url('/images/ayah-end.svg')] bg-contain bg-center bg-no-repeat text-center font-bold font-sans align-middle select-none ${isPlaying ? 'text-teal-700 dark:text-teal-400' : 'text-slate-400 dark:text-slate-600'}`}
+                        style={{ 
+                            width: `${fontSize * 1.2}px`, 
+                            height: `${fontSize * 1.2}px`,
+                            fontSize: `${fontSize * 0.4}px`,
+                            lineHeight: 1
+                        }}
                     >
                         {ayah.verse_number}
                     </span>
@@ -98,7 +106,7 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
             {/* Translation */}
             {showTranslation && (
                 <div 
-                    className="text-slate-600 dark:text-slate-400 text-[15px] leading-relaxed font-sans px-1 touch-manipulation text-justify select-none"
+                    className="text-slate-600 dark:text-slate-400 text-[15px] md:text-[17px] leading-loose font-sans px-1 touch-manipulation text-justify max-w-3xl ml-auto select-none"
                     dir="ltr"
                     {...(!wordMode ? ayahGestures : {})}
                 >
@@ -108,8 +116,6 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
         </div>
     );
 }, (prevProps, nextProps) => {
-    // Custom comparison to optimize list rendering
-    // Only re-render if specific visual props change
     return (
         prevProps.ayah.id === nextProps.ayah.id &&
         prevProps.isPlaying === nextProps.isPlaying &&
@@ -131,7 +137,6 @@ const WordItem: React.FC<{
     onLongPress: (word: QuranWord, parentAyah: QuranAyah) => void;
 }> = React.memo(({ word, parentAyah, isActive, wordMode, fontSize, onTap, onLongPress }) => {
     
-    // OPTIMIZATION: Wrap handlers for words as well
     const handleTap = useCallback(() => {
         onTap(word);
     }, [onTap, word]);
@@ -154,8 +159,8 @@ const WordItem: React.FC<{
     if (isWaqaf) {
         return (
             <span 
-                className="inline-block text-amber-600 dark:text-amber-500 pointer-events-none font-arabic px-1 opacity-90 select-none"
-                style={{ fontSize: `${fontSize * 0.65}px`, verticalAlign: 'top', marginTop: '-5px' }}
+                className="inline-block text-amber-600 dark:text-amber-500 pointer-events-none font-arabic px-1 opacity-80 select-none"
+                style={{ fontSize: `${fontSize * 0.6}px`, verticalAlign: 'top', marginTop: '0' }}
             >
                 {word.text_uthmani}
             </span>
@@ -178,11 +183,11 @@ const WordItem: React.FC<{
             {...(wordMode ? wordGestures : {})}
             onContextMenu={(e) => e.preventDefault()}
             className={`
-                inline-block px-0.5 rounded-lg transition-all duration-200 font-arabic select-none
+                inline-block px-0.5 rounded-lg transition-all duration-200 font-arabic select-none cursor-pointer
                 ${isActive 
-                    ? 'text-teal-600 dark:text-teal-400 drop-shadow-sm' 
+                    ? 'text-teal-600 dark:text-teal-400 scale-110 drop-shadow-sm bg-teal-50/50 dark:bg-teal-900/30' 
                     : wordMode
-                        ? 'text-slate-800 dark:text-slate-100 cursor-pointer active:text-teal-600 hover:text-teal-600 dark:hover:text-teal-400 active:scale-95' 
+                        ? 'hover:text-teal-600 dark:hover:text-teal-400 active:scale-95' 
                         : 'text-slate-800 dark:text-slate-100'
                 }
             `}

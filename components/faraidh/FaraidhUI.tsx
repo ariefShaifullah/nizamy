@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import type { HeirResult } from "../../types.ts";
 import { FIQH_DEFINITIONS } from "../../constants.ts";
 import { formatCurrency } from "../../utils.ts";
@@ -30,22 +31,20 @@ export const InfoTooltip: React.FC<{ term: keyof typeof FIQH_DEFINITIONS }> = ({
 
   if (!data) return null;
 
+  // Toggle handler
+  const toggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsOpen(!isOpen);
+  };
+
   return (
     <>
-      <div className="relative inline-flex items-center ml-2">
+      {/* Trigger Icon - Inline Block to sit next to text */}
+      <span className="inline-flex items-center align-middle ml-1.5 -mt-0.5">
         <button
-          onMouseEnter={() => {
-            if (window.innerWidth >= 768) setIsOpen(true);
-          }}
-          onMouseLeave={() => {
-            if (window.innerWidth >= 768) setIsOpen(false);
-          }}
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setIsOpen(!isOpen);
-          }}
-          className="cursor-pointer text-slate-400 hover:text-primary-600 dark:text-slate-500 dark:hover:text-primary-400 transition-colors focus:outline-none p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
+          onClick={toggle}
+          className="cursor-pointer text-amber-500 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 transition-colors focus:outline-none p-0.5 rounded-full hover:bg-amber-100 dark:hover:bg-amber-900/30"
           aria-label={`Info tentang ${data.title}`}
         >
           <svg
@@ -61,40 +60,35 @@ export const InfoTooltip: React.FC<{ term: keyof typeof FIQH_DEFINITIONS }> = ({
             />
           </svg>
         </button>
+      </span>
 
-        {isOpen && (
-          <>
-            {/* MOBILE BACKDROP: Fixed overlay to focus user attention & catch clicks */}
+      {/* Portal Content - Renders outside of parent overflow/z-index context */}
+      {isOpen &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 animate-fade-in"
+            role="dialog"
+            aria-modal="true"
+          >
+            {/* Backdrop */}
             <div
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] md:hidden animate-fade-in"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsOpen(false);
-              }}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+              onClick={() => setIsOpen(false)}
             />
 
-            {/* ADAPTIVE CONTAINER */}
+            {/* Modal Content */}
             <div
-              className={`
-                /* Common Styles */
-                p-5 bg-white dark:bg-slate-800 text-sm rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 z-[70]
-                
-                /* MOBILE STYLES: Fixed Centered Modal */
-                fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-xs
-                
-                /* DESKTOP STYLES: Absolute Tooltip positioned above icon */
-                md:absolute md:fixed-none md:top-auto md:bottom-full md:left-1/2 md:-translate-x-1/2 md:translate-y-0 md:mb-3 md:w-72 md:rounded-xl md:p-4 md:shadow-xl
-              `}
-              onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside content
+              className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-fade-in-up border border-slate-100 dark:border-slate-700 transform transition-all"
+              onClick={(e) => e.stopPropagation()}
             >
-              {/* Mobile Close Button Header */}
-              <div className="flex justify-between items-start mb-3 md:hidden border-b border-slate-100 dark:border-slate-700 pb-2">
-                <h5 className="font-bold text-primary-600 dark:text-primary-400 text-lg">
+              <div className="flex justify-between items-center p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
+                <h5 className="font-bold text-slate-800 dark:text-white text-lg flex items-center">
+                  <span className="text-xl mr-2">💡</span>
                   {data.title}
                 </h5>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="text-slate-400 hover:text-slate-600 p-1 -mr-2 -mt-2 bg-slate-50 dark:bg-slate-700 rounded-full"
+                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -104,28 +98,30 @@ export const InfoTooltip: React.FC<{ term: keyof typeof FIQH_DEFINITIONS }> = ({
                   >
                     <path
                       fillRule="evenodd"
-                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
                       clipRule="evenodd"
                     />
                   </svg>
                 </button>
               </div>
 
-              {/* Desktop Title (Hidden on Mobile because shown in header above) */}
-              <h5 className="hidden md:block font-bold mb-2 text-primary-600 dark:text-primary-400 text-base">
-                {data.title}
-              </h5>
-
-              <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-sm">
-                {data.definition}
-              </p>
-
-              {/* Arrow for Desktop Tooltip Only */}
-              <div className="hidden md:block absolute bottom-[-6px] left-1/2 -translate-x-1/2 w-3 h-3 bg-white dark:bg-slate-800 border-r border-b border-slate-200 dark:border-slate-700 rotate-45"></div>
+              <div className="p-5">
+                <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-sm text-justify">
+                  {data.definition}
+                </p>
+                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700 flex justify-end">
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="text-xs font-bold text-primary-600 dark:text-primary-400 hover:underline"
+                  >
+                    Tutup Penjelasan
+                  </button>
+                </div>
+              </div>
             </div>
-          </>
+          </div>,
+          document.body
         )}
-      </div>
     </>
   );
 };

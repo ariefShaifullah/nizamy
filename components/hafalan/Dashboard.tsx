@@ -1,6 +1,10 @@
 
 import React, { useState, useEffect, useMemo } from "react";
-import type { HafalanState, HafalanSkillLevel } from "../../types.ts";
+import type {
+  HafalanState,
+  HafalanSkillLevel,
+  HafalanItem,
+} from "../../types.ts";
 import { audioService } from "../../services/audio.service.ts";
 import { notificationService } from "../../services/notification.service.ts";
 import {
@@ -20,6 +24,102 @@ import {
   HafalanSettingsModal,
   CelebrationModal,
 } from "./HafalanModals.tsx";
+
+// --- SUB-COMPONENTS (Internal Refactoring) ---
+
+const StatsHeader: React.FC<{ 
+    profile: any; 
+    gamification: any; 
+    itemCount: number; 
+    onSettings: () => void; 
+}> = React.memo(({ profile, gamification, itemCount, onSettings }) => (
+    <div className="bg-gradient-to-br from-indigo-900 to-indigo-800 dark:from-indigo-950 dark:to-slate-900 text-white md:rounded-3xl shadow-xl shadow-indigo-200 dark:shadow-none relative overflow-hidden p-5 md:p-8 flex flex-col md:flex-row gap-4 md:gap-6 justify-between items-start md:items-end -mx-4 md:mx-0 -mt-8 md:mt-0 pt-8 md:pt-8 border border-indigo-800 dark:border-slate-800">
+        <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none hidden md:block">
+          <svg className="w-64 h-64 text-white" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+          </svg>
+        </div>
+
+        <div className="relative z-10 w-full md:w-2/3">
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-xl md:text-3xl font-bold flex items-center gap-2">
+                Ahlan, {profile.name}!
+              </h1>
+              <p className="text-indigo-200 text-xs md:text-sm mt-1 opacity-90 line-clamp-1">
+                "{getMotivationalQuote()}"
+              </p>
+            </div>
+            <button onClick={onSettings} className="bg-white/10 p-2 rounded-lg hover:bg-white/20 transition-colors backdrop-blur-sm flex-shrink-0 ml-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="mt-4 md:mt-6">
+            <div className="flex justify-between text-xs text-indigo-200 mb-1.5 md:mb-2 font-bold uppercase tracking-wider">
+              <span>Level {gamification.level}</span>
+              <span>{gamification.xp} XP</span>
+            </div>
+            <div className="w-full bg-black/20 rounded-full h-2 md:h-2.5 overflow-hidden backdrop-blur-sm">
+              <div
+                className="bg-gradient-to-r from-amber-400 to-orange-500 h-full rounded-full shadow-[0_0_10px_rgba(251,191,36,0.6)] transition-all duration-1000"
+                style={{ width: `${gamification.xp % 100}%` }}
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        <div className="relative z-10 flex gap-3 w-full md:w-auto mt-2 md:mt-0">
+          <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-xl md:rounded-2xl p-2 md:p-3 flex-1 md:flex-none text-center min-w-[80px] md:min-w-[100px]">
+            <span className="block text-lg md:text-2xl font-bold">{gamification.currentStreak}</span>
+            <span className="text-indigo-200 text-[10px] uppercase tracking-wider">Streak</span>
+          </div>
+          <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-xl md:rounded-2xl p-2 md:p-3 flex-1 md:flex-none text-center min-w-[80px] md:min-w-[100px]">
+            <span className="block text-lg md:text-2xl font-bold">{itemCount}</span>
+            <span className="text-indigo-200 text-[10px] uppercase tracking-wider">Total</span>
+          </div>
+        </div>
+    </div>
+));
+
+const EmptyState: React.FC<{ onAdd: () => void }> = ({ onAdd }) => (
+    <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4 p-4 bg-slate-50/50 dark:bg-slate-800/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+        <div className="w-16 h-16 md:w-20 md:h-20 bg-white dark:bg-slate-700 rounded-full flex items-center justify-center text-3xl md:text-4xl shadow-sm">🌱</div>
+        <div>
+            <h4 className="font-bold text-indigo-900 dark:text-indigo-300 text-lg">Awal Perjalanan</h4>
+            <p className="text-slate-500 dark:text-slate-400 text-sm max-w-xs mx-auto mt-1">Setiap hafiz mulai dari satu ayat. Yuk, mulai hafalan pertamamu.</p>
+        </div>
+        <button onClick={onAdd} className="bg-indigo-600 text-white px-8 py-3 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 dark:shadow-none transform hover:-translate-y-1">
+            + Tambah Hafalan Baru
+        </button>
+    </div>
+);
+
+const MurajaahList: React.FC<{ items: HafalanItem[], onStartReview: (item: HafalanItem) => void }> = ({ items, onStartReview }) => (
+    <div className="space-y-3 pb-20 md:pb-0">
+        {items.map((item) => (
+            <div key={item.id} className="bg-white dark:bg-slate-700/50 p-4 md:p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex flex-row justify-between items-center gap-3 md:gap-4 hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow-md transition-all group">
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <h4 className="font-bold text-slate-800 dark:text-white text-base md:text-lg truncate">{item.surahName}</h4>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide flex-shrink-0 ${item.stage === 0 ? "bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300" : "bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300"}`}>
+                            {item.stage === 0 ? "Baru" : "Murajaah"}
+                        </span>
+                    </div>
+                    <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 font-medium truncate">Ayat {item.startAyah} - {item.endAyah}</p>
+                </div>
+                <button onClick={() => onStartReview(item)} className="shrink-0 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 p-3 md:px-6 md:py-3 rounded-xl md:rounded-xl text-sm font-bold group-hover:bg-indigo-600 group-hover:text-white transition-all active:scale-95 flex items-center justify-center">
+                    <span className="hidden md:inline">Mulai &rarr;</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:hidden" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>
+                </button>
+            </div>
+        ))}
+    </div>
+);
+
+// --- MAIN COMPONENT ---
 
 interface DashboardProps {
   state: HafalanState;
@@ -49,9 +149,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onClearBadges,
 }) => {
   const { showToast } = useToast();
-  // Unified tab state.
   const [activeTab, setActiveTab] = useState<TabView>("schedule");
-
   const [showTutorial, setShowTutorial] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [selectedDetailItem, setSelectedDetailItem] = useState<any | null>(
@@ -59,8 +157,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   );
 
   const profile = state.profile!;
-  
-  // --- MEMOIZATION START ---
+
+  // Memoized Data
   const dueItems = useMemo(() => {
     const today = getLocalYYYYMMDD();
     return state.items
@@ -68,50 +166,43 @@ export const Dashboard: React.FC<DashboardProps> = ({
       .sort((a, b) => a.nextReviewDate.localeCompare(b.nextReviewDate));
   }, [state.items]);
 
-  // --- NOTIFICATION & BADGING TRIGGER ---
-  useEffect(() => {
-    // Update App Badge (Red Dot on Icon)
-    notificationService.updateAppBadge(dueItems.length);
-
-    // Trigger Local Notification if enabled and items are due
-    if (dueItems.length > 0 && notificationService.isEnabled()) {
-        notificationService.sendReminder(dueItems.length);
-    }
-  }, [dueItems.length]);
-
   const allItems = useMemo(() => {
     return [...state.items].sort(
       (a, b) => a.surahNo - b.surahNo || a.startAyah - b.startAyah
     );
   }, [state.items]);
 
-  // Optimization: Memoize daily stats calculation
-  const { dailyLimit, dailyUsed, dailyRemaining, isQuotaFull, isMaxLevel } = useMemo(() => {
-      const limit = getMaxAyatByLevel(profile.skillLevel);
-      const used = getDailyLoad(state.items);
-      const remaining = Math.max(0, limit - used);
-      return {
-          dailyLimit: limit,
-          dailyUsed: used,
-          dailyRemaining: remaining,
-          isQuotaFull: remaining === 0,
-          isMaxLevel: profile.skillLevel === "advanced"
-      };
+  const { dailyLimit, dailyUsed, dailyRemaining, isQuotaFull } = useMemo(() => {
+    const limit = getMaxAyatByLevel(profile.skillLevel);
+    const used = getDailyLoad(state.items);
+    const remaining = Math.max(0, limit - used);
+    return {
+      dailyLimit: limit,
+      dailyUsed: used,
+      dailyRemaining: remaining,
+      isQuotaFull: remaining === 0,
+    };
   }, [profile.skillLevel, state.items]);
 
   const challengePercent = useMemo(() => {
     if (state.gamification.weeklyChallengeTarget === 0) return 0;
     return Math.min(
-        100,
-        (state.gamification.weeklyChallengeProgress /
+      100,
+      (state.gamification.weeklyChallengeProgress /
         state.gamification.weeklyChallengeTarget) *
         100
     );
-  }, [state.gamification.weeklyChallengeProgress, state.gamification.weeklyChallengeTarget]);
-  // --- MEMOIZATION END ---
+  }, [
+    state.gamification.weeklyChallengeProgress,
+    state.gamification.weeklyChallengeTarget,
+  ]);
 
-  const desktopContentTab =
-    activeTab === "profile" || activeTab === "guide" ? "schedule" : activeTab;
+  useEffect(() => {
+    notificationService.updateAppBadge(dueItems.length);
+    if (dueItems.length > 0 && notificationService.isEnabled()) {
+      notificationService.sendReminder(dueItems.length);
+    }
+  }, [dueItems.length]);
 
   useEffect(() => {
     const hasSeenTutorial = localStorage.getItem(
@@ -122,16 +213,25 @@ export const Dashboard: React.FC<DashboardProps> = ({
     }
   }, [state.items.length, showTutorial]);
 
-  const handleCloseTutorial = () => {
-    localStorage.setItem("nizamy_hafalan_tutorial_seen", "true");
-    setShowTutorial(false);
+  const handleSettingsClick = () => {
     audioService.playClick();
+    setShowSettings(true);
   };
+
+  const desktopContentTab =
+    activeTab === "profile" || activeTab === "guide" ? "schedule" : activeTab;
 
   return (
     <div className="max-w-5xl mx-auto space-y-4 md:space-y-8 animate-fade-in pb-20 md:pb-12">
-      {showTutorial && <HafalanTutorialModal onClose={handleCloseTutorial} />}
-
+      {showTutorial && (
+        <HafalanTutorialModal
+          onClose={() => {
+            localStorage.setItem("nizamy_hafalan_tutorial_seen", "true");
+            setShowTutorial(false);
+            audioService.playClick();
+          }}
+        />
+      )}
       {showSettings && (
         <HafalanSettingsModal
           currentProfile={profile}
@@ -143,7 +243,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
           }}
         />
       )}
-
       {selectedDetailItem && (
         <HafalanDetailModal
           item={selectedDetailItem}
@@ -154,93 +253,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
           }}
         />
       )}
-
       {earnedBadgesQueue.length > 0 && (
         <CelebrationModal badges={earnedBadgesQueue} onClose={onClearBadges} />
       )}
 
-      {/* --- HEADER SECTION --- */}
-      <div className="bg-gradient-to-br from-indigo-900 to-indigo-800 dark:from-indigo-950 dark:to-slate-900 text-white md:rounded-3xl shadow-xl shadow-indigo-200 dark:shadow-none relative overflow-hidden p-5 md:p-8 flex flex-col md:flex-row gap-4 md:gap-6 justify-between items-start md:items-end -mx-4 md:mx-0 -mt-8 md:mt-0 pt-8 md:pt-8 border border-indigo-800 dark:border-slate-800">
-        <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none hidden md:block">
-          <svg
-            className="w-64 h-64 text-white"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-          </svg>
-        </div>
-
-        <div className="relative z-10 w-full md:w-2/3">
-          <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-xl md:text-3xl font-bold flex items-center gap-2">
-                Ahlan, {profile.name}!
-              </h1>
-              <p className="text-indigo-200 text-xs md:text-sm mt-1 opacity-90 line-clamp-1">
-                "{getMotivationalQuote()}"
-              </p>
-            </div>
-            <button
-              onClick={() => {
-                audioService.playClick();
-                setShowSettings(true);
-              }}
-              className="bg-white/10 p-2 rounded-lg hover:bg-white/20 transition-colors backdrop-blur-sm flex-shrink-0 ml-2"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                />
-              </svg>
-            </button>
-          </div>
-
-          <div className="mt-4 md:mt-6">
-            <div className="flex justify-between text-xs text-indigo-200 mb-1.5 md:mb-2 font-bold uppercase tracking-wider">
-              <span>Level {state.gamification.level}</span>
-              <span>{state.gamification.xp} XP</span>
-            </div>
-            <div className="w-full bg-black/20 rounded-full h-2 md:h-2.5 overflow-hidden backdrop-blur-sm">
-              <div
-                className="bg-gradient-to-r from-amber-400 to-orange-500 h-full rounded-full shadow-[0_0_10px_rgba(251,191,36,0.6)] transition-all duration-1000"
-                style={{ width: `${state.gamification.xp % 100}%` }}
-              ></div>
-            </div>
-          </div>
-        </div>
-
-        <div className="relative z-10 flex gap-3 w-full md:w-auto mt-2 md:mt-0">
-          <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-xl md:rounded-2xl p-2 md:p-3 flex-1 md:flex-none text-center min-w-[80px] md:min-w-[100px]">
-            <span className="block text-lg md:text-2xl font-bold">
-              {state.gamification.currentStreak}
-            </span>
-            <span className="text-indigo-200 text-[10px] uppercase tracking-wider">
-              Streak
-            </span>
-          </div>
-          <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-xl md:rounded-2xl p-2 md:p-3 flex-1 md:flex-none text-center min-w-[80px] md:min-w-[100px]">
-            <span className="block text-lg md:text-2xl font-bold">
-              {state.items.length}
-            </span>
-            <span className="text-indigo-200 text-[10px] uppercase tracking-wider">
-              Total
-            </span>
-          </div>
-        </div>
-      </div>
+      <StatsHeader
+        profile={profile}
+        gamification={state.gamification}
+        itemCount={state.items.length}
+        onSettings={handleSettingsClick}
+      />
 
       {/* --- MAIN CONTENT GRID --- */}
       <div className="md:grid md:grid-cols-3 gap-6">
-        {/* LEFT COL: MAIN CONTENT (Tasks & List) */}
+        {/* LEFT COL: MAIN CONTENT */}
         <div
           className={`md:col-span-2 bg-white dark:bg-slate-800 md:rounded-3xl shadow-sm md:shadow-lg md:shadow-slate-200/50 dark:md:shadow-none border-y md:border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col min-h-[500px] ${
             activeTab === "profile" || activeTab === "guide"
@@ -248,6 +274,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               : "flex"
           }`}
         >
+          {/* Desktop Tabs */}
           <div className="hidden md:flex border-b border-slate-100 dark:border-slate-700 p-2 bg-slate-50/50 dark:bg-slate-800/50 sticky top-0 z-20 backdrop-blur-md">
             <button
               onClick={() => {
@@ -283,7 +310,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
 
           <div className="p-4 md:p-6 flex-1 bg-white dark:bg-slate-800">
-            {/* SCHEDULE VIEW */}
             {desktopContentTab === "schedule" ? (
               <div className="space-y-4 h-full flex flex-col">
                 <div className="flex justify-between items-center">
@@ -302,29 +328,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </div>
 
                 {state.items.length === 0 ? (
-                  <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4 p-4 bg-slate-50/50 dark:bg-slate-800/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
-                    <div className="w-16 h-16 md:w-20 md:h-20 bg-white dark:bg-slate-700 rounded-full flex items-center justify-center text-3xl md:text-4xl shadow-sm">
-                      🌱
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-indigo-900 dark:text-indigo-300 text-lg">
-                        Awal Perjalanan
-                      </h4>
-                      <p className="text-slate-500 dark:text-slate-400 text-sm max-w-xs mx-auto mt-1">
-                        Setiap hafiz mulai dari satu ayat. Yuk, mulai hafalan
-                        pertamamu.
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => {
-                        audioService.playClick();
-                        onAddClick();
-                      }}
-                      className="bg-indigo-600 text-white px-8 py-3 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 dark:shadow-none transform hover:-translate-y-1"
-                    >
-                      + Tambah Hafalan Baru
-                    </button>
-                  </div>
+                  <EmptyState
+                    onAdd={() => {
+                      audioService.playClick();
+                      onAddClick();
+                    }}
+                  />
                 ) : dueItems.length === 0 ? (
                   <div
                     className={`flex-1 flex flex-col items-center justify-center text-center space-y-4 p-4 rounded-2xl border border-dashed ${
@@ -345,12 +354,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     <div>
                       <h4
                         className={`font-bold text-lg ${
-                          isQuotaFull ? "text-green-900 dark:text-green-300" : "text-indigo-900 dark:text-indigo-300"
+                          isQuotaFull
+                            ? "text-green-900 dark:text-green-300"
+                            : "text-indigo-900 dark:text-indigo-300"
                         }`}
                       >
                         {isQuotaFull
                           ? "Target Harian Tuntas!"
-                          : "Murajaah Beres, Energi Masih Ada!"}
+                          : "Murajaah Beres!"}
                       </h4>
                       <p
                         className={`text-sm mt-1 max-w-xs mx-auto leading-relaxed ${
@@ -360,82 +371,25 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         }`}
                       >
                         {isQuotaFull
-                          ? `Masya Allah, hari ini kamu produktif banget (Total ${dailyUsed} poin). Istirahat dulu ya, biar hafalan nempel sempurna.`
-                          : `Jadwal murajaah udah bersih, tapi kuota harian kamu masih sisa ${dailyRemaining} poin. Sayang kalau nggak dipake, tambah hafalan baru yuk?`}
+                          ? `Masya Allah, hari ini kamu produktif banget (Total ${dailyUsed} poin).`
+                          : `Jadwal murajaah bersih, sisa kuota ${dailyRemaining} poin.`}
                       </p>
                     </div>
-                    {isQuotaFull ? (
-                      <div className="flex flex-col gap-3 w-full max-w-xs">
-                        <button
-                          onClick={() => {
-                            audioService.playClick();
-                            setShowSettings(true);
-                          }}
-                          className="w-full bg-white dark:bg-slate-700 border-2 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-green-50 dark:hover:bg-slate-600 hover:border-green-300 transition-all"
-                        >
-                          Atur Target Harian
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          audioService.playClick();
-                          onAddClick();
-                        }}
-                        className="bg-indigo-600 text-white shadow-lg shadow-indigo-200 dark:shadow-none px-6 py-3 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all transform hover:-translate-y-1"
-                      >
-                        + Tambah Hafalan Baru
-                      </button>
-                    )}
+                    <button
+                      onClick={() => {
+                        audioService.playClick();
+                        onAddClick();
+                      }}
+                      className="bg-indigo-600 text-white shadow-lg shadow-indigo-200 dark:shadow-none px-6 py-3 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all transform hover:-translate-y-1"
+                    >
+                      + Tambah Hafalan Baru
+                    </button>
                   </div>
                 ) : (
-                  <div className="space-y-3 pb-20 md:pb-0">
-                    {dueItems.map((item) => (
-                      <div
-                        key={item.id}
-                        className="bg-white dark:bg-slate-700/50 p-4 md:p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex flex-row justify-between items-center gap-3 md:gap-4 hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow-md transition-all group"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1 flex-wrap">
-                            <h4 className="font-bold text-slate-800 dark:text-white text-base md:text-lg truncate">
-                              {item.surahName}
-                            </h4>
-                            <span
-                              className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide flex-shrink-0 ${
-                                item.stage === 0
-                                  ? "bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300"
-                                  : "bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300"
-                              }`}
-                            >
-                              {item.stage === 0 ? "Baru" : "Murajaah"}
-                            </span>
-                          </div>
-                          <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 font-medium truncate">
-                            Ayat {item.startAyah} - {item.endAyah}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => onStartReview(item)}
-                          className="shrink-0 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 p-3 md:px-6 md:py-3 rounded-xl md:rounded-xl text-sm font-bold group-hover:bg-indigo-600 group-hover:text-white transition-all active:scale-95 flex items-center justify-center"
-                          aria-label="Mulai Murajaah"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5 md:hidden"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                          <span className="hidden md:inline">Mulai &rarr;</span>
-                        </button>
-                      </div>
-                    ))}
-                  </div>
+                  <MurajaahList
+                    items={dueItems}
+                    onStartReview={onStartReview}
+                  />
                 )}
               </div>
             ) : (
@@ -445,17 +399,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   <h3 className="font-bold text-slate-800 dark:text-white text-lg md:text-xl">
                     Daftar Hafalan
                   </h3>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        audioService.playClick();
-                        exportHafalanToPdf(state);
-                      }}
-                      className="text-xs bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-3 py-1.5 rounded-lg font-bold hover:bg-slate-100 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600 flex items-center"
-                    >
-                      PDF
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => {
+                      audioService.playClick();
+                      exportHafalanToPdf(state);
+                    }}
+                    className="text-xs bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-3 py-1.5 rounded-lg font-bold hover:bg-slate-100 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600"
+                  >
+                    PDF
+                  </button>
                 </div>
                 <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-2 pb-20 md:pb-0">
                   {allItems.length === 0 ? (
@@ -508,7 +460,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
 
-        {/* RIGHT COL: PROFILE & GAMIFICATION (Sidebar) */}
+        {/* RIGHT COL: SIDEBAR */}
         <div
           className={`space-y-6 ${
             activeTab === "profile" ? "block" : "hidden md:block"
@@ -523,7 +475,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </h4>
             <div className="mt-2">
               <div className="flex justify-between text-xs font-medium mb-1">
-                <span className="text-slate-500 dark:text-slate-400">Progress</span>
+                <span className="text-slate-500 dark:text-slate-400">
+                  Progress
+                </span>
                 <span className="text-orange-600 dark:text-orange-400">
                   {state.gamification.weeklyChallengeProgress} /{" "}
                   {state.gamification.weeklyChallengeTarget} XP
@@ -532,15 +486,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
                 <div
                   className="bg-orange-500 h-full rounded-full transition-all duration-1000 ease-out"
-                  style={{
-                    width: `${challengePercent}%`,
-                  }}
+                  style={{ width: `${challengePercent}%` }}
                 ></div>
               </div>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-3 text-center">
-                Kumpulkan {state.gamification.weeklyChallengeTarget} XP minggu
-                ini buat jaga Istiqomah!
-              </p>
             </div>
           </div>
 
@@ -591,12 +539,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </div>
 
-      {/* FAQ VISIBLE ON DESKTOP BOTTOM ONLY */}
-      <div className="hidden md:block mt-8">
-        <FAQ title="Panduan" subtitle="Metode SRS NIZAMY" data={HAFALAN_FAQ} />
-      </div>
-
-      {/* --- FAB (FLOATING ACTION BUTTON) --- */}
+      {/* FAB */}
       <button
         onClick={() => {
           audioService.playClick();
@@ -623,119 +566,59 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </svg>
       </button>
 
-      {/* --- MOBILE BOTTOM NAVIGATION --- */}
+      {/* MOBILE NAV */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 px-2 z-50 flex justify-between items-center shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
-        <button
-          onClick={() => {
-            audioService.playClick();
-            setActiveTab("schedule");
-          }}
-          className={`flex-1 flex flex-col items-center p-2 rounded-xl transition-all ${
-            activeTab === "schedule"
-              ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
-              : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
-          }`}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 mb-1"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+        {[
+          {
+            id: "schedule",
+            icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",
+            label: "Jadwal",
+          },
+          {
+            id: "list",
+            icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2",
+            label: "List",
+          },
+          {
+            id: "guide",
+            icon: "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253",
+            label: "Panduan",
+          },
+          {
+            id: "profile",
+            icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z",
+            label: "Profil",
+          },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => {
+              audioService.playClick();
+              setActiveTab(tab.id as TabView);
+            }}
+            className={`flex-1 flex flex-col items-center p-2 rounded-xl transition-all ${
+              activeTab === tab.id
+                ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
+                : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
+            }`}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-            />
-          </svg>
-          <span className="text-[10px] font-bold uppercase">Jadwal</span>
-        </button>
-
-        <button
-          onClick={() => {
-            audioService.playClick();
-            setActiveTab("list");
-          }}
-          className={`flex-1 flex flex-col items-center p-2 rounded-xl transition-all ${
-            activeTab === "list"
-              ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
-              : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
-          }`}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 mb-1"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-            />
-          </svg>
-          <span className="text-[10px] font-bold uppercase">List</span>
-        </button>
-
-        <button
-          onClick={() => {
-            audioService.playClick();
-            setActiveTab("guide");
-          }}
-          className={`flex-1 flex flex-col items-center p-2 rounded-xl transition-all ${
-            activeTab === "guide"
-              ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
-              : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
-          }`}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 mb-1"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-            />
-          </svg>
-          <span className="text-[10px] font-bold uppercase">Panduan</span>
-        </button>
-
-        <button
-          onClick={() => {
-            audioService.playClick();
-            setActiveTab("profile");
-          }}
-          className={`flex-1 flex flex-col items-center p-2 rounded-xl transition-all ${
-            activeTab === "profile"
-              ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
-              : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
-          }`}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 mb-1"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-            />
-          </svg>
-          <span className="text-[10px] font-bold uppercase">Profil</span>
-        </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6 mb-1"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d={tab.icon}
+              />
+            </svg>
+            <span className="text-[10px] font-bold uppercase">{tab.label}</span>
+          </button>
+        ))}
       </div>
     </div>
   );

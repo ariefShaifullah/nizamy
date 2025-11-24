@@ -148,11 +148,30 @@ export const calculateFaraidh = (heirs: HeirInputState, estate: number): Calcula
   const results: Results = {};
   const notes: string[] = [];
 
+  // --- 0. ZERO HEIRS CHECK ---
+  const totalHeirsCount = Object.values(present).reduce((a, b) => a + b, 0);
+  if (totalHeirsCount === 0) {
+    return {
+      estate,
+      heirResults: [],
+      aslAlMasalah: 0,
+      totalSharesNum: 0,
+      finalDenominator: 0,
+      notes: [
+        "Tidak ada ahli waris yang diketahui. Seluruh harta diserahkan ke Baitul Mal atau digunakan untuk kemaslahatan umum.",
+      ],
+    };
+  }
+
   // Initialize Results
   for (const key of Object.keys(heirs)) {
     const heir = key as Heir;
     if (present[heir] > 0) {
-      results[heir] = { name: HEIR_LABELS[heir], count: present[heir], isBlocked: false };
+      results[heir] = {
+        name: HEIR_LABELS[heir],
+        count: present[heir],
+        isBlocked: false,
+      };
     }
   }
 
@@ -171,16 +190,40 @@ export const calculateFaraidh = (heirs: HeirInputState, estate: number): Calcula
   const femaleDescendantExists = daughterExists || granddaughterExists;
 
   // Complex Condition Checks
-  const isGrandfatherWithSiblings = grandfatherExists && !fatherExists && !maleDescendantExists && (fullBrotherExists || fullSisterExists || paternalBrotherExists || paternalSisterExists);
-  const initialHeirCount = Object.values(heirs).filter(v => v > 0).reduce((sum, count) => sum + count, 0);
-  const isAkdariyyah = present.husband === 1 && present.mother === 1 && present.grandfather === 1 && present.fullSister === 1 &&
-                       !sonExists && !daughterExists && !grandsonExists && !granddaughterExists && !fatherExists && !fullBrotherExists && initialHeirCount === 4;
-  
-  const originalSiblingsCount = heirs.fullBrother + heirs.fullSister + heirs.paternalBrother + heirs.paternalSister + heirs.maternalBrother + heirs.maternalSister;
-  
+  const isGrandfatherWithSiblings =
+    grandfatherExists &&
+    !fatherExists &&
+    !maleDescendantExists &&
+    (fullBrotherExists ||
+      fullSisterExists ||
+      paternalBrotherExists ||
+      paternalSisterExists);
+  const isAkdariyyah =
+    present.husband === 1 &&
+    present.mother === 1 &&
+    present.grandfather === 1 &&
+    present.fullSister === 1 &&
+    !sonExists &&
+    !daughterExists &&
+    !grandsonExists &&
+    !granddaughterExists &&
+    !fatherExists &&
+    !fullBrotherExists &&
+    totalHeirsCount === 4;
+
+  const originalSiblingsCount =
+    heirs.fullBrother +
+    heirs.fullSister +
+    heirs.paternalBrother +
+    heirs.paternalSister +
+    heirs.maternalBrother +
+    heirs.maternalSister;
+
   // KHI Note
   if (sonExists && (grandsonExists || granddaughterExists)) {
-     notes.push("INFO KHI: Cucu yang orang tuanya meninggal lebih dulu bisa menjadi 'Ahli Waris Pengganti' (Pasal 185 KHI).");
+    notes.push(
+      "INFO KHI: Cucu yang orang tuanya meninggal lebih dulu bisa menjadi 'Ahli Waris Pengganti' (Pasal 185 KHI)."
+    );
   }
 
   // 1. Hajb Rules
@@ -196,170 +239,302 @@ export const calculateFaraidh = (heirs: HeirInputState, estate: number): Calcula
     const akdariyyahResult = resolveAkdariyyah(shares, results, notes);
     Object.assign(finalSiham, akdariyyahResult.finalSiham);
     finalDenominator = akdariyyahResult.finalDenominator;
-    totalSharesNum = 9; 
-    aslAlMasalah = 6; 
+    totalSharesNum = 9;
+    aslAlMasalah = 6;
   } else {
-    calculateFurudhShares(present, results, shares, notes, { isGrandfatherWithSiblings }, originalSiblingsCount);
-    
-    const flags = { sonExists, daughterExists, grandsonExists, granddaughterExists, fatherExists, grandfatherExists, maleDescendantExists, femaleDescendantExists, fullBrotherExists, fullSisterExists, paternalBrotherExists, paternalSisterExists, isGrandfatherWithSiblings };
+    calculateFurudhShares(
+      present,
+      results,
+      shares,
+      notes,
+      { isGrandfatherWithSiblings },
+      originalSiblingsCount
+    );
+
+    const flags = {
+      sonExists,
+      daughterExists,
+      grandsonExists,
+      granddaughterExists,
+      fatherExists,
+      grandfatherExists,
+      maleDescendantExists,
+      femaleDescendantExists,
+      fullBrotherExists,
+      fullSisterExists,
+      paternalBrotherExists,
+      paternalSisterExists,
+      isGrandfatherWithSiblings,
+    };
     const ashabahHeirs = determineAshabah(present, results, flags);
-    
-    // Handle Grandfather + Siblings (Muqasamah vs 1/3) - Extracted logic simplified inline here for brevity but logically separated
+
+    // Handle Grandfather + Siblings (Muqasamah vs 1/3)
     if (isGrandfatherWithSiblings) {
-      const furudhTotalWithoutSpouse = Object.keys(shares).filter(h => h !== 'husband' && h !== 'wife').reduce((sh, h) => addShares(sh, shares[h as Heir]!), {numerator:0, denominator:1, type:'furudh'} as Share);
-      const remainingShare = {numerator: furudhTotalWithoutSpouse.denominator - furudhTotalWithoutSpouse.numerator, denominator: furudhTotalWithoutSpouse.denominator};
-      const competingSiblings = (present.fullBrother > 0 || present.fullSister > 0) ? { b: present.fullBrother, s: present.fullSister } : { b: present.paternalBrother, s: present.paternalSister };
-      const totalHeads = 2 + (competingSiblings.b * 2) + competingSiblings.s;
-      const muqasamahValue = (remainingShare.numerator / remainingShare.denominator) * (2 / totalHeads);
-      
+      const furudhTotalWithoutSpouse = Object.keys(shares)
+        .filter((h) => h !== "husband" && h !== "wife")
+        .reduce((sh, h) => addShares(sh, shares[h as Heir]!), {
+          numerator: 0,
+          denominator: 1,
+          type: "furudh",
+        } as Share);
+      const remainingShare = {
+        numerator:
+          furudhTotalWithoutSpouse.denominator -
+          furudhTotalWithoutSpouse.numerator,
+        denominator: furudhTotalWithoutSpouse.denominator,
+      };
+      const competingSiblings =
+        present.fullBrother > 0 || present.fullSister > 0
+          ? { b: present.fullBrother, s: present.fullSister }
+          : { b: present.paternalBrother, s: present.paternalSister };
+      const totalHeads = 2 + competingSiblings.b * 2 + competingSiblings.s;
+      const muqasamahValue =
+        (remainingShare.numerator / remainingShare.denominator) *
+        (2 / totalHeads);
+
       // Decision: Muqasamah vs 1/3 Sisa vs 1/6 Total
-      if (muqasamahValue >= (1/6) && muqasamahValue >= ((remainingShare.numerator/remainingShare.denominator)/3)) {
-          ashabahHeirs.push({heir: HeirEnum.Grandfather, ratio: 2});
-          if (present.fullBrother > 0 || present.fullSister > 0) {
-             if (present.fullBrother > 0) ashabahHeirs.push({heir: HeirEnum.FullBrother, ratio: 2 * present.fullBrother});
-             if (present.fullSister > 0) ashabahHeirs.push({heir: HeirEnum.FullSister, ratio: 1 * present.fullSister});
-          } else {
-             if (present.paternalBrother > 0) ashabahHeirs.push({heir: HeirEnum.PaternalBrother, ratio: 2 * present.paternalBrother});
-             if (present.paternalSister > 0) ashabahHeirs.push({heir: HeirEnum.PaternalSister, ratio: 1 * present.paternalSister});
-          }
-          results.grandfather!.reason = `Muqasamah (Berbagi sisa dengan saudara).`;
-          results.grandfather!.evidence = LEGAL_BASIS.IJMA;
+      if (
+        muqasamahValue >= 1 / 6 &&
+        muqasamahValue >=
+          remainingShare.numerator / remainingShare.denominator / 3
+      ) {
+        ashabahHeirs.push({ heir: HeirEnum.Grandfather, ratio: 2 });
+        if (present.fullBrother > 0 || present.fullSister > 0) {
+          if (present.fullBrother > 0)
+            ashabahHeirs.push({
+              heir: HeirEnum.FullBrother,
+              ratio: 2 * present.fullBrother,
+            });
+          if (present.fullSister > 0)
+            ashabahHeirs.push({
+              heir: HeirEnum.FullSister,
+              ratio: 1 * present.fullSister,
+            });
+        } else {
+          if (present.paternalBrother > 0)
+            ashabahHeirs.push({
+              heir: HeirEnum.PaternalBrother,
+              ratio: 2 * present.paternalBrother,
+            });
+          if (present.paternalSister > 0)
+            ashabahHeirs.push({
+              heir: HeirEnum.PaternalSister,
+              ratio: 1 * present.paternalSister,
+            });
+        }
+        results.grandfather!.reason = `Muqasamah (Berbagi sisa dengan saudara).`;
+        results.grandfather!.evidence = LEGAL_BASIS.IJMA;
       } else {
-          // Simplify: Give 1/6 Total (safest fallback for Grandfather in almost all unfavorable muqasamah)
-          // Or 1/3 Remainder if better.
-          shares.grandfather = addShares(shares.grandfather || {numerator:0, denominator:1, type:'furudh'}, {numerator:1, denominator:6, type:'furudh'});
-          results.grandfather!.reason = `Bagian terbaik (minimal 1/6).`;
-          
-          // Add siblings as normal ashabah if any remainder
-          if (present.fullBrother > 0) ashabahHeirs.push({heir: HeirEnum.FullBrother, ratio: 2 * present.fullBrother});
-          else if (present.paternalBrother > 0) ashabahHeirs.push({heir: HeirEnum.PaternalBrother, ratio: 2 * present.paternalBrother});
+        shares.grandfather = addShares(
+          shares.grandfather || {
+            numerator: 0,
+            denominator: 1,
+            type: "furudh",
+          },
+          { numerator: 1, denominator: 6, type: "furudh" }
+        );
+        results.grandfather!.reason = `Bagian terbaik (minimal 1/6).`;
+        if (present.fullBrother > 0)
+          ashabahHeirs.push({
+            heir: HeirEnum.FullBrother,
+            ratio: 2 * present.fullBrother,
+          });
+        else if (present.paternalBrother > 0)
+          ashabahHeirs.push({
+            heir: HeirEnum.PaternalBrother,
+            ratio: 2 * present.paternalBrother,
+          });
       }
     }
 
     // Calculate LCM
-    const furudhHeirs = Object.keys(shares).filter(h => shares[h as Heir]?.type === 'furudh') as Heir[];
-    const denominators = furudhHeirs.map(h => shares[h]!.denominator);
-    aslAlMasalah = denominators.length > 0 ? denominators.reduce((acc, val) => lcm(acc, val), 1) : 1;
-    
+    const furudhHeirs = Object.keys(shares).filter(
+      (h) => shares[h as Heir]?.type === "furudh"
+    ) as Heir[];
+    const denominators = furudhHeirs.map((h) => shares[h]!.denominator);
+    aslAlMasalah =
+      denominators.length > 0
+        ? denominators.reduce((acc, val) => lcm(acc, val), 1)
+        : 1;
+
     const initialSiham: { [key in Heir]?: number } = {};
     let initialSihamTotal = 0;
-    furudhHeirs.forEach(h => {
-        const siham = shares[h]!.numerator * (aslAlMasalah / shares[h]!.denominator);
-        initialSiham[h] = siham;
-        initialSihamTotal += siham;
+    furudhHeirs.forEach((h) => {
+      const siham =
+        shares[h]!.numerator * (aslAlMasalah / shares[h]!.denominator);
+      initialSiham[h] = siham;
+      initialSihamTotal += siham;
     });
 
-    // Final Distribution
+    // Final Distribution Logic
     if (ashabahHeirs.length > 0) {
-        const remainingSiham = aslAlMasalah - initialSihamTotal;
-        if (remainingSiham > 0) {
-            const totalRatio = ashabahHeirs.reduce((sum, h) => sum + h.ratio, 0);
-            finalDenominator = aslAlMasalah * totalRatio;
-            totalSharesNum = finalDenominator;
+      const remainingSiham = aslAlMasalah - initialSihamTotal;
+      if (remainingSiham > 0) {
+        const totalRatio = ashabahHeirs.reduce((sum, h) => sum + h.ratio, 0);
+        finalDenominator = aslAlMasalah * totalRatio;
+        totalSharesNum = finalDenominator;
 
-            Object.keys(initialSiham).forEach(h => {
-                finalSiham[h as Heir] = initialSiham[h as Heir]! * totalRatio;
-            });
-            
-            const ashabahTotalSiham = remainingSiham * totalRatio;
-            ashabahHeirs.forEach(h => {
-                finalSiham[h.heir] = (finalSiham[h.heir] || 0) + (ashabahTotalSiham * h.ratio / totalRatio);
-            });
+        Object.keys(initialSiham).forEach((h) => {
+          finalSiham[h as Heir] = initialSiham[h as Heir]! * totalRatio;
+        });
+
+        const ashabahTotalSiham = remainingSiham * totalRatio;
+        ashabahHeirs.forEach((h) => {
+          finalSiham[h.heir] =
+            (finalSiham[h.heir] || 0) +
+            (ashabahTotalSiham * h.ratio) / totalRatio;
+        });
+      } else {
+        // Ashabah gets nothing
+        ashabahHeirs.forEach((h) => {
+          if (shares[h.heir]?.type !== "furudh" && results[h.heir]) {
+            results[h.heir]!.isBlocked = true;
+            results[h.heir]!.reason =
+              "Terhalang karena harta habis oleh ahli waris furudh.";
+          }
+        });
+        // Handle Aul if needed
+        if (initialSihamTotal > aslAlMasalah) {
+          finalDenominator = initialSihamTotal;
+          notes.push(
+            `Kasus 'Aul: Asal masalah ${aslAlMasalah} meningkat menjadi ${finalDenominator}.`
+          );
         } else {
-             // Ashabah gets nothing
-             ashabahHeirs.forEach(h => {
-                if (shares[h.heir]?.type !== 'furudh' && results[h.heir]) {
-                    results[h.heir]!.isBlocked = true;
-                    results[h.heir]!.reason = "Terhalang karena harta habis oleh ahli waris furudh.";
-                }
+          finalDenominator = aslAlMasalah;
+        }
+        totalSharesNum = initialSihamTotal;
+        Object.assign(finalSiham, initialSiham);
+      }
+    } else {
+      // No Ashabah - Check for Radd or Aul
+      if (initialSihamTotal > aslAlMasalah) {
+        // 'Aul
+        finalDenominator = initialSihamTotal;
+        totalSharesNum = initialSihamTotal;
+        Object.assign(finalSiham, initialSiham);
+        notes.push(
+          `Kasus 'Aul: Asal masalah ${aslAlMasalah} meningkat menjadi ${finalDenominator}.`
+        );
+      } else if (initialSihamTotal < aslAlMasalah && initialSihamTotal > 0) {
+        // Radd or Sisa
+        const spouse =
+          present.husband > 0
+            ? HeirEnum.Husband
+            : present.wife > 0
+            ? HeirEnum.Wife
+            : null;
+
+        if (!spouse) {
+          // Classic Radd: No spouse, return to Furudh
+          finalDenominator = initialSihamTotal;
+          notes.push(
+            `Kasus Radd: Sisa harta dikembalikan ke ahli waris furudh secara proporsional.`
+          );
+          Object.assign(finalSiham, initialSiham);
+        } else {
+          // Radd with Spouse (Complex)
+          const spouseShare = shares[spouse]!;
+          const sihamSpouse = initialSiham[spouse]!;
+          const sihamRaddHeirsTotal = initialSihamTotal - sihamSpouse;
+
+          if (sihamRaddHeirsTotal > 0) {
+            finalDenominator = spouseShare.denominator * sihamRaddHeirsTotal;
+            finalSiham[spouse] =
+              (spouseShare.numerator * finalDenominator) /
+              spouseShare.denominator;
+            const remainderSiham = finalDenominator - finalSiham[spouse]!;
+            furudhHeirs.forEach((h) => {
+              if (h !== spouse)
+                finalSiham[h] =
+                  (remainderSiham * initialSiham[h]!) / sihamRaddHeirsTotal;
             });
-            // Handle Aul if needed
-            if (initialSihamTotal > aslAlMasalah) {
-                finalDenominator = initialSihamTotal;
-                notes.push(`Kasus 'Aul: Asal masalah ${aslAlMasalah} meningkat menjadi ${finalDenominator}.`);
-            } else {
-                finalDenominator = aslAlMasalah;
-            }
-            totalSharesNum = initialSihamTotal;
-            Object.assign(finalSiham, initialSiham);
-        }
-    } else { 
-        // No Ashabah - Check for Radd or Aul
-        if (initialSihamTotal > aslAlMasalah) { // 'Aul
-            finalDenominator = initialSihamTotal;
-            totalSharesNum = initialSihamTotal;
-            Object.assign(finalSiham, initialSiham);
-            notes.push(`Kasus 'Aul: Asal masalah ${aslAlMasalah} meningkat menjadi ${finalDenominator}.`);
-        } else if (initialSihamTotal < aslAlMasalah) { // Radd
-            const spouse = present.husband > 0 ? HeirEnum.Husband : (present.wife > 0 ? HeirEnum.Wife : null);
-            // Radd Logic (Simplified for brevity in refactor display)
-            if (!spouse) {
-                 finalDenominator = initialSihamTotal;
-                 notes.push(`Kasus Radd: Sisa harta dikembalikan ke ahli waris furudh.`);
-                 Object.assign(finalSiham, initialSiham);
-            } else {
-                 // Radd with Spouse (Complex) - Standard method: Spouse keeps base share, others get Radd
-                 const spouseShare = shares[spouse]!;
-                 const sihamSpouse = initialSiham[spouse]!;
-                 const sihamRaddHeirsTotal = initialSihamTotal - sihamSpouse;
-                 
-                 if (sihamRaddHeirsTotal > 0) {
-                    finalDenominator = spouseShare.denominator * sihamRaddHeirsTotal;
-                    finalSiham[spouse] = (spouseShare.numerator * finalDenominator) / spouseShare.denominator;
-                    const remainderSiham = finalDenominator - finalSiham[spouse]!;
-                    furudhHeirs.forEach(h => {
-                        if (h !== spouse) finalSiham[h] = (remainderSiham * initialSiham[h]!) / sihamRaddHeirsTotal;
-                    });
-                    notes.push("Kasus Radd: Sisa harta dikembalikan kepada ahli waris furudh selain pasangan.");
-                 } else {
-                     finalDenominator = aslAlMasalah;
-                     Object.assign(finalSiham, initialSiham);
-                 }
-            }
-            totalSharesNum = finalDenominator;
-        } else { // Adil
+            notes.push(
+              "Kasus Radd: Sisa harta dikembalikan kepada ahli waris furudh selain pasangan."
+            );
+          } else {
+            // Spouse Only Case (Siham Radd Heirs = 0)
+            // Spouse takes their share, remainder goes to Baitul Mal / Sisa
             finalDenominator = aslAlMasalah;
-            totalSharesNum = initialSihamTotal;
             Object.assign(finalSiham, initialSiham);
+            notes.push(
+              "Ahli waris hanya pasangan. Sisa harta diserahkan ke Baitul Mal (menurut Jumhur) atau Dzawil Arham."
+            );
+          }
         }
+        totalSharesNum = finalDenominator;
+      } else {
+        // Adil (Sum == Asal Masalah)
+        finalDenominator = aslAlMasalah;
+        totalSharesNum = initialSihamTotal;
+        Object.assign(finalSiham, initialSiham);
+      }
     }
   }
-  
+
   // 3. Formatting Output
-  const isAulCase = notes.some(note => note.includes("'Aul"));
-  const isRaddCase = notes.some(note => note.includes("Radd"));
+  const isAulCase = notes.some((note) => note.includes("'Aul"));
+  const isRaddCase = notes.some((note) => note.includes("Kasus Radd")); // Specific string match
   const finalResults: HeirResult[] = [];
 
   for (const key of Object.keys(results)) {
     const heir = key as Heir;
     const res = results[heir]!;
     const siham = finalSiham[heir];
-    let finalEvidence = res.evidence || (res.isBlocked ? LEGAL_BASIS.HADITH_NEAREST_MALE : QURAN_REFS.AN_NISA_11);
+    let finalEvidence =
+      res.evidence ||
+      (res.isBlocked ? LEGAL_BASIS.HADITH_NEAREST_MALE : QURAN_REFS.AN_NISA_11);
 
     if (siham && siham > 0 && finalDenominator > 0 && !res.isBlocked) {
-        const finalShare: Share = { numerator: Math.round(siham), denominator: finalDenominator, type: shares[heir]?.type || 'none' };
-        let finalReason = res.reason || '';
-        
-        if (shares[heir]?.type === 'furudh' && (isAulCase || isRaddCase)) {
-             const commonDivisor = gcd(finalShare.numerator, finalShare.denominator);
-             if (!finalReason.includes("Disesuaikan")) {
-                finalReason = `${finalReason} Disesuaikan karena ${isAulCase ? "'Aul" : "Radd"} menjadi ${finalShare.numerator/commonDivisor}/${finalShare.denominator/commonDivisor}.`;
-             }
-        }
+      const finalShare: Share = {
+        numerator: Math.round(siham),
+        denominator: finalDenominator,
+        type: shares[heir]?.type || "none",
+      };
+      let finalReason = res.reason || "";
 
-        const percentage = (finalShare.numerator / finalShare.denominator) * 100;
-        const value = estate * (finalShare.numerator / finalShare.denominator);
-        
-        const simpleShare = shares[heir] || {numerator: 0, denominator: 1, type: 'none'};
-        finalResults.push({ ...res, reason: finalReason, share: simpleShare, finalShare, percentage, value, isBlocked: false, evidence: finalEvidence } as HeirResult);
+      // Clarify Adjustments for Aul/Radd in the reason
+      if (shares[heir]?.type === "furudh" && (isAulCase || isRaddCase)) {
+        const commonDivisor = gcd(finalShare.numerator, finalShare.denominator);
+        if (!finalReason.includes("Disesuaikan")) {
+          finalReason = `${finalReason} Disesuaikan karena ${
+            isAulCase ? "'Aul" : "Radd"
+          }.`;
+        }
+      }
+
+      const percentage = (finalShare.numerator / finalShare.denominator) * 100;
+      const value = estate * (finalShare.numerator / finalShare.denominator);
+
+      const simpleShare = shares[heir] || {
+        numerator: 0,
+        denominator: 1,
+        type: "none",
+      };
+      finalResults.push({
+        ...res,
+        reason: finalReason,
+        share: simpleShare,
+        finalShare,
+        percentage,
+        value,
+        isBlocked: false,
+        evidence: finalEvidence,
+      } as HeirResult);
     } else if (res.isBlocked) {
-        finalResults.push({ ...res, share: {numerator:0,denominator:1,type:'none'}, finalShare: {numerator:0,denominator:1,type:'none'}, percentage: 0, value: 0, evidence: finalEvidence } as HeirResult);
+      finalResults.push({
+        ...res,
+        share: { numerator: 0, denominator: 1, type: "none" },
+        finalShare: { numerator: 0, denominator: 1, type: "none" },
+        percentage: 0,
+        value: 0,
+        evidence: finalEvidence,
+      } as HeirResult);
     }
   }
 
   return {
     estate,
-    heirResults: finalResults.sort((a,b) => b.value - a.value),
+    heirResults: finalResults.sort((a, b) => b.value - a.value),
     aslAlMasalah,
     totalSharesNum,
     finalDenominator,

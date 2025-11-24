@@ -63,7 +63,8 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
     );
   }
 
-  const chartData = result.heirResults
+  // Prepare Chart Data
+  let chartData = result.heirResults
     .filter((h) => h.percentage > 0 && !h.isBlocked)
     .map((h) => ({
       name: `${h.name} (${h.count})`,
@@ -71,15 +72,31 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
       finalValue: h.value,
     }));
 
+  // Calculate if there is a remainder (Sisa) not distributed
+  const totalDistributed = chartData.reduce((sum, item) => sum + item.value, 0);
+  const hasRemainder = totalDistributed < 99.9; // Floating point tolerance
+
+  if (hasRemainder) {
+    const remainderVal = 100 - totalDistributed;
+    const remainderMoney =
+      result.estate - result.heirResults.reduce((sum, h) => sum + h.value, 0);
+
+    chartData.push({
+      name: "Baitul Mal / Sisa",
+      value: remainderVal,
+      finalValue: Math.max(0, remainderMoney),
+    });
+  }
+
   const hasReceivingHeirs = chartData.length > 0;
 
   return (
     <div
       ref={resultsRef}
-      className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl shadow-blue-100/20 dark:shadow-none border border-slate-100 dark:border-slate-700 relative transition-colors overflow-hidden"
+      className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl shadow-blue-100/20 dark:shadow-none border border-slate-100 dark:border-slate-700 relative transition-colors"
     >
       {/* Header & Actions */}
-      <div className="p-5 border-b border-slate-100 dark:border-slate-700 bg-gradient-to-b from-slate-50 to-white dark:from-slate-800 dark:to-slate-800 flex justify-between items-center">
+      <div className="p-5 border-b border-slate-100 dark:border-slate-700 bg-gradient-to-b from-slate-50 to-white dark:from-slate-800 dark:to-slate-800 flex justify-between items-center rounded-t-3xl">
         <div>
           <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center">
             <span className="w-2 h-2 bg-blue-500 rounded-full mr-2 animate-pulse"></span>
@@ -124,7 +141,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
 
         {/* Notes (Aul/Radd/Etc) */}
         {result.notes.length > 0 && (
-          <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-400 dark:border-amber-500 rounded-r-xl space-y-2">
+          <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-400 dark:border-amber-500 rounded-r-xl space-y-3">
             {result.notes.map((note, index) => {
               let term: keyof typeof FIQH_DEFINITIONS | null = null;
               if (note.includes("'Aul")) term = "AUL";
@@ -148,14 +165,10 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
                     />
                   </svg>
                   <div className="flex-1">
-                    <span className="text-sm font-bold text-amber-900 dark:text-amber-200 leading-snug block">
+                    <span className="text-sm font-bold text-amber-900 dark:text-amber-200 leading-snug">
                       {note}
+                      {term && <InfoTooltip term={term} />}
                     </span>
-                    {term && (
-                      <div className="mt-1.5">
-                        <InfoTooltip term={term} />
-                      </div>
-                    )}
                   </div>
                 </div>
               );
@@ -209,7 +222,11 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
                       {chartData.map((entry, index) => (
                         <Cell
                           key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
+                          fill={
+                            entry.name.includes("Baitul Mal")
+                              ? "#94a3b8"
+                              : COLORS[index % COLORS.length]
+                          }
                         />
                       ))}
                       <Label
@@ -238,7 +255,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
                                 fontSize="12"
                                 className="fill-slate-400 dark:fill-slate-500"
                               >
-                                Terbagi
+                                Harta
                               </tspan>
                             </text>
                           );
@@ -261,7 +278,9 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
                       <span
                         className="w-3 h-3 rounded-full mr-3 flex-shrink-0"
                         style={{
-                          backgroundColor: COLORS[index % COLORS.length],
+                          backgroundColor: entry.name.includes("Baitul Mal")
+                            ? "#94a3b8"
+                            : COLORS[index % COLORS.length],
                         }}
                       ></span>
                       <span className="text-slate-600 dark:text-slate-300 font-medium truncate max-w-[140px]">

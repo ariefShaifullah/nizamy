@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import type { PrayerData } from '../types.ts';
-import { getCoordinates, fetchPrayerTimes, getNextPrayer, formatTimeLeft, savePrayerCache, getCachedPrayerData } from '../services/prayer.service.ts';
+import { getCoordinates, fetchPrayerTimes, fetchCityName, getNextPrayer, formatTimeLeft, savePrayerCache, getCachedPrayerData } from '../services/prayer.service.ts';
 
 export const PrayerWidget: React.FC = () => {
     const [prayerData, setPrayerData] = useState<PrayerData | null>(null);
     const [loading, setLoading] = useState(true);
-    const [locationName, setLocationName] = useState("Jakarta");
+    const [locationName, setLocationName] = useState("Memuat lokasi...");
     
     // Optimized State: Only update 'timeLeft' every second.
     // 'targetDate' and 'nextPrayerName' are calculated only when needed.
@@ -15,6 +15,20 @@ export const PrayerWidget: React.FC = () => {
 
     const loadData = useCallback(async (forceRefresh = false) => {
         setLoading(true);
+
+        const updateLocationInBackground = async (currentData: PrayerData) => {
+            try {
+                const coords = await getCoordinates();
+                const accurateCity = await fetchCityName(coords.latitude, coords.longitude);
+                // Only update if the new name is more specific
+                if (accurateCity && accurateCity !== "Lokasi Anda" && accurateCity !== "Lokasi Terdeteksi") {
+                    setLocationName(accurateCity);
+                    savePrayerCache(currentData, accurateCity);
+                }
+            } catch {
+                // Silently fail, user already has prayer times.
+            }
+        };
         
         if (!forceRefresh) {
             const cached = getCachedPrayerData();
@@ -22,24 +36,38 @@ export const PrayerWidget: React.FC = () => {
                 setPrayerData(cached.data);
                 setLocationName(cached.city);
                 setLoading(false);
+                
+                // Progressive Enhancement: if location is generic, try to get a better one
+                if (cached.city === "Lokasi Anda" || cached.city === "Lokasi Terdeteksi" || cached.city === "Jakarta Pusat") {
+                    updateLocationInBackground(cached.data);
+                }
                 return;
             }
         }
 
         try {
             const coords = await getCoordinates();
-            const data = await fetchPrayerTimes(coords.latitude, coords.longitude);
+            const [data, city] = await Promise.all([
+                fetchPrayerTimes(coords.latitude, coords.longitude),
+                fetchCityName(coords.latitude, coords.longitude)
+            ]);
+
             if (data) {
                 setPrayerData(data);
-                setLocationName("Lokasi Anda");
-                savePrayerCache(data, "Lokasi Anda");
+                setLocationName(city);
+                savePrayerCache(data, city);
+            } else {
+                 setLocationName("Gagal memuat jadwal");
             }
         } catch (error) {
+            // Fallback to default if geolocation fails
             const data = await fetchPrayerTimes(-6.1702, 106.8314);
             if (data) {
                 setPrayerData(data);
                 setLocationName("Jakarta Pusat");
                 if (!forceRefresh) savePrayerCache(data, "Jakarta Pusat");
+            } else {
+                setLocationName("Gagal memuat jadwal");
             }
         } finally {
             setLoading(false);
@@ -92,7 +120,6 @@ export const PrayerWidget: React.FC = () => {
                 // Time passed! Trigger a soft reload to find next prayer
                 setTimeLeft("00:00:00");
                 // Re-run logic to find NEXT prayer (e.g. from Maghrib to Isya)
-                // We can simply toggle prayerData to force re-calc or call loadData
                 loadData(false); 
             } else {
                 setTimeLeft(formatTimeLeft(diff));
@@ -113,7 +140,7 @@ export const PrayerWidget: React.FC = () => {
         { key: 'Isha', label: 'Isya' },
     ];
 
-    if (loading) return (
+    if (loading && !prayerData) return (
         <div className="w-full h-40 bg-white dark:bg-slate-800 rounded-3xl animate-pulse shadow-xl flex items-center justify-center text-slate-300 border border-slate-100 dark:border-slate-700">
             <span className="sr-only">Memuat Jadwal...</span>
         </div>

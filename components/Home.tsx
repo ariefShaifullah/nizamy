@@ -105,7 +105,7 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
     {
       id: 'zakat',
       title: 'Zakat',
-      subtitle: 'Hitung Harta',
+      subtitle: 'Hitung Zakat',
       icon: <FaHandsHelping />,
       colorClass: 'text-emerald-600 dark:text-emerald-400',
       bgClass: 'bg-emerald-100 dark:bg-emerald-900/30',
@@ -114,7 +114,7 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
     {
       id: 'faraidh',
       title: 'Waris',
-      subtitle: 'Bagi Faraidh',
+      subtitle: 'Hitung Waris',
       icon: <FaBalanceScale />,
       colorClass: 'text-blue-600 dark:text-blue-400',
       bgClass: 'bg-blue-100 dark:bg-blue-900/30',

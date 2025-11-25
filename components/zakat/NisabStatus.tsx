@@ -1,6 +1,6 @@
-
 import React from 'react';
 import { formatCurrency } from '../../utils.ts';
+import { FaCheck, FaTimes } from "react-icons/fa";
 
 interface NisabStatusProps {
     value: number;
@@ -41,15 +41,11 @@ export const NisabStatus: React.FC<NisabStatusProps> = ({ value, nisab, label, u
                     <div>
                         <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Status Nisab</p>
                         <div className="flex items-center gap-2">
-                            <div className={`p-1.5 rounded-full ${isReached ? 'bg-emerald-500 text-white' : 'bg-slate-300 dark:bg-slate-600 text-white'}`}>
+                            <div className={`flex items-center justify-center w-6 h-6 rounded-full ${isReached ? 'bg-emerald-500 text-white' : 'bg-slate-300 dark:bg-slate-600 text-white'}`}>
                                 {isReached ? (
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                    </svg>
+                                    <FaCheck size={16} />
                                 ) : (
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                                    </svg>
+                                    <FaTimes size={16} />
                                 )}
                             </div>
                             <h3 className={`text-xl font-extrabold tracking-tight ${isReached ? 'text-emerald-800 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'}`}>

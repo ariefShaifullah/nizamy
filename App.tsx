@@ -99,7 +99,7 @@ export default function App() {
         </div>
       )}
 
-      <main className="container mx-auto px-4 py-4 md:py-8 flex-grow">
+      <main className={view === 'home' ? 'flex-grow' : 'container mx-auto px-4 py-4 md:py-8 flex-grow'}>
         <Suspense fallback={<PageLoader />}>
           {view === 'home' && <Home setView={setView} />}
           {view === 'faraidh' && <FaraidhCalculator />}

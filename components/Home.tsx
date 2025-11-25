@@ -125,7 +125,7 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
   const showInstallBtn = isInstallable || (isIOS && !isStandalone);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-24 md:pb-10 -mt-4 md:-mt-8 -mx-4 md:-mx-0 overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-24 md:pb-10 overflow-x-hidden">
       {showIOSGuide && <IOSInstallModal onClose={() => setShowIOSGuide(false)} />}
 
       {/* --- 1. HERO SECTION (OPTIMIZED) --- */}
@@ -144,7 +144,7 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
             style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '32px 32px' }}
           ></div>
 
-          <div className="relative z-10 max-w-5xl mx-auto text-white">
+          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-white">
               <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full mb-4 border border-white/10 shadow-sm">
                 <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
                 <p className="text-xs font-medium tracking-wide uppercase text-emerald-50">{dateStr}</p>
@@ -160,21 +160,22 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
       </div>
 
       {/* --- MAIN CONTENT CONTAINER --- */}
-      <div className="max-w-5xl mx-auto px-4 md:px-6 relative z-20 -mt-20">
+      <div className="w-full px-4 sm:px-6 lg:px-8 relative z-20 -mt-20">
           
           {/* --- 2. PRAYER WIDGET --- */}
-          {/* Removed hover:scale container to prevent layout thrashing on scroll */}
-          <div className="mb-10">
+          {/* Wrapped in a container to constrain its width on large screens */}
+          <div className="mb-10 max-w-5xl mx-auto">
               <PrayerWidget />
           </div>
 
           {/* --- 3. FEATURES (Bento Grid) --- */}
+          {/* This section remains full-width within the responsive padding */}
           <div>
-            <div className="flex items-center justify-between mb-6 px-2">
+            <div className="flex items-center justify-between mb-6 px-2 max-w-7xl mx-auto">
                 <h3 className="text-lg font-bold text-slate-800 dark:text-white">Menu Utama</h3>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-7xl mx-auto">
               {features.map((feature, idx) => (
                 <BentoCard 
                     key={feature.id} 
@@ -187,8 +188,9 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
           </div>
 
           {/* --- 4. INSTALL BANNER --- */}
+          {/* Wrapped in a container to constrain its width */}
           {showInstallBtn && (
-            <div className="mt-10 bg-slate-900 dark:bg-black text-white rounded-[2rem] p-6 md:p-8 shadow-xl relative overflow-hidden animate-fade-in">
+            <div className="mt-10 max-w-5xl mx-auto bg-slate-900 dark:bg-black text-white rounded-[2rem] p-6 md:p-8 shadow-xl relative overflow-hidden animate-fade-in">
                 {/* Simple CSS Shape instead of heavy blur */}
                 <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-white/10 to-transparent pointer-events-none"></div>
                 

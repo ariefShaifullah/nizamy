@@ -239,12 +239,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
     return Math.min(100, (state.gamification.weeklyChallengeProgress / state.gamification.weeklyChallengeTarget) * 100);
   }, [state.gamification.weeklyChallengeProgress, state.gamification.weeklyChallengeTarget]);
 
+  // TRIGGER NOTIFICATION LOGIC
   useEffect(() => {
     notificationService.updateAppBadge(dueItems.length);
-    if (dueItems.length > 0 && notificationService.isEnabled()) {
-        notificationService.sendReminder(dueItems.length);
+    
+    if (notificationService.isEnabled()) {
+        // Pass both dueItems count AND dailyRemaining quota
+        notificationService.sendReminder(dueItems.length, dailyRemaining);
     }
-  }, [dueItems.length]);
+  }, [dueItems.length, dailyRemaining]);
 
   useEffect(() => {
     const hasSeenTutorial = localStorage.getItem("nizamy_hafalan_tutorial_seen");

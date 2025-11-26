@@ -311,71 +311,69 @@ export const calculateFaraidh = (heirs: HeirInputState, estate: number): Calcula
                  Object.assign(finalSiham, initialSiham);
             } else {
                  // Radd with Spouse (Complex)
-                 // 1. Give Spouse their full share from Base Denominator (e.g. 1/4 of 4 = 1)
-                 // 2. Remaining (3) is distributed to others.
-                 // 3. Calculate Raddiyah Masalah for others.
-                 // 4. Combine.
-                 
-                 const spouseShare = shares[spouse]!;
-                 // Masalah Zaujiyyah (Spouse Problem)
-                 const asalZaujiyyah = spouseShare.denominator;
-                 const sihamSpouseZaujiyyah = spouseShare.numerator;
-                 const sisaZaujiyyah = asalZaujiyyah - sihamSpouseZaujiyyah;
-
-                 // Masalah Raddiyah (Others)
-                 let asalRaddiyah = 0;
-                 furudhHeirs.forEach(h => {
-                     if (h !== spouse) {
-                         asalRaddiyah += shares[h]!.numerator * (aslAlMasalah / shares[h]!.denominator); // Use normalized siham sum as denom
-                     }
-                 });
-                 
-                 // Scale factor logic can be complex, simplified approach:
-                 // Multiply Zaujiyyah Denom by Raddiyah Denom (Total Siham of others)
-                 // To avoid big numbers, check if sisaZaujiyyah is divisible by asalRaddiyah
-                 
-                 // For simplicity in this app, we treat Raddiyah Denom as the sum of basic parts (e.g. Daughter 1/2 -> 3/6, Mother 1/6 -> 1/6. Sum parts = 4)
-                 // Re-calculate Raddiyah parts based on LCM 6.
-                 let raddiyahPartsTotal = 0;
+                 // CHECK FIRST: Are there other heirs to receive Radd?
                  const raddiyahHeirs = furudhHeirs.filter(h => h !== spouse);
                  
-                 // Temporary calculation just for Raddiyah group
-                 const raddiyahDenoms = raddiyahHeirs.map(h => shares[h]!.denominator);
-                 const raddiyahLCM = raddiyahDenoms.reduce((acc, val) => lcm(acc, val), 1);
-                 
-                 raddiyahHeirs.forEach(h => {
-                     raddiyahPartsTotal += shares[h]!.numerator * (raddiyahLCM / shares[h]!.denominator);
-                 });
+                 if (raddiyahHeirs.length === 0) {
+                     // SPECIAL CASE: Only Spouse exists.
+                     // In standard Jumhur Fiqh, Radd is NOT given to spouse. 
+                     // Spouse gets Fixed Share (1/2 or 1/4). Remainder goes to Baitul Mal.
+                     // We do NOT change the denominator.
+                     finalDenominator = aslAlMasalah;
+                     totalSharesNum = initialSihamTotal;
+                     Object.assign(finalSiham, initialSiham);
+                     
+                     // Add Note about Baitul Mal
+                     notes.push("Sisa harta setelah bagian Suami/Istri diserahkan ke Baitul Mal (menurut Jumhur Ulama).");
+                 } else {
+                     // 1. Give Spouse their full share from Base Denominator (e.g. 1/4 of 4 = 1)
+                     // 2. Remaining (3) is distributed to others.
+                     // 3. Calculate Raddiyah Masalah for others.
+                     // 4. Combine.
+                     
+                     const spouseShare = shares[spouse]!;
+                     // Masalah Zaujiyyah (Spouse Problem)
+                     const asalZaujiyyah = spouseShare.denominator;
+                     const sihamSpouseZaujiyyah = spouseShare.numerator;
+                     const sisaZaujiyyah = asalZaujiyyah - sihamSpouseZaujiyyah;
 
-                 // Calculate Final Multiplier
-                 // Final Denom = asalZaujiyyah * raddiyahPartsTotal / gcd(sisaZaujiyyah, raddiyahPartsTotal)
-                 // But simple method: Final Denom = asalZaujiyyah * raddiyahPartsTotal
-                 // Then check if we can simplify.
-                 
-                 // Let's use cross-multiplication method
-                 finalDenominator = asalZaujiyyah * raddiyahPartsTotal;
-                 
-                 // Spouse gets: sihamSpouse * raddiyahPartsTotal
-                 finalSiham[spouse] = sihamSpouseZaujiyyah * raddiyahPartsTotal;
-                 
-                 // Others get: their_raddiyah_part * sisaZaujiyyah
-                 raddiyahHeirs.forEach(h => {
-                     const part = shares[h]!.numerator * (raddiyahLCM / shares[h]!.denominator);
-                     finalSiham[h] = part * sisaZaujiyyah;
-                 });
-                 
-                 // Simplify if possible
-                 const commonDivisor = Object.values(finalSiham).reduce((acc: number, val) => gcd(acc, val), finalDenominator);
-                 if (commonDivisor > 1) {
-                     finalDenominator /= commonDivisor;
-                     Object.keys(finalSiham).forEach(h => {
-                         finalSiham[h as Heir]! /= commonDivisor;
+                     // Masalah Raddiyah (Others)
+                     // Calculate Raddiyah parts based on LCM.
+                     let raddiyahPartsTotal = 0;
+                     
+                     // Temporary calculation just for Raddiyah group
+                     const raddiyahDenoms = raddiyahHeirs.map(h => shares[h]!.denominator);
+                     const raddiyahLCM = raddiyahDenoms.reduce((acc, val) => lcm(acc, val), 1);
+                     
+                     raddiyahHeirs.forEach(h => {
+                         raddiyahPartsTotal += shares[h]!.numerator * (raddiyahLCM / shares[h]!.denominator);
                      });
-                 }
 
-                 notes.push("Kasus Radd: Sisa harta dikembalikan kepada ahli waris furudh selain pasangan.");
+                     // Calculate Final Multiplier
+                     finalDenominator = asalZaujiyyah * raddiyahPartsTotal;
+                     
+                     // Spouse gets: sihamSpouse * raddiyahPartsTotal
+                     finalSiham[spouse] = sihamSpouseZaujiyyah * raddiyahPartsTotal;
+                     
+                     // Others get: their_raddiyah_part * sisaZaujiyyah
+                     raddiyahHeirs.forEach(h => {
+                         const part = shares[h]!.numerator * (raddiyahLCM / shares[h]!.denominator);
+                         finalSiham[h] = part * sisaZaujiyyah;
+                     });
+                     
+                     // Simplify if possible
+                     const commonDivisor = Object.values(finalSiham).reduce((acc: number, val) => gcd(acc, val), finalDenominator);
+                     if (commonDivisor > 1) {
+                         finalDenominator /= commonDivisor;
+                         Object.keys(finalSiham).forEach(h => {
+                             finalSiham[h as Heir]! /= commonDivisor;
+                         });
+                     }
+
+                     notes.push("Kasus Radd: Sisa harta dikembalikan kepada ahli waris furudh selain pasangan.");
+                     totalSharesNum = finalDenominator;
+                 }
             }
-            totalSharesNum = finalDenominator;
         } else { // Adil (Sum == Asal Masalah)
             finalDenominator = aslAlMasalah;
             totalSharesNum = initialSihamTotal;

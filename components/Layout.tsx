@@ -17,29 +17,41 @@ export const Header: React.FC<HeaderProps> = ({ view, setView }) => {
     
     const isHome = view === 'home';
 
-    let titleColor = 'text-primary-700 dark:text-primary-400';
+    let titleColor = 'text-indigo-600 dark:text-indigo-400'; // Default Base
     let subtitle = '';
 
-    // Determine logo hue rotation based on theme color assumption (Base logo = Blue/Primary)
-    let logoFilter = 'none';
-
+    // Dynamic Theming based on Active Module
     if (view === 'zakat') {
-        titleColor = 'text-emerald-700 dark:text-emerald-400';
+        titleColor = 'text-emerald-600 dark:text-emerald-400';
         subtitle = 'Kalkulator Zakat';
-        logoFilter = 'hue-rotate(-60deg)'; // Blue -> Emerald
     } else if (view === 'faraidh') {
-        titleColor = 'text-primary-700 dark:text-primary-400';
+        titleColor = 'text-blue-600 dark:text-blue-400';
         subtitle = 'Kalkulator Waris Islam';
-        logoFilter = 'none'; // Blue Base
     } else if (view === 'hafalan') {
-        titleColor = 'text-indigo-700 dark:text-indigo-400';
+        titleColor = 'text-indigo-600 dark:text-indigo-400';
         subtitle = 'Hafalan Quran Tracker';
-        logoFilter = 'hue-rotate(30deg)'; // Blue -> Indigo
     } else if (view === 'mushaf') {
-        titleColor = 'text-teal-700 dark:text-teal-400';
+        titleColor = 'text-teal-600 dark:text-teal-400';
         subtitle = 'Mushaf & Kamus Tajwid';
-        logoFilter = 'hue-rotate(160deg)'; // Blue -> Teal/Cyan
+    } else {
+        // Home / Default
+        titleColor = 'text-indigo-600 dark:text-indigo-400';
     }
+
+    // Helper for Logo Masking (Replacing PNG color dynamically)
+    // We replace 'text-' classes with 'bg-' classes because the mask uses background-color to fill the shape
+    const logoBgClass = titleColor.replace(/text-/g, 'bg-');
+    
+    const logoStyle = {
+        maskImage: 'url("/images/logo_nizamy.png")',
+        WebkitMaskImage: 'url("/images/logo_nizamy.png")',
+        maskSize: 'contain',
+        WebkitMaskSize: 'contain',
+        maskRepeat: 'no-repeat',
+        WebkitMaskRepeat: 'no-repeat',
+        maskPosition: 'center',
+        WebkitMaskPosition: 'center'
+    };
 
     const toggleTheme = () => {
       if (theme === 'dark') setTheme('light');
@@ -57,11 +69,9 @@ export const Header: React.FC<HeaderProps> = ({ view, setView }) => {
              {/* Mobile: Contextual Icon (Logo on Home, Back Arrow on Inner Pages) */}
              <div className="md:hidden">
                 {isHome ? (
-                    <img 
-                        src="/images/logo_nizamy.png" 
-                        alt="NIZAMY Logo" 
-                        className="w-10 h-10 object-contain transition-all duration-500 drop-shadow-sm"
-                        style={{ filter: logoFilter }} 
+                    <div 
+                        className={`w-10 h-10 transition-all duration-500 drop-shadow-sm ${logoBgClass}`}
+                        style={logoStyle}
                     />
                 ) : (
                     <div className="p-2 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-md border border-white/20 dark:border-slate-700 text-slate-600 dark:text-slate-300 shadow-sm">
@@ -72,12 +82,10 @@ export const Header: React.FC<HeaderProps> = ({ view, setView }) => {
                 )}
              </div>
 
-             {/* Desktop: Always Logo */}
-             <img 
-                src="/images/logo_nizamy.png" 
-                alt="NIZAMY Logo" 
-                className="hidden md:block w-11 h-11 object-contain transition-all duration-500 drop-shadow-sm" 
-                style={{ filter: logoFilter }}
+             {/* Desktop: Always Logo using Masking for Color Replacement */}
+             <div 
+                className={`hidden md:block w-11 h-11 transition-all duration-500 drop-shadow-sm ${logoBgClass}`}
+                style={logoStyle}
              />
 
             <div className="text-left">
@@ -90,6 +98,7 @@ export const Header: React.FC<HeaderProps> = ({ view, setView }) => {
             </div>
           </button>
           
+          {/* Right Side Actions (Theme, Settings, Menu) */}
           <div className="flex items-center gap-2 md:gap-3">
               {/* Theme Toggle */}
               <button 
@@ -97,11 +106,9 @@ export const Header: React.FC<HeaderProps> = ({ view, setView }) => {
                   className="p-2 md:p-2.5 rounded-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-md text-slate-600 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700 hover:text-indigo-500 dark:hover:text-yellow-400 border border-white/20 dark:border-slate-700 transition-all shadow-sm"
                   aria-label="Toggle Theme"
               >
-                  {/* Sun Icon (Visible in Dark Mode) */}
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
                   </svg>
-                  {/* Moon Icon (Visible in Light Mode) */}
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 block dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                   </svg>

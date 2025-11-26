@@ -31,7 +31,6 @@ const getDateString = () => {
 };
 
 // --- COMPONENT: BENTO CARD ---
-// Optimized with memo to prevent unnecessary re-renders during parent scroll
 const BentoCard: React.FC<{ feature: FeatureItem; onClick: () => void; delay: number }> = React.memo(({ feature, onClick, delay }) => {
     return (
         <button
@@ -49,15 +48,12 @@ const BentoCard: React.FC<{ feature: FeatureItem; onClick: () => void; delay: nu
             `}
             style={{ animationDelay: `${delay}ms`, willChange: 'transform' }}
         >
-            {/* Static background shape instead of complex transforms */}
             <div className={`absolute -right-6 -top-6 w-28 h-28 rounded-full opacity-[0.08] ${feature.bgClass}`}></div>
             
-            {/* Icon Container */}
             <div className={`relative z-10 w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center text-2xl md:text-3xl mb-3 ${feature.bgClass} ${feature.colorClass}`}>
                 {feature.icon}
             </div>
 
-            {/* Text Content */}
             <div className="relative z-10 text-left w-full">
                 <h3 className="text-lg md:text-xl font-bold text-slate-800 dark:text-slate-100 leading-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                     {feature.title}
@@ -67,7 +63,6 @@ const BentoCard: React.FC<{ feature: FeatureItem; onClick: () => void; delay: nu
                 </p>
             </div>
 
-            {/* Simple Arrow (No heavy animation) */}
             <div className="absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity hidden md:block text-slate-300 dark:text-slate-600">
                 <FaChevronRight />
             </div>
@@ -89,7 +84,7 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
         id: 'mushaf',
         title: 'Al-Quran',
         subtitle: 'Baca & Tajwid',
-        icon: <FaQuran />, // UX Update: Mushaf uses Quran icon (The Object)
+        icon: <FaQuran />,
         colorClass: 'text-teal-600 dark:text-teal-400',
         bgClass: 'bg-teal-100 dark:bg-teal-900/30',
         accentColor: 'teal'
@@ -98,7 +93,7 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
       id: 'hafalan',
       title: 'Hafalan',
       subtitle: 'Tracker SRS',
-      icon: <FaBrain />, // UX Update: Hafalan uses Brain icon (The Process/Memory)
+      icon: <FaBrain />,
       colorClass: 'text-indigo-600 dark:text-indigo-400',
       bgClass: 'bg-indigo-100 dark:bg-indigo-900/30',
       accentColor: 'indigo'
@@ -128,33 +123,46 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-24 md:pb-10 overflow-x-hidden">
       {showIOSGuide && <IOSInstallModal onClose={() => setShowIOSGuide(false)} />}
+      
+      {/* Inject CSS for Gradient Animation */}
+      <style>{`
+        @keyframes gradient-xy {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .animate-gradient-xy {
+            background-size: 200% 200%;
+            animation: gradient-xy 15s ease infinite;
+        }
+      `}</style>
 
-      {/* --- 1. HERO SECTION (OPTIMIZED) --- */}
-      {/* Removed SVG Noise Filter and heavy blurs. Uses CSS Gradients for performance. */}
-      <div className="relative pt-[calc(env(safe-area-inset-top)+2rem)] pb-32 px-6 overflow-hidden shadow-sm">
+      {/* --- 1. HERO SECTION (ANIMATED AURORA) --- */}
+      <div className="relative pt-[calc(env(safe-area-inset-top)+2rem)] pb-32 px-6 overflow-hidden shadow-sm group">
           
-          {/* Background Layer: CSS Radial Gradient (GPU Accelerated) */}
-          <div className="absolute inset-0 bg-slate-900 dark:bg-black">
-             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-teal-900/80 via-slate-900 to-slate-900"></div>
-             <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,_var(--tw-gradient-stops))] from-indigo-900/60 via-transparent to-transparent"></div>
-          </div>
+          {/* Animated Gradient Background */}
+          {/* Light Mode: Soft Blue/Teal/Indigo | Dark Mode: Deep Slate/Indigo/Violet */}
+          <div className="absolute inset-0 animate-gradient-xy bg-gradient-to-br from-blue-400 via-teal-400 to-indigo-500 dark:from-slate-900 dark:via-indigo-950 dark:to-slate-900 opacity-90 dark:opacity-100 transition-colors duration-1000"></div>
+          
+          {/* Overlay for depth in Dark Mode */}
+          <div className="absolute inset-0 bg-transparent dark:bg-gradient-to-b dark:from-transparent dark:to-slate-950/80"></div>
 
-          {/* Light Pattern Overlay (Opacity based, cheap to render) */}
+          {/* Light Pattern Overlay */}
           <div 
-            className="absolute inset-0 opacity-[0.03] pointer-events-none" 
+            className="absolute inset-0 opacity-[0.1] dark:opacity-[0.05] pointer-events-none mix-blend-overlay" 
             style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '32px 32px' }}
           ></div>
 
           <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-white">
-              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full mb-4 border border-white/10 shadow-sm">
+              <div className="inline-flex items-center gap-2 bg-white/20 dark:bg-white/5 backdrop-blur-md px-3 py-1 rounded-full mb-4 border border-white/20 shadow-sm">
                 <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
-                <p className="text-xs font-medium tracking-wide uppercase text-emerald-50">{dateStr}</p>
+                <p className="text-xs font-medium tracking-wide uppercase text-white shadow-black/10 drop-shadow-sm">{dateStr}</p>
               </div>
               
-              <h1 className="text-3xl md:text-5xl font-bold leading-tight tracking-tight drop-shadow-sm font-serif mb-3">
-                  Assalamualaikum
+              <h1 className="text-3xl md:text-5xl font-bold leading-tight tracking-tight drop-shadow-md font-serif mb-2">
+                  Assalamu'alaikum,
               </h1>
-              <p className="text-teal-50 text-sm md:text-lg font-medium opacity-90 max-w-md leading-relaxed">
+              <p className="text-indigo-50 text-sm md:text-lg font-medium opacity-95 max-w-md leading-relaxed drop-shadow-sm">
                   Mari luruskan niat untuk ibadah hari ini. Semoga Allah memberkahi setiap langkah kita.
               </p>
           </div>
@@ -164,13 +172,11 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
       <div className="w-full px-4 sm:px-6 lg:px-8 relative z-20 -mt-20">
           
           {/* --- 2. PRAYER WIDGET --- */}
-          {/* Wrapped in a container to constrain its width on large screens */}
-          <div className="mb-10 max-w-5xl mx-auto">
+          <div className="mb-10 max-w-5xl mx-auto transform transition-transform hover:scale-[1.01] duration-300">
               <PrayerWidget />
           </div>
 
           {/* --- 3. FEATURES (Bento Grid) --- */}
-          {/* This section remains full-width within the responsive padding */}
           <div>
             <div className="flex items-center justify-between mb-6 px-2 max-w-7xl mx-auto">
                 <h3 className="text-lg font-bold text-slate-800 dark:text-white">Menu Utama</h3>
@@ -182,17 +188,15 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
                     key={feature.id} 
                     feature={feature} 
                     onClick={() => setView(feature.id as any)} 
-                    delay={idx * 50} // Reduced delay for snappier feel
+                    delay={idx * 50} 
                 />
               ))}
             </div>
           </div>
 
           {/* --- 4. INSTALL BANNER --- */}
-          {/* Wrapped in a container to constrain its width */}
           {showInstallBtn && (
             <div className="mt-10 max-w-5xl mx-auto bg-slate-900 dark:bg-black text-white rounded-[2rem] p-6 md:p-8 shadow-xl relative overflow-hidden animate-fade-in">
-                {/* Simple CSS Shape instead of heavy blur */}
                 <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-white/10 to-transparent pointer-events-none"></div>
                 
                 <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
@@ -224,7 +228,7 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
              <p className="font-arabic text-2xl text-slate-600 dark:text-slate-400 leading-loose">فَاسْتَبِقُوا الْخَيْرَاتِ</p>
              <p className="text-xs text-slate-500 dark:text-slate-500 italic">"Berlomba-lombalah dalam kebaikan"</p>
              <div className="text-[10px] text-slate-400 pt-4">
-                NIZAMY v1.8.0 &copy; {new Date().getFullYear()}
+                NIZAMY v1.8.5 &copy; {new Date().getFullYear()}
              </div>
           </div>
       </div>

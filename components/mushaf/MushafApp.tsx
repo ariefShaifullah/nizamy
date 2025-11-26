@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 import { SURAH_DATA } from '../../constants.ts';
@@ -376,10 +375,10 @@ const MushafApp: React.FC = () => {
     // --- VIEW: READER ---
     return (
         <div className="fixed inset-0 z-50 bg-white dark:bg-slate-950 flex flex-col animate-fade-in select-none">
-            {/* Vertical Progress Ribbon (Left Side) - Updated Style */}
-            <div className="fixed left-0 top-[env(safe-area-inset-top)] bottom-0 w-1.5 z-40 bg-slate-100 dark:bg-slate-800/50 pointer-events-none">
+            {/* Vertical Progress Ribbon (Left Side) - Adjusted Top Position to start below header */}
+            <div className="fixed left-0 top-[calc(4rem+env(safe-area-inset-top))] bottom-0 w-1.5 z-20 bg-slate-100 dark:bg-slate-800/50 pointer-events-none">
                 <div 
-                    className="relative w-full bg-teal-500 transition-all duration-500 ease-out"
+                    className="relative w-full bg-teal-500 transition-all duration-500 ease-out rounded-b-full"
                     style={{ height: `${progressPercent}%` }}
                 >
                     {/* Bead/Tip for Bookmark effect */}

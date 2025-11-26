@@ -139,13 +139,13 @@ export const HeirsForm: React.FC<HeirsFormProps> = React.memo(({ heirs, dispatch
             >
               {loading ? (
                   <>
-                      <span className="animate-spin -ml-1 mr-3 icon-wrapper w-5 h-5 text-white"><FaSpinner /></span>
+                      <div className="animate-spin -ml-1 mr-3 icon-wrapper w-5 h-5 text-white"><FaSpinner /></div>
                       Memproses...
                   </>
               ) : (
                   <span className="flex items-center text-lg tracking-wide">
                       Hitung Pembagian
-                      <span className="icon-wrapper w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform"><FaCalculator /></span>
+                      <div className="icon-wrapper w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform"><FaCalculator /></div>
                   </span>
               )}
             </button>
@@ -160,10 +160,10 @@ export const HeirsForm: React.FC<HeirsFormProps> = React.memo(({ heirs, dispatch
             className="pointer-events-auto w-full max-w-sm flex items-center justify-center bg-blue-600/90 backdrop-blur-xl text-white font-bold py-4 px-6 rounded-full hover:bg-blue-700 active:scale-95 transition-all shadow-2xl shadow-blue-900/20 disabled:bg-slate-500 disabled:cursor-not-allowed border border-white/10"
           >
             {loading ? (
-                <span className="animate-spin icon-wrapper w-5 h-5 text-white"><FaSpinner /></span>
+                <div className="animate-spin icon-wrapper w-5 h-5 text-white"><FaSpinner /></div>
             ) : (
                 <>
-                     <span className="icon-wrapper w-5 h-5 mr-2.5"><FaCalculator /></span>
+                     <div className="icon-wrapper w-5 h-5 mr-2.5"><FaCalculator /></div>
                     <span className="text-base tracking-wide">Hitung Pembagian</span>
                 </>
             )}

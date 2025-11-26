@@ -24,7 +24,9 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
     return (
       <div className="flex flex-col items-center justify-center min-h-[300px] lg:h-[600px] bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 p-8 text-center transition-colors sticky top-24">
         <div className="w-24 h-24 bg-slate-50 dark:bg-slate-900 rounded-full flex items-center justify-center mb-6 text-slate-300 dark:text-slate-600 animate-pulse">
-             <span className="icon-wrapper w-12 h-12"><FaCalculator /></span>
+            <div className="w-12 h-12 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <div className="icon-wrapper w-12 h-12 flex items-center justify-center"><FaCalculator size="2.5em"/></div>
+            </div>
         </div>
         <h3 className="text-2xl font-bold text-slate-700 dark:text-slate-200">Menunggu Input</h3>
         <p className="text-slate-500 dark:text-slate-400 mt-2 leading-relaxed text-sm max-w-xs mx-auto">
@@ -171,7 +173,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
 
                 <div>
                     <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4 flex items-center">
-                        <span className="icon-wrapper w-4 h-4 mr-2 text-slate-400"><FaCalculator /></span>
+                        <div className="icon-wrapper w-4 h-4 mr-2 text-slate-400"><FaCalculator/></div>
                         Rincian Pembagian
                     </h4>
                     <div className="result-card-wrapper space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">

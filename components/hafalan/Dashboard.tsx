@@ -357,7 +357,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       </div>
 
       <button onClick={() => { audioService.playClick(); onAddClick(); }} className={`md:hidden fixed bottom-24 right-4 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-xl shadow-indigo-500/40 dark:shadow-black/40 flex items-center justify-center z-40 transition-transform active:scale-90 hover:scale-105 ${activeTab === "profile" || activeTab === "guide" ? "hidden" : "flex"}`} aria-label="Tambah Hafalan">
-        <span className="icon-wrapper w-6 h-6"><FaPlus /></span>
+            <div className="icon-wrapper w-5 h-5 flex items-center justify-center"><FaPlus /></div>
       </button>
 
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 px-2 z-50 flex justify-between items-center shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">

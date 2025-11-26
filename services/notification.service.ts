@@ -63,7 +63,39 @@ export const notificationService = {
     }
   },
 
-  // Kirim Notifikasi Lokal
+  // Helper internal untuk memanggil API notifikasi
+  _triggerNotification: async (title: string, options: ExtendedNotificationOptions) => {
+      try {
+        // Prioritaskan Service Worker Registration untuk notifikasi (Lebih reliable di Android/PWA)
+        let swRegistration = await navigator.serviceWorker.getRegistration();
+        
+        if (swRegistration) {
+            await swRegistration.showNotification(title, options);
+        } else {
+            // Fallback ke Regular Notification API (Desktop biasa)
+            new Notification(title, options);
+        }
+    } catch (e) {
+        console.error("Notification dispatch error:", e);
+    }
+  },
+
+  // Kirim Notifikasi Tes (Bypass logic tanggal/kuota)
+  sendTestNotification: async () => {
+      if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+      const options: ExtendedNotificationOptions = {
+          body: "Alhamdulillah, notifikasi NIZAMY sudah aktif. Kami akan mengingatkan jadwal murajaah kamu.",
+          icon: '/images/logo_nizamy.png',
+          badge: '/images/logo_nizamy.png',
+          tag: 'nizamy-test',
+          renotify: true
+      };
+
+      await notificationService._triggerNotification("Notifikasi Aktif ✅", options);
+  },
+
+  // Kirim Notifikasi Lokal (Harian)
   sendReminder: async (dueCount: number, remainingQuota: number = 0) => {
     // Validasi basic
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
@@ -106,21 +138,9 @@ export const notificationService = {
       }
     };
 
-    try {
-        // Prioritaskan Service Worker Registration untuk notifikasi (Lebih reliable di Android/PWA)
-        let swRegistration = await navigator.serviceWorker.getRegistration();
-        
-        if (swRegistration) {
-            await swRegistration.showNotification(title, options);
-        } else {
-            // Fallback ke Regular Notification API (Desktop biasa)
-            new Notification(title, options);
-        }
-        
-        // Simpan log tanggal
-        localStorage.setItem('nizamy_last_notif_date', today);
-    } catch (e) {
-        console.error("Notification dispatch error:", e);
-    }
+    await notificationService._triggerNotification(title, options);
+    
+    // Simpan log tanggal
+    localStorage.setItem('nizamy_last_notif_date', today);
   }
 };

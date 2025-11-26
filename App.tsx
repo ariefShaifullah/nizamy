@@ -5,6 +5,7 @@ import { Home } from './components/Home.tsx';
 import { Header, Footer } from './components/Layout.tsx';
 import { useToast } from './components/ui/Toast.tsx';
 import { usePWA } from './hooks/usePWA.ts';
+import { usePageMetadata } from './hooks/usePageMetadata.ts';
 import { OfflineBanner } from './components/ui/OfflineBanner.tsx';
 
 // Lazy Load Components
@@ -37,6 +38,9 @@ export default function App() {
   const { showToast } = useToast();
   const { needRefresh, updateServiceWorker } = usePWA();
 
+  // Handle SEO & Theme Color Side Effects
+  usePageMetadata();
+
   // Network Status Monitoring
   useEffect(() => {
     const handleOnline = () => showToast('Koneksi internet terhubung kembali.', 'success');
@@ -48,35 +52,6 @@ export default function App() {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [location.pathname]);
-
-  // Dynamic SEO Title & Theme Color
-  useEffect(() => {
-    const baseTitle = "NIZAMY";
-    let themeColor = "#4f46e5"; // Default Indigo
-    const path = location.pathname;
-
-    if (path.includes('/faraidh')) {
-        document.title = `${baseTitle} | Kalkulator Waris Islam (Faraidh)`;
-        themeColor = "#0284c7"; // Sky/Blue
-    } else if (path.includes('/zakat')) {
-        document.title = `${baseTitle} | Kalkulator Zakat Online (Fitrah & Maal)`;
-        themeColor = "#059669"; // Emerald
-    } else if (path.includes('/hafalan')) {
-        document.title = `${baseTitle} | Hafalan Quran Tracker (SRS)`;
-        themeColor = "#4338ca"; // Indigo
-    } else if (path.includes('/mushaf')) {
-        document.title = `${baseTitle} | Mushaf Digital & Kamus Tajwid`;
-        themeColor = "#0d9488"; // Teal
-    } else {
-        document.title = `${baseTitle}: Aplikasi Ibadah Islam (Waris, Zakat, Hafalan)`;
-        themeColor = "#4f46e5";
-    }
-
-    const metaThemeColor = document.querySelector("meta[name=theme-color]");
-    if (metaThemeColor) {
-      metaThemeColor.setAttribute("content", themeColor);
-    }
-  }, [location]);
 
   // Base text color helper
   const getLayoutClass = () => {

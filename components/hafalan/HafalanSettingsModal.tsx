@@ -52,7 +52,7 @@ export const HafalanSettingsModal: React.FC<SettingsModalProps> = ({
       const granted = await notificationService.requestPermission();
       if (granted) {
         setNotifEnabled(true);
-        notificationService.sendReminder(0); // Test notification to confirm
+        notificationService.sendTestNotification(); // Send explicit feedback
       } else {
         // Handle dismissal or new denial
         setNotifEnabled(false);

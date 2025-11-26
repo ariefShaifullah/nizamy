@@ -214,4 +214,13 @@ const WordItem: React.FC<{
             {word.text_uthmani}
         </span>
     );
+}, (prev, next) => {
+    // Optimization: Only re-render if active state changes or global settings change.
+    // This prevents inactive words from re-rendering when activeWordIndex changes on siblings.
+    return (
+        prev.isActive === next.isActive &&
+        prev.wordMode === next.wordMode &&
+        prev.fontSize === next.fontSize &&
+        prev.word.id === next.word.id
+    );
 });

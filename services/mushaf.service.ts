@@ -1,5 +1,5 @@
 
-import type { QuranAyah, SurahInfo } from '../types.ts';
+import type { QuranAyah, SurahInfo, QuranWord } from '../types.ts';
 import { SURAH_DATA } from '../constants.ts';
 
 const BASE_URL = 'https://api.quran.com/api/v4';
@@ -7,7 +7,7 @@ const AUDIO_CDN = 'https://audio.qurancdn.com';
 
 // --- HELPER FUNCTIONS ---
 
-const getCleanAudioUrl = (urlPart: any): string | null => {
+const getCleanAudioUrl = (urlPart: string | null | undefined): string | null => {
     if (!urlPart || typeof urlPart !== 'string') return null;
     const trimmed = urlPart.trim();
     if (!trimmed) return null;
@@ -64,6 +64,41 @@ async function fetchWithRetry(url: string, options: RequestInit = {}, retries = 
     }
 }
 
+// --- API RESPONSE INTERFACES ---
+interface ApiWord {
+    id: number;
+    position: number;
+    audio_url: string | null;
+    char_type_name: string; // "word", "end", "pause"
+    text_uthmani: string;
+    text_indopak?: string;
+    page_number?: number;
+    line_number?: number;
+    translation?: { text: string };
+    transliteration?: { text: string };
+    code_v1?: string;
+    location?: string;
+}
+
+interface ApiAyah {
+    id: number;
+    verse_key: string;
+    verse_number: number;
+    text_uthmani: string;
+    words: ApiWord[];
+    translations?: { resource_id: number; text: string }[];
+}
+
+interface ApiResponse {
+    verses: ApiAyah[];
+    pagination: {
+        current_page: number;
+        next_page: number | null;
+        total_pages: number;
+        total_count: number;
+    };
+}
+
 interface FetchResponse {
     verses: QuranAyah[];
     meta: {
@@ -85,26 +120,22 @@ export const fetchVersesWithWords = async (
     signal?: AbortSignal
 ): Promise<FetchResponse> => {
     try {
-        // Optimization: Removed date-based cache key to allow Service Worker 
-        // to cache the API response persistently (Offline Support).
-        
         // URL Construction
         const url = `${BASE_URL}/verses/by_chapter/${surahId}?language=id&words=true&word_fields=text_uthmani,audio_url,char_type_name,location&translations=33&fields=text_uthmani&per_page=${perPage}&page=${page}`;
         
         const response = await fetchWithRetry(url, { signal });
-        const json = await response.json();
+        const json: ApiResponse = await response.json();
 
         if (!json || !Array.isArray(json.verses)) throw new Error('Invalid JSON format from API');
 
         // Process Data
-        const processedVerses = json.verses
+        const processedVerses: QuranAyah[] = json.verses
             // Robust filtering: Ensure item is object and has critical ID fields
-            .filter((ayah: any) => ayah && typeof ayah === 'object' && ayah.id && ayah.verse_number) 
-            .map((ayah: any) => {
+            .filter((ayah) => ayah && typeof ayah === 'object' && ayah.id && ayah.verse_number) 
+            .map((ayah) => {
                 let cleanedWords = Array.isArray(ayah.words) ? ayah.words : [];
 
                 // Handle Bismillah Logic (Only affects Verse 1)
-                // IMPROVED: Intelligent Bismillah detection based on content tokens, NOT just array index
                 if (ayah.verse_number === 1 && surahId !== 1 && surahId !== 9) {
                     const bismillahTokens = ['بِسْمِ', 'ٱللَّهِ', 'ٱلرَّحْمَٰنِ', 'ٱلرَّحِيمِ'];
                     
@@ -128,9 +159,9 @@ export const fetchVersesWithWords = async (
                     }
                 }
 
-                // Fix Audio URLs
-                const processedWords = cleanedWords.map((w: any) => {
-                    let finalAudioUrl = null;
+                // Fix Audio URLs and Map to Internal Type
+                const processedWords: QuranWord[] = cleanedWords.map((w) => {
+                    let finalAudioUrl: string | null = null;
                     if (w.char_type_name === 'word') {
                         if (w.location) {
                             finalAudioUrl = constructWbwUrl(w.location);
@@ -138,10 +169,31 @@ export const fetchVersesWithWords = async (
                             finalAudioUrl = getCleanAudioUrl(w.audio_url);
                         }
                     }
-                    return { ...w, audio_url: finalAudioUrl };
+                    // Normalize to QuranWord type
+                    return {
+                        id: w.id,
+                        position: w.position,
+                        audio_url: finalAudioUrl,
+                        char_type_name: w.char_type_name as "word" | "end" | "pause",
+                        text_uthmani: w.text_uthmani,
+                        text_indopak: w.text_indopak,
+                        page_number: w.page_number,
+                        line_number: w.line_number,
+                        translation: w.translation,
+                        transliteration: w.transliteration,
+                        code_v1: w.code_v1,
+                        location: w.location
+                    };
                 });
 
-                return { ...ayah, words: processedWords };
+                return { 
+                    id: ayah.id,
+                    verse_key: ayah.verse_key,
+                    verse_number: ayah.verse_number,
+                    text_uthmani: ayah.text_uthmani,
+                    words: processedWords,
+                    translations: ayah.translations
+                };
             });
 
         return {

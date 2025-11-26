@@ -1,5 +1,5 @@
 
-import React, { useState, useReducer, useCallback } from 'react';
+import React, { useState, useReducer, useCallback, useTransition } from 'react';
 import { HeirsForm } from './HeirsForm.tsx';
 import { ResultsDisplay } from './ResultsDisplay.tsx';
 import { HistoryPanel } from './HistoryPanel.tsx';
@@ -21,7 +21,7 @@ const FaraidhCalculator: React.FC = () => {
   const [heirs, dispatch] = useReducer(heirsReducer, initialHeirsState);
   const [estate, setEstate] = useState<string>('100000000');
   const [result, setResult] = useState<CalculationResult | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   
   const [history, setHistory] = useLocalStorage<HistoryEntry[]>('faraidhHistory', []);
   const [activeTab, setActiveTab] = useState<FaraidhTab>('input');
@@ -32,9 +32,9 @@ const FaraidhCalculator: React.FC = () => {
       showToast("Mohon masukkan nilai harta yang valid.", 'error');
       return;
     }
-    setLoading(true);
 
-    setTimeout(() => {
+    // Use startTransition to keep the UI responsive during calculation and state updates
+    startTransition(() => {
         try {
             const calculationResult = calculateFaraidh(heirs, estateValue);
             setResult(calculationResult);
@@ -59,10 +59,8 @@ const FaraidhCalculator: React.FC = () => {
         } catch (error) {
             console.error("Calculation failed:", error);
             showToast("Terjadi kesalahan dalam perhitungan.", 'error');
-        } finally {
-            setLoading(false);
         }
-    }, 300); 
+    });
   }, [estate, heirs, setHistory, showToast]);
   
   const loadFromHistory = useCallback((entry: HistoryEntry) => {
@@ -118,7 +116,7 @@ const FaraidhCalculator: React.FC = () => {
                 estate={estate} 
                 setEstate={setEstate} 
                 onCalculate={handleCalculate}
-                loading={loading}
+                loading={isPending}
               />
               
               <div className="hidden lg:block mt-10">

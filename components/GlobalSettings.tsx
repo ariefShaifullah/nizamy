@@ -5,7 +5,7 @@ import { exportData, importData, clearAllData } from '../services/data.service.t
 import { useToast } from './ui/Toast.tsx';
 import { useConfirm } from './ui/ConfirmContext.tsx';
 import { LegalModal, type LegalType } from './LegalModal.tsx';
-import { FaDownload, FaUpload, FaTrash, FaFileContract, FaShieldAlt, FaExclamationTriangle } from 'react-icons/fa';
+import { FaDownload, FaUpload, FaTrash, FaFileContract, FaShieldAlt, FaExclamationTriangle, FaSpinner } from 'react-icons/fa';
 
 interface GlobalSettingsProps {
     isOpen: boolean;
@@ -17,10 +17,19 @@ export const GlobalSettings: React.FC<GlobalSettingsProps> = ({ isOpen, onClose 
     const { confirm } = useConfirm();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [legalType, setLegalType] = useState<LegalType>(null);
+    const [isProcessing, setIsProcessing] = useState(false);
 
-    const handleBackup = () => {
-        exportData();
-        showToast("Backup data berhasil diunduh", "success");
+    const handleBackup = async () => {
+        setIsProcessing(true);
+        try {
+            await exportData();
+            showToast("Backup data berhasil diunduh", "success");
+        } catch (e) {
+            console.error(e);
+            showToast("Gagal membuat backup", "error");
+        } finally {
+            setIsProcessing(false);
+        }
     };
 
     const handleRestoreClick = () => {
@@ -39,16 +48,23 @@ export const GlobalSettings: React.FC<GlobalSettingsProps> = ({ isOpen, onClose 
         });
 
         if (isConfirmed) {
-            const result = await importData(file);
-            if (result.success) {
-                showToast(result.message, "success");
-                setTimeout(() => window.location.reload(), 1500);
-            } else {
-                showToast(result.message, "error");
+            setIsProcessing(true);
+            try {
+                const result = await importData(file);
+                if (result.success) {
+                    showToast(result.message, "success");
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    showToast(result.message, "error");
+                    setIsProcessing(false);
+                }
+            } catch (e) {
+                showToast("Terjadi kesalahan saat restore", "error");
+                setIsProcessing(false);
             }
+        } else {
+            if (fileInputRef.current) fileInputRef.current.value = '';
         }
-        
-        if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
     const handleResetApp = async () => {
@@ -60,7 +76,8 @@ export const GlobalSettings: React.FC<GlobalSettingsProps> = ({ isOpen, onClose 
         });
 
         if (isConfirmed) {
-            clearAllData();
+            setIsProcessing(true);
+            await clearAllData();
             showToast("Semua data dihapus. Reloading...", "info");
             setTimeout(() => window.location.reload(), 1000);
         }
@@ -80,16 +97,18 @@ export const GlobalSettings: React.FC<GlobalSettingsProps> = ({ isOpen, onClose 
                             <div className="flex gap-3">
                                 <button 
                                     onClick={handleBackup}
-                                    className="flex-1 flex items-center justify-center gap-2 bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 py-2.5 rounded-lg text-sm font-bold hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
+                                    disabled={isProcessing}
+                                    className="flex-1 flex items-center justify-center gap-2 bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 py-2.5 rounded-lg text-sm font-bold hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors disabled:opacity-50"
                                 >
-                                    <span className="icon-wrapper w-4 h-4"><FaDownload /></span>
+                                    {isProcessing ? <span className="animate-spin"><FaSpinner /></span> : <span className="icon-wrapper w-4 h-4"><FaDownload /></span>}
                                     Backup
                                 </button>
                                 <button 
                                     onClick={handleRestoreClick}
-                                    className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white py-2.5 rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm"
+                                    disabled={isProcessing}
+                                    className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white py-2.5 rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50"
                                 >
-                                    <span className="icon-wrapper w-4 h-4"><FaUpload /></span>
+                                    {isProcessing ? <span className="animate-spin"><FaSpinner /></span> : <span className="icon-wrapper w-4 h-4"><FaUpload /></span>}
                                     Restore
                                 </button>
                                 <input 
@@ -125,7 +144,8 @@ export const GlobalSettings: React.FC<GlobalSettingsProps> = ({ isOpen, onClose 
                         <div className="border-t border-slate-100 dark:border-slate-700 pt-4">
                             <button 
                                 onClick={handleResetApp}
-                                className="w-full flex items-center justify-center gap-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 py-3 rounded-xl transition-colors text-sm font-bold"
+                                disabled={isProcessing}
+                                className="w-full flex items-center justify-center gap-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 py-3 rounded-xl transition-colors text-sm font-bold disabled:opacity-50"
                             >
                                 <span className="icon-wrapper w-4 h-4"><FaTrash /></span>
                                 Reset Total Aplikasi
@@ -134,8 +154,8 @@ export const GlobalSettings: React.FC<GlobalSettingsProps> = ({ isOpen, onClose 
                     </div>
                     
                     <div className="text-center text-[10px] text-slate-400 dark:text-slate-500">
-                        <p>NIZAMY Version 1.8.5</p>
-                        <p>Local Storage Usage: {((JSON.stringify(localStorage).length / 1024)).toFixed(2)} KB</p>
+                        <p>NIZAMY Version 1.8.6</p>
+                        <p>Storage Engine: IndexedDB (Async)</p>
                     </div>
                 </div>
             </Modal>

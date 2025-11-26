@@ -1,65 +1,38 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useMemo } from 'react';
 
 export type ViewState = 'home' | 'faraidh' | 'zakat' | 'hafalan' | 'mushaf';
 
+/**
+ * Modern useRouter hook that wraps react-router-dom.
+ * Replaces the old manual History API implementation to prevent state desync.
+ */
 export const useRouter = () => {
-  // Helper to determine view from URL Query Params (Safe for all environments)
-  const getInitialView = (): ViewState => {
-    if (typeof window === 'undefined') return 'home';
-    const params = new URLSearchParams(window.location.search);
-    const viewParam = params.get('view');
-    if (viewParam === 'faraidh' || viewParam === 'zakat' || viewParam === 'hafalan' || viewParam === 'mushaf') {
-        return viewParam as ViewState;
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  // Derive current view based on path
+  const view = useMemo((): ViewState => {
+    const path = location.pathname.replace('/', '');
+    if (!path) return 'home';
+    
+    // Validate known routes
+    if (['faraidh', 'zakat', 'hafalan', 'mushaf'].includes(path)) {
+      return path as ViewState;
     }
     return 'home';
+  }, [location.pathname]);
+
+  // Safe setter that uses Router navigation
+  const setView = (newView: ViewState) => {
+    if (newView === 'home') {
+      navigate('/');
+    } else {
+      navigate(`/${newView}`);
+    }
   };
 
-  const [view, setViewInternal] = useState<ViewState>(getInitialView);
-
-  // --- NAVIGATION HANDLER (History API) ---
-  useEffect(() => {
-    const handlePopState = (event: PopStateEvent) => {
-      if (event.state && event.state.view) {
-        setViewInternal(event.state.view);
-      } else {
-        setViewInternal(getInitialView());
-      }
-    };
-
-    window.addEventListener('popstate', handlePopState);
-
-    // Initialize History State if empty
-    try {
-        if (!window.history.state) {
-            const currentView = getInitialView();
-            const url = currentView === 'home' ? window.location.pathname : `?view=${currentView}`;
-            window.history.replaceState({ view: currentView }, '', url);
-        }
-    } catch (e) {
-        console.warn("History API initialization restricted:", e);
-    }
-
-    return () => {
-      window.removeEventListener('popstate', handlePopState);
-    };
-  }, []);
-
-  const setView = useCallback((newView: ViewState) => {
-    setViewInternal((prev) => {
-        if (prev === newView) return prev;
-        
-        try {
-            const url = newView === 'home' ? window.location.pathname : `?view=${newView}`;
-            window.history.pushState({ view: newView }, '', url);
-        } catch (e) {
-            console.warn("History API push failed:", e);
-        }
-        
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return newView;
-    });
-  }, []);
-
-  return { view, setView };
+  return { view, setView, searchParams };
 };

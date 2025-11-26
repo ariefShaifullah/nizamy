@@ -39,15 +39,18 @@ class AudioController {
 
   /**
    * Resumes the AudioContext. 
-   * Must be called inside a user interaction event (click/touch) for browsers with strict autoplay policies.
+   * Optimized to check state before resuming to prevent errors.
    */
   public async resume(): Promise<void> {
     const ctx = this.getContext();
+    // Only resume if suspended. Calling resume on 'running' context is redundant.
     if (ctx && ctx.state === 'suspended') {
       try {
         await ctx.resume();
       } catch (e) {
-        console.debug("Audio resume failed", e);
+        // Benign error: usually means resumed without user gesture yet.
+        // We suppress it to keep console clean.
+        console.debug("Audio resume pending user gesture");
       }
     }
   }
@@ -143,7 +146,7 @@ class AudioController {
   public playClick() {
     const ctx = this.getContext();
     if (!ctx) return;
-    // On mobile, this often needs to be synchronous in the event handler, but async resume is best effort
+    // On mobile, this often needs to be synchronous in the event handler
     this.resume().catch(() => {}); 
 
     const now = ctx.currentTime;

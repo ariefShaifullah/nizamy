@@ -8,6 +8,7 @@ import type {
   UserSummary,
 } from "../types.ts";
 import { BADGES, SURAH_DATA, HEAVY_VERSES, SRS_INTERVALS } from "../constants.ts";
+import { dbGet, dbSet, dbDel, migrateFromLocalStorage } from "./db.service.ts";
 
 const STORAGE_KEY_USERS = "nizamy_hafalan_users";
 const STORAGE_PREFIX_DATA = "nizamy_hafalan_data_";
@@ -123,14 +124,22 @@ const getRandomColor = () => {
   return colors[Math.floor(Math.random() * colors.length)];
 };
 
-export const getAllUsers = (): UserSummary[] => {
-  try {
-    const usersJson = localStorage.getItem(STORAGE_KEY_USERS);
-    let users: UserSummary[] = usersJson ? JSON.parse(usersJson) : [];
+// Ensure DB is ready and migrated
+export const initStorage = async () => {
+    await migrateFromLocalStorage();
+};
 
-    // MIGRATION: Check if old single-user data exists and not yet migrated
+export const getAllUsers = async (): Promise<UserSummary[]> => {
+  try {
+    await initStorage();
+    
+    const users = await dbGet<UserSummary[]>(STORAGE_KEY_USERS);
+    let userList = users || [];
+
+    // LEGACY MIGRATION: Check if old single-user data exists in LocalStorage and not yet migrated
+    // This logic is kept for safety, though migrateFromLocalStorage should handle it.
     const oldData = localStorage.getItem(OLD_STORAGE_KEY);
-    if (oldData && users.length === 0) {
+    if (oldData && userList.length === 0) {
       const parsedOld: HafalanState = JSON.parse(oldData);
       if (parsedOld.profile) {
         const newId = generateId();
@@ -146,36 +155,30 @@ export const getAllUsers = (): UserSummary[] => {
         // Update profile with new ID
         parsedOld.profile.userId = newId;
 
-        // Save to new structure
-        users.push(newUser);
-        localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
-        localStorage.setItem(
-          STORAGE_PREFIX_DATA + newId,
-          JSON.stringify(parsedOld)
-        );
+        // Save to new structure in DB
+        userList.push(newUser);
+        await dbSet(STORAGE_KEY_USERS, userList);
+        await dbSet(STORAGE_PREFIX_DATA + newId, parsedOld);
 
-        // Remove old key to finish migration
+        // Remove old key
         localStorage.removeItem(OLD_STORAGE_KEY);
       }
     }
-    return users;
+    return userList;
   } catch (error) {
     console.error("Error getting users:", error);
     return [];
   }
 };
 
-export const saveUserData = (state: HafalanState) => {
+export const saveUserData = async (state: HafalanState) => {
   if (!state.profile?.userId) return;
 
-  // 1. Save Data
-  localStorage.setItem(
-    STORAGE_PREFIX_DATA + state.profile.userId,
-    JSON.stringify(state)
-  );
+  // 1. Save Data (Async)
+  await dbSet(STORAGE_PREFIX_DATA + state.profile.userId, state);
 
   // 2. Update User Summary (Level, Last Login)
-  const users = getAllUsers();
+  const users = await dbGet<UserSummary[]>(STORAGE_KEY_USERS) || [];
   const userIndex = users.findIndex((u) => u.id === state.profile?.userId);
   if (userIndex >= 0) {
     users[userIndex].level = state.gamification.level;
@@ -184,20 +187,23 @@ export const saveUserData = (state: HafalanState) => {
     if (users[userIndex].name !== state.profile.name) {
       users[userIndex].name = state.profile.name;
     }
-    localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
+    await dbSet(STORAGE_KEY_USERS, users);
   }
 };
 
-export const loadUserData = (userId: string): HafalanState | null => {
-  const data = localStorage.getItem(STORAGE_PREFIX_DATA + userId);
-  return data ? JSON.parse(data) : null;
+export const loadUserData = async (userId: string): Promise<HafalanState | null> => {
+  await initStorage();
+  const data = await dbGet<HafalanState>(STORAGE_PREFIX_DATA + userId);
+  return data || null;
 };
 
-export const createNewUser = (
+export const createNewUser = async (
   name: string,
   level: HafalanSkillLevel,
   target: number
-): HafalanState => {
+): Promise<HafalanState> => {
+  await initStorage();
+  
   const newId = generateId();
   const profile: HafalanProfile = {
     userId: newId,
@@ -223,7 +229,7 @@ export const createNewUser = (
   };
 
   // Add to User Index
-  const users = getAllUsers();
+  const users = await dbGet<UserSummary[]>(STORAGE_KEY_USERS) || [];
   const summary: UserSummary = {
     id: newId,
     name: name,
@@ -232,22 +238,19 @@ export const createNewUser = (
     avatarColor: getRandomColor(),
   };
   users.push(summary);
-  localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
+  await dbSet(STORAGE_KEY_USERS, users);
 
   // Save Initial Data
-  localStorage.setItem(
-    STORAGE_PREFIX_DATA + newId,
-    JSON.stringify(initialState)
-  );
+  await dbSet(STORAGE_PREFIX_DATA + newId, initialState);
 
   return initialState;
 };
 
-export const updateUserProfile = (
+export const updateUserProfile = async (
   userId: string,
   updates: { name: string; skillLevel: HafalanSkillLevel; targetJuz: number }
-): HafalanState | null => {
-  const state = loadUserData(userId);
+): Promise<HafalanState | null> => {
+  const state = await loadUserData(userId);
   if (!state || !state.profile) return null;
 
   state.profile.name = updates.name;
@@ -262,17 +265,18 @@ export const updateUserProfile = (
       ? 10
       : 20;
 
-  saveUserData(state);
+  await saveUserData(state);
   return state;
 };
 
-export const deleteUser = (userId: string) => {
+export const deleteUser = async (userId: string) => {
   // 1. Remove from Index
-  const users = getAllUsers().filter((u) => u.id !== userId);
-  localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
+  const users = await dbGet<UserSummary[]>(STORAGE_KEY_USERS) || [];
+  const updatedUsers = users.filter((u) => u.id !== userId);
+  await dbSet(STORAGE_KEY_USERS, updatedUsers);
 
   // 2. Remove Data
-  localStorage.removeItem(STORAGE_PREFIX_DATA + userId);
+  await dbDel(STORAGE_PREFIX_DATA + userId);
 };
 
 // --- CORE LOGIC ---

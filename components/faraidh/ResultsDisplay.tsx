@@ -30,7 +30,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
         </div>
         <h3 className="text-2xl font-bold text-slate-700 dark:text-slate-200">Menunggu Input</h3>
         <p className="text-slate-500 dark:text-slate-400 mt-2 leading-relaxed text-sm max-w-xs mx-auto">
-            Isi data ahli waris di sebelah kiri, lalu klik tombol <span className="font-semibold text-blue-600 dark:text-blue-400">Hitung Waris</span>.
+            Isi data ahli waris di sebelah kiri, lalu klik tombol <span className="font-semibold text-blue-600 dark:text-blue-400">Hitung Pembagian</span>.
         </p>
       </div>
     );

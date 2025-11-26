@@ -1,33 +1,38 @@
-import { useState, useCallback, useEffect } from "react";
-import type { UserSummary } from "../types.ts";
-import {
-  getAllUsers,
-  deleteUser as serviceDeleteUser,
-} from "../services/hafalan.service.ts";
+
+import { useState, useCallback, useEffect } from 'react';
+import type { UserSummary } from '../types.ts';
+import { getAllUsers, deleteUser as serviceDeleteUser } from '../services/hafalan.service.ts';
 
 export const useUserList = () => {
-  const [usersList, setUsersList] = useState<UserSummary[]>([]);
+    const [usersList, setUsersList] = useState<UserSummary[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-  const refreshUsers = useCallback(() => {
-    setUsersList(getAllUsers());
-  }, []);
+    const refreshUsers = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const users = await getAllUsers();
+            setUsersList(users);
+        } catch (e) {
+            console.error("Failed to fetch users", e);
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
 
-  // Initial Load
-  useEffect(() => {
-    refreshUsers();
-  }, [refreshUsers]);
+    // Initial Load
+    useEffect(() => {
+        refreshUsers();
+    }, [refreshUsers]);
 
-  const handleDeleteUser = useCallback(
-    (userId: string) => {
-      serviceDeleteUser(userId);
-      refreshUsers();
-    },
-    [refreshUsers]
-  );
+    const handleDeleteUser = useCallback(async (userId: string) => {
+        await serviceDeleteUser(userId);
+        await refreshUsers();
+    }, [refreshUsers]);
 
-  return {
-    usersList,
-    refreshUsers,
-    handleDeleteUser,
-  };
+    return {
+        usersList,
+        isLoading,
+        refreshUsers,
+        handleDeleteUser
+    };
 };

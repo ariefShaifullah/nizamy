@@ -356,7 +356,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </div>
 
-      <button onClick={() => { audioService.playClick(); onAddClick(); }} className={`md:hidden fixed bottom-24 right-4 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-xl shadow-indigo-500/40 dark:shadow-black/40 flex items-center justify-center z-40 transition-transform active:scale-90 hover:scale-105 ${activeTab === "profile" || activeTab === "guide" ? "hidden" : "flex"}`} aria-label="Tambah Hafalan">
+      <button onClick={() => { audioService.playClick(); onAddClick(); }} className={`md:hidden fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] right-4 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-xl shadow-indigo-500/40 dark:shadow-black/40 flex items-center justify-center z-[60] transition-transform active:scale-90 hover:scale-105 ${activeTab === "profile" || activeTab === "guide" ? "hidden" : "flex"}`} aria-label="Tambah Hafalan">
             <div className="icon-wrapper w-5 h-5 flex items-center justify-center"><FaPlus /></div>
       </button>
 

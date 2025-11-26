@@ -105,7 +105,7 @@ export const Home: React.FC = () => {
     {
       id: 'zakat',
       title: 'Zakat',
-      subtitle: 'Hitung Maal',
+      subtitle: 'Hitung Zakat',
       icon: <FaHandsHelping />,
       colorClass: 'text-emerald-600 dark:text-emerald-400',
       bgClass: 'bg-emerald-100 dark:bg-emerald-900/30',
@@ -115,7 +115,7 @@ export const Home: React.FC = () => {
     {
       id: 'faraidh',
       title: 'Waris',
-      subtitle: 'Hitung Faraidh',
+      subtitle: 'Bagi Waris',
       icon: <FaBalanceScale />,
       colorClass: 'text-blue-600 dark:text-blue-400',
       bgClass: 'bg-blue-100 dark:bg-blue-900/30',
@@ -143,7 +143,8 @@ export const Home: React.FC = () => {
       `}</style>
 
       {/* --- 1. HERO SECTION (ANIMATED AURORA) --- */}
-      <div className="relative pt-[calc(env(safe-area-inset-top)+2rem)] pb-32 px-6 overflow-hidden shadow-sm group">
+      {/* Increased top padding for fixed header */}
+      <div className="relative pt-[calc(env(safe-area-inset-top)+5.5rem)] pb-32 px-6 overflow-hidden shadow-sm group">
           
           {/* Animated Gradient Background */}
           <div className="absolute inset-0 animate-gradient-xy bg-gradient-to-br from-blue-500 via-indigo-500 to-teal-400 dark:from-slate-900 dark:via-indigo-950 dark:to-slate-900 opacity-95 dark:opacity-100 transition-colors duration-1000"></div>

@@ -53,7 +53,8 @@ export const Header: React.FC = () => {
 
     return (
       <>
-      <header className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl shadow-sm sticky top-0 z-30 border-b border-white/20 dark:border-slate-700/50 transition-all duration-300 pt-[env(safe-area-inset-top)]">
+      {/* Changed from sticky to fixed for iOS full top coverage */}
+      <header className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl shadow-sm fixed top-0 left-0 right-0 z-50 border-b border-white/20 dark:border-slate-700/50 transition-all duration-300 pt-[env(safe-area-inset-top)]">
         <div className="container mx-auto px-4 py-3 md:py-4 flex justify-between items-center">
           <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity group focus:outline-none">
              

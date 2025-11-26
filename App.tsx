@@ -96,7 +96,7 @@ export default function App() {
       
       {/* PWA Update Banner */}
       {needRefresh && (
-        <div className="bg-slate-900 text-white px-4 py-3 shadow-lg relative z-50 animate-fade-in-down flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-3 text-center sm:text-left">
+        <div className="bg-slate-900 text-white px-4 py-3 shadow-lg relative z-50 animate-fade-in-down flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-3 text-center sm:text-left fixed top-20 left-0 right-0">
             <p className="text-sm font-medium">
                 ✨ Versi baru aplikasi tersedia! Update untuk fitur terbaru.
             </p>
@@ -109,7 +109,13 @@ export default function App() {
         </div>
       )}
 
-      <main className={location.pathname === '/' ? 'flex-grow' : 'container mx-auto px-4 py-4 md:py-8 flex-grow'}>
+      <main 
+        className={location.pathname === '/' 
+            ? 'flex-grow' 
+            // Added padding-top for fixed header compensation in inner pages
+            : 'container mx-auto px-4 py-4 md:py-8 flex-grow pt-[calc(5rem+env(safe-area-inset-top))]'
+        }
+      >
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<Home />} />

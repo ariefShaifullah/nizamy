@@ -1,52 +1,24 @@
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
+import { type VirtuosoHandle } from 'react-virtuoso';
 import { SURAH_DATA } from '../../constants.ts';
 import { audioService } from '../../services/audio.service.ts';
 import { getAyahAudioUrl } from '../../services/mushaf.service.ts';
-import { AyahRenderer } from './AyahRenderer.tsx';
 import { KamusSheet } from './KamusSheet.tsx';
 import { MushafSettingsModal } from './MushafSettingsModal.tsx';
 import { MushafHelpModal } from './MushafHelpModal.tsx';
-import { SurahHeader } from './SurahHeader.tsx';
 import { Modal } from '../Modal.tsx'; 
-import type { QuranAyah, KamusData, QuranWord } from '../../types.ts';
+import type { QuranAyah, KamusData, QuranWord, LastReadState } from '../../types.ts';
 import { useToast } from '../ui/Toast.tsx';
-import { useDebounce } from '../../hooks/useDebounce.ts';
 import { useLocalStorage } from '../../hooks/useLocalStorage.ts';
 import { useMushafAudio } from '../../hooks/useMushafAudio.ts';
 import { useMushafData } from '../../hooks/useMushafData.ts';
-import { FaArrowLeft, FaArrowRight, FaSearch, FaHashtag, FaQuestionCircle, FaCog, FaMusic, FaStop } from 'react-icons/fa';
+import { FaArrowLeft, FaHashtag, FaQuestionCircle, FaCog } from 'react-icons/fa';
 
-// Quick Links with distinct styling
-const QUICK_LINKS = [
-    { number: 18, label: 'Al-Kahfi', icon: '⛰️', gradient: 'from-amber-100 to-orange-100 dark:from-amber-900/40 dark:to-orange-900/40', text: 'text-amber-800 dark:text-amber-200' },
-    { number: 36, label: 'Ya-Sin', icon: '❤️', gradient: 'from-rose-100 to-pink-100 dark:from-rose-900/40 dark:to-pink-900/40', text: 'text-rose-800 dark:text-rose-200' },
-    { number: 55, label: 'Ar-Rahman', icon: '🎁', gradient: 'from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40', text: 'text-emerald-800 dark:text-emerald-200' },
-    { number: 56, label: 'Al-Waqi\'ah', icon: '💰', gradient: 'from-indigo-100 to-blue-100 dark:from-indigo-900/40 dark:to-blue-900/40', text: 'text-indigo-800 dark:text-indigo-200' },
-    { number: 67, label: 'Al-Mulk', icon: '🛡️', gradient: 'from-sky-100 to-cyan-100 dark:from-sky-900/40 dark:to-cyan-900/40', text: 'text-sky-800 dark:text-sky-200' },
-    { number: 78, label: 'Juz 30', icon: '🎓', gradient: 'from-violet-100 to-purple-100 dark:from-violet-900/40 dark:to-purple-900/40', text: 'text-violet-800 dark:text-violet-200' }
-];
-
-// Skeleton Component for Loading State
-const VersesSkeleton = () => (
-    <div className="space-y-8 p-4 max-w-3xl mx-auto w-full animate-pulse">
-        {[1, 2, 3].map((i) => (
-            <div key={i} className="flex flex-col gap-4">
-                <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded-full w-3/4 self-end opacity-50"></div>
-                <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded-full w-1/2 self-end opacity-30"></div>
-                <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-full mt-4"></div>
-                <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-2/3"></div>
-            </div>
-        ))}
-    </div>
-);
-
-interface LastReadState {
-    surahId: number;
-    ayahNumber: number;
-    timestamp: number;
-}
+// Sub-components
+import { SurahSelection } from './SurahSelection.tsx';
+import { MushafReader } from './MushafReader.tsx';
+import { MushafStickyPlayer } from './MushafStickyPlayer.tsx';
 
 const MushafApp: React.FC = () => {
     const { showToast } = useToast();
@@ -65,8 +37,6 @@ const MushafApp: React.FC = () => {
 
     // Navigation & State
     const [selectedSurahId, setSelectedSurahId] = useState<number | null>(null);
-    const [searchTerm, setSearchTerm] = useState("");
-    const debouncedSearch = useDebounce(searchTerm, 300);
     
     // Jumping State
     const [jumpAyahInput, setJumpAyahInput] = useState("");
@@ -186,6 +156,13 @@ const MushafApp: React.FC = () => {
         }
     };
 
+    const handleJumpToLastRead = () => {
+        if (lastRead) {
+            setSelectedSurahId(lastRead.surahId);
+            setTimeout(() => setJumpAyahInput(lastRead.ayahNumber.toString()), 500);
+        }
+    };
+
     // --- RENDER HELPERS ---
     const progressPercent = useMemo(() => {
         if (!selectedSurahId) return 0;
@@ -196,24 +173,12 @@ const MushafApp: React.FC = () => {
 
     const currentVisibleAyahNumber = useMemo(() => {
         if (verses.length > 0 && verses[verses.length - 1]) {
-            // Use endIndex to show current reading position more accurately during scroll
-            // But for the header, startIndex is safer to show "What's at the top"
             if (verses[visibleRange.startIndex]) {
                 return verses[visibleRange.startIndex].verse_number;
             }
         }
         return null;
     }, [visibleRange, verses]);
-
-    const filteredSurahs = useMemo(() => {
-        if (!debouncedSearch) return SURAH_DATA;
-        const lower = debouncedSearch.toLowerCase();
-        return SURAH_DATA.filter(s => 
-            s.name.toLowerCase().includes(lower) || 
-            s.number.toString().includes(lower) ||
-            s.arti.toLowerCase().includes(lower)
-        );
-    }, [debouncedSearch]);
 
     const handleTapAyah = useCallback((ayah: QuranAyah) => {
         if (wordMode) return;
@@ -257,11 +222,9 @@ const MushafApp: React.FC = () => {
             const currentIndex = wordsList.findIndex(w => w.id === word.id);
             
             if (currentIndex !== -1) {
-                // Check next word for Tajwid
                 if (currentIndex < wordsList.length - 1) {
                     nextWordText = wordsList[currentIndex + 1].text_uthmani;
                 }
-                // Check if this is the last real word (Tajwid Waqaf context)
                 if (currentIndex === wordsList.length - 1) {
                     isEndAyah = true;
                 }
@@ -272,112 +235,22 @@ const MushafApp: React.FC = () => {
 
     // --- VIEW: SURAH LIST ---
     if (!selectedSurahId) {
-        const lastReadSurah = lastRead ? SURAH_DATA.find(s => s.number === lastRead.surahId) : null;
-
         return (
-            <div className="animate-fade-in pb-20 max-w-5xl mx-auto px-3">
-                {/* Only show title on Desktop to save mobile space */}
-                <div className="text-center mb-8 mt-4 hidden md:block">
-                    <h2 className="text-3xl md:text-4xl font-bold text-slate-800 dark:text-white mb-2 tracking-tight">Mushaf Digital</h2>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm md:text-base">Baca Al-Quran dengan nyaman, audio per kata & tajwid interaktif.</p>
-                </div>
-
-                {/* Search Bar - Adjusted margin for mobile */}
-                <div className="relative mb-8 max-w-xl mx-auto group mt-4 md:mt-0">
-                    <div className="absolute inset-0 bg-teal-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    <div className="relative">
-                        <span className="absolute left-5 top-4 text-slate-400 group-focus-within:text-teal-500 transition-colors icon-wrapper w-5 h-5">
-                            <FaSearch />
-                        </span>
-                        <input 
-                            type="text"
-                            placeholder="Cari surat (Latin, Arti, atau Nomor)..."
-                            className="w-full pl-14 pr-6 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full shadow-lg shadow-slate-200/50 dark:shadow-none focus:ring-4 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all text-slate-800 dark:text-white font-medium"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-                </div>
-
-                {/* Last Read */}
-                {lastRead && lastReadSurah && !searchTerm && (
-                    <div className="mb-10 max-w-xl mx-auto animate-fade-in-down">
-                        <button 
-                            onClick={() => { setSelectedSurahId(lastRead.surahId); setTimeout(() => setJumpAyahInput(lastRead.ayahNumber.toString()), 500); }}
-                            className="w-full relative overflow-hidden bg-slate-900 rounded-3xl p-6 text-white shadow-2xl group text-left"
-                        >
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/20 rounded-full blur-3xl translate-x-10 -translate-y-10 group-hover:bg-teal-500/30 transition-all"></div>
-                            <div className="relative z-10 flex items-center justify-between">
-                                <div>
-                                    <p className="text-teal-400 text-xs font-bold uppercase tracking-widest mb-2">Lanjut Membaca</p>
-                                    <h3 className="text-2xl font-bold mb-1">{lastReadSurah.name}</h3>
-                                    <p className="text-slate-400 text-sm">Ayat {lastRead.ayahNumber}</p>
-                                </div>
-                                <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm group-hover:scale-110 transition-transform border border-white/10">
-                                    <span className="icon-wrapper w-6 h-6"><FaArrowRight /></span>
-                                </div>
-                            </div>
-                        </button>
-                    </div>
-                )}
-
-                {/* Quick Links */}
-                {!searchTerm && (
-                    <div className="mb-10">
-                        <h4 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4 pl-2">Sering Dibaca</h4>
-                        <div className="flex gap-3 overflow-x-auto pb-4 hide-scrollbar snap-x px-2">
-                            {QUICK_LINKS.map((link) => (
-                                <button
-                                    key={link.number}
-                                    onClick={() => setSelectedSurahId(link.number)}
-                                    className={`flex-shrink-0 snap-start flex items-center gap-3 px-5 py-4 rounded-2xl font-bold text-sm bg-gradient-to-br ${link.gradient} ${link.text} hover:scale-105 transition-transform shadow-sm border border-white/20 dark:border-white/5 min-w-[140px]`}
-                                >
-                                    <span className="text-xl">{link.icon}</span>
-                                    {link.label}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* Surah Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {filteredSurahs.map(surah => (
-                        <button
-                            key={surah.number}
-                            onClick={() => setSelectedSurahId(surah.number)}
-                            className="group relative bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 hover:border-teal-500 dark:hover:border-teal-500 transition-all hover:shadow-lg hover:shadow-teal-500/10 text-left overflow-hidden"
-                        >
-                            <div className="absolute -right-4 -bottom-4 text-8xl font-bold text-slate-50 dark:text-slate-800 group-hover:text-teal-50 dark:group-hover:text-teal-900/20 transition-colors pointer-events-none opacity-50">
-                                {surah.number}
-                            </div>
-                            
-                            <div className="relative z-10 flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 font-serif font-bold flex items-center justify-center group-hover:bg-teal-500 group-hover:text-white transition-colors shadow-sm border border-slate-200 dark:border-slate-600 group-hover:border-teal-400">
-                                    {surah.number}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex justify-between items-baseline mb-1">
-                                        <h4 className="font-bold text-slate-800 dark:text-white text-lg group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors truncate pr-2">{surah.name}</h4>
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50 dark:bg-slate-900 px-2 py-0.5 rounded-full">{surah.type}</span>
-                                    </div>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400 truncate">{surah.arti} • {surah.verses} Ayat</p>
-                                </div>
-                            </div>
-                        </button>
-                    ))}
-                </div>
-            </div>
+            <SurahSelection 
+                lastRead={lastRead} 
+                onSelectSurah={setSelectedSurahId} 
+                onJumpToLastRead={handleJumpToLastRead}
+            />
         );
     }
 
-    const currentSurah = SURAH_DATA.find(s => s.number === selectedSurahId);
+    const currentSurah = SURAH_DATA.find(s => s.number === selectedSurahId)!;
     const activePlayingAyah = playingAyahId ? verses.find(v => v.id === playingAyahId) : null;
 
     // --- VIEW: READER ---
     return (
         <div className="fixed inset-0 z-50 bg-white dark:bg-slate-950 flex flex-col animate-fade-in select-none">
-            {/* Vertical Progress Ribbon (Left Side) - Adjusted Top Position to start below header */}
+            {/* Vertical Progress Ribbon (Left Side) */}
             <div className="fixed left-0 top-[calc(4rem+env(safe-area-inset-top))] bottom-0 w-1.5 z-20 bg-slate-100 dark:bg-slate-800/50 pointer-events-none">
                 <div 
                     className="relative w-full bg-teal-500 transition-all duration-500 ease-out rounded-b-full"
@@ -399,7 +272,7 @@ const MushafApp: React.FC = () => {
                             <FaArrowLeft />
                         </div>
                         <div>
-                            <h1 className="font-bold text-base text-slate-800 dark:text-white leading-tight">{currentSurah?.name}</h1>
+                            <h1 className="font-bold text-base text-slate-800 dark:text-white leading-tight">{currentSurah.name}</h1>
                             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                                 {currentVisibleAyahNumber ? `Ayat ${currentVisibleAyahNumber}` : 'Memuat...'}
                             </p>
@@ -428,7 +301,7 @@ const MushafApp: React.FC = () => {
                             <FaHashtag />
                         </button>
 
-                        {/* Help Trigger (New) */}
+                        {/* Help Trigger */}
                         <button
                             onClick={() => setIsHelpOpen(true)}
                             className="p-2.5 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors icon-wrapper w-10 h-10 flex items-center justify-center"
@@ -448,78 +321,36 @@ const MushafApp: React.FC = () => {
                 </div>
             </div>
 
-            {/* Reader Area with Left Padding for Progress Bar */}
-            <div className="flex-grow relative w-full max-w-3xl mx-auto bg-white dark:bg-slate-950 pl-5">
-                {error && (
-                    <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm p-6 text-center">
-                        <div className="w-16 h-16 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4 text-3xl">⚠️</div>
-                        <p className="text-slate-700 dark:text-slate-300 mb-6 font-medium">{error}</p>
-                        <button onClick={retry} className="px-8 py-3 bg-teal-600 text-white rounded-xl font-bold hover:bg-teal-700 transition-colors shadow-lg shadow-teal-500/30">Coba Lagi</button>
-                    </div>
-                )}
-
-                {loading && verses.length === 0 ? (
-                    <VersesSkeleton />
-                ) : (
-                    <Virtuoso
-                        ref={virtuosoRef}
-                        style={{ height: '100%' }}
-                        data={verses}
-                        endReached={loadNextPage}
-                        rangeChanged={(range) => setVisibleRange(range)}
-                        overscan={500}
-                        className="pb-32 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:none]"
-                        components={{
-                            Header: () => currentSurah ? <SurahHeader surah={currentSurah} /> : null,
-                            Footer: () => !hasMore && !loading && (
-                                <div className="py-20 text-center">
-                                    <p className="text-emerald-600/50 dark:text-emerald-400/50 font-arabic text-xl">صدق الله العظيم</p>
-                                </div>
-                            )
-                        }}
-                        itemContent={(index, ayah) => (
-                            <div id={`ayah-${ayah.id}`}>
-                                <AyahRenderer
-                                    ayah={ayah}
-                                    globalIndex={index}
-                                    isPlaying={playingAyahId === ayah.id}
-                                    activeWordIndex={playingWordId ? ayah.words.findIndex(w => w.id === playingWordId) : null}
-                                    wordMode={wordMode}
-                                    fontSize={fontSize}
-                                    showTranslation={showTranslation}
-                                    onTapAyah={handleTapAyah}
-                                    onLongPressAyah={handleLongPressAyah}
-                                    onTapWord={handleTapWord}
-                                    onLongPressWord={handleLongPressWord}
-                                />
-                            </div>
-                        )}
-                    />
-                )}
-            </div>
+            {/* Reader Area */}
+            <MushafReader
+                surah={currentSurah}
+                verses={verses}
+                loading={loading}
+                error={error}
+                hasMore={hasMore}
+                loadNextPage={loadNextPage}
+                retry={retry}
+                virtuosoRef={virtuosoRef}
+                onRangeChange={setVisibleRange}
+                isPlaying={isPlaying}
+                playingAyahId={playingAyahId}
+                playingWordId={playingWordId}
+                wordMode={wordMode}
+                fontSize={fontSize}
+                showTranslation={showTranslation}
+                onTapAyah={handleTapAyah}
+                onLongPressAyah={handleLongPressAyah}
+                onTapWord={handleTapWord}
+                onLongPressWord={handleLongPressWord}
+            />
 
             {/* Sticky Player */}
             {isPlaying && activePlayingAyah && !wordMode && (
-                <div className="absolute bottom-0 left-0 right-0 z-40 p-4 pb-8 bg-gradient-to-t from-white dark:from-slate-950 via-white/95 dark:via-slate-950/95 to-transparent pt-12 pl-6">
-                    <div className="bg-slate-900 dark:bg-slate-800 text-white rounded-2xl p-4 shadow-2xl shadow-slate-900/20 border border-slate-700/50 flex items-center gap-4 max-w-md mx-auto backdrop-blur-xl">
-                        <div className="w-10 h-10 rounded-full bg-teal-500/20 flex items-center justify-center text-teal-400 animate-pulse icon-wrapper w-5 h-5">
-                            <FaMusic />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <p className="text-[10px] font-bold text-teal-400 uppercase tracking-wider mb-0.5">Sedang Memutar</p>
-                            <div className="flex items-baseline gap-2">
-                                <span className="font-bold truncate">QS {currentSurah?.name}</span>
-                                <span className="text-xs text-slate-400">Ayat {activePlayingAyah.verse_number}</span>
-                            </div>
-                        </div>
-                        <button 
-                            onClick={() => stopAudio()}
-                            className="p-2 hover:bg-white/10 rounded-full transition-colors text-slate-300 hover:text-white icon-wrapper w-8 h-8 flex items-center justify-center"
-                        >
-                            <FaStop />
-                        </button>
-                    </div>
-                </div>
+                <MushafStickyPlayer
+                    surahName={currentSurah.name}
+                    ayahNumber={activePlayingAyah.verse_number}
+                    onStop={() => stopAudio()}
+                />
             )}
 
             {isSettingsOpen && (
@@ -545,7 +376,7 @@ const MushafApp: React.FC = () => {
                         <form onSubmit={(e) => { handleJumpToAyah(e); }} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
-                                    Masukkan Nomor Ayat (1-{currentSurah?.verses})
+                                    Masukkan Nomor Ayat (1-{currentSurah.verses})
                                 </label>
                                 <input 
                                     ref={jumpInputRef}

@@ -39,3 +39,9 @@ export interface KamusData {
   nextWordText?: string; // Context for Tajwid rules between two words
   isEndAyah?: boolean; // Context for Waqaf rules (Mad Arid, Qalqalah Kubra)
 }
+
+export interface LastReadState {
+  surahId: number;
+  ayahNumber: number;
+  timestamp: number;
+}

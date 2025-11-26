@@ -76,7 +76,7 @@ export const SurahSelection: React.FC<SurahSelectionProps> = ({ lastRead, onSele
                                 <p className="text-slate-400 text-sm">Ayat {lastRead.ayahNumber}</p>
                             </div>
                             <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm group-hover:scale-110 transition-transform border border-white/10">
-                                <span className="icon-wrapper w-6 h-6"><FaArrowRight /></span>
+                                <div className="icon-wrapper w-5 h-5 flex items-center justify-center"><FaArrowRight /></div>
                             </div>
                         </div>
                     </button>

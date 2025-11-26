@@ -1,7 +1,6 @@
-
-import React, { Component, type ReactNode, type ErrorInfo } from 'react';
+import React, { type ReactNode, type ErrorInfo } from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import { HashRouter } from 'react-router-dom';
 import App from './App.tsx';
 import { ThemeProvider } from './components/ThemeContext.tsx';
 import { ToastProvider } from './components/ui/Toast.tsx';
@@ -46,7 +45,7 @@ interface ErrorBoundaryState {
 }
 
 // Use React.Component explicitly to avoid type inference issues
-class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   public state: ErrorBoundaryState = { hasError: false, error: null };
   props: any;
 
@@ -96,9 +95,9 @@ root.render(
       <ToastProvider>
         <ConfirmProvider>
           <ErrorBoundary>
-            <BrowserRouter>
+            <HashRouter>
               <App />
-            </BrowserRouter>
+            </HashRouter>
           </ErrorBoundary>
         </ConfirmProvider>
       </ToastProvider>

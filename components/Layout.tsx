@@ -1,45 +1,38 @@
 
 import React, { useState } from 'react';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useTheme } from './ThemeContext.tsx';
 import { GlobalSettings } from './GlobalSettings.tsx';
 import { LegalModal, type LegalType } from './LegalModal.tsx';
 import { FaBars, FaSun, FaMoon, FaCog, FaArrowLeft, FaShieldAlt, FaFileContract } from 'react-icons/fa';
 
-export type ViewState = 'home' | 'faraidh' | 'zakat' | 'hafalan' | 'mushaf';
-
-interface HeaderProps {
-    view: ViewState;
-    setView: (v: ViewState) => void;
-}
-
-export const Header: React.FC<HeaderProps> = ({ view, setView }) => {
+export const Header: React.FC = () => {
     const { theme, setTheme } = useTheme();
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     
-    const isHome = view === 'home';
+    const location = useLocation();
+    const navigate = useNavigate();
+    const isHome = location.pathname === '/';
 
     let titleColor = 'text-indigo-600 dark:text-indigo-400'; // Default Base
     let subtitle = '';
 
-    // Dynamic Theming based on Active Module
-    if (view === 'zakat') {
+    // Dynamic Theming based on Active Route
+    if (location.pathname.includes('/zakat')) {
         titleColor = 'text-emerald-600 dark:text-emerald-400';
         subtitle = 'Kalkulator Zakat';
-    } else if (view === 'faraidh') {
+    } else if (location.pathname.includes('/faraidh')) {
         titleColor = 'text-blue-600 dark:text-blue-400';
         subtitle = 'Kalkulator Waris Islam';
-    } else if (view === 'hafalan') {
+    } else if (location.pathname.includes('/hafalan')) {
         titleColor = 'text-indigo-600 dark:text-indigo-400';
         subtitle = 'Hafalan Quran Tracker';
-    } else if (view === 'mushaf') {
+    } else if (location.pathname.includes('/mushaf')) {
         titleColor = 'text-teal-600 dark:text-teal-400';
         subtitle = 'Mushaf & Kamus Tajwid';
-    } else {
-        // Home / Default
-        titleColor = 'text-indigo-600 dark:text-indigo-400';
     }
 
-    // Helper for Logo Masking (Replacing PNG color dynamically)
+    // Helper for Logo Masking
     const logoBgClass = titleColor.replace(/text-/g, 'bg-');
     
     const logoStyle = {
@@ -62,7 +55,7 @@ export const Header: React.FC<HeaderProps> = ({ view, setView }) => {
       <>
       <header className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl shadow-sm sticky top-0 z-30 border-b border-white/20 dark:border-slate-700/50 transition-all duration-300 pt-[env(safe-area-inset-top)]">
         <div className="container mx-auto px-4 py-3 md:py-4 flex justify-between items-center">
-          <button onClick={() => setView('home')} className="flex items-center space-x-3 hover:opacity-80 transition-opacity group focus:outline-none">
+          <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity group focus:outline-none">
              
              {/* Mobile: Contextual Icon (Logo on Home, Back Arrow on Inner Pages) */}
              <div className="md:hidden">
@@ -92,7 +85,7 @@ export const Header: React.FC<HeaderProps> = ({ view, setView }) => {
                     </p>
                 )}
             </div>
-          </button>
+          </Link>
           
           {/* Right Side Actions */}
           <div className="flex items-center gap-2 md:gap-3">
@@ -116,7 +109,7 @@ export const Header: React.FC<HeaderProps> = ({ view, setView }) => {
 
               {!isHome && (
                  <button 
-                    onClick={() => setView('home')} 
+                    onClick={() => navigate('/')} 
                     className="hidden md:flex items-center text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-white/50 dark:bg-slate-800/50 backdrop-blur-md hover:bg-white/80 dark:hover:bg-slate-700 px-3 py-2 md:px-4 md:py-2 rounded-full transition-all active:scale-95 border border-white/20 dark:border-slate-700 shadow-sm"
                  >
                     <span className="icon-wrapper w-4 h-4 mr-1.5"><FaBars /></span>

@@ -1,12 +1,13 @@
+
 import React, { useEffect, Suspense } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { Home } from './components/Home.tsx';
 import { Header, Footer } from './components/Layout.tsx';
 import { useToast } from './components/ui/Toast.tsx';
 import { usePWA } from './hooks/usePWA.ts';
-import { useRouter } from './hooks/useRouter.ts';
 import { OfflineBanner } from './components/ui/OfflineBanner.tsx';
 
-// Lazy Load Components to optimize initial bundle size
+// Lazy Load Components
 const FaraidhCalculator = React.lazy(() => import('./components/faraidh/FaraidhCalculator.tsx'));
 const ZakatCalculator = React.lazy(() => import('./components/zakat/ZakatCalculator.tsx'));
 const HafalanTracker = React.lazy(() => import('./components/hafalan/HafalanTracker.tsx'));
@@ -32,44 +33,41 @@ const PageLoader = () => (
 );
 
 export default function App() {
-  const { view, setView } = useRouter();
+  const location = useLocation();
   const { showToast } = useToast();
   const { needRefresh, updateServiceWorker } = usePWA();
 
-  // Network Status Monitoring (Toast only for reconnection)
+  // Network Status Monitoring
   useEffect(() => {
     const handleOnline = () => showToast('Koneksi internet terhubung kembali.', 'success');
-    // Offline is now handled by OfflineBanner, so we don't need a toast that disappears
-    
     window.addEventListener('online', handleOnline);
-    return () => {
-      window.removeEventListener('online', handleOnline);
-    };
+    return () => window.removeEventListener('online', handleOnline);
   }, [showToast]);
+
+  // Scroll to top on route change
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [location.pathname]);
 
   // Dynamic SEO Title & Theme Color
   useEffect(() => {
     const baseTitle = "NIZAMY";
     let themeColor = "#4f46e5"; // Default Indigo
+    const path = location.pathname;
 
-    switch (view) {
-      case 'faraidh':
+    if (path.includes('/faraidh')) {
         document.title = `${baseTitle} | Kalkulator Waris Islam (Faraidh)`;
         themeColor = "#0284c7"; // Sky/Blue
-        break;
-      case 'zakat':
+    } else if (path.includes('/zakat')) {
         document.title = `${baseTitle} | Kalkulator Zakat Online (Fitrah & Maal)`;
         themeColor = "#059669"; // Emerald
-        break;
-      case 'hafalan':
+    } else if (path.includes('/hafalan')) {
         document.title = `${baseTitle} | Hafalan Quran Tracker (SRS)`;
         themeColor = "#4338ca"; // Indigo
-        break;
-      case 'mushaf':
+    } else if (path.includes('/mushaf')) {
         document.title = `${baseTitle} | Mushaf Digital & Kamus Tajwid`;
         themeColor = "#0d9488"; // Teal
-        break;
-      default:
+    } else {
         document.title = `${baseTitle}: Aplikasi Ibadah Islam (Waris, Zakat, Hafalan)`;
         themeColor = "#4f46e5";
     }
@@ -78,19 +76,23 @@ export default function App() {
     if (metaThemeColor) {
       metaThemeColor.setAttribute("content", themeColor);
     }
-  }, [view]);
+  }, [location]);
 
-  // Base text color
-  let textClass = 'text-slate-800 dark:text-slate-100 transition-colors duration-300';
-  if (view === 'zakat') textClass += ' selection:bg-emerald-200 selection:text-emerald-900';
-  else if (view === 'faraidh') textClass += ' selection:bg-blue-200 selection:text-blue-900';
-  else if (view === 'hafalan') textClass += ' selection:bg-indigo-200 selection:text-indigo-900';
-  else if (view === 'mushaf') textClass += ' selection:bg-teal-200 selection:text-teal-900';
+  // Base text color helper
+  const getLayoutClass = () => {
+      const path = location.pathname;
+      let base = 'min-h-screen font-sans flex flex-col text-slate-800 dark:text-slate-100 transition-colors duration-300';
+      if (path.includes('/zakat')) base += ' selection:bg-emerald-200 selection:text-emerald-900';
+      else if (path.includes('/faraidh')) base += ' selection:bg-blue-200 selection:text-blue-900';
+      else if (path.includes('/hafalan')) base += ' selection:bg-indigo-200 selection:text-indigo-900';
+      else if (path.includes('/mushaf')) base += ' selection:bg-teal-200 selection:text-teal-900';
+      return base;
+  }
 
   return (
-    <div className={`min-h-screen font-sans flex flex-col ${textClass}`}>
+    <div className={getLayoutClass()}>
       <OfflineBanner />
-      <Header view={view} setView={setView} />
+      <Header />
       
       {/* PWA Update Banner */}
       {needRefresh && (
@@ -107,13 +109,16 @@ export default function App() {
         </div>
       )}
 
-      <main className={view === 'home' ? 'flex-grow' : 'container mx-auto px-4 py-4 md:py-8 flex-grow'}>
+      <main className={location.pathname === '/' ? 'flex-grow' : 'container mx-auto px-4 py-4 md:py-8 flex-grow'}>
         <Suspense fallback={<PageLoader />}>
-          {view === 'home' && <Home setView={setView} />}
-          {view === 'faraidh' && <FaraidhCalculator />}
-          {view === 'zakat' && <ZakatCalculator />}
-          {view === 'hafalan' && <HafalanTracker />}
-          {view === 'mushaf' && <MushafApp />}
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/faraidh" element={<FaraidhCalculator />} />
+            <Route path="/zakat" element={<ZakatCalculator />} />
+            <Route path="/hafalan" element={<HafalanTracker />} />
+            <Route path="/mushaf" element={<MushafApp />} />
+            <Route path="*" element={<Home />} /> {/* Fallback */}
+          </Routes>
         </Suspense>
       </main>
       <Footer />

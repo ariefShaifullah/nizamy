@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import type { ViewState } from '../components/Layout.tsx';
+
+export type ViewState = 'home' | 'faraidh' | 'zakat' | 'hafalan' | 'mushaf';
 
 export const useRouter = () => {
   // Helper to determine view from URL Query Params (Safe for all environments)

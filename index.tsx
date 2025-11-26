@@ -1,6 +1,7 @@
 
 import React, { Component, type ReactNode, type ErrorInfo } from 'react';
 import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 import App from './App.tsx';
 import { ThemeProvider } from './components/ThemeContext.tsx';
 import { ToastProvider } from './components/ui/Toast.tsx';
@@ -95,7 +96,9 @@ root.render(
       <ToastProvider>
         <ConfirmProvider>
           <ErrorBoundary>
-            <App />
+            <BrowserRouter>
+              <App />
+            </BrowserRouter>
           </ErrorBoundary>
         </ConfirmProvider>
       </ToastProvider>

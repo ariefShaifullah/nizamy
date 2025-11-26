@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { usePWA } from '../hooks/usePWA.ts';
 import { IOSInstallModal } from './IOSInstallModal.tsx';
 import { PrayerWidget } from './PrayerWidget.tsx';
@@ -12,10 +13,6 @@ import {
   FaDownload
 } from "react-icons/fa";
 
-interface HomeProps {
-  setView: (view: 'faraidh' | 'zakat' | 'hafalan' | 'mushaf') => void;
-}
-
 interface FeatureItem {
     id: string;
     title: string;
@@ -24,6 +21,7 @@ interface FeatureItem {
     colorClass: string;
     bgClass: string;
     accentColor: string;
+    path: string;
 }
 
 const getDateString = () => {
@@ -71,7 +69,8 @@ const BentoCard: React.FC<{ feature: FeatureItem; onClick: () => void; delay: nu
     );
 });
 
-export const Home: React.FC<HomeProps> = ({ setView }) => {
+export const Home: React.FC = () => {
+  const navigate = useNavigate();
   const { isInstallable, isIOS, isStandalone, installApp } = usePWA();
   const [showIOSGuide, setShowIOSGuide] = useState(false);
   const [dateStr, setDateStr] = useState("");
@@ -88,7 +87,8 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
         icon: <FaQuran />,
         colorClass: 'text-teal-600 dark:text-teal-400',
         bgClass: 'bg-teal-100 dark:bg-teal-900/30',
-        accentColor: 'teal'
+        accentColor: 'teal',
+        path: '/mushaf'
     },
     {
       id: 'hafalan',
@@ -97,7 +97,8 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
       icon: <FaBrain />,
       colorClass: 'text-indigo-600 dark:text-indigo-400',
       bgClass: 'bg-indigo-100 dark:bg-indigo-900/30',
-      accentColor: 'indigo'
+      accentColor: 'indigo',
+      path: '/hafalan'
     },
     {
       id: 'zakat',
@@ -106,7 +107,8 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
       icon: <FaHandsHelping />,
       colorClass: 'text-emerald-600 dark:text-emerald-400',
       bgClass: 'bg-emerald-100 dark:bg-emerald-900/30',
-      accentColor: 'emerald'
+      accentColor: 'emerald',
+      path: '/zakat'
     },
     {
       id: 'faraidh',
@@ -115,7 +117,8 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
       icon: <FaBalanceScale />,
       colorClass: 'text-blue-600 dark:text-blue-400',
       bgClass: 'bg-blue-100 dark:bg-blue-900/30',
-      accentColor: 'blue'
+      accentColor: 'blue',
+      path: '/faraidh'
     }
   ], []);
 
@@ -187,7 +190,7 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
                 <BentoCard 
                     key={feature.id} 
                     feature={feature} 
-                    onClick={() => setView(feature.id as any)} 
+                    onClick={() => navigate(feature.path)} 
                     delay={idx * 50} 
                 />
               ))}

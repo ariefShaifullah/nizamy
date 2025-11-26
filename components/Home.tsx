@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { usePWA } from '../hooks/usePWA.ts';
 import { IOSInstallModal } from './IOSInstallModal.tsx';
@@ -6,7 +7,7 @@ import {
   FaBalanceScale,
   FaHandsHelping,
   FaQuran,
-  FaBookOpen,
+  FaBrain,
   FaChevronRight
 } from "react-icons/fa";
 
@@ -88,7 +89,7 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
         id: 'mushaf',
         title: 'Al-Quran',
         subtitle: 'Baca & Tajwid',
-        icon: <FaBookOpen />,
+        icon: <FaQuran />, // UX Update: Mushaf uses Quran icon (The Object)
         colorClass: 'text-teal-600 dark:text-teal-400',
         bgClass: 'bg-teal-100 dark:bg-teal-900/30',
         accentColor: 'teal'
@@ -97,7 +98,7 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
       id: 'hafalan',
       title: 'Hafalan',
       subtitle: 'Tracker SRS',
-      icon: <FaQuran />,
+      icon: <FaBrain />, // UX Update: Hafalan uses Brain icon (The Process/Memory)
       colorClass: 'text-indigo-600 dark:text-indigo-400',
       bgClass: 'bg-indigo-100 dark:bg-indigo-900/30',
       accentColor: 'indigo'

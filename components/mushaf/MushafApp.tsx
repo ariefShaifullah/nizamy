@@ -194,8 +194,12 @@ const MushafApp: React.FC = () => {
     }, [selectedSurahId, visibleRange]);
 
     const currentVisibleAyahNumber = useMemo(() => {
-        if (verses.length > 0 && verses[visibleRange.startIndex]) {
-            return verses[visibleRange.startIndex].verse_number;
+        if (verses.length > 0 && verses[verses.length - 1]) {
+            // Use endIndex to show current reading position more accurately during scroll
+            // But for the header, startIndex is safer to show "What's at the top"
+            if (verses[visibleRange.startIndex]) {
+                return verses[visibleRange.startIndex].verse_number;
+            }
         }
         return null;
     }, [visibleRange, verses]);
@@ -245,13 +249,24 @@ const MushafApp: React.FC = () => {
         if (word.char_type_name !== 'word') return;
         
         let nextWordText = undefined;
+        let isEndAyah = false;
+
         if (parentAyah) {
-            const currentIndex = parentAyah.words.findIndex(w => w.id === word.id);
-            if (currentIndex !== -1 && currentIndex < parentAyah.words.length - 1) {
-                nextWordText = parentAyah.words[currentIndex + 1].text_uthmani;
+            const wordsList = parentAyah.words.filter(w => w.char_type_name !== 'end');
+            const currentIndex = wordsList.findIndex(w => w.id === word.id);
+            
+            if (currentIndex !== -1) {
+                // Check next word for Tajwid
+                if (currentIndex < wordsList.length - 1) {
+                    nextWordText = wordsList[currentIndex + 1].text_uthmani;
+                }
+                // Check if this is the last real word (Tajwid Waqaf context)
+                if (currentIndex === wordsList.length - 1) {
+                    isEndAyah = true;
+                }
             }
         }
-        setKamusData({ type: 'word', data: word, nextWordText });
+        setKamusData({ type: 'word', data: word, nextWordText, isEndAyah });
     }, []);
 
     // --- VIEW: SURAH LIST ---
@@ -260,13 +275,14 @@ const MushafApp: React.FC = () => {
 
         return (
             <div className="animate-fade-in pb-20 max-w-5xl mx-auto px-3">
-                <div className="text-center mb-8 mt-4">
+                {/* Only show title on Desktop to save mobile space */}
+                <div className="text-center mb-8 mt-4 hidden md:block">
                     <h2 className="text-3xl md:text-4xl font-bold text-slate-800 dark:text-white mb-2 tracking-tight">Mushaf Digital</h2>
                     <p className="text-slate-500 dark:text-slate-400 text-sm md:text-base">Baca Al-Quran dengan nyaman, audio per kata & tajwid interaktif.</p>
                 </div>
 
-                {/* Search Bar */}
-                <div className="relative mb-8 max-w-xl mx-auto group">
+                {/* Search Bar - Adjusted margin for mobile */}
+                <div className="relative mb-8 max-w-xl mx-auto group mt-4 md:mt-0">
                     <div className="absolute inset-0 bg-teal-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     <div className="relative">
                         <span className="absolute left-5 top-4 text-slate-400 group-focus-within:text-teal-500 transition-colors">
@@ -360,13 +376,20 @@ const MushafApp: React.FC = () => {
     // --- VIEW: READER ---
     return (
         <div className="fixed inset-0 z-50 bg-white dark:bg-slate-950 flex flex-col animate-fade-in select-none">
+            {/* Vertical Progress Ribbon (Left Side) - Updated Style */}
+            <div className="fixed left-0 top-[env(safe-area-inset-top)] bottom-0 w-1.5 z-40 bg-slate-100 dark:bg-slate-800/50 pointer-events-none">
+                <div 
+                    className="relative w-full bg-teal-500 transition-all duration-500 ease-out"
+                    style={{ height: `${progressPercent}%` }}
+                >
+                    {/* Bead/Tip for Bookmark effect */}
+                    <div className="absolute -bottom-1.5 -left-0.5 w-2.5 h-2.5 bg-teal-400 rounded-full shadow-[0_0_10px_rgba(20,184,166,0.8)] border border-teal-200 dark:border-teal-900"></div>
+                </div>
+            </div>
+
             {/* Navigation Bar */}
             <div className="sticky top-0 z-30 bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800 pt-[env(safe-area-inset-top)]">
-                <div className="absolute top-0 left-0 right-0 h-0.5 bg-slate-100 dark:bg-slate-800">
-                    <div className="h-full bg-teal-500 transition-all duration-300 ease-out" style={{ width: `${progressPercent}%` }} />
-                </div>
-
-                <div className="flex justify-between items-center px-4 py-3 max-w-5xl mx-auto w-full">
+                <div className="flex justify-between items-center px-4 py-3 max-w-5xl mx-auto w-full pl-6 md:pl-4">
                     <button 
                         onClick={() => { stopAudio(); setSelectedSurahId(null); }}
                         className="flex items-center gap-3 group"
@@ -428,8 +451,8 @@ const MushafApp: React.FC = () => {
                 </div>
             </div>
 
-            {/* Reader Area */}
-            <div className="flex-grow relative w-full max-w-3xl mx-auto bg-white dark:bg-slate-950">
+            {/* Reader Area with Left Padding for Progress Bar */}
+            <div className="flex-grow relative w-full max-w-3xl mx-auto bg-white dark:bg-slate-950 pl-5">
                 {error && (
                     <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm p-6 text-center">
                         <div className="w-16 h-16 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4 text-3xl">⚠️</div>
@@ -448,7 +471,7 @@ const MushafApp: React.FC = () => {
                         endReached={loadNextPage}
                         rangeChanged={(range) => setVisibleRange(range)}
                         overscan={500}
-                        className="pb-32"
+                        className="pb-32 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:none]"
                         components={{
                             Header: () => currentSurah ? <SurahHeader surah={currentSurah} /> : null,
                             Footer: () => !hasMore && !loading && (
@@ -480,7 +503,7 @@ const MushafApp: React.FC = () => {
 
             {/* Sticky Player */}
             {isPlaying && activePlayingAyah && !wordMode && (
-                <div className="absolute bottom-0 left-0 right-0 z-40 p-4 pb-8 bg-gradient-to-t from-white dark:from-slate-950 via-white/95 dark:via-slate-950/95 to-transparent pt-12">
+                <div className="absolute bottom-0 left-0 right-0 z-40 p-4 pb-8 bg-gradient-to-t from-white dark:from-slate-950 via-white/95 dark:via-slate-950/95 to-transparent pt-12 pl-6">
                     <div className="bg-slate-900 dark:bg-slate-800 text-white rounded-2xl p-4 shadow-2xl shadow-slate-900/20 border border-slate-700/50 flex items-center gap-4 max-w-md mx-auto backdrop-blur-xl">
                         <div className="w-10 h-10 rounded-full bg-teal-500/20 flex items-center justify-center text-teal-400 animate-pulse">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clipRule="evenodd" /></svg>

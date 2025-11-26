@@ -36,22 +36,23 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
         { delay: 600, shouldPreventDefault: true }
     );
 
-    // UX Improvement: Increased Line Height multiplier for Arabic (Amiri font needs space)
-    // Default loose leading ensures harakat doesn't overlap.
-    const lineHeight = fontSize * 2.6; 
+    // UX Improvement: Line Height Multiplier
+    // Using 3.2 ensures even complex stacks (shadda+fatha+waqaf) have room.
+    // Storing it as a string for inline-style to be rigorous.
+    const lineHeight = '2.8'; 
 
     return (
         <div 
             data-verse-index={globalIndex}
             data-verse-number={ayah.verse_number}
-            className={`relative px-4 md:px-8 py-8 md:py-10 transition-colors duration-500 border-b border-slate-50 dark:border-slate-800/50 select-none ${
+            className={`relative px-4 md:px-8 pl-6 md:pl-10 py-8 md:py-10 transition-colors duration-500 border-b border-slate-50 dark:border-slate-800/50 select-none ${
                 isPlaying 
                 ? 'bg-teal-50/60 dark:bg-teal-900/20' 
                 : 'bg-transparent hover:bg-slate-50/80 dark:hover:bg-slate-800/20'
             }`}
             onContextMenu={(e) => e.preventDefault()}
         >
-            {/* Number Badge (Floating Top Right for Desktop, or Inline for mobile) */}
+            {/* Number Badge */}
             <div className="absolute left-4 top-4 flex gap-2 items-center opacity-50">
                 <span className="text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 px-2 py-1 rounded-md font-sans">
                     {ayah.verse_key}
@@ -72,8 +73,11 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
                 {...(!wordMode ? ayahGestures : {})}
             >
                 <div 
-                    className="inline leading-relaxed text-slate-800 dark:text-slate-100"
-                    style={{ lineHeight: `${lineHeight}px` }}
+                    className="text-slate-800 dark:text-slate-100"
+                    style={{ 
+                        lineHeight: lineHeight,
+                        fontSize: `${fontSize}px`
+                    }}
                 >
                     {ayah.words.map((word, index) => (
                         <WordItem 
@@ -88,14 +92,15 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
                         />
                     ))}
                     
-                    {/* End of Ayah Marker - Scaled relative to font size */}
+                    {/* End of Ayah Marker */}
                     <span 
                         className={`inline-flex items-center justify-center mx-2 bg-[url('/images/ayah-end.svg')] bg-contain bg-center bg-no-repeat text-center font-bold font-sans align-middle select-none ${isPlaying ? 'text-teal-700 dark:text-teal-400' : 'text-slate-400 dark:text-slate-600'}`}
                         style={{ 
-                            width: `${fontSize * 1.2}px`, 
-                            height: `${fontSize * 1.2}px`,
-                            fontSize: `${fontSize * 0.4}px`,
-                            lineHeight: 1
+                            width: `${fontSize * 1.1}px`, 
+                            height: `${fontSize * 1.1}px`,
+                            fontSize: `${fontSize * 0.45}px`,
+                            lineHeight: 1,
+                            marginBottom: '0.3em' // Visual alignment fix
                         }}
                     >
                         {ayah.verse_number}
@@ -160,7 +165,7 @@ const WordItem: React.FC<{
         return (
             <span 
                 className="inline-block text-amber-600 dark:text-amber-500 pointer-events-none font-arabic px-1 opacity-80 select-none"
-                style={{ fontSize: `${fontSize * 0.6}px`, verticalAlign: 'top', marginTop: '0' }}
+                style={{ fontSize: `${fontSize * 0.6}px`, verticalAlign: 'top', marginTop: '0.2em' }}
             >
                 {word.text_uthmani}
             </span>
@@ -171,7 +176,6 @@ const WordItem: React.FC<{
          return (
             <span 
                 className="inline-block text-slate-800 dark:text-slate-100 font-arabic px-0.5 pointer-events-none select-none"
-                style={{ fontSize: `${fontSize}px` }}
             >
                 {word.text_uthmani}
             </span>
@@ -191,9 +195,6 @@ const WordItem: React.FC<{
                         : 'text-slate-800 dark:text-slate-100'
                 }
             `}
-            style={{ 
-                fontSize: `${fontSize}px`
-            }}
         >
             {word.text_uthmani}
         </span>

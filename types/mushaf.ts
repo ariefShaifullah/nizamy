@@ -37,4 +37,5 @@ export interface KamusData {
   surahInfo?: SurahInfo;
   reference?: string; // "QS 1:1"
   nextWordText?: string; // Context for Tajwid rules between two words
+  isEndAyah?: boolean; // Context for Waqaf rules (Mad Arid, Qalqalah Kubra)
 }

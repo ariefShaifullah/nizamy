@@ -1,15 +1,44 @@
 
 import React, { useEffect, useState } from 'react';
 import type { KamusData } from '../../types.ts';
-import { analyzeTajwid } from '../../services/tajwid.helper.ts';
+import type { TajwidRule } from '../../services/tajwid.helper.ts';
+import { analyzeTajwid, getMakhrajDetails } from '../../services/tajwid.helper.ts';
 import { getAyahAudioUrl, getWordAudioUrl } from '../../services/mushaf.service.ts';
 import { useToast } from '../ui/Toast.tsx';
+import { FaTimes, FaPlay, FaCopy, FaLanguage } from 'react-icons/fa';
 
 interface KamusSheetProps {
     data: KamusData | null;
     onClose: () => void;
     onPlayAudio: (url: string) => void;
 }
+
+// --- HELPER: Colored Text Renderer ---
+const HighlightedArabicText: React.FC<{ text: string; rules: TajwidRule[]; fontSize?: string }> = ({ text, rules, fontSize = 'text-3xl md:text-4xl lg:text-5xl' }) => {
+    // Create an array of character objects
+    const chars = text.split('').map((char, index) => {
+        // Find if this index is covered by any rule
+        // We take the LAST rule found (highest priority usually) or combine styles
+        const activeRule = rules.find(r => r.indexes && r.indexes.includes(index));
+        return {
+            char,
+            colorClass: activeRule ? activeRule.color : 'text-slate-800 dark:text-slate-100'
+        };
+    });
+
+    return (
+        <p 
+            className={`font-arabic ${fontSize} dir-rtl text-center py-6 px-2`}
+            style={{ lineHeight: '2.8', direction: 'rtl' }} // RELAXED LINE HEIGHT
+        >
+            {chars.map((c, i) => (
+                <span key={i} className={`${c.colorClass} transition-colors duration-300 relative`}>
+                    {c.char}
+                </span>
+            ))}
+        </p>
+    );
+};
 
 export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAudio }) => {
     const { showToast } = useToast();
@@ -39,16 +68,22 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
 
     const isAyah = data.type === 'ayah';
     const title = isAyah ? `Opsi Ayat (${data.reference})` : 'Detail Kata & Tajwid';
-    const arabicText = isAyah 
-        ? (data.data as any).text_uthmani 
-        : (data.data as any).text_uthmani;
+    const arabicText = (data.data as any).text_uthmani;
 
-    const tajwidRules = !isAyah 
-        ? analyzeTajwid(
+    // ANALISIS TAJWID
+    // Jika Ayat: Analisis seluruh teks ayat (tanpa context nextWord)
+    // Jika Kata: Analisis kata dengan context nextWord
+    const tajwidRules = isAyah 
+        ? analyzeTajwid(arabicText, undefined, undefined, true) // Assume end of ayah logic applies loosely here
+        : analyzeTajwid(
             arabicText, 
             data.nextWordText, 
-            (data.data as any).location 
-          ) 
+            (data.data as any).location,
+            data.isEndAyah 
+          );
+
+    const makhrajList = !isAyah
+        ? getMakhrajDetails(arabicText)
         : [];
 
     // Copy Helper
@@ -59,7 +94,6 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
                 await navigator.clipboard.writeText(text);
                 showToast(`${label} berhasil disalin!`, 'success');
             } else {
-                // Fallback logic omitted for brevity, assuming modern browser support for PWA
                 throw new Error("Clipboard API unavailable");
             }
         } catch (err) {
@@ -68,8 +102,7 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
     };
 
     const handleCopyText = () => {
-        const text = (data.data as any).text_uthmani;
-        copyToClipboard(text, 'Teks Arab');
+        copyToClipboard(arabicText, 'Teks Arab');
     };
 
     const handleCopyTranslation = () => {
@@ -95,12 +128,12 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
             {/* Sheet Content */}
             <div 
                 className={`
-                    relative bg-white dark:bg-slate-900 w-full max-w-lg 
+                    relative bg-white dark:bg-slate-900 w-full max-w-xl 
                     rounded-t-[2.5rem] sm:rounded-[2.5rem] 
                     shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.2)] dark:shadow-none 
                     border-t border-white/20 dark:border-slate-700/50
                     transform transition-transform duration-300 ease-out
-                    max-h-[85vh] flex flex-col overflow-hidden
+                    max-h-[90vh] flex flex-col overflow-hidden
                     ${isClosing ? 'translate-y-full sm:scale-95' : 'translate-y-0 sm:scale-100'}
                     sm:mb-8
                 `}
@@ -112,13 +145,13 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
                 </div>
 
                 {/* Header Actions */}
-                <div className="px-6 pb-2 flex justify-between items-center border-b border-slate-50 dark:border-slate-800/50">
+                <div className="px-6 pb-4 flex justify-between items-center border-b border-slate-50 dark:border-slate-800/50">
                     <div>
-                        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">
+                        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                             {title}
                         </h3>
                         {isAyah && data.surahInfo && (
-                            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">
                                 {data.surahInfo.name_complex} • {data.surahInfo.revelation_place}
                             </p>
                         )}
@@ -126,24 +159,30 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
                     <button 
                         onClick={handleClose} 
                         className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                        aria-label="Tutup"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                        </svg>
+                        <FaTimes size={18} />
                     </button>
                 </div>
 
                 {/* Scrollable Body */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
                     
-                    {/* Hero Arabic Text */}
+                    {/* Hero Arabic Text (Color Coded for BOTH Ayah and Word) */}
                     <div className="relative group">
                         <div className="absolute inset-0 bg-teal-500/5 dark:bg-teal-500/10 rounded-3xl blur-xl transform group-hover:scale-105 transition-transform duration-500"></div>
-                        <div className="relative bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-3xl p-8 text-center shadow-sm">
-                            <p className="font-arabic text-4xl md:text-5xl text-slate-800 dark:text-slate-100 leading-[2] dir-rtl">
-                                {arabicText}
-                            </p>
+                        <div className="relative bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-3xl px-2 shadow-sm overflow-hidden">
+                             {/* Added subtle background pattern */}
+                             <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
+                                style={{ backgroundImage: 'radial-gradient(circle, #0f766e 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
+                            </div>
+                            <HighlightedArabicText text={arabicText} rules={tajwidRules} fontSize={isAyah ? "text-2xl md:text-3xl" : undefined} />
                         </div>
+                        {isAyah && (
+                            <p className="text-center text-[10px] text-slate-400 mt-2 italic">
+                                Teks diwarnai otomatis berdasarkan kaidah tajwid.
+                            </p>
+                        )}
                     </div>
 
                     {/* Play Button */}
@@ -161,23 +200,21 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
                         }}
                         className="w-full bg-gradient-to-r from-teal-600 to-emerald-600 text-white py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-lg shadow-teal-500/30 hover:shadow-teal-500/40 active:scale-[0.98] transition-all"
                     >
-                        <span className="bg-white/20 p-1 rounded-full">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 pl-0.5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                            </svg>
+                        <span className="bg-white/20 p-2 rounded-full pl-2.5">
+                            <FaPlay size={14} />
                         </span>
                         Putar Audio {isAyah ? 'Ayat' : 'Kata'}
                     </button>
 
                     {/* Action Grid */}
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className={`grid gap-3 ${isAyah ? 'grid-cols-2' : 'grid-cols-1'}`}>
                         <button onClick={handleCopyText} className="flex items-center justify-center gap-2 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-700 dark:text-slate-300 font-semibold text-sm hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+                            <FaCopy size={16} />
                             Salin Arab
                         </button>
                         {isAyah && (
                             <button onClick={handleCopyTranslation} className="flex items-center justify-center gap-2 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-700 dark:text-slate-300 font-semibold text-sm hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" /></svg>
+                                <span className="text-lg"><FaLanguage /></span>
                                 Salin Arti
                             </button>
                         )}
@@ -186,15 +223,17 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
                     {/* Content Detail */}
                     {isAyah ? (
                         <div className="space-y-3">
-                            <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Terjemahan</h4>
+                            <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-2">
+                                Terjemahan
+                            </h4>
                             <div className="p-5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
-                                <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-base text-justify font-serif">
+                                <p className="text-slate-700 dark:text-slate-300 leading-loose text-base text-justify font-serif">
                                     {(data.data as any).translations?.[0]?.text?.replace(/<[^>]*>?/gm, '')}
                                 </p>
                             </div>
                         </div>
                     ) : (
-                        <div className="space-y-6">
+                        <div className="space-y-8">
                             {/* Word Info Cards */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-800/50">
@@ -209,28 +248,73 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
 
                             {/* Tajwid Analysis */}
                             <div>
-                                <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-3 flex items-center gap-2">
-                                    Analisis Tajwid 
-                                    <span className="text-[10px] bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded text-slate-600 dark:text-slate-300">Beta</span>
-                                </h4>
+                                <div className="flex items-center gap-2 mb-3">
+                                    <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                                        Analisis Tajwid
+                                    </h4>
+                                    <span className="text-[10px] font-bold bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-800/50 uppercase tracking-wide">
+                                        Beta
+                                    </span>
+                                </div>
                                 {tajwidRules.length > 0 ? (
                                     <div className="space-y-3">
                                         {tajwidRules.map((rule, idx) => (
-                                            <div key={idx} className={`p-4 rounded-2xl border-l-4 shadow-sm ${rule.color} bg-opacity-20 dark:bg-opacity-20 flex gap-4 items-start`}>
+                                            <div key={idx} className={`p-4 rounded-2xl border-l-4 shadow-sm bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 flex gap-4 items-start`}>
                                                 <div className="mt-1">
-                                                    <div className="w-2 h-2 rounded-full bg-current"></div>
+                                                    <div className={`w-3 h-3 rounded-full ${rule.color.replace('text-', 'bg-').split(' ')[0]}`}></div>
                                                 </div>
                                                 <div>
-                                                    <h5 className="font-bold text-base">{rule.name}</h5>
-                                                    <p className="text-sm mt-1 opacity-90 leading-relaxed">{rule.description}</p>
+                                                    <h5 className={`font-bold text-base ${rule.color}`}>{rule.name}</h5>
+                                                    <p className="text-sm mt-1 opacity-90 leading-relaxed text-slate-600 dark:text-slate-300">{rule.description}</p>
                                                 </div>
                                             </div>
                                         ))}
                                     </div>
                                 ) : (
-                                    <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 text-center">
+                                    <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 text-center">
                                         <p className="text-slate-500 dark:text-slate-400 text-sm">Tidak ada hukum tajwid khusus yang terdeteksi pada kata ini.</p>
                                     </div>
+                                )}
+                            </div>
+
+                            {/* Makharijul Huruf */}
+                            <div>
+                                <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-3">
+                                    Bedah Makhraj Huruf
+                                </h4>
+                                {makhrajList.length > 0 ? (
+                                    <div className="space-y-3">
+                                        {makhrajList.map((m, idx) => (
+                                            <div key={idx} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex gap-4">
+                                                <div className="w-12 h-12 flex-shrink-0 bg-white dark:bg-slate-900 rounded-full flex items-center justify-center text-2xl font-arabic border border-slate-100 dark:border-slate-600 text-slate-800 dark:text-slate-200">
+                                                    {m.letter}
+                                                </div>
+                                                <div className="flex-1">
+                                                    <div className="flex flex-wrap gap-2 mb-1">
+                                                        <h5 className="font-bold text-slate-800 dark:text-white">{m.name}</h5>
+                                                        <span className="text-xs bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded text-slate-600 dark:text-slate-300 font-medium">{m.area}</span>
+                                                    </div>
+                                                    <p className="text-sm text-slate-600 dark:text-slate-300 mb-2">{m.place}</p>
+                                                    
+                                                    {/* Sifat Pills */}
+                                                    <div className="flex flex-wrap gap-1.5 mb-2">
+                                                        {m.sifat.map(s => (
+                                                            <span key={s} className="text-[10px] bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded text-slate-500 dark:text-slate-400">
+                                                                {s}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                    {m.note && (
+                                                        <p className="text-xs text-slate-500 dark:text-slate-400 italic border-l-2 border-slate-300 pl-2">
+                                                            Tips: {m.note}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-slate-500 text-sm text-center">Data makhraj tidak tersedia.</p>
                                 )}
                             </div>
                         </div>

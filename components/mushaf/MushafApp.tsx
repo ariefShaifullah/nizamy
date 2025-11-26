@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 import { SURAH_DATA } from '../../constants.ts';
@@ -15,6 +16,7 @@ import { useDebounce } from '../../hooks/useDebounce.ts';
 import { useLocalStorage } from '../../hooks/useLocalStorage.ts';
 import { useMushafAudio } from '../../hooks/useMushafAudio.ts';
 import { useMushafData } from '../../hooks/useMushafData.ts';
+import { FaArrowLeft, FaArrowRight, FaSearch, FaHashtag, FaQuestionCircle, FaCog, FaMusic, FaStop } from 'react-icons/fa';
 
 // Quick Links with distinct styling
 const QUICK_LINKS = [
@@ -284,8 +286,8 @@ const MushafApp: React.FC = () => {
                 <div className="relative mb-8 max-w-xl mx-auto group mt-4 md:mt-0">
                     <div className="absolute inset-0 bg-teal-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     <div className="relative">
-                        <span className="absolute left-5 top-4 text-slate-400 group-focus-within:text-teal-500 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                        <span className="absolute left-5 top-4 text-slate-400 group-focus-within:text-teal-500 transition-colors icon-wrapper w-5 h-5">
+                            <FaSearch />
                         </span>
                         <input 
                             type="text"
@@ -312,7 +314,7 @@ const MushafApp: React.FC = () => {
                                     <p className="text-slate-400 text-sm">Ayat {lastRead.ayahNumber}</p>
                                 </div>
                                 <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm group-hover:scale-110 transition-transform border border-white/10">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>
+                                    <span className="icon-wrapper w-6 h-6"><FaArrowRight /></span>
                                 </div>
                             </div>
                         </button>
@@ -393,8 +395,8 @@ const MushafApp: React.FC = () => {
                         onClick={() => { stopAudio(); setSelectedSurahId(null); }}
                         className="flex items-center gap-3 group"
                     >
-                        <div className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 group-hover:text-teal-600 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
+                        <div className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 group-hover:text-teal-600 transition-colors icon-wrapper w-10 h-10 flex items-center justify-center">
+                            <FaArrowLeft />
                         </div>
                         <div>
                             <h1 className="font-bold text-base text-slate-800 dark:text-white leading-tight">{currentSurah?.name}</h1>
@@ -420,31 +422,27 @@ const MushafApp: React.FC = () => {
                         {/* Mobile Jump Trigger */}
                         <button 
                             onClick={() => setIsJumpModalOpen(true)}
-                            className="sm:hidden p-2.5 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                            className="sm:hidden p-2.5 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors icon-wrapper w-10 h-10 flex items-center justify-center"
                             aria-label="Loncat ke Ayat"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
+                            <FaHashtag />
                         </button>
 
                         {/* Help Trigger (New) */}
                         <button
                             onClick={() => setIsHelpOpen(true)}
-                            className="p-2.5 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                            className="p-2.5 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors icon-wrapper w-10 h-10 flex items-center justify-center"
                             aria-label="Bantuan"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
+                            <FaQuestionCircle />
                         </button>
 
                         {/* Settings Trigger */}
                         <button
                             onClick={() => setIsSettingsOpen(true)}
-                            className="p-2.5 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                            className="p-2.5 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors icon-wrapper w-10 h-10 flex items-center justify-center"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                            <FaCog />
                         </button>
                     </div>
                 </div>
@@ -504,8 +502,8 @@ const MushafApp: React.FC = () => {
             {isPlaying && activePlayingAyah && !wordMode && (
                 <div className="absolute bottom-0 left-0 right-0 z-40 p-4 pb-8 bg-gradient-to-t from-white dark:from-slate-950 via-white/95 dark:via-slate-950/95 to-transparent pt-12 pl-6">
                     <div className="bg-slate-900 dark:bg-slate-800 text-white rounded-2xl p-4 shadow-2xl shadow-slate-900/20 border border-slate-700/50 flex items-center gap-4 max-w-md mx-auto backdrop-blur-xl">
-                        <div className="w-10 h-10 rounded-full bg-teal-500/20 flex items-center justify-center text-teal-400 animate-pulse">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clipRule="evenodd" /></svg>
+                        <div className="w-10 h-10 rounded-full bg-teal-500/20 flex items-center justify-center text-teal-400 animate-pulse icon-wrapper w-5 h-5">
+                            <FaMusic />
                         </div>
                         <div className="flex-1 min-w-0">
                             <p className="text-[10px] font-bold text-teal-400 uppercase tracking-wider mb-0.5">Sedang Memutar</p>
@@ -516,9 +514,9 @@ const MushafApp: React.FC = () => {
                         </div>
                         <button 
                             onClick={() => stopAudio()}
-                            className="p-2 hover:bg-white/10 rounded-full transition-colors text-slate-300 hover:text-white"
+                            className="p-2 hover:bg-white/10 rounded-full transition-colors text-slate-300 hover:text-white icon-wrapper w-8 h-8 flex items-center justify-center"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clipRule="evenodd" /></svg>
+                            <FaStop />
                         </button>
                     </div>
                 </div>

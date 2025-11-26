@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useReducer, useMemo } from 'react';
 import type { ZakatState, ZakatSettings, ZakatResult, ZakatHistoryEntry } from '../../types.ts';
 import { calculateTotalZakat } from '../../services/zakat.service.ts';
@@ -10,6 +11,7 @@ import { useLocalStorage } from '../../hooks/useLocalStorage.ts';
 import { useToast } from '../ui/Toast.tsx';
 import { useConfirm } from '../ui/ConfirmContext.tsx';
 import { useDebounce } from '../../hooks/useDebounce.ts';
+import { FaRedo, FaTags, FaReceipt } from 'react-icons/fa';
 import { 
     FitrahView, 
     MaalView, 
@@ -43,7 +45,6 @@ const ZakatCalculator: React.FC = () => {
     const { confirm } = useConfirm();
     const [activeTab, setActiveTab] = useState('fitrah');
     
-    // Use Custom Hook for persistence
     const [settings, setSettings] = useLocalStorage<ZakatSettings>('zakatSettings', INITIAL_SETTINGS);
     const [history, setHistory] = useLocalStorage<ZakatHistoryEntry[]>('zakatHistory', []);
     
@@ -56,11 +57,8 @@ const ZakatCalculator: React.FC = () => {
     };
 
     const [state, dispatch] = useReducer(zakatReducer, initialZakatState, initZakatState);
-    
-    // Debounce the state for storage persistence (Wait 1 second after last edit)
     const debouncedState = useDebounce(state, 1000);
 
-    // PERFORMANCE FIX: Use derived state via useMemo instead of useEffect + useState 
     const result = useMemo(() => {
         return calculateTotalZakat(state, settings);
     }, [state, settings]);
@@ -69,7 +67,6 @@ const ZakatCalculator: React.FC = () => {
     const receiptRef = useRef<HTMLDivElement>(null);
     const navRef = useRef<HTMLDivElement>(null);
 
-    // Persist state changes ONLY when debounced state updates
     useEffect(() => {
         localStorage.setItem('zakatState', JSON.stringify(debouncedState));
     }, [debouncedState]);
@@ -171,7 +168,6 @@ const ZakatCalculator: React.FC = () => {
                 </p>
             </div>
 
-            {/* Glass Settings Bar */}
             <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl shadow-lg shadow-emerald-100/20 dark:shadow-none border border-white/50 dark:border-slate-700/50 p-4 mb-6 flex flex-col md:flex-row justify-between items-center gap-4 mt-4 lg:mt-0">
                 <div className="flex flex-wrap justify-center md:justify-start gap-2 md:gap-6 text-sm w-full md:w-auto">
                     <div className="flex items-center bg-emerald-50/80 dark:bg-emerald-900/30 px-3 py-2 rounded-lg border border-emerald-100 dark:border-emerald-800">
@@ -185,16 +181,14 @@ const ZakatCalculator: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-2 w-full md:w-auto justify-center md:justify-end">
-                    <button onClick={handleReset} className="text-xs md:text-sm font-medium px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors border border-slate-200 dark:border-slate-600">
-                        Reset
+                    <button onClick={handleReset} className="text-xs md:text-sm font-medium px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors border border-slate-200 dark:border-slate-600 flex items-center gap-2">
+                        <span className="icon-wrapper w-3 h-3"><FaRedo /></span> Reset
                     </button>
                     <button 
                         onClick={() => setShowSettings(!showSettings)} 
                         className={`text-xs md:text-sm font-medium px-4 py-2 rounded-lg border transition-colors flex items-center shadow-sm ${showSettings ? 'bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-                        </svg>
+                        <span className="icon-wrapper w-4 h-4 mr-1.5"><FaTags /></span>
                         Ubah Harga
                     </button>
                 </div>
@@ -232,9 +226,7 @@ const ZakatCalculator: React.FC = () => {
             )}
 
             <div className="flex flex-col lg:flex-row gap-6 md:gap-8 items-start">
-                {/* TABS CONTAINER */}
                 <div className="w-full lg:w-64 flex-shrink-0 sticky top-[74px] lg:top-24 z-30 py-2 lg:py-0 mb-2 lg:mb-0">
-                    {/* Mobile Wrapper: Floating Island Style with Glass effect */}
                     <div className="relative bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-white/20 dark:border-slate-700 rounded-2xl shadow-lg lg:bg-transparent lg:border-0 lg:shadow-none lg:rounded-none lg:backdrop-blur-none overflow-hidden lg:overflow-visible">
                         <div ref={navRef} className="flex lg:flex-col overflow-x-auto lg:overflow-visible space-x-2 lg:space-x-0 lg:space-y-2 hide-scrollbar p-2 lg:p-0" aria-label="Tabs">
                             {TABS.map(tab => (
@@ -253,13 +245,11 @@ const ZakatCalculator: React.FC = () => {
                             ))}
                             <div className="w-2 flex-shrink-0 lg:hidden"></div>
                         </div>
-                        {/* Mobile Gradient Masks for Soft Cutoff */}
                         <div className="lg:hidden absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white dark:from-slate-900 to-transparent pointer-events-none"></div>
                         <div className="lg:hidden absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-white dark:from-slate-900 to-transparent pointer-events-none"></div>
                     </div>
                 </div>
 
-                {/* Main Content Glass Container */}
                 <div className="flex-1 w-full min-w-0 bg-white/70 dark:bg-slate-800/60 backdrop-blur-xl rounded-[2rem] shadow-xl shadow-emerald-100/20 dark:shadow-none border border-white/50 dark:border-slate-700/50 md:min-h-[500px] p-5 md:p-8 relative">
                     {activeTab === 'fitrah' && <FitrahView state={state} settings={settings} onChange={handleInputChange} onNext={goToSummary} />}
                     {activeTab === 'maal' && <MaalView state={state} settings={settings} onChange={handleInputChange} onNext={goToSummary} />}
@@ -290,17 +280,13 @@ const ZakatCalculator: React.FC = () => {
                 />
             </div>
 
-            {/* MOBILE FLOATING ACTION BUTTON (Global) */}
-            {/* Positioned outside any glass container to ensure fixed behavior */}
             {activeTab !== 'summary' && (
                 <div className="lg:hidden fixed bottom-[calc(2rem+env(safe-area-inset-bottom))] left-0 right-0 z-50 px-6 pointer-events-none flex justify-center">
                     <button
                         onClick={goToSummary}
                         className="pointer-events-auto w-full max-w-sm flex items-center justify-center bg-emerald-600/90 backdrop-blur-xl text-white font-bold py-4 px-6 rounded-full hover:bg-emerald-700 active:scale-95 transition-all shadow-2xl shadow-emerald-900/20 border border-white/10"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                        </svg>
+                        <span className="icon-wrapper w-5 h-5 mr-2.5"><FaReceipt /></span>
                         <span className="text-base tracking-wide">Lihat Hasil</span>
                     </button>
                 </div>

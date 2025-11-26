@@ -2,6 +2,7 @@
 import React, { useCallback } from 'react';
 import type { Heir } from '../../types.ts';
 import type { FaraidhAction } from '../../reducers/heirsReducer.ts';
+import { FaPlus, FaMinus } from 'react-icons/fa';
 
 interface HeirInputProps {
   label: string;
@@ -18,20 +19,28 @@ export const HeirInput: React.FC<HeirInputProps> = React.memo(({ label, count, d
   const onDecrement = useCallback(() => {
     dispatch({ type: 'DECREMENT', payload: heirKey });
   }, [dispatch, heirKey]);
+
+  const onManualChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    // Allow empty string to let user delete content, otherwise parse int
+    const numVal = val === '' ? 0 : parseInt(val, 10);
+    if (!isNaN(numVal)) {
+        dispatch({ type: 'SET_COUNT', payload: { heir: heirKey, count: numVal } });
+    }
+  }, [dispatch, heirKey]);
   
   const isActive = count > 0;
 
   return (
     <div 
         className={`
-            group flex items-center justify-between p-4 rounded-2xl border transition-all duration-300 relative overflow-hidden select-none touch-manipulation
+            group flex items-center justify-between p-4 rounded-2xl border transition-all duration-300 relative overflow-hidden select-none
             ${isActive 
                 ? 'bg-blue-50/50 dark:bg-blue-900/10 border-blue-500 dark:border-blue-400 shadow-md shadow-blue-100/50 dark:shadow-none' 
                 : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
             }
         `}
     >
-      {/* Active Indicator Bar (Left border accent) */}
       <div className={`absolute left-0 top-0 bottom-0 w-1.5 transition-all duration-300 ${isActive ? 'bg-blue-500 dark:bg-blue-400' : 'bg-transparent'}`}></div>
 
       <div className="flex flex-1 mr-4 pl-3 items-center">
@@ -44,27 +53,35 @@ export const HeirInput: React.FC<HeirInputProps> = React.memo(({ label, count, d
           </span>
       </div>
       
-      <div className="flex items-center gap-3 z-10 bg-slate-50 dark:bg-slate-900/50 p-1 rounded-xl border border-slate-100 dark:border-slate-700/50">
+      <div className="flex items-center gap-2 z-10 bg-slate-50 dark:bg-slate-900/50 p-1 rounded-xl border border-slate-200 dark:border-slate-700/50">
         <button
           onClick={onDecrement}
           className={`
             w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-200 active:scale-90 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-200 dark:focus:ring-red-900
             ${count === 0 
-              ? 'text-slate-300 dark:text-slate-600 cursor-not-allowed' 
+              ? 'text-slate-400 dark:text-slate-600 cursor-not-allowed' 
               : 'bg-white dark:bg-slate-800 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 shadow-sm border border-slate-200 dark:border-slate-700'
             }
           `}
           disabled={count === 0}
           aria-label={`Kurangi jumlah ${label}`}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clipRule="evenodd" />
-          </svg>
+          <span className="icon-wrapper w-3 h-3"><FaMinus /></span>
         </button>
         
-        <div className={`w-8 text-center font-mono text-lg font-bold tabular-nums transition-colors ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'}`}>
-            {count}
-        </div>
+        <input
+            type="number"
+            min="0"
+            value={count === 0 ? '' : count}
+            onChange={onManualChange}
+            placeholder="0"
+            className={`
+                w-12 text-center font-mono text-lg font-bold bg-transparent outline-none
+                [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
+                placeholder-slate-300 dark:placeholder-slate-600
+                ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-500'}
+            `}
+        />
         
         <button
           onClick={onIncrement}
@@ -78,9 +95,7 @@ export const HeirInput: React.FC<HeirInputProps> = React.memo(({ label, count, d
           `}
           aria-label={`Tambah jumlah ${label}`}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
-          </svg>
+          <span className="icon-wrapper w-3 h-3"><FaPlus /></span>
         </button>
       </div>
     </div>

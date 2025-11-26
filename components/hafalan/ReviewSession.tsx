@@ -5,6 +5,7 @@ import { audioService } from "../../services/audio.service.ts";
 import { fetchQuranVerses } from "../../services/hafalan.service.ts";
 import { QuranPlayer } from "./QuranPlayer.tsx";
 import { useWakeLock } from "../../hooks/useWakeLock.ts";
+import { FaHandPaper, FaTimes } from "react-icons/fa";
 
 interface ReviewSessionProps {
   item: HafalanItem;
@@ -27,12 +28,10 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
   const [isLoadingText, setIsLoadingText] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Audio State
   const [activeAudioAyah, setActiveAudioAyah] = useState<number>(0);
   const [showPlayer, setShowPlayer] = useState(isPractice);
   const [manualJumpAyah, setManualJumpAyah] = useState<number | null>(null);
   
-  // Use Custom Hook for Wake Lock
   const { requestLock, releaseLock } = useWakeLock();
 
   const loadVerses = () => {
@@ -57,7 +56,6 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
     loadVerses();
   }, [item]);
 
-  // --- AUTO-SCROLL Logic ---
   useEffect(() => {
     if (activeAudioAyah > 0) {
         const element = document.getElementById(`ayah-${activeAudioAyah}`);
@@ -67,16 +65,10 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
     }
   }, [activeAudioAyah]);
 
-  // --- SCROLL LOCK & WAKE LOCK ---
   useEffect(() => {
-    // 1. Scroll Lock: Safe Implementation
     const originalStyle = window.getComputedStyle(document.body).overflow;
     document.body.style.overflow = 'hidden';
-
-    // 2. Request Wake Lock
     requestLock();
-
-    // Cleanup
     return () => {
       document.body.style.overflow = originalStyle;
       releaseLock();
@@ -104,7 +96,6 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
       <div className="fixed inset-0 z-[100] bg-slate-50 dark:bg-slate-950 flex flex-col h-[100dvh] md:static md:h-auto md:bg-transparent md:z-auto md:block md:inset-auto">
         <div className="w-full h-full flex flex-col md:max-w-5xl md:mx-auto md:bg-white md:dark:bg-slate-900 md:rounded-[2.5rem] md:shadow-2xl md:shadow-slate-200/70 md:dark:shadow-none md:border md:border-slate-100 md:dark:border-slate-800 md:overflow-hidden md:relative md:min-h-[600px] md:h-[85vh]">
           
-          {/* 1. HEADER SECTION */}
           <div className="flex-none bg-white dark:bg-slate-900 z-20 relative shadow-sm border-b border-slate-100 dark:border-slate-800 pt-[env(safe-area-inset-top)]">
             <div className="flex justify-between items-center py-3 px-4 md:py-4 md:px-8 border-b border-slate-50 dark:border-slate-800">
               <div className="flex items-center gap-2">
@@ -126,9 +117,7 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
                     }}
                     className="bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 px-2 py-1 rounded-full transition-colors flex items-center gap-1 border border-slate-200 dark:border-slate-700"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clipRule="evenodd"/>
-                    </svg>
+                    <span className="icon-wrapper w-3 h-3"><FaHandPaper /></span>
                     <span className="text-xs font-medium">Bantu Saya</span>
                   </button>
                 )}
@@ -142,9 +131,7 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
                 className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 px-3 py-1.5 rounded-full transition-colors flex items-center text-sm font-medium"
               >
                 Keluar
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
-                </svg>
+                <span className="icon-wrapper w-4 h-4 ml-1"><FaTimes /></span>
               </button>
             </div>
 
@@ -171,7 +158,6 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
             )}
           </div>
 
-          {/* 2. CONTENT SECTION */}
           <div
             className="flex-1 overflow-y-auto px-4 md:px-12 py-6 flex flex-col relative custom-scrollbar bg-slate-50/30 dark:bg-slate-950/30 w-full"
             dir="rtl"
@@ -251,7 +237,6 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
             )}
           </div>
 
-          {/* 3. FOOTER SECTION */}
           <div className="flex-none p-4 md:p-8 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 z-20 shadow-[0_-4px_20px_rgba(0,0,0,0.02)] pb-safe">
              {error || isLoadingText ? (
                  <button

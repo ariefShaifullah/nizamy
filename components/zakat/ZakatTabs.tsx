@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { ZakatState, ZakatSettings, ZakatResult, ZakatHistoryEntry } from '../../types.ts';
 import { ZakatInputField } from './ZakatInputField.tsx';
@@ -5,8 +6,7 @@ import { NisabStatus } from './NisabStatus.tsx';
 import { formatCurrency } from '../../utils.ts';
 import { exportZakatToPdf } from '../../services/pdf.service.ts';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-
-// --- REUSABLE LAYOUT COMPONENT (DRY Implementation) ---
+import { FaCheck, FaSave, FaFilePdf, FaHistory, FaArrowRight, FaListAlt } from 'react-icons/fa';
 
 interface ZakatTabLayoutProps {
     title: string;
@@ -18,9 +18,7 @@ interface ZakatTabLayoutProps {
 const ViewSummaryButton = ({ onClick }: { onClick: () => void }) => (
     <div className="hidden md:flex mt-8 pt-4 border-t border-slate-100 dark:border-slate-700 flex-col md:flex-row justify-between items-center gap-4">
         <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 italic flex items-center order-2 md:order-1">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-emerald-500" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
+            <span className="icon-wrapper w-4 h-4 mr-1 text-emerald-500"><FaCheck /></span>
             Otomatis tersimpan.
         </p>
         <button
@@ -28,9 +26,7 @@ const ViewSummaryButton = ({ onClick }: { onClick: () => void }) => (
             className="order-1 md:order-2 w-full md:w-auto group flex items-center justify-center px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200/50 dark:shadow-emerald-900/50 font-bold text-sm active:scale-95"
         >
             Lihat Hasil
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
+            <span className="icon-wrapper w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"><FaArrowRight /></span>
         </button>
     </div>
 );
@@ -38,12 +34,10 @@ const ViewSummaryButton = ({ onClick }: { onClick: () => void }) => (
 const ZakatTabLayout: React.FC<ZakatTabLayoutProps> = ({ title, subtitle, children, onNext }) => {
     return (
         <div className="space-y-6 animate-fade-in pb-24 md:pb-0">
-            {/* Desktop Header */}
             <div className="hidden md:block border-b border-slate-100 dark:border-slate-700 pb-4 mb-6">
                 <h2 className="text-2xl font-bold text-emerald-800 dark:text-emerald-400">{title}</h2>
                 <p className="text-slate-600 dark:text-slate-300 mt-1">{subtitle}</p>
             </div>
-            {/* Mobile Header */}
             <div className="md:hidden mb-2">
                 <h2 className="text-lg font-bold text-emerald-800 dark:text-emerald-400">{title}</h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400">{subtitle}</p>
@@ -55,8 +49,6 @@ const ZakatTabLayout: React.FC<ZakatTabLayoutProps> = ({ title, subtitle, childr
         </div>
     );
 };
-
-// --- TAB VIEWS ---
 
 interface TabProps {
     state: ZakatState;
@@ -210,7 +202,6 @@ export const LivestockView: React.FC<TabProps> = ({ state, settings, onChange, o
             subtitle={isClassic ? "Perhitungan Fiqh Klasik berdasarkan jumlah ekor (Saimah/Digembalakan)." : "Perhitungan komersial berdasarkan nilai jual ternak (Tijarah)."}
             onNext={onNext}
         >
-            {/* Type Switcher */}
             <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl mb-6">
                 <button 
                     onClick={() => onChange("livestockType", "commercial")}
@@ -263,8 +254,6 @@ export const LivestockView: React.FC<TabProps> = ({ state, settings, onChange, o
     );
 };
 
-// --- SUMMARY VIEW ---
-
 interface SummaryProps {
     result: ZakatResult | null;
     state: ZakatState; 
@@ -276,12 +265,11 @@ interface SummaryProps {
     receiptRef: React.RefObject<HTMLDivElement>;
 }
 
-const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#6366f1'];
+const SUMMARY_COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#6366f1'];
 
 export const SummaryView: React.FC<SummaryProps> = ({ result, state, history, onSaveHistory, onDownloadPDF, onClearHistory, onLoadHistory, receiptRef }) => {
     if (!result) return null;
 
-    // Prepare Chart Data
     const chartData = [
         { name: 'Fitrah', value: result.items.find(i => i.id === 'fitrah')?.zakatAmount || 0 },
         { name: 'Maal', value: result.items.find(i => i.id === 'maal')?.zakatAmount || 0 },
@@ -294,7 +282,6 @@ export const SummaryView: React.FC<SummaryProps> = ({ result, state, history, on
 
     return (
         <div className="space-y-6 animate-fade-in pb-20 md:pb-12">
-            {/* Action Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-slate-100 dark:border-slate-700">
                 <div>
                     <h2 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-white">Ringkasan & Kwitansi</h2>
@@ -302,21 +289,16 @@ export const SummaryView: React.FC<SummaryProps> = ({ result, state, history, on
                 </div>
                 <div className="flex gap-3 w-full sm:w-auto">
                     <button onClick={onSaveHistory} className="flex-1 sm:flex-none justify-center bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 px-4 py-2.5 rounded-xl text-sm font-bold flex items-center shadow-sm transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                        </svg>
+                        <span className="icon-wrapper w-4 h-4 mr-2"><FaSave /></span>
                         Simpan
                     </button>
                     <button onClick={onDownloadPDF} className="flex-1 sm:flex-none justify-center bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold flex items-center shadow-sm transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
+                        <span className="icon-wrapper w-4 h-4 mr-2"><FaFilePdf /></span>
                         Unduh PDF
                     </button>
                 </div>
             </div>
             
-            {/* Receipt Card */}
             <div ref={receiptRef} className="bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm print:shadow-none print:border-black">
                 <div className="border-b-2 border-emerald-500 pb-4 mb-6 flex justify-between items-center">
                     <div>
@@ -360,7 +342,6 @@ export const SummaryView: React.FC<SummaryProps> = ({ result, state, history, on
                         ))}
                     </div>
 
-                    {/* Simple Asset Composition Chart */}
                     {hasChartData && (
                         <div data-html2canvas-ignore="true" className="w-full lg:w-72 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-100 dark:border-slate-800">
                             <h5 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-4">Komposisi Zakat</h5>
@@ -378,7 +359,7 @@ export const SummaryView: React.FC<SummaryProps> = ({ result, state, history, on
                                             stroke="none"
                                         >
                                             {chartData.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                <Cell key={`cell-${index}`} fill={SUMMARY_COLORS[index % SUMMARY_COLORS.length]} />
                                             ))}
                                         </Pie>
                                         <Tooltip 
@@ -392,7 +373,7 @@ export const SummaryView: React.FC<SummaryProps> = ({ result, state, history, on
                                 {chartData.map((entry, index) => (
                                     <div key={index} className="flex justify-between items-center">
                                         <div className="flex items-center">
-                                            <span className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: COLORS[index % COLORS.length] }}></span>
+                                            <span className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: SUMMARY_COLORS[index % SUMMARY_COLORS.length] }}></span>
                                             <span className="text-slate-600 dark:text-slate-300 truncate max-w-[100px]">{entry.name}</span>
                                         </div>
                                         <span className="font-medium text-slate-800 dark:text-slate-200">{((entry.value / chartData.reduce((a, b) => a + b.value, 0)) * 100).toFixed(0)}%</span>
@@ -414,12 +395,11 @@ export const SummaryView: React.FC<SummaryProps> = ({ result, state, history, on
                 </div>
             </div>
 
-            {/* History Section */}
             {history.length > 0 && (
                 <div className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-700">
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300 flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <span className="icon-wrapper w-5 h-5 mr-2 text-slate-400"><FaHistory /></span>
                             Riwayat Tersimpan
                         </h3>
                         <button onClick={onClearHistory} className="text-xs text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium hover:underline">Hapus Semua</button>

@@ -8,7 +8,8 @@ import {
   FaHandsHelping,
   FaQuran,
   FaBrain,
-  FaChevronRight
+  FaChevronRight,
+  FaDownload
 } from "react-icons/fa";
 
 interface HomeProps {
@@ -51,7 +52,7 @@ const BentoCard: React.FC<{ feature: FeatureItem; onClick: () => void; delay: nu
             <div className={`absolute -right-6 -top-6 w-28 h-28 rounded-full opacity-[0.08] ${feature.bgClass}`}></div>
             
             <div className={`relative z-10 w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center text-2xl md:text-3xl mb-3 ${feature.bgClass} ${feature.colorClass}`}>
-                {feature.icon}
+                <div className="icon-wrapper w-8 h-8 flex items-center justify-center">{feature.icon}</div>
             </div>
 
             <div className="relative z-10 text-left w-full">
@@ -64,7 +65,7 @@ const BentoCard: React.FC<{ feature: FeatureItem; onClick: () => void; delay: nu
             </div>
 
             <div className="absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity hidden md:block text-slate-300 dark:text-slate-600">
-                <FaChevronRight />
+                <div className="icon-wrapper w-5 h-5"><FaChevronRight /></div>
             </div>
         </button>
     );
@@ -141,7 +142,6 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
       <div className="relative pt-[calc(env(safe-area-inset-top)+2rem)] pb-32 px-6 overflow-hidden shadow-sm group">
           
           {/* Animated Gradient Background */}
-          {/* Light Mode: Soft Blue/Teal/Indigo | Dark Mode: Deep Slate/Indigo/Violet */}
           <div className="absolute inset-0 animate-gradient-xy bg-gradient-to-br from-blue-400 via-teal-400 to-indigo-500 dark:from-slate-900 dark:via-indigo-950 dark:to-slate-900 opacity-90 dark:opacity-100 transition-colors duration-1000"></div>
           
           {/* Overlay for depth in Dark Mode */}
@@ -203,9 +203,7 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
                     <div>
                         <div className="flex items-center gap-3 mb-2">
                             <div className="p-2 bg-white/10 rounded-xl backdrop-blur-sm border border-white/10">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
-                                </svg>
+                                <span className="icon-wrapper w-5 h-5"><FaDownload /></span>
                             </div>
                             <h3 className="text-lg font-bold">Install NIZAMY</h3>
                         </div>
@@ -227,7 +225,7 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
           <div className="mt-16 text-center space-y-3 opacity-60 hover:opacity-100 transition-opacity pb-8">
              <p className="font-arabic text-2xl text-slate-600 dark:text-slate-400 leading-loose">فَاسْتَبِقُوا الْخَيْرَاتِ</p>
              <p className="text-xs text-slate-500 dark:text-slate-500 italic">"Berlomba-lombalah dalam kebaikan"</p>
-             <div className="text-[10px] text-slate-400 pt-4">
+             <div className="text-[10px] text-slate-500 dark:text-slate-500 pt-4">
                 NIZAMY v1.8.5 &copy; {new Date().getFullYear()}
              </div>
           </div>

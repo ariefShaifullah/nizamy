@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { FaTimes } from 'react-icons/fa';
 
 type ToastType = 'success' | 'error' | 'info';
 
@@ -36,7 +37,6 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     
     setToasts((prev) => [...prev, newToast]);
 
-    // Auto remove after 4 seconds
     setTimeout(() => {
       removeToast(id);
     }, 4000);
@@ -63,9 +63,9 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             <span className="font-bold text-sm">{toast.message}</span>
             <button 
               onClick={() => removeToast(toast.id)} 
-              className="ml-2 opacity-70 hover:opacity-100 font-bold"
+              className="ml-2 opacity-70 hover:opacity-100 font-bold icon-wrapper w-4 h-4 flex items-center justify-center"
             >
-              ✕
+              <FaTimes />
             </button>
           </div>
         ))}

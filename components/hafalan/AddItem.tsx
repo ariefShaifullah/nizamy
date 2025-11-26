@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from "react";
+
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import type { HafalanState, HafalanItem } from "../../types.ts";
 import { SURAH_DATA } from "../../constants.ts";
 import { audioService } from "../../services/audio.service.ts";
@@ -13,6 +14,7 @@ import {
 } from "../../services/hafalan.service.ts";
 import { useToast } from "../ui/Toast.tsx";
 import { useDebounce } from "../../hooks/useDebounce.ts";
+import { FaArrowLeft, FaChevronRight, FaSearch, FaCheck } from "react-icons/fa";
 
 interface AddItemProps {
   state: HafalanState;
@@ -28,22 +30,17 @@ export const AddItem: React.FC<AddItemProps> = ({
   onBadgeEarned,
 }) => {
   const { showToast } = useToast();
-  // State for form
   const [selectedSurahNumber, setSelectedSurahNumber] = useState(1);
   const [newAyahStart, setNewAyahStart] = useState(1);
   const [newAyahEnd, setNewAyahEnd] = useState(5);
   
-  // State for UI Logic
   const [inputError, setInputError] = useState<string | null>(null);
   const [quotaWarning, setQuotaWarning] = useState<string | null>(null);
   const [bypassQuota, setBypassQuota] = useState(false);
   const [isSuggestionMode, setIsSuggestionMode] = useState(false);
 
-  // CUSTOM SELECTOR STATE
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  
-  // Debounce search term to prevent lag on typing
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   const profile = state.profile!;
@@ -74,7 +71,6 @@ export const AddItem: React.FC<AddItemProps> = ({
       );
   }, [debouncedSearchTerm, availableSurahs]);
 
-  // --- SMART SUGGESTION LOGIC (ON MOUNT) ---
   useEffect(() => {
     setBypassQuota(false);
 
@@ -89,26 +85,16 @@ export const AddItem: React.FC<AddItemProps> = ({
         
         if (surahRef) {
             if (lastAddedItem.endAyah < surahRef.verses) {
-                // Case A: Continue current Surah (Applies to ALL modes)
                 suggestedSurahNo = lastAddedItem.surahNo;
                 suggestedStart = lastAddedItem.endAyah + 1;
                 enableSuggestion = true;
             } else {
-                // Case B: Current Surah Finished
-                
-                // Logic Differentiation: "Bebas Pilih" (114) vs "Urut" (1/29/30)
                 if (profile.targetJuz === 114) {
-                    // Mode Explorer: Stop suggestion, let user choose freely.
-                    // Default to Al-Fatihah (1) to reset focus, but disable suggestion banner.
                     suggestedSurahNo = 1; 
                     suggestedStart = 1;
                     enableSuggestion = false;
                 } else {
-                    // Mode Guided (Urut / Juz 30 / Juz 29): Suggest Next Surah
                     const nextSurahNum = lastAddedItem.surahNo === 114 ? 1 : lastAddedItem.surahNo + 1;
-                    
-                    // Check if next surah is within target scope (e.g. Juz 30 only)
-                    // Note: targetJuz 1 returns ALL surahs in getAvailableSurahs
                     const available = getAvailableSurahs(profile.targetJuz);
                     const isNextAvailable = available.find(s => s.number === nextSurahNum);
                     
@@ -117,25 +103,20 @@ export const AddItem: React.FC<AddItemProps> = ({
                         suggestedStart = 1;
                         enableSuggestion = true;
                     } else {
-                        // End of cycle (e.g. finished Juz 30)
                         suggestedSurahNo = available[0].number;
                         suggestedStart = 1;
-                        enableSuggestion = false; // Reset, no strong suggestion
+                        enableSuggestion = false;
                     }
                 }
             }
         }
     } else {
-        // No History (New User)
         const available = getAvailableSurahs(profile.targetJuz);
         suggestedSurahNo = available[0].number;
         suggestedStart = 1;
-        
-        // DISABLE suggestion banner for very first item to avoid "Continue" confusion
         enableSuggestion = false; 
     }
 
-    // Apply Suggestion
     setSelectedSurahNumber(suggestedSurahNo);
     setNewAyahStart(suggestedStart);
     setIsSuggestionMode(enableSuggestion);
@@ -152,7 +133,6 @@ export const AddItem: React.FC<AddItemProps> = ({
 
   }, []);
 
-  // --- VALIDATION EFFECT ---
   useEffect(() => {
     setQuotaWarning(null);
     const surah = SURAH_DATA.find((s) => s.number === selectedSurahNumber);
@@ -213,15 +193,12 @@ export const AddItem: React.FC<AddItemProps> = ({
     showToast("Hafalan Baru Disimpan!", "success");
   };
 
-  // --- HANDLERS ---
-
   const handleSelectSurah = (surahNum: number) => {
       setSelectedSurahNumber(surahNum);
       setIsSuggestionMode(false);
       setIsSelectorOpen(false);
-      setSearchTerm(""); // Reset search
+      setSearchTerm(""); 
       
-      // Auto-set logic
       const lastAyah = getLastMemorizedAyah(state.items, surahNum);
       const nextStart = lastAyah + 1;
       const surahRef = SURAH_DATA.find(s => s.number === surahNum);
@@ -264,20 +241,9 @@ export const AddItem: React.FC<AddItemProps> = ({
             audioService.playClick();
             onBack();
           }}
-          className="bg-slate-100 dark:bg-slate-700 p-2 rounded-full text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
+          className="bg-slate-100 dark:bg-slate-700 p-2 rounded-full text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 icon-wrapper w-9 h-9 flex items-center justify-center"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-              clipRule="evenodd"
-            />
-          </svg>
+          <FaArrowLeft />
         </button>
       </div>
 
@@ -296,7 +262,7 @@ export const AddItem: React.FC<AddItemProps> = ({
           <button
             onClick={() => {
               audioService.playClick();
-              onBack(); // Goes back to dashboard
+              onBack();
             }}
             className="w-full bg-orange-600 text-white font-bold py-3.5 rounded-xl hover:bg-orange-700 transition-colors shadow-lg shadow-orange-200 dark:shadow-none"
           >
@@ -374,7 +340,6 @@ export const AddItem: React.FC<AddItemProps> = ({
             </div>
           )}
           
-          {/* SMART SUGGESTION BANNER */}
           {isSuggestionMode && (
               <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-4 rounded-xl text-white shadow-md flex items-start animate-fade-in">
                   <span className="text-2xl mr-3">🚀</span>
@@ -393,7 +358,6 @@ export const AddItem: React.FC<AddItemProps> = ({
             <label className="block text-sm font-bold mb-2 text-slate-700 dark:text-slate-300">
               Pilih Surat
             </label>
-            {/* REPLACEMENT: Custom Selector Trigger */}
             <button
                 onClick={() => {
                     audioService.playClick();
@@ -407,9 +371,7 @@ export const AddItem: React.FC<AddItemProps> = ({
                     </span>
                     <span className="text-lg">{selectedSurahData?.name}</span>
                 </span>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
+                <span className="icon-wrapper w-5 h-5 text-slate-400"><FaChevronRight /></span>
             </button>
           </div>
 
@@ -494,31 +456,24 @@ export const AddItem: React.FC<AddItemProps> = ({
       )}
     </div>
 
-    {/* --- CUSTOM SURAH SELECTOR MODAL --- */}
     {isSelectorOpen && (
         <div className="fixed inset-0 z-[60] bg-slate-900/50 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-4 animate-fade-in">
             <div className="bg-white dark:bg-slate-800 w-full md:max-w-md h-[85vh] md:h-[600px] rounded-t-3xl md:rounded-3xl flex flex-col shadow-2xl overflow-hidden animate-fade-in-up border border-slate-200 dark:border-slate-700">
                 
-                {/* Header */}
                 <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 z-10 flex items-center justify-between">
                     <h3 className="font-bold text-lg text-slate-800 dark:text-white ml-2">Pilih Surat</h3>
                     <button 
                         onClick={() => setIsSelectorOpen(false)}
-                        className="p-2 bg-slate-100 dark:bg-slate-700 rounded-full text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
+                        className="p-2 bg-slate-100 dark:bg-slate-700 rounded-full text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 icon-wrapper w-9 h-9 flex items-center justify-center"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                        </svg>
+                        <FaArrowLeft />
                     </button>
                 </div>
 
-                {/* Search */}
                 <div className="p-4 pb-2 bg-white dark:bg-slate-800">
                     <div className="relative">
-                        <span className="absolute left-3 top-3 text-slate-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
+                        <span className="absolute left-3 top-3 text-slate-400 icon-wrapper w-5 h-5">
+                            <FaSearch />
                         </span>
                         <input 
                             type="text"
@@ -531,7 +486,6 @@ export const AddItem: React.FC<AddItemProps> = ({
                     </div>
                 </div>
 
-                {/* List */}
                 <div className="flex-1 overflow-y-auto p-2 custom-scrollbar bg-white dark:bg-slate-800">
                     {filteredSurahs.length === 0 ? (
                         <div className="text-center py-10 text-slate-400">
@@ -564,9 +518,7 @@ export const AddItem: React.FC<AddItemProps> = ({
                                     </p>
                                 </div>
                                 {selectedSurahNumber === s.number && (
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-indigo-600 dark:text-indigo-400" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                    </svg>
+                                    <span className="icon-wrapper w-5 h-5 text-indigo-600 dark:text-indigo-400"><FaCheck /></span>
                                 )}
                             </button>
                         ))

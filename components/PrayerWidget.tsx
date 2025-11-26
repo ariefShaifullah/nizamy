@@ -1,6 +1,8 @@
+
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import type { PrayerData } from '../types.ts';
 import { getCoordinates, fetchPrayerTimes, fetchCityName, getNextPrayer, formatTimeLeft, savePrayerCache, getCachedPrayerData } from '../services/prayer.service.ts';
+import { FaMapMarkerAlt } from 'react-icons/fa';
 
 export const PrayerWidget: React.FC = () => {
     const [prayerData, setPrayerData] = useState<PrayerData | null>(null);
@@ -154,9 +156,7 @@ export const PrayerWidget: React.FC = () => {
                 {/* Top Row: Location & Hijri */}
                 <div className="flex justify-between items-center mb-6 text-xs md:text-sm font-medium text-slate-400">
                     <div className="flex items-center gap-1.5">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-teal-500" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                        </svg>
+                        <span className="text-teal-500 icon-wrapper w-4 h-4"><FaMapMarkerAlt /></span>
                         <span className="truncate max-w-[150px]">{locationName}</span>
                     </div>
                     <span className="font-arabic text-slate-500 dark:text-slate-300">

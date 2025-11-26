@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Modal } from "../Modal.tsx";
 import type {
@@ -8,6 +9,7 @@ import type {
 import { BADGES } from "../../constants.ts";
 import { audioService } from "../../services/audio.service.ts";
 import { notificationService } from "../../services/notification.service.ts";
+import { FaTimes, FaCalendarAlt, FaBookOpen, FaRedo } from "react-icons/fa";
 
 // --- HELPER ---
 const formatSafeDate = (dateStr: string) => {
@@ -72,23 +74,10 @@ export const HafalanTutorialModal: React.FC<{ onClose: () => void }> = ({
       <div className="bg-indigo-600 p-6 text-center relative">
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-white/60 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10"
+          className="absolute top-3 right-3 text-white/60 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10 icon-wrapper w-8 h-8 flex items-center justify-center"
           aria-label="Tutup Tutorial"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
+          <FaTimes />
         </button>
         <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-4xl mx-auto mb-3 backdrop-blur-md border border-white/30 animate-bounce-slow">
           {current.icon}
@@ -106,9 +95,7 @@ export const HafalanTutorialModal: React.FC<{ onClose: () => void }> = ({
               <div
                 key={i}
                 className={`h-2 rounded-full transition-all duration-300 ${
-                  i + 1 === step
-                    ? "w-6 bg-indigo-600"
-                    : "w-2 bg-slate-200 dark:bg-slate-700"
+                  i + 1 === step ? "w-6 bg-indigo-600" : "w-2 bg-slate-200 dark:bg-slate-700"
                 }`}
               />
             ))}
@@ -162,9 +149,7 @@ export const HafalanDetailModal: React.FC<DetailModalProps> = ({
             <p className="text-xs text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider">
               Level SRS
             </p>
-            <p className="text-2xl font-bold text-indigo-900 dark:text-indigo-200">
-              {item.stage}
-            </p>
+            <p className="text-2xl font-bold text-indigo-900 dark:text-indigo-200">{item.stage}</p>
           </div>
           <div className="bg-orange-50 dark:bg-orange-900/20 p-3 rounded-lg text-center border border-orange-100 dark:border-orange-800">
             <p className="text-xs text-orange-600 dark:text-orange-400 font-bold uppercase tracking-wider">
@@ -181,20 +166,7 @@ export const HafalanDetailModal: React.FC<DetailModalProps> = ({
             Jadwal Murajaah Berikutnya:
           </p>
           <p className="font-bold text-slate-800 dark:text-slate-200 flex items-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-2 text-indigo-500"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
+            <span className="text-indigo-500 mr-2 icon-wrapper w-5 h-5"><FaCalendarAlt /></span>
             {formatSafeDate(item.nextReviewDate)}
           </p>
         </div>
@@ -209,26 +181,7 @@ export const HafalanDetailModal: React.FC<DetailModalProps> = ({
             onClick={onPractice}
             className="flex-1 bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition-colors shadow-md flex justify-center items-center"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+            <span className="mr-2 icon-wrapper w-4 h-4"><FaBookOpen /></span>
             Latihan Bebas
           </button>
         </div>
@@ -258,11 +211,9 @@ export const HafalanSettingsModal: React.FC<SettingsModalProps> = ({
     currentProfile.skillLevel
   );
   const [target, setTarget] = useState(currentProfile.targetJuz);
-
+  
   // Notification State
-  const [notifEnabled, setNotifEnabled] = useState(
-    notificationService.isEnabled()
-  );
+  const [notifEnabled, setNotifEnabled] = useState(notificationService.isEnabled());
 
   const handleSave = () => {
     if (!name.trim()) return alert("Nama tidak boleh kosong");
@@ -271,16 +222,14 @@ export const HafalanSettingsModal: React.FC<SettingsModalProps> = ({
 
   const handleToggleNotif = async () => {
     audioService.playClick();
-
+    
     if (!notifEnabled) {
       // Try enabling
       const permissionState = notificationService.getPermissionState();
-
-      if (permissionState === "denied") {
-        alert(
-          "Izin notifikasi telah diblokir di browser ini. Silakan buka pengaturan situs (ikon gembok di URL bar) dan izinkan notifikasi secara manual."
-        );
-        return;
+      
+      if (permissionState === 'denied') {
+          alert('Izin notifikasi telah diblokir di browser ini. Silakan buka pengaturan situs (ikon gembok di URL bar) dan izinkan notifikasi secara manual.');
+          return;
       }
 
       const granted = await notificationService.requestPermission();
@@ -373,30 +322,20 @@ export const HafalanSettingsModal: React.FC<SettingsModalProps> = ({
 
         {/* NOTIFICATION TOGGLE */}
         {notificationService.isSupported() && (
-          <div className="bg-slate-50 dark:bg-slate-700/30 p-4 rounded-xl border border-slate-100 dark:border-slate-700 flex justify-between items-center">
-            <div>
-              <h4 className="font-bold text-slate-800 dark:text-white text-sm">
-                Notifikasi & Badge
-              </h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Tampilkan tanda titik merah di ikon aplikasi & pengingat harian.
-              </p>
+            <div className="bg-slate-50 dark:bg-slate-700/30 p-4 rounded-xl border border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                <div>
+                    <h4 className="font-bold text-slate-800 dark:text-white text-sm">Notifikasi & Badge</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        Tampilkan tanda titik merah di ikon aplikasi & pengingat harian.
+                    </p>
+                </div>
+                <button 
+                    onClick={handleToggleNotif}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${notifEnabled ? 'bg-indigo-600' : 'bg-slate-200 dark:bg-slate-600'}`}
+                >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                </button>
             </div>
-            <button
-              onClick={handleToggleNotif}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
-                notifEnabled
-                  ? "bg-indigo-600"
-                  : "bg-slate-200 dark:bg-slate-600"
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  notifEnabled ? "translate-x-6" : "translate-x-1"
-                }`}
-              />
-            </button>
-          </div>
         )}
 
         <button
@@ -472,12 +411,8 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
                 {badge?.icon}
               </div>
               <div>
-                <h4 className="font-bold text-indigo-900 dark:text-indigo-300">
-                  {badge?.name}
-                </h4>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  {badge?.description}
-                </p>
+                <h4 className="font-bold text-indigo-900 dark:text-indigo-300">{badge?.name}</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{badge?.description}</p>
               </div>
             </div>
           ))}

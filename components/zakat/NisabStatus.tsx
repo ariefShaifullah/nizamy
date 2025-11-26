@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { formatCurrency } from '../../utils.ts';
 import { FaCheck, FaTimes } from "react-icons/fa";
@@ -43,9 +44,9 @@ export const NisabStatus: React.FC<NisabStatusProps> = ({ value, nisab, label, u
                         <div className="flex items-center gap-2">
                             <div className={`flex items-center justify-center w-6 h-6 rounded-full ${isReached ? 'bg-emerald-500 text-white' : 'bg-slate-300 dark:bg-slate-600 text-white'}`}>
                                 {isReached ? (
-                                    <FaCheck size={16} />
+                                    <span className="icon-wrapper w-4 h-4"><FaCheck /></span>
                                 ) : (
-                                    <FaTimes size={16} />
+                                    <span className="icon-wrapper w-4 h-4"><FaTimes /></span>
                                 )}
                             </div>
                             <h3 className={`text-xl font-extrabold tracking-tight ${isReached ? 'text-emerald-800 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'}`}>
@@ -54,7 +55,7 @@ export const NisabStatus: React.FC<NisabStatusProps> = ({ value, nisab, label, u
                         </div>
                     </div>
                     <div className="text-right">
-                        <span className={`text-2xl font-black tabular-nums ${isReached ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
+                        <span className={`text-2xl font-black tabular-nums ${isReached ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-500'}`}>
                             {percentage.toFixed(0)}<span className="text-sm align-top">%</span>
                         </span>
                     </div>

@@ -2,6 +2,7 @@
 import React, { useCallback } from 'react';
 import type { QuranAyah, QuranWord } from '../../types.ts';
 import { useLongPress } from '../../hooks/useLongPress.ts';
+import { FaEllipsisV } from 'react-icons/fa';
 
 interface AyahRendererProps {
     ayah: QuranAyah;
@@ -36,29 +37,43 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
         { delay: 600, shouldPreventDefault: true }
     );
 
+    // Trigger explicit long press action via button click
+    const handleMenuClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        onLongPressAyah(ayah);
+    };
+
     // UX Improvement: Line Height Multiplier
-    // Using 3.2 ensures even complex stacks (shadda+fatha+waqaf) have room.
-    // Storing it as a string for inline-style to be rigorous.
     const lineHeight = '2.8'; 
 
     return (
         <div 
             data-verse-index={globalIndex}
             data-verse-number={ayah.verse_number}
-            className={`relative px-4 md:px-8 pl-6 md:pl-10 py-8 md:py-10 transition-colors duration-500 border-b border-slate-50 dark:border-slate-800/50 select-none ${
+            className={`relative px-4 md:px-8 pl-6 md:pl-10 py-8 md:py-10 transition-colors duration-500 border-b border-slate-100 dark:border-slate-800/50 select-none ${
                 isPlaying 
                 ? 'bg-teal-50/60 dark:bg-teal-900/20' 
                 : 'bg-transparent hover:bg-slate-50/80 dark:hover:bg-slate-800/20'
             }`}
             onContextMenu={(e) => e.preventDefault()}
         >
-            {/* Number Badge */}
-            <div className="absolute left-4 top-4 flex gap-2 items-center opacity-50">
-                <span className="text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 px-2 py-1 rounded-md font-sans">
+            {/* Number Badge & Context Menu */}
+            <div className="absolute left-4 top-4 flex gap-3 items-center opacity-70 hover:opacity-100 transition-opacity">
+                <span className="text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-1 rounded-md font-sans">
                     {ayah.verse_key}
                 </span>
+                
+                {/* Visual Indicator for Context Menu (Long Press Alternative) */}
+                <button 
+                    onClick={handleMenuClick}
+                    className="p-1.5 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 dark:text-slate-500 transition-colors"
+                    aria-label="Opsi Ayat"
+                >
+                    <FaEllipsisV size={12} />
+                </button>
+
                 {isPlaying && (
-                    <div className="flex gap-0.5 items-end h-3">
+                    <div className="flex gap-0.5 items-end h-3 ml-1">
                         <div className="w-1 bg-teal-500 rounded-full animate-[bounce_1s_infinite]"></div>
                         <div className="w-1 bg-teal-500 rounded-full animate-[bounce_1.2s_infinite]"></div>
                         <div className="w-1 bg-teal-500 rounded-full animate-[bounce_0.8s_infinite]"></div>
@@ -68,7 +83,7 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
 
             {/* ARABIC TEXT AREA */}
             <div 
-                className="w-full text-right mb-8 mt-4 touch-manipulation" 
+                className="w-full text-right mb-8 mt-6 touch-manipulation" 
                 dir="rtl"
                 {...(!wordMode ? ayahGestures : {})}
             >
@@ -134,7 +149,7 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
 
 const WordItem: React.FC<{ 
     word: QuranWord; 
-    parentAyah: QuranAyah;
+    parentAyah: QuranAyah; 
     isActive: boolean; 
     wordMode: boolean;
     fontSize: number;

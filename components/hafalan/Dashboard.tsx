@@ -21,15 +21,14 @@ import {
   CelebrationModal,
 } from "./HafalanModals.tsx";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
-
-// --- SUB-COMPONENTS ---
+import { FaCog, FaCalendarAlt, FaList, FaBookOpen, FaUser, FaPlus } from "react-icons/fa";
 
 const ProgressChart: React.FC<{ items: HafalanItem[] }> = React.memo(({ items }) => {
     const data = useMemo(() => {
         const counts = {
-            new: 0, // Stage 0
-            learning: 0, // Stage 1-4
-            mastered: 0 // Stage 5
+            new: 0, 
+            learning: 0, 
+            mastered: 0 
         };
         
         items.forEach(i => {
@@ -114,9 +113,7 @@ const StatsHeader: React.FC<{
               </p>
             </div>
             <button onClick={onSettings} className="bg-white/10 p-2 rounded-lg hover:bg-white/20 transition-colors backdrop-blur-sm flex-shrink-0 ml-2">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-              </svg>
+              <span className="icon-wrapper w-5 h-5"><FaCog /></span>
             </button>
           </div>
 
@@ -175,14 +172,12 @@ const MurajaahList: React.FC<{ items: HafalanItem[], onStartReview: (item: Hafal
                 </div>
                 <button onClick={() => onStartReview(item)} className="shrink-0 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 p-3 md:px-6 md:py-3 rounded-xl md:rounded-xl text-sm font-bold group-hover:bg-indigo-600 group-hover:text-white transition-all active:scale-95 flex items-center justify-center">
                     <span className="hidden md:inline">Mulai &rarr;</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:hidden" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>
+                    <span className="md:hidden">▶</span>
                 </button>
             </div>
         ))}
     </div>
 );
-
-// --- MAIN COMPONENT ---
 
 interface DashboardProps {
   state: HafalanState;
@@ -215,7 +210,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const profile = state.profile!;
   
-  // Memoized Data
   const dueItems = useMemo(() => {
     const today = getLocalYYYYMMDD();
     return state.items
@@ -239,12 +233,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
     return Math.min(100, (state.gamification.weeklyChallengeProgress / state.gamification.weeklyChallengeTarget) * 100);
   }, [state.gamification.weeklyChallengeProgress, state.gamification.weeklyChallengeTarget]);
 
-  // TRIGGER NOTIFICATION LOGIC
   useEffect(() => {
     notificationService.updateAppBadge(dueItems.length);
-    
     if (notificationService.isEnabled()) {
-        // Pass both dueItems count AND dailyRemaining quota
         notificationService.sendReminder(dueItems.length, dailyRemaining);
     }
   }, [dueItems.length, dailyRemaining]);
@@ -272,11 +263,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       <StatsHeader profile={profile} gamification={state.gamification} itemCount={state.items.length} onSettings={handleSettingsClick} />
 
-      {/* --- MAIN CONTENT GRID --- */}
       <div className="md:grid md:grid-cols-3 gap-6">
-        {/* LEFT COL: MAIN CONTENT */}
         <div className={`md:col-span-2 bg-white dark:bg-slate-800 md:rounded-3xl shadow-sm md:shadow-lg md:shadow-slate-200/50 dark:md:shadow-none border-y md:border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col min-h-[500px] ${activeTab === "profile" || activeTab === "guide" ? "hidden md:flex" : "flex"}`}>
-          {/* Desktop Tabs */}
           <div className="hidden md:flex border-b border-slate-100 dark:border-slate-700 p-2 bg-slate-50/50 dark:bg-slate-800/50 sticky top-0 z-20 backdrop-blur-md">
             <button onClick={() => { audioService.playClick(); setActiveTab("schedule"); }} className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${desktopContentTab === "schedule" ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-sm ring-1 ring-slate-200 dark:ring-slate-600" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"}`}>
               📅 Jadwal Murajaah
@@ -317,7 +305,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 )}
               </div>
             ) : (
-              // LIST VIEW
               <div className="space-y-4 h-full flex flex-col">
                 <div className="flex justify-between items-center">
                   <h3 className="font-bold text-slate-800 dark:text-white text-lg md:text-xl">Daftar Hafalan</h3>
@@ -339,9 +326,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
 
-        {/* RIGHT COL: SIDEBAR */}
         <div className={`space-y-6 ${activeTab === "profile" ? "block" : "hidden md:block"}`}>
-          {/* NEW: Progress Chart */}
           <ProgressChart items={state.items} />
 
           <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-lg shadow-orange-50/50 dark:shadow-none">
@@ -364,27 +349,26 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <button onClick={() => { audioService.playClick(); onLogout(); }} className="w-full py-3 rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">Ganti Akun / Keluar</button>
         </div>
 
-        {/* MOBILE GUIDE TAB */}
-        <div className={`${activeTab === "guide" ? "block" : "hidden md:hidden"}`}>
-          <FAQ title="Panduan" subtitle="Metode SRS NIZAMY" data={HAFALAN_FAQ} />
+        <div className={`md:col-span-3 transition-opacity duration-500 ${activeTab === "guide" ? "block" : "hidden md:block"}`}>
+            <div className="md:mt-8 md:border-t md:border-slate-200 md:dark:border-slate-700 md:pt-0">
+                <FAQ title="Panduan" subtitle="Metode SRS NIZAMY" data={HAFALAN_FAQ} />
+            </div>
         </div>
       </div>
 
-      {/* FAB */}
       <button onClick={() => { audioService.playClick(); onAddClick(); }} className={`md:hidden fixed bottom-24 right-4 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-xl shadow-indigo-500/40 dark:shadow-black/40 flex items-center justify-center z-40 transition-transform active:scale-90 hover:scale-105 ${activeTab === "profile" || activeTab === "guide" ? "hidden" : "flex"}`} aria-label="Tambah Hafalan">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
+        <span className="icon-wrapper w-6 h-6"><FaPlus /></span>
       </button>
 
-      {/* MOBILE NAV */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 px-2 z-50 flex justify-between items-center shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
         {[
-            { id: "schedule", icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z", label: "Jadwal" },
-            { id: "list", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2", label: "List" },
-            { id: "guide", icon: "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253", label: "Panduan" },
-            { id: "profile", icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z", label: "Profil" }
+            { id: "schedule", icon: <FaCalendarAlt />, label: "Jadwal" },
+            { id: "list", icon: <FaList />, label: "List" },
+            { id: "guide", icon: <FaBookOpen />, label: "Panduan" },
+            { id: "profile", icon: <FaUser />, label: "Profil" }
         ].map(tab => (
             <button key={tab.id} onClick={() => { audioService.playClick(); setActiveTab(tab.id as TabView); }} className={`flex-1 flex flex-col items-center p-2 rounded-xl transition-all ${activeTab === tab.id ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20" : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"}`}>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={tab.icon} /></svg>
+                <span className="icon-wrapper w-5 h-5 mb-1">{tab.icon}</span>
                 <span className="text-[10px] font-bold uppercase">{tab.label}</span>
             </button>
         ))}

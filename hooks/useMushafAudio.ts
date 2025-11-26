@@ -11,6 +11,7 @@ export const useMushafAudio = ({ onEnded }: UseMushafAudioProps = {}) => {
     const [playingAyahId, setPlayingAyahId] = useState<number | null>(null);
     const [playingWordId, setPlayingWordId] = useState<number | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [progress, setProgress] = useState(0);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
     // Keep onEnded ref current to avoid closure staleness in event listeners
@@ -21,12 +22,25 @@ export const useMushafAudio = ({ onEnded }: UseMushafAudioProps = {}) => {
 
     useEffect(() => {
         audioRef.current = new Audio();
+        
+        const audio = audioRef.current;
+        
+        const handleTimeUpdate = () => {
+            if (audio.duration) {
+                const percent = (audio.currentTime / audio.duration) * 100;
+                setProgress(percent);
+            }
+        };
+
+        audio.addEventListener('timeupdate', handleTimeUpdate);
+
         return () => {
-            if (audioRef.current) {
-                audioRef.current.onended = null;
-                audioRef.current.onerror = null;
-                audioRef.current.pause();
-                audioRef.current.removeAttribute('src');
+            if (audio) {
+                audio.removeEventListener('timeupdate', handleTimeUpdate);
+                audio.onended = null;
+                audio.onerror = null;
+                audio.pause();
+                audio.removeAttribute('src');
             }
         };
     }, []);
@@ -40,6 +54,7 @@ export const useMushafAudio = ({ onEnded }: UseMushafAudioProps = {}) => {
         setIsPlaying(false);
         setPlayingAyahId(null);
         setPlayingWordId(null);
+        setProgress(0);
     }, []);
 
     const playAudio = useCallback(async (url: string, type: 'ayah' | 'word', id: number) => {
@@ -59,6 +74,7 @@ export const useMushafAudio = ({ onEnded }: UseMushafAudioProps = {}) => {
         }
         
         setIsPlaying(true);
+        setProgress(0);
 
         try {
             audioRef.current.src = url;
@@ -85,6 +101,7 @@ export const useMushafAudio = ({ onEnded }: UseMushafAudioProps = {}) => {
                     setIsPlaying(false);
                     setPlayingAyahId(null);
                     setPlayingWordId(null);
+                    setProgress(0);
                 }
             };
 
@@ -95,11 +112,13 @@ export const useMushafAudio = ({ onEnded }: UseMushafAudioProps = {}) => {
                 setIsPlaying(false);
                 setPlayingAyahId(null);
                 setPlayingWordId(null);
+                setProgress(0);
             };
 
         } catch (err) {
             console.error(err);
             setIsPlaying(false);
+            setProgress(0);
         }
     }, [showToast]);
 
@@ -107,6 +126,7 @@ export const useMushafAudio = ({ onEnded }: UseMushafAudioProps = {}) => {
         isPlaying,
         playingAyahId,
         playingWordId,
+        progress,
         playAudio,
         stopAudio
     };

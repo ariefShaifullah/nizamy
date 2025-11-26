@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { SURAH_DATA } from '../../constants.ts';
-import { FaSearch, FaArrowRight } from 'react-icons/fa';
+import { FaSearch, FaArrowRight, FaQuran } from 'react-icons/fa';
 import { useDebounce } from '../../hooks/useDebounce.ts';
 import type { LastReadState } from '../../types.ts';
 
@@ -37,46 +37,58 @@ export const SurahSelection: React.FC<SurahSelectionProps> = ({ lastRead, onSele
     }, [debouncedSearch]);
 
     return (
-        <div className="animate-fade-in pb-20 max-w-5xl mx-auto px-3">
-            {/* Title */}
-            <div className="text-center mb-8 mt-4 hidden md:block">
-                <h2 className="text-3xl md:text-4xl font-bold text-slate-800 dark:text-white mb-2 tracking-tight">Mushaf Digital</h2>
-                <p className="text-slate-500 dark:text-slate-400 text-sm md:text-base">Baca Al-Quran dengan nyaman, audio per kata & tajwid interaktif.</p>
-            </div>
-
-            {/* Search Bar */}
-            <div className="relative mb-8 max-w-xl mx-auto group mt-4 md:mt-0">
-                <div className="absolute inset-0 bg-teal-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div className="relative">
-                    <span className="absolute left-5 top-4 text-slate-400 group-focus-within:text-teal-500 transition-colors icon-wrapper w-5 h-5">
-                        <FaSearch />
-                    </span>
-                    <input 
-                        type="text"
-                        placeholder="Cari surat (Latin, Arti, atau Nomor)..."
-                        className="w-full pl-14 pr-6 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full shadow-lg shadow-slate-200/50 dark:shadow-none focus:ring-4 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all text-slate-800 dark:text-white font-medium"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+        <div className="animate-fade-in pb-20 max-w-5xl mx-auto px-4 md:px-6 pt-0 md:pt-2">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6 mt-0 md:mt-6 mb-6 md:mb-8">
+                {/* Title & Desc Hidden on Mobile, Visible on Desktop */}
+                <div className="hidden md:block">
+                    <h2 className="text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight flex items-center gap-3">
+                        <span className="text-teal-600 dark:text-teal-400"><FaQuran /></span>
+                        Mushaf Digital
+                    </h2>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm mt-2 font-medium">
+                        Bacaan Al-Quran interaktif dengan audio per kata & tajwid.
+                    </p>
+                </div>
+                
+                {/* Search Bar - Always Visible, High Visibility */}
+                <div className="relative w-full md:w-72 group z-10">
+                    <div className="absolute inset-0 bg-teal-500/10 rounded-2xl blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="relative">
+                        <span className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-teal-500 transition-colors">
+                            <FaSearch />
+                        </span>
+                        <input 
+                            type="text"
+                            placeholder="Cari surat..."
+                            className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all text-slate-800 dark:text-white font-medium placeholder-slate-400 shadow-sm md:shadow-none"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
                 </div>
             </div>
 
-            {/* Last Read */}
+            {/* Last Read Card */}
             {lastRead && lastReadSurah && !searchTerm && (
-                <div className="mb-10 max-w-xl mx-auto animate-fade-in-down">
+                <div className="mb-8 md:mb-10 animate-fade-in-down">
                     <button 
                         onClick={onJumpToLastRead}
-                        className="w-full relative overflow-hidden bg-slate-900 rounded-3xl p-6 text-white shadow-2xl group text-left"
+                        className="w-full relative overflow-hidden bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl p-6 text-white shadow-xl shadow-slate-200/50 dark:shadow-none group text-left border border-slate-700"
                     >
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/20 rounded-full blur-3xl translate-x-10 -translate-y-10 group-hover:bg-teal-500/30 transition-all"></div>
+                        <div className="absolute top-0 right-0 w-40 h-40 bg-teal-500/20 rounded-full blur-[50px] translate-x-10 -translate-y-10 group-hover:bg-teal-500/30 transition-all duration-700"></div>
+                        
                         <div className="relative z-10 flex items-center justify-between">
                             <div>
-                                <p className="text-teal-400 text-xs font-bold uppercase tracking-widest mb-2">Lanjut Membaca</p>
-                                <h3 className="text-2xl font-bold mb-1">{lastReadSurah.name}</h3>
-                                <p className="text-slate-400 text-sm">Ayat {lastRead.ayahNumber}</p>
+                                <div className="flex items-center gap-2 text-teal-400 text-xs font-bold uppercase tracking-widest mb-2">
+                                    <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>
+                                    Terakhir Dibaca
+                                </div>
+                                <h3 className="text-2xl md:text-3xl font-bold mb-1">{lastReadSurah.name}</h3>
+                                <p className="text-slate-400 text-sm font-medium">Melanjutkan Ayat {lastRead.ayahNumber}</p>
                             </div>
-                            <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm group-hover:scale-110 transition-transform border border-white/10">
-                                <div className="icon-wrapper w-5 h-5 flex items-center justify-center"><FaArrowRight /></div>
+                            <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md group-hover:scale-110 transition-transform border border-white/10 text-white">
+                                <FaArrowRight />
                             </div>
                         </div>
                     </button>
@@ -85,16 +97,16 @@ export const SurahSelection: React.FC<SurahSelectionProps> = ({ lastRead, onSele
 
             {/* Quick Links */}
             {!searchTerm && (
-                <div className="mb-10">
-                    <h4 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4 pl-2">Sering Dibaca</h4>
-                    <div className="flex gap-3 overflow-x-auto pb-4 hide-scrollbar snap-x px-2">
+                <div className="mb-8">
+                    <h4 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4">Jalan Pintas</h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
                         {QUICK_LINKS.map((link) => (
                             <button
                                 key={link.number}
                                 onClick={() => onSelectSurah(link.number)}
-                                className={`flex-shrink-0 snap-start flex items-center gap-3 px-5 py-4 rounded-2xl font-bold text-sm bg-gradient-to-br ${link.gradient} ${link.text} hover:scale-105 transition-transform shadow-sm border border-white/20 dark:border-white/5 min-w-[140px]`}
+                                className={`flex flex-col items-center justify-center p-4 rounded-2xl font-bold text-sm bg-gradient-to-br ${link.gradient} ${link.text} hover:-translate-y-1 transition-transform shadow-sm border border-white/20 dark:border-white/5`}
                             >
-                                <span className="text-xl">{link.icon}</span>
+                                <span className="text-2xl mb-2">{link.icon}</span>
                                 {link.label}
                             </button>
                         ))}
@@ -103,31 +115,42 @@ export const SurahSelection: React.FC<SurahSelectionProps> = ({ lastRead, onSele
             )}
 
             {/* Surah Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredSurahs.map(surah => (
-                    <button
-                        key={surah.number}
-                        onClick={() => onSelectSurah(surah.number)}
-                        className="group relative bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 hover:border-teal-500 dark:hover:border-teal-500 transition-all hover:shadow-lg hover:shadow-teal-500/10 text-left overflow-hidden"
-                    >
-                        <div className="absolute -right-4 -bottom-4 text-8xl font-bold text-slate-50 dark:text-slate-800 group-hover:text-teal-50 dark:group-hover:text-teal-900/20 transition-colors pointer-events-none opacity-50">
-                            {surah.number}
-                        </div>
-                        
-                        <div className="relative z-10 flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 font-serif font-bold flex items-center justify-center group-hover:bg-teal-500 group-hover:text-white transition-colors shadow-sm border border-slate-200 dark:border-slate-600 group-hover:border-teal-400">
+            <div>
+                {!searchTerm && <h4 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4">Daftar Surat</h4>}
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filteredSurahs.map(surah => (
+                        <button
+                            key={surah.number}
+                            onClick={() => onSelectSurah(surah.number)}
+                            className="group relative bg-white dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-100 dark:border-slate-700 hover:border-teal-500 dark:hover:border-teal-500 transition-all hover:shadow-md hover:bg-slate-50/50 dark:hover:bg-slate-800 text-left flex items-center gap-4"
+                        >
+                            <div className="w-12 h-12 flex-shrink-0 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 font-serif font-bold flex items-center justify-center group-hover:bg-teal-500 group-hover:text-white transition-colors text-lg">
                                 {surah.number}
                             </div>
+                            
                             <div className="flex-1 min-w-0">
-                                <div className="flex justify-between items-baseline mb-1">
-                                    <h4 className="font-bold text-slate-800 dark:text-white text-lg group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors truncate pr-2">{surah.name}</h4>
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50 dark:bg-slate-900 px-2 py-0.5 rounded-full">{surah.type}</span>
+                                <div className="flex justify-between items-center mb-0.5">
+                                    <h4 className="font-bold text-slate-800 dark:text-white text-base group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors truncate">
+                                        {surah.name}
+                                    </h4>
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide bg-slate-50 dark:bg-slate-900 px-2 py-0.5 rounded border border-slate-100 dark:border-slate-800">
+                                        {surah.type}
+                                    </span>
                                 </div>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 truncate">{surah.arti} • {surah.verses} Ayat</p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate font-medium">
+                                    {surah.arti} • {surah.verses} Ayat
+                                </p>
                             </div>
-                        </div>
-                    </button>
-                ))}
+                        </button>
+                    ))}
+                </div>
+                
+                {filteredSurahs.length === 0 && (
+                    <div className="text-center py-20">
+                        <p className="text-slate-400 font-medium">Surat tidak ditemukan.</p>
+                    </div>
+                )}
             </div>
         </div>
     );

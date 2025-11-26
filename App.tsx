@@ -87,8 +87,9 @@ export default function App() {
       <main 
         className={location.pathname === '/' 
             ? 'flex-grow' 
-            // Added padding-top for fixed header compensation in inner pages
-            : 'container mx-auto px-4 py-4 md:py-8 flex-grow pt-[calc(5rem+env(safe-area-inset-top))]'
+            // FIX: Increased padding-top significantly for inner pages to clear Fixed Header on Desktop
+            // Mobile: pt-24 (6rem), Desktop: pt-28 (7rem) or pt-32 (8rem) depending on preference
+            : 'container mx-auto px-4 py-4 md:py-8 flex-grow pt-[calc(6rem+env(safe-area-inset-top))] md:pt-[calc(8rem+env(safe-area-inset-top))]'
         }
       >
         <Suspense fallback={<PageLoader />}>

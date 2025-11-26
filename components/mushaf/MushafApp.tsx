@@ -30,10 +30,9 @@ const MushafApp: React.FC = () => {
     const [wordMode, setWordMode] = useLocalStorage("mushaf_wordMode", false);
 
     // Audio & Data Hooks
-    // Use a stable ref for the callback to prevent circular dependencies in the hook
     const nextAyahHandler = useRef<() => void>(() => {});
     
-    const { isPlaying, playingAyahId, playingWordId, playAudio, stopAudio } = useMushafAudio({
+    const { isPlaying, playingAyahId, playingWordId, progress, playAudio, stopAudio } = useMushafAudio({
         onEnded: () => {
             if (nextAyahHandler.current) nextAyahHandler.current();
         }
@@ -46,7 +45,7 @@ const MushafApp: React.FC = () => {
     const [jumpAyahInput, setJumpAyahInput] = useState("");
     const [isJumping, setIsJumping] = useState(false);
     const [isJumpModalOpen, setIsJumpModalOpen] = useState(false); 
-    const [pendingJumpAyah, setPendingJumpAyah] = useState<number | null>(null); // New state for smart jump
+    const [pendingJumpAyah, setPendingJumpAyah] = useState<number | null>(null);
 
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isHelpOpen, setIsHelpOpen] = useState(false); 
@@ -76,34 +75,53 @@ const MushafApp: React.FC = () => {
         const url = getAyahAudioUrl(selectedSurahId!, ayah.verse_number);
         playAudio(url, 'ayah', ayah.id);
         
-        // Auto-scroll to active ayah
+        // Auto-scroll to active ayah with offset
         const index = verses.findIndex(v => v.id === ayah.id);
         if (index !== -1 && virtuosoRef.current) {
             virtuosoRef.current.scrollToIndex({ index, align: 'center', behavior: 'smooth' });
         }
     }, [selectedSurahId, verses, playAudio]);
 
-    // Update the handler ref whenever dependencies change
-    useEffect(() => {
-        nextAyahHandler.current = () => {
-            if (!playingAyahId || verses.length === 0) return;
-            
-            const currentIndex = verses.findIndex(v => v.id === playingAyahId);
-            if (currentIndex !== -1 && currentIndex < verses.length - 1) {
-                // Play next available ayah
-                playAyahById(verses[currentIndex + 1]);
-            } else {
-                // End of loaded list
-                stopAudio();
-                if (hasMore) {
-                    showToast("Memuat ayat berikutnya...", "info");
-                    loadNextPage(); 
-                } else {
-                    showToast("Akhir surat.", "success");
-                }
+    // Next/Prev Logic
+    const handleNextTrack = useCallback(() => {
+        if (!playingAyahId || verses.length === 0) return;
+        const currentIndex = verses.findIndex(v => v.id === playingAyahId);
+        if (currentIndex !== -1 && currentIndex < verses.length - 1) {
+            playAyahById(verses[currentIndex + 1]);
+        } else if (hasMore) {
+            showToast("Memuat ayat berikutnya...", "info");
+            loadNextPage();
+            // Listener in effect will handle playing next when loaded if we track state
+        } else {
+            showToast("Akhir surat.", "info");
+            stopAudio();
+        }
+    }, [playingAyahId, verses, hasMore, loadNextPage, playAyahById, stopAudio, showToast]);
+
+    const handlePrevTrack = useCallback(() => {
+        if (!playingAyahId || verses.length === 0) return;
+        const currentIndex = verses.findIndex(v => v.id === playingAyahId);
+        if (currentIndex > 0) {
+            playAyahById(verses[currentIndex - 1]);
+        } else {
+            showToast("Awal surat.", "info");
+        }
+    }, [playingAyahId, verses, playAyahById, showToast]);
+
+    const togglePlayPause = useCallback(() => {
+        if (isPlaying) {
+            stopAudio();
+        } else {
+            if (playingAyahId) {
+                const ayah = verses.find(v => v.id === playingAyahId);
+                if(ayah) playAyahById(ayah);
             }
-        };
-    }, [playingAyahId, verses, hasMore, stopAudio, loadNextPage, playAyahById, showToast]);
+        }
+    }, [isPlaying, playingAyahId, stopAudio, verses, playAyahById]);
+
+    useEffect(() => {
+        nextAyahHandler.current = handleNextTrack;
+    }, [handleNextTrack]);
 
     // --- LAST READ SAVER ---
     useEffect(() => {
@@ -117,7 +135,7 @@ const MushafApp: React.FC = () => {
                     timestamp: Date.now()
                 });
             }
-        }, 1000); // Debounce save
+        }, 1000);
         
         return () => clearTimeout(saveTimeout);
     }, [visibleRange.startIndex, selectedSurahId, verses, setLastRead]);
@@ -125,39 +143,31 @@ const MushafApp: React.FC = () => {
     // --- INIT VIEW & HANDLE JUMP ---
     useEffect(() => {
         if (selectedSurahId) {
-            // Logic: Always load first page to ensure state is fresh (reset=true)
-            // If pendingJumpAyah exists, we chain the loadUntilAyah
-            
             const initReader = async () => {
-                // 1. Reset and load first page (Standard Init)
                 await loadVerses(1, true);
                 setVisibleRange({ startIndex: 0, endIndex: 0 });
                 setJumpAyahInput(""); 
 
-                // 2. Check for Pending Jump (e.g. from Last Read)
                 if (pendingJumpAyah) {
                     showToast(`Melompat ke ayat ${pendingJumpAyah}...`, 'info');
                     try {
-                        // Check if target is outside page 1 (assuming 10 verses per page)
                         if (pendingJumpAyah > 10) {
                             await loadUntilAyah(pendingJumpAyah);
                         }
                         
-                        // Scroll after small delay to allow DOM render
                         setTimeout(() => {
                             virtuosoRef.current?.scrollToIndex({ 
                                 index: pendingJumpAyah - 1, 
                                 align: 'start', 
                                 behavior: 'auto' 
                             });
-                            setPendingJumpAyah(null); // Reset trigger
+                            setPendingJumpAyah(null);
                         }, 300);
                     } catch (err) {
                         console.error(err);
                         showToast("Gagal memuat posisi terakhir.", "error");
                     }
                 } else {
-                    // Standard scroll to top
                     setTimeout(() => {
                         virtuosoRef.current?.scrollToIndex({ index: 0, align: 'start' });
                     }, 50);
@@ -166,9 +176,8 @@ const MushafApp: React.FC = () => {
 
             initReader();
         }
-    }, [selectedSurahId]); // Dependencies: Runs when ID changes. pendingJumpAyah is captured via closure/state flow.
+    }, [selectedSurahId]);
 
-    // Focus input when modal opens
     useEffect(() => {
         if (isJumpModalOpen && jumpInputRef.current) {
             setTimeout(() => jumpInputRef.current?.focus(), 100);
@@ -203,7 +212,6 @@ const MushafApp: React.FC = () => {
         }
     };
 
-    // Helpers
     const currentSurah = useMemo(() => SURAH_DATA.find(s => s.number === selectedSurahId), [selectedSurahId]);
     
     const progressPercent = useMemo(() => {
@@ -274,7 +282,6 @@ const MushafApp: React.FC = () => {
         setKamusData({ type: 'word', data: word, nextWordText, isEndAyah });
     }, []);
 
-    // --- VIEW: SURAH LIST ---
     if (!selectedSurahId || !currentSurah) {
         return (
             <SurahSelection 
@@ -282,8 +289,8 @@ const MushafApp: React.FC = () => {
                 onSelectSurah={setSelectedSurahId} 
                 onJumpToLastRead={() => {
                     if(lastRead) {
-                        setPendingJumpAyah(lastRead.ayahNumber); // Set trigger
-                        setSelectedSurahId(lastRead.surahId);    // Change view to trigger effect
+                        setPendingJumpAyah(lastRead.ayahNumber); 
+                        setSelectedSurahId(lastRead.surahId);
                     }
                 }}
             />
@@ -292,75 +299,58 @@ const MushafApp: React.FC = () => {
 
     const activePlayingAyah = playingAyahId ? verses.find(v => v.id === playingAyahId) : null;
 
-    // --- VIEW: READER ---
     return (
-        <div className="fixed inset-0 z-50 bg-white dark:bg-slate-950 flex flex-col animate-fade-in select-none">
-            {/* Vertical Progress Ribbon (Left Side) */}
-            <div className="fixed left-0 top-[calc(4rem+env(safe-area-inset-top))] bottom-0 w-1.5 z-20 bg-slate-100 dark:bg-slate-800/50 pointer-events-none">
+        // Update z-index to 60 to stay above Main Header (z-50)
+        <div className="fixed inset-0 z-[60] bg-white dark:bg-slate-950 flex flex-col animate-fade-in select-none">
+            {/* Progress Ribbon */}
+            <div className="fixed left-0 top-[calc(4rem+env(safe-area-inset-top))] bottom-0 w-1 z-20 bg-slate-100 dark:bg-slate-800/50 pointer-events-none">
                 <div 
-                    className="relative w-full bg-teal-500 transition-all duration-500 ease-out rounded-b-full"
+                    className="relative w-full bg-teal-500 transition-all duration-500 ease-out rounded-b-full opacity-80"
                     style={{ height: `${progressPercent}%` }}
-                >
-                    {/* Bead/Tip for Bookmark effect */}
-                    <div className="absolute -bottom-1.5 -left-0.5 w-2.5 h-2.5 bg-teal-400 rounded-full shadow-[0_0_10px_rgba(20,184,166,0.8)] border border-teal-200 dark:border-teal-900"></div>
-                </div>
+                ></div>
             </div>
 
-            {/* Navigation Bar */}
-            <div className="sticky top-0 z-30 bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800 pt-[env(safe-area-inset-top)]">
-                <div className="flex justify-between items-center px-4 py-3 max-w-5xl mx-auto w-full pl-6 md:pl-4">
+            {/* Navigation Header */}
+            <div className="sticky top-0 z-30 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800 pt-[env(safe-area-inset-top)]">
+                <div className="flex justify-between items-center px-4 py-3 max-w-3xl mx-auto w-full">
                     <button 
                         onClick={() => { stopAudio(); setSelectedSurahId(null); setPendingJumpAyah(null); }}
-                        className="flex items-center gap-3 group"
+                        className="flex items-center gap-3 group p-1 pr-4 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all"
                     >
-                        <div className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 group-hover:text-teal-600 transition-colors icon-wrapper w-10 h-10 flex items-center justify-center">
+                        <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-white dark:group-hover:bg-slate-700 group-hover:shadow-sm transition-all icon-wrapper w-8 h-8 flex items-center justify-center">
                             <FaArrowLeft />
                         </div>
                         <div>
-                            <h1 className="font-bold text-base text-slate-800 dark:text-white leading-tight">{currentSurah.name}</h1>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                            <h1 className="font-bold text-base text-slate-800 dark:text-white leading-none">{currentSurah.name}</h1>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-1 uppercase tracking-wide">
                                 {currentVisibleAyahNumber ? `Ayat ${currentVisibleAyahNumber}` : 'Memuat...'}
                             </p>
                         </div>
                     </button>
 
-                    <div className="flex items-center gap-2">
-                        {/* Desktop Jump Input */}
-                        <form onSubmit={handleJumpToAyah} className="relative hidden sm:block">
-                            <input 
-                                type="number" 
-                                placeholder="Ke Ayat..." 
-                                className="w-28 pl-3 pr-2 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl text-sm focus:ring-2 focus:ring-teal-500 outline-none transition-all"
-                                value={jumpAyahInput}
-                                onChange={(e) => setJumpAyahInput(e.target.value)}
-                                disabled={isJumping}
-                            />
-                        </form>
-
-                        {/* Mobile Jump Trigger */}
+                    <div className="flex items-center gap-1">
                         <button 
                             onClick={() => setIsJumpModalOpen(true)}
-                            className="sm:hidden p-2.5 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors icon-wrapper w-10 h-10 flex items-center justify-center"
+                            className="p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                             aria-label="Loncat ke Ayat"
+                            title="Loncat ke Ayat"
                         >
-                            <FaHashtag />
+                            <div className="icon-wrapper w-4 h-4"><FaHashtag /></div>
                         </button>
 
-                        {/* Help Trigger */}
                         <button
                             onClick={() => setIsHelpOpen(true)}
-                            className="p-2.5 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors icon-wrapper w-10 h-10 flex items-center justify-center"
+                            className="p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                             aria-label="Bantuan"
                         >
-                            <FaQuestionCircle />
+                            <div className="icon-wrapper w-4 h-4"><FaQuestionCircle /></div>
                         </button>
 
-                        {/* Settings Trigger */}
                         <button
                             onClick={() => setIsSettingsOpen(true)}
-                            className="p-2.5 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors icon-wrapper w-10 h-10 flex items-center justify-center"
+                            className="p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                         >
-                            <FaCog />
+                            <div className="icon-wrapper w-4 h-4"><FaCog /></div>
                         </button>
                     </div>
                 </div>
@@ -389,12 +379,18 @@ const MushafApp: React.FC = () => {
                 onLongPressWord={handleLongPressWord}
             />
 
-            {/* Sticky Player */}
+            {/* Floating Sticky Player (New Dock Design) */}
             {isPlaying && activePlayingAyah && !wordMode && (
                 <MushafStickyPlayer
                     surahName={currentSurah.name}
+                    surahNumber={currentSurah.number}
                     ayahNumber={activePlayingAyah.verse_number}
-                    onStop={() => stopAudio()}
+                    isPlaying={isPlaying}
+                    progress={progress}
+                    onTogglePlay={togglePlayPause}
+                    onNext={handleNextTrack}
+                    onPrev={handlePrevTrack}
+                    onClose={() => stopAudio()}
                 />
             )}
 
@@ -414,7 +410,7 @@ const MushafApp: React.FC = () => {
                 <MushafHelpModal onClose={closeHelp} />
             )}
 
-            {/* Mobile Jump Modal */}
+            {/* Unified Jump Modal */}
             {isJumpModalOpen && (
                 <Modal isOpen={true} onClose={() => setIsJumpModalOpen(false)} title="Loncat ke Ayat" maxWidth="max-w-sm">
                     <div className="p-6">

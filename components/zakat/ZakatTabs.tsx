@@ -4,7 +4,6 @@ import type { ZakatState, ZakatSettings, ZakatResult, ZakatHistoryEntry } from '
 import { ZakatInputField } from './ZakatInputField.tsx';
 import { NisabStatus } from './NisabStatus.tsx';
 import { formatCurrency } from '../../utils.ts';
-import { exportZakatToPdf } from '../../services/pdf.service.ts';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { FaCheck, FaSave, FaFilePdf, FaHistory, FaArrowRight, FaListAlt } from 'react-icons/fa';
 
@@ -262,12 +261,11 @@ interface SummaryProps {
     onDownloadPDF: () => void;
     onClearHistory: () => void;
     onLoadHistory: (entry: ZakatHistoryEntry) => void;
-    receiptRef: React.RefObject<HTMLDivElement>;
 }
 
 const SUMMARY_COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#6366f1'];
 
-export const SummaryView: React.FC<SummaryProps> = ({ result, state, history, onSaveHistory, onDownloadPDF, onClearHistory, onLoadHistory, receiptRef }) => {
+export const SummaryView: React.FC<SummaryProps> = ({ result, state, history, onSaveHistory, onDownloadPDF, onClearHistory, onLoadHistory }) => {
     if (!result) return null;
 
     const chartData = [
@@ -299,7 +297,7 @@ export const SummaryView: React.FC<SummaryProps> = ({ result, state, history, on
                 </div>
             </div>
             
-            <div ref={receiptRef} className="bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm print:shadow-none print:border-black">
+            <div className="bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm print:shadow-none print:border-black">
                 <div className="border-b-2 border-emerald-500 pb-4 mb-6 flex justify-between items-center">
                     <div>
                         <h3 className="text-2xl md:text-3xl font-extrabold text-emerald-800 dark:text-emerald-400 tracking-tight">NIZAMY</h3>

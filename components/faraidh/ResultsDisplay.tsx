@@ -1,10 +1,10 @@
 
-import React, { useRef } from 'react';
+import React from 'react';
 import type { CalculationResult } from '../../types.ts';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Label } from 'recharts';
 import { FIQH_DEFINITIONS } from '../../constants.ts';
 import { formatCurrency } from '../../utils.ts';
-import { exportToPdf } from '../../services/pdf.service.ts';
+import { exportFaraidhPdf } from '../../services/pdf.service.ts';
 import { InfoTooltip, ResultCard, CustomChartTooltip } from './FaraidhUI.tsx';
 import { FaFilePdf, FaExclamationCircle, FaCalculator } from 'react-icons/fa';
 
@@ -18,8 +18,7 @@ interface ResultsDisplayProps {
 }
 
 export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
-  const resultsRef = useRef<HTMLDivElement>(null);
-
+  
   if (!result) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[300px] lg:h-[600px] bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 p-8 text-center transition-colors sticky top-24">
@@ -30,7 +29,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
         </div>
         <h3 className="text-2xl font-bold text-slate-700 dark:text-slate-200">Menunggu Input</h3>
         <p className="text-slate-500 dark:text-slate-400 mt-2 leading-relaxed text-sm max-w-xs mx-auto">
-            Isi data ahli waris di sebelah kiri, lalu klik tombol <span className="font-semibold text-blue-600 dark:text-blue-400">Hitung Pembagian</span>.
+            Isi data ahli waris di sebelah kiri, lalu klik tombol <span className="font-semibold text-blue-600 dark:text-blue-400">Hitung Waris</span>.
         </p>
       </div>
     );
@@ -56,7 +55,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
   const hasReceivingHeirs = chartData.length > 0;
 
   return (
-    <div ref={resultsRef} className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl shadow-blue-100/20 dark:shadow-none border border-slate-100 dark:border-slate-700 relative transition-colors">
+    <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl shadow-blue-100/20 dark:shadow-none border border-slate-100 dark:border-slate-700 relative transition-colors">
       <div className="p-5 border-b border-slate-100 dark:border-slate-700 bg-gradient-to-b from-slate-50 to-white dark:from-slate-800 dark:to-slate-800 flex justify-between items-center rounded-t-3xl">
             <div>
                 <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center">
@@ -66,8 +65,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
                 <p className="text-xs text-slate-500 dark:text-slate-400 ml-4">Asal Masalah: {result.aslAlMasalah} &rarr; {result.finalDenominator}</p>
             </div>
             <button 
-                data-html2canvas-ignore="true"
-                onClick={() => exportToPdf(resultsRef, result)} 
+                onClick={() => exportFaraidhPdf(result)} 
                 className="flex items-center px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors shadow-sm"
             >
                 <span className="icon-wrapper w-4 h-4 mr-1.5 text-red-500"><FaFilePdf /></span>

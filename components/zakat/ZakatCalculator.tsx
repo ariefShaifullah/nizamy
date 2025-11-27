@@ -5,7 +5,7 @@ import { calculateTotalZakat } from '../../services/zakat.service.ts';
 import { formatNumber, formatCurrency } from '../../utils.ts';
 import { FAQ } from '../FAQ.tsx';
 import { ZAKAT_FAQ } from '../../constants.ts';
-import { exportZakatToPdf } from '../../services/pdf.service.ts';
+import { exportZakatPdf } from '../../services/pdf.service.ts';
 import { zakatReducer, initialZakatState } from '../../reducers/zakatReducer.ts';
 import { useLocalStorage } from '../../hooks/useLocalStorage.ts';
 import { useToast } from '../ui/Toast.tsx';
@@ -64,7 +64,6 @@ const ZakatCalculator: React.FC = () => {
     }, [state, settings]);
 
     const [showSettings, setShowSettings] = useState(false);
-    const receiptRef = useRef<HTMLDivElement>(null);
     const navRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -151,10 +150,8 @@ const ZakatCalculator: React.FC = () => {
     }
 
     const handleDownloadPDF = () => {
-        if (receiptRef.current) {
-            exportZakatToPdf(receiptRef, `Kwitansi_Zakat_NIZAMY_${new Date().toISOString().split('T')[0]}.pdf`);
-            showToast("Mengunduh PDF...", 'info');
-        }
+        exportZakatPdf(result, state);
+        showToast("Mengunduh PDF...", 'info');
     };
 
     return (
@@ -266,7 +263,6 @@ const ZakatCalculator: React.FC = () => {
                             onDownloadPDF={handleDownloadPDF}
                             onClearHistory={handleClearHistory}
                             onLoadHistory={handleLoadHistory}
-                            receiptRef={receiptRef}
                         />
                     )}
                 </div>

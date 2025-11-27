@@ -510,7 +510,7 @@ export const BADGES = [
     id: "waqiah_provider",
     name: "Ahli Waqiah",
     description: "Mulai menghafal Surat Al-Waqi'ah",
-    icon: "💰",
+    icon: "🌋",
   },
   {
     id: "rahman_lover",

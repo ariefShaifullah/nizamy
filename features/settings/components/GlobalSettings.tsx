@@ -155,7 +155,7 @@ export const GlobalSettings: React.FC<GlobalSettingsProps> = ({ isOpen, onClose 
                     
                     <div className="text-center text-[10px] text-slate-400 dark:text-slate-500">
                         <p>NIZAMY Version 1.8.7</p>
-                        <p>Storage Engine: IndexedDB (Async)</p>
+                        <p>Storage Usage: {((JSON.stringify(localStorage).length / 1024)).toFixed(2)} KB</p>
                     </div>
                 </div>
             </Modal>

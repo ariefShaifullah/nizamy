@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+// @ts-ignore
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext.tsx';
 import { GlobalSettings } from '../../features/settings/components/GlobalSettings.tsx';
@@ -30,6 +31,9 @@ export const Header: React.FC = () => {
     } else if (location.pathname.includes('/mushaf')) {
         titleColor = 'text-teal-600 dark:text-teal-400';
         subtitle = 'Mushaf & Kamus Tajwid';
+    } else if (location.pathname.includes('/hede')) {
+        titleColor = 'text-purple-600 dark:text-purple-400';
+        subtitle = 'H.E.D.E (Audit Halal)';
     }
 
     // Helper for Logo Masking

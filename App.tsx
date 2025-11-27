@@ -1,6 +1,7 @@
 
 import React, { useEffect, Suspense, useMemo } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+// @ts-ignore
+import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { Home } from './features/home/Home.tsx';
 import { Header, Footer } from './components/layout/Layout.tsx';
 import { useToast } from './components/ui/Toast.tsx';
@@ -13,6 +14,7 @@ const FaraidhCalculator = React.lazy(() => import('./features/faraidh/FaraidhCal
 const ZakatCalculator = React.lazy(() => import('./features/zakat/ZakatCalculator.tsx'));
 const HafalanTracker = React.lazy(() => import('./features/hafalan/HafalanTracker.tsx'));
 const MushafApp = React.lazy(() => import('./features/mushaf/MushafApp.tsx'));
+const HedeApp = React.lazy(() => import('./features/hede/HedeApp.tsx'));
 
 // Loading Fallback Component
 const PageLoader = () => (
@@ -33,7 +35,8 @@ const PageLoader = () => (
   </div>
 );
 
-export default function App() {
+// Inner Component to use hooks that require Router context
+const AppContent = () => {
   const location = useLocation();
   const { showToast } = useToast();
   const { needRefresh, updateServiceWorker } = usePWA();
@@ -62,6 +65,7 @@ export default function App() {
       if (path.includes('/faraidh')) return `${base} selection:bg-blue-200 selection:text-blue-900`;
       if (path.includes('/hafalan')) return `${base} selection:bg-indigo-200 selection:text-indigo-900`;
       if (path.includes('/mushaf')) return `${base} selection:bg-teal-200 selection:text-teal-900`;
+      if (path.includes('/hede')) return `${base} selection:bg-purple-200 selection:text-purple-900`;
       
       return base;
   }, [location.pathname]);
@@ -98,11 +102,20 @@ export default function App() {
             <Route path="/zakat" element={<ZakatCalculator />} />
             <Route path="/hafalan" element={<HafalanTracker />} />
             <Route path="/mushaf" element={<MushafApp />} />
+            <Route path="/hede" element={<HedeApp />} />
             <Route path="*" element={<Home />} /> {/* Fallback */}
           </Routes>
         </Suspense>
       </main>
       <Footer />
     </div>
+  );
+};
+
+export default function App() {
+  return (
+    <HashRouter>
+      <AppContent />
+    </HashRouter>
   );
 }

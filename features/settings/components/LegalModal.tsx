@@ -44,158 +44,84 @@ const ListItem: React.FC<{ title: string; children: React.ReactNode }> = ({ titl
 );
 
 const TermsContent = () => (
-  <div className="space-y-3">
-    <p className="text-xs text-slate-500">Terakhir Diperbarui: November 2025</p>
-    <p>
-      Selamat datang di <strong>NIZAMY</strong>. Dengan mengakses atau
-      menggunakan Aplikasi ini, Anda dianggap telah menyetujui Syarat dan
-      Ketentuan ini.
-    </p>
+    <div className="space-y-3">
+        <p className="text-xs text-slate-500">Terakhir Diperbarui: November 2025</p>
+        <p>Selamat datang di <strong>NIZAMY</strong>. Aplikasi ini menyediakan alat bantu ibadah (Kalkulator Zakat, Waris, Hafalan Quran, dan H.E.D.E). Dengan menggunakan aplikasi ini, Anda menyetujui ketentuan berikut:</p>
 
-    <SectionTitle>1. Definisi</SectionTitle>
-    <ul className="list-disc pl-5 space-y-1">
-      <li>
-        <strong>"Aplikasi"</strong> merujuk pada perangkat lunak NIZAMY (Web &
-        PWA).
-      </li>
-      <li>
-        <strong>"Pengguna"</strong> merujuk pada individu yang mengakses
-        Aplikasi.
-      </li>
-    </ul>
+        <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg border border-amber-200 dark:border-amber-800 my-4 text-xs md:text-sm">
+            <SectionTitle>1. Penafian Penting (Important Disclaimer)</SectionTitle>
+            <ul className="list-disc pl-5 space-y-2 text-amber-900 dark:text-amber-100 mt-2">
+                <li><strong>Alat Bantu, Bukan Fatwa:</strong> Semua hasil perhitungan dan diagnosa dalam aplikasi ini adalah <strong>estimasi</strong> berdasarkan algoritma dan kaidah umum (Jumhur Ulama). Hasil ini <strong>TIDAK</strong> menggantikan fatwa resmi ulama, keputusan pengadilan agama, atau nasihat hukum profesional.</li>
+                <li><strong>Tanggung Jawab Pengguna:</strong> Anda bertanggung jawab penuh atas keakuratan data yang dimasukkan dan keputusan (finansial/hukum) yang diambil berdasarkan hasil aplikasi. Kami tidak bertanggung jawab atas kerugian yang timbul.</li>
+                <li><strong>Verifikasi Wajib:</strong> Untuk kasus sensitif seperti pembagian waris yang kompleks, sengketa harta, atau keputusan besar (resign kerja/jual aset), <strong>WAJIB</strong> berkonsultasi langsung (Talaqqi) dengan ahli ilmu terpercaya.</li>
+            </ul>
+        </div>
 
-    <SectionTitle>2. Penafian Agama dan Hukum</SectionTitle>
-    <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg border border-amber-100 dark:border-amber-800 mb-4">
-      <p className="font-bold text-amber-800 dark:text-amber-200 mb-2">
-        PENTING:
-      </p>
-      <ul className="list-disc pl-5 space-y-2 text-amber-900 dark:text-amber-100">
-        <li>
-          <strong>Bukan Fatwa Resmi:</strong> Hasil perhitungan Waris dan Zakat
-          bersifat estimasi dan tidak menggantikan fatwa ulama atau putusan
-          pengadilan agama.
-        </li>
-        <li>
-          <strong>Teks Al-Quran:</strong> Kami menggunakan data digital dari API
-          publik terpercaya. Jika menemukan ketidaksesuaian, harap merujuk
-          kembali pada Mushaf cetak standar.
-        </li>
-        <li>
-          <strong>Pembebasan Tanggung Jawab:</strong> Kami tidak bertanggung
-          jawab atas sengketa yang timbul akibat ketergantungan mutlak pada
-          aplikasi ini.
-        </li>
-      </ul>
+        <SectionTitle>2. Ketentuan Layanan Per Fitur</SectionTitle>
+        <ul className="list-disc pl-5 space-y-3">
+            <li>
+                <strong>Kalkulator Waris (Faraidh):</strong> Menggunakan metode Syafi'iyah/Jumhur. Tidak mencakup kasus langka (seperti banci/khuntsa, hilang/mafqud, atau janin) yang memerlukan putusan hakim.
+            </li>
+            <li>
+                <strong>Kalkulator Zakat:</strong> Perhitungan menggunakan asumsi harga emas/beras standar pasar. Pengguna disarankan menyesuaikan dengan harga aktual di daerah masing-masing saat pembayaran.
+            </li>
+            <li>
+                <strong>H.E.D.E (Audit Halal):</strong> Fitur ini adalah alat <em>self-assessment</em> (diagnosa mandiri). Status "Kritis", "Syubhat", atau "Aman" adalah indikator teknis sistem, bukan vonis hukum syara' mutlak terhadap individu.
+            </li>
+            <li>
+                <strong>Al-Quran & Hafalan:</strong> Teks ayat diambil dari API publik. Jika menemukan kesalahan penulisan, mohon merujuk pada Mushaf Utsmani cetak. Fitur audio streaming menggunakan kuota data internet Anda.
+            </li>
+        </ul>
+
+        <SectionTitle>3. Adab & Penggunaan</SectionTitle>
+        <p>Pengguna diharapkan menggunakan aplikasi ini untuk tujuan kebaikan, ibadah, dan edukasi. Dilarang menyalahgunakan konten Al-Quran atau memanipulasi hasil perhitungan untuk tujuan penipuan.</p>
+
+        <SectionTitle>4. Hak Kekayaan Intelektual</SectionTitle>
+        <p>Kode sumber, desain antarmuka, dan algoritma NIZAMY dilindungi hak cipta. Penggunaan untuk tujuan komersial tanpa izin adalah dilarang.</p>
+        <SectionTitle>5. Kontak</SectionTitle>
+        <p>
+          Jika ada pertanyaan, silakan hubungi kami melalui email:{" "}
+          <strong>aryan@nizamy.com</strong>.
+        </p>
     </div>
-
-    <SectionTitle>3. Penggunaan Mushaf & Audio</SectionTitle>
-    <ul className="list-disc pl-5 space-y-1">
-      <li>
-        Fitur pemutaran audio (streaming) dapat mengonsumsi kuota data internet
-        Anda.
-      </li>
-      <li>
-        Fitur analisis tajwid adalah algoritma bantu belajar dan bukan pengganti
-        guru (Talaqqi).
-      </li>
-      <li>
-        Pengguna diharapkan menjaga adab saat berinteraksi dengan konten ayat
-        suci di layar.
-      </li>
-    </ul>
-
-    <SectionTitle>4. Privasi & Data</SectionTitle>
-    <p>
-      Kami menerapkan prinsip <strong>Local-First</strong>. Seluruh data
-      (profil, harta, progres hafalan) disimpan di perangkat Anda (Local
-      Storage) dan <strong>tidak dikirim</strong> ke server kami. Kehilangan
-      data akibat penghapusan cache browser atau uninstall aplikasi adalah
-      tanggung jawab pengguna.
-    </p>
-
-    <SectionTitle>5. Hak Kekayaan Intelektual</SectionTitle>
-    <p>
-      Kode sumber dan desain NIZAMY dilindungi hak cipta. Aplikasi menggunakan
-      layanan pihak ketiga (Quran.com, EveryAyah, Aladhan) yang hak cipta
-      datanya milik penyedia masing-masing.
-    </p>
-
-    <SectionTitle>6. Hukum yang Berlaku</SectionTitle>
-    <p>Ketentuan ini diatur oleh hukum Republik Indonesia.</p>
-
-    <SectionTitle>7. Kontak</SectionTitle>
-    <p>
-      Jika Anda memiliki pertanyaan mengenai Syarat dan Ketentuan ini, silakan
-      hubungi kami melalui email: <strong>aryan@nizamy.com</strong>.
-    </p>
-  </div>
 );
 
 const PrivacyContent = () => (
-  <div className="space-y-3">
-    <p className="text-xs text-slate-500">Terakhir Diperbarui: November 2025</p>
-    <p>
-      Di <strong>NIZAMY</strong>, privasi Anda adalah prioritas. Kami
-      menggunakan prinsip <strong>Data Minimization</strong>.
-    </p>
+    <div className="space-y-3">
+        <p className="text-xs text-slate-500">Terakhir Diperbarui: November 2025</p>
+        <p>Di <strong>NIZAMY</strong>, kami menerapkan prinsip <em>Privacy by Design</em>. Kami menghormati privasi ibadah dan data keuangan Anda.</p>
 
-    <SectionTitle>1. Informasi yang Kami Kumpulkan</SectionTitle>
-    <ul className="list-disc pl-5 space-y-2">
-      <ListItem title="Data Lokal:">
-        Data profil, keluarga, harta, dan progres hafalan disimpan secara
-        eksklusif di <em>Local Storage</em> perangkat Anda. Kami tidak memiliki
-        akses ke database ini.
-      </ListItem>
-      <ListItem title="Izin Perangkat:">
-        <ul>
-          <li>
-            <strong>Lokasi:</strong> Hanya diminta sesaat untuk mengambil jadwal
-            sholat sesuai koordinat.
-          </li>
-          <li>
-            <strong>Wake Lock:</strong> Menjaga layar tetap menyala saat Anda
-            membaca Mushaf.
-          </li>
-          <li>
-            <strong>Notifikasi:</strong> Untuk pengingat jadwal murajaah
-            (lokal).
-          </li>
+        <SectionTitle>1. Arsitektur "Local-First" (Data di Tangan Anda)</SectionTitle>
+        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800 mb-2">
+            <p className="text-blue-900 dark:text-blue-100 font-medium">
+                Kami <strong>TIDAK MEMILIKI SERVER DATABASE</strong> untuk menyimpan data pribadi Anda.
+            </p>
+        </div>
+        <p>Seluruh data berikut disimpan secara terenkripsi di dalam memori browser (Local Storage / IndexedDB) perangkat Anda sendiri:</p>
+        <ul className="list-disc pl-5 space-y-1 mt-2">
+            <li>Data keluarga & harta waris.</li>
+            <li>Nominal aset & utang (Zakat/H.E.D.E).</li>
+            <li>Progress hafalan Quran & riwayat murajaah.</li>
+            <li>Jawaban diagnosa ekonomi.</li>
         </ul>
-      </ListItem>
-    </ul>
 
-    <SectionTitle>2. Penggunaan Informasi</SectionTitle>
-    <p>
-      Informasi digunakan semata-mata untuk fungsi internal aplikasi di
-      perangkat Anda: menghitung waris/zakat, melacak hafalan, dan
-      personalisasi.
-    </p>
+        <SectionTitle>2. Pengumpulan Data Teknis</SectionTitle>
+        <p>Kami hanya mengakses data teknis yang diperlukan untuk fungsi aplikasi:</p>
+        <ul className="list-disc pl-5 space-y-1">
+            <li><strong>Lokasi (GPS):</strong> Hanya diminta sesaat untuk menghitung jadwal sholat akurat. Koordinat tidak dikirim ke server kami.</li>
+            <li><strong>IP Address:</strong> Mungkin tercatat secara otomatis oleh penyedia layanan pihak ketiga (seperti CDN Audio Quran) saat Anda memutar audio streaming.</li>
+        </ul>
 
-    <SectionTitle>3. Layanan Pihak Ketiga</SectionTitle>
-    <p>
-      Aplikasi terhubung dengan layanan publik berikut untuk mengambil data:
-    </p>
-    <ul className="list-disc pl-5">
-      <li>
-        <strong>Quran.com & EveryAyah:</strong> Data ayat dan streaming audio.
-        (Penyedia CDN mungkin mencatat IP Address Anda dalam log teknis mereka).
-      </li>
-      <li>
-        <strong>Aladhan:</strong> Data jadwal sholat.
-      </li>
-    </ul>
-
-    <SectionTitle>4. Keamanan & Risiko Data</SectionTitle>
-    <p>
-      Karena data tersimpan di perangkat, keamanannya bergantung pada akses
-      fisik ke perangkat Anda (Gunakan kunci layar). Menghapus cache browser
-      atau uninstall aplikasi akan menghapus data permanen.
-    </p>
-
-    <SectionTitle>5. Kontak</SectionTitle>
-    <p>
-      Jika ada pertanyaan, silakan hubungi kami melalui email:{" "}
-      <strong>aryan@nizamy.com</strong>.
-    </p>
-  </div>
+        <SectionTitle>3. Keamanan & Kehilangan Data</SectionTitle>
+        <ul className="list-disc pl-5 space-y-2">
+            <li><strong>Kontrol Penuh:</strong> Karena data ada di HP Anda, keamanan bergantung pada akses fisik ke perangkat Anda (gunakan PIN/Fingerprint).</li>
+            <li><strong>Risiko Hapus Data:</strong> Menghapus <em>cache</em> browser atau meng-uninstall aplikasi akan <strong>menghapus seluruh data secara permanen</strong>.</li>
+            <li><strong>Solusi Backup:</strong> Gunakan fitur "Backup & Restore" di menu Pengaturan untuk menyimpan data Anda ke file aman secara berkala.</li>
+        </ul>
+        <SectionTitle>4. Kontak</SectionTitle>
+        <p>
+          Jika ada pertanyaan, silakan hubungi kami melalui email:{" "}
+          <strong>aryan@nizamy.com</strong>.
+        </p>
+    </div>
 );

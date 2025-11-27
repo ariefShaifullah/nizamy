@@ -1,16 +1,18 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
+// @ts-ignore
 import { useNavigate } from 'react-router-dom';
 import { usePWA } from '../../hooks/usePWA.ts';
-import { IOSInstallModal } from '../settings/components/IOSInstallModal.tsx';
-import { PrayerWidget } from '../prayer/components/PrayerWidget.tsx';
+import { IOSInstallModal } from '../../features/settings/components/IOSInstallModal.tsx';
+import { PrayerWidget } from '../../features/prayer/components/PrayerWidget.tsx';
 import {
   FaBalanceScale,
   FaHandsHelping,
   FaQuran,
   FaBrain,
   FaChevronRight,
-  FaDownload
+  FaDownload,
+  FaShieldAlt
 } from "react-icons/fa";
 
 interface FeatureItem {
@@ -20,8 +22,9 @@ interface FeatureItem {
     icon: React.ReactNode;
     colorClass: string;
     bgClass: string;
-    borderClass: string;
+    // Removed specific borderClass property to unify contrast logic in component
     path: string;
+    spanClass: string; 
 }
 
 const getDateString = () => {
@@ -31,40 +34,74 @@ const getDateString = () => {
 
 // --- COMPONENT: BENTO CARD ---
 const BentoCard: React.FC<{ feature: FeatureItem; onClick: () => void; delay: number }> = React.memo(({ feature, onClick, delay }) => {
+    const isHero = feature.spanClass.includes('col-span-2');
+
     return (
         <button
             onClick={onClick}
             className={`
-                group relative overflow-hidden w-full h-full min-h-[160px] md:min-h-[200px]
+                group relative overflow-hidden w-full h-full min-h-[160px] md:min-h-[220px]
                 flex flex-col items-start justify-between
-                bg-white dark:bg-slate-800 
                 rounded-[2rem] p-6
-                shadow-sm hover:shadow-xl dark:shadow-none
-                border border-slate-100 dark:border-slate-700
-                hover:border-indigo-100 dark:hover:border-indigo-900
-                active:scale-[0.98] transition-all duration-300
-                animate-fade-in-up
-                backface-hidden
+                transition-all duration-300 ease-out
+                animate-fade-in-up backface-hidden
+                
+                /* Light Mode Contrast Fix: Thicker border & subtle shadow default */
+                bg-white border border-slate-200 shadow-sm 
+                hover:shadow-xl hover:border-indigo-200 hover:-translate-y-1
+                
+                /* Dark Mode */
+                dark:bg-slate-800 dark:border-slate-700 dark:shadow-none 
+                dark:hover:border-indigo-900 dark:hover:bg-slate-800/80
+
+                ${feature.spanClass}
             `}
             style={{ animationDelay: `${delay}ms`, willChange: 'transform' }}
         >
-            {/* Decorative Circle Background */}
-            <div className={`absolute -right-8 -top-8 w-32 h-32 rounded-full opacity-[0.08] transition-transform duration-500 group-hover:scale-125 ${feature.bgClass}`}></div>
+            {/* 1. Dynamic Decorative Background Icon (Replaces Manual SVG) */}
+            <div className={`
+                absolute -right-4 -bottom-6 text-[8rem] md:text-[10rem] 
+                opacity-[0.07] dark:opacity-[0.05] 
+                transform rotate-12 group-hover:rotate-0 group-hover:scale-110 
+                transition-transform duration-700 pointer-events-none
+                ${feature.colorClass}
+            `}>
+                {feature.icon}
+            </div>
             
-            <div className={`relative z-10 w-14 h-14 rounded-2xl flex items-center justify-center text-2xl md:text-3xl mb-4 transition-transform duration-300 group-hover:scale-110 ${feature.bgClass} ${feature.colorClass}`}>
-                <div className="icon-wrapper w-8 h-8 flex items-center justify-center">{feature.icon}</div>
+            {/* 2. Gradient Overlay for Hero Card */}
+            {isHero && (
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-transparent dark:from-indigo-900/10 dark:to-transparent pointer-events-none"></div>
+            )}
+
+            {/* 3. Icon Badge */}
+            <div className={`
+                relative z-10 w-14 h-14 rounded-2xl flex items-center justify-center 
+                text-2xl md:text-3xl mb-4 shadow-sm transition-transform duration-300 group-hover:scale-110
+                ${feature.bgClass} ${feature.colorClass}
+            `}>
+                <div className="icon-wrapper w-7 h-7 flex items-center justify-center">{feature.icon}</div>
             </div>
 
+            {/* 4. Text Content */}
             <div className="relative z-10 text-left w-full">
-                <h3 className="text-lg md:text-xl font-bold text-slate-800 dark:text-slate-100 leading-tight mb-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                <h3 className={`
+                    font-bold text-slate-800 dark:text-slate-100 leading-tight mb-1.5 
+                    group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors
+                    ${isHero ? 'text-xl md:text-3xl' : 'text-lg md:text-xl'}
+                `}>
                     {feature.title}
                 </h3>
-                <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 font-medium opacity-80">
+                <p className={`
+                    font-medium text-slate-500 dark:text-slate-400 
+                    ${isHero ? 'text-sm md:text-base opacity-90' : 'text-xs md:text-sm opacity-80'}
+                `}>
                     {feature.subtitle}
                 </p>
             </div>
 
-            <div className="absolute bottom-6 right-6 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 hidden md:block text-slate-300 dark:text-slate-600">
+            {/* 5. Hover Arrow Indicator */}
+            <div className="absolute top-6 right-6 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 hidden md:block text-slate-300 dark:text-slate-600">
                 <div className="icon-wrapper w-5 h-5"><FaChevronRight /></div>
             </div>
         </button>
@@ -84,13 +121,14 @@ export const Home: React.FC = () => {
   const features: FeatureItem[] = useMemo(() => [
     {
         id: 'mushaf',
-        title: 'Al-Quran',
-        subtitle: 'Baca & Tajwid',
+        title: 'Al-Quran Digital',
+        subtitle: 'Bacaan, Audio & Tajwid',
         icon: <FaQuran />,
         colorClass: 'text-teal-600 dark:text-teal-400',
-        bgClass: 'bg-teal-100 dark:bg-teal-900/30',
-        borderClass: 'border-teal-100 dark:border-teal-900',
-        path: '/mushaf'
+        bgClass: 'bg-teal-50 dark:bg-teal-900/30',
+        path: '/mushaf',
+        // Hero: Full width on Mobile (row 1), 2 cols on Desktop (row 1)
+        spanClass: 'col-span-2 lg:col-span-2'
     },
     {
       id: 'hafalan',
@@ -98,9 +136,10 @@ export const Home: React.FC = () => {
       subtitle: 'Tracker SRS',
       icon: <FaBrain />,
       colorClass: 'text-indigo-600 dark:text-indigo-400',
-      bgClass: 'bg-indigo-100 dark:bg-indigo-900/30',
-      borderClass: 'border-indigo-100 dark:border-indigo-900',
-      path: '/hafalan'
+      bgClass: 'bg-indigo-50 dark:bg-indigo-900/30',
+      path: '/hafalan',
+      // Standard: 1 col on Mobile (row 2), 1 col on Desktop (row 1, end)
+      spanClass: 'col-span-1 lg:col-span-1'
     },
     {
       id: 'zakat',
@@ -108,26 +147,39 @@ export const Home: React.FC = () => {
       subtitle: 'Hitung Zakat',
       icon: <FaHandsHelping />,
       colorClass: 'text-emerald-600 dark:text-emerald-400',
-      bgClass: 'bg-emerald-100 dark:bg-emerald-900/30',
-      borderClass: 'border-emerald-100 dark:border-emerald-900',
-      path: '/zakat'
+      bgClass: 'bg-emerald-50 dark:bg-emerald-900/30',
+      path: '/zakat',
+      // Standard
+      spanClass: 'col-span-1 lg:col-span-1'
     },
     {
       id: 'faraidh',
       title: 'Waris',
-      subtitle: 'Bagi Waris',
+      subtitle: 'Hitung Waris',
       icon: <FaBalanceScale />,
       colorClass: 'text-blue-600 dark:text-blue-400',
-      bgClass: 'bg-blue-100 dark:bg-blue-900/30',
-      borderClass: 'border-blue-100 dark:border-blue-900',
-      path: '/faraidh'
+      bgClass: 'bg-blue-50 dark:bg-blue-900/30',
+      path: '/faraidh',
+      // Standard
+      spanClass: 'col-span-1 lg:col-span-1'
+    },
+    {
+      id: 'hede',
+      title: 'H.E.D.E.',
+      subtitle: 'Diagnosa Halal',
+      icon: <FaShieldAlt />,
+      colorClass: 'text-purple-600 dark:text-purple-400',
+      bgClass: 'bg-purple-50 dark:bg-purple-900/30',
+      path: '/hede',
+      // Standard: Ensures grid is filled nicely (3 items on 2nd row desktop)
+      spanClass: 'col-span-1 lg:col-span-1'
     }
   ], []);
 
   const showInstallBtn = isInstallable || (isIOS && !isStandalone);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-24 md:pb-10 overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-24 md:pb-10 overflow-x-hidden transition-colors duration-500">
       {showIOSGuide && <IOSInstallModal onClose={() => setShowIOSGuide(false)} />}
       
       <style>{`
@@ -143,8 +195,7 @@ export const Home: React.FC = () => {
       `}</style>
 
       {/* --- 1. HERO SECTION (ANIMATED AURORA) --- */}
-      {/* Increased top padding for fixed header */}
-      <div className="relative pt-[calc(env(safe-area-inset-top)+5.5rem)] pb-32 px-6 overflow-hidden shadow-sm group">
+      <div className="relative pt-[calc(env(safe-area-inset-top)+5.5rem)] pb-36 px-6 overflow-hidden shadow-sm group">
           
           {/* Animated Gradient Background */}
           <div className="absolute inset-0 animate-gradient-xy bg-gradient-to-br from-blue-500 via-indigo-500 to-teal-400 dark:from-slate-900 dark:via-indigo-950 dark:to-slate-900 opacity-95 dark:opacity-100 transition-colors duration-1000"></div>
@@ -159,7 +210,7 @@ export const Home: React.FC = () => {
           ></div>
 
           <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-white">
-              <div className="inline-flex items-center gap-2 bg-white/10 dark:bg-white/5 backdrop-blur-md px-4 py-1.5 rounded-full mb-6 border border-white/20 shadow-sm transition-transform hover:scale-105">
+              <div className="inline-flex items-center gap-2 bg-white/10 dark:bg-white/5 backdrop-blur-md px-4 py-1.5 rounded-full mb-6 border border-white/20 shadow-sm transition-transform hover:scale-105 cursor-default">
                 <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
                 <p className="text-xs font-bold tracking-wider uppercase text-white shadow-black/10 drop-shadow-sm">{dateStr}</p>
               </div>
@@ -174,7 +225,7 @@ export const Home: React.FC = () => {
       </div>
 
       {/* --- MAIN CONTENT CONTAINER --- */}
-      <div className="w-full px-4 sm:px-6 lg:px-8 relative z-20 -mt-24">
+      <div className="w-full px-4 sm:px-6 lg:px-8 relative z-20 -mt-28">
           
           {/* --- 2. PRAYER WIDGET --- */}
           <div className="mb-10 max-w-5xl mx-auto transform transition-transform hover:scale-[1.005] duration-500">
@@ -189,13 +240,15 @@ export const Home: React.FC = () => {
                 </h3>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {/* BENTO GRID LAYOUT */}
+            {/* Mobile: 2 cols. Desktop: 3 cols. */}
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 auto-rows-fr">
               {features.map((feature, idx) => (
                 <BentoCard 
                     key={feature.id} 
                     feature={feature} 
                     onClick={() => navigate(feature.path)} 
-                    delay={idx * 75} 
+                    delay={idx * 50} 
                 />
               ))}
             </div>
@@ -233,7 +286,7 @@ export const Home: React.FC = () => {
              <p className="font-arabic text-3xl text-slate-600 dark:text-slate-400 leading-loose drop-shadow-sm group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">فَاسْتَبِقُوا الْخَيْرَاتِ</p>
              <p className="text-sm text-slate-500 dark:text-slate-500 italic">"Berlomba-lombalah dalam kebaikan"</p>
              <div className="text-[10px] text-slate-400 dark:text-slate-600 pt-4 font-mono">
-                NIZAMY v1.8.7 &copy; {new Date().getFullYear()}
+                NIZAMY v1.9.0 &copy; {new Date().getFullYear()}
              </div>
           </div>
       </div>

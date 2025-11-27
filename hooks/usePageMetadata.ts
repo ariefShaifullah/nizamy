@@ -1,5 +1,6 @@
 
 import { useEffect } from 'react';
+// @ts-ignore
 import { useLocation } from 'react-router-dom';
 
 export const usePageMetadata = () => {
@@ -23,6 +24,9 @@ export const usePageMetadata = () => {
     } else if (path.includes('/mushaf')) {
         title = `${baseTitle} | Mushaf Digital & Kamus Tajwid`;
         themeColor = "#0d9488"; // Teal
+    } else if (path.includes('/hede')) {
+        title = `${baseTitle} | H.E.D.E (Audit Halal)`;
+        themeColor = "#7e22ce"; // Purple
     } else {
         title = `${baseTitle}: Aplikasi Ibadah Islam (Waris, Zakat, Hafalan)`;
         themeColor = "#4f46e5";

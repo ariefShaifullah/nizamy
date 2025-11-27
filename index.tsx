@@ -1,7 +1,6 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { HashRouter } from 'react-router-dom';
 import App from './App.tsx';
 import { ThemeProvider } from './context/ThemeContext.tsx';
 import { ToastProvider } from './components/ui/Toast.tsx';
@@ -44,9 +43,7 @@ root.render(
       <ToastProvider>
         <ConfirmProvider>
           <ErrorBoundary>
-            <HashRouter>
-              <App />
-            </HashRouter>
+            <App />
           </ErrorBoundary>
         </ConfirmProvider>
       </ToastProvider>

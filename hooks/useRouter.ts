@@ -1,8 +1,9 @@
 
+// @ts-ignore
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useMemo } from 'react';
 
-export type ViewState = 'home' | 'faraidh' | 'zakat' | 'hafalan' | 'mushaf';
+export type ViewState = 'home' | 'faraidh' | 'zakat' | 'hafalan' | 'mushaf' | 'hede';
 
 /**
  * Modern useRouter hook that wraps react-router-dom (v6).
@@ -20,7 +21,7 @@ export const useRouter = () => {
     if (!path) return 'home';
     
     // Validate known routes
-    if (['faraidh', 'zakat', 'hafalan', 'mushaf'].includes(path)) {
+    if (['faraidh', 'zakat', 'hafalan', 'mushaf', 'hede'].includes(path)) {
       return path as ViewState;
     }
     return 'home';

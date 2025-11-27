@@ -1,18 +1,18 @@
 
-import React, { useEffect, Suspense } from 'react';
+import React, { useEffect, Suspense, useMemo } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { Home } from './components/Home.tsx';
-import { Header, Footer } from './components/Layout.tsx';
+import { Home } from './features/home/Home.tsx';
+import { Header, Footer } from './components/layout/Layout.tsx';
 import { useToast } from './components/ui/Toast.tsx';
 import { usePWA } from './hooks/usePWA.ts';
 import { usePageMetadata } from './hooks/usePageMetadata.ts';
 import { OfflineBanner } from './components/ui/OfflineBanner.tsx';
 
-// Lazy Load Components
-const FaraidhCalculator = React.lazy(() => import('./components/faraidh/FaraidhCalculator.tsx'));
-const ZakatCalculator = React.lazy(() => import('./components/zakat/ZakatCalculator.tsx'));
-const HafalanTracker = React.lazy(() => import('./components/hafalan/HafalanTracker.tsx'));
-const MushafApp = React.lazy(() => import('./components/mushaf/MushafApp.tsx'));
+// Lazy Load Components (Feature-Based)
+const FaraidhCalculator = React.lazy(() => import('./features/faraidh/FaraidhCalculator.tsx'));
+const ZakatCalculator = React.lazy(() => import('./features/zakat/ZakatCalculator.tsx'));
+const HafalanTracker = React.lazy(() => import('./features/hafalan/HafalanTracker.tsx'));
+const MushafApp = React.lazy(() => import('./features/mushaf/MushafApp.tsx'));
 
 // Loading Fallback Component
 const PageLoader = () => (
@@ -53,19 +53,25 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [location.pathname]);
 
-  // Base text color helper
-  const getLayoutClass = () => {
+  // Memoize layout class to prevent recalculation on every render
+  const layoutClass = useMemo(() => {
       const path = location.pathname;
-      let base = 'min-h-screen font-sans flex flex-col text-slate-800 dark:text-slate-100 transition-colors duration-300';
-      if (path.includes('/zakat')) base += ' selection:bg-emerald-200 selection:text-emerald-900';
-      else if (path.includes('/faraidh')) base += ' selection:bg-blue-200 selection:text-blue-900';
-      else if (path.includes('/hafalan')) base += ' selection:bg-indigo-200 selection:text-indigo-900';
-      else if (path.includes('/mushaf')) base += ' selection:bg-teal-200 selection:text-teal-900';
+      const base = 'min-h-screen font-sans flex flex-col text-slate-800 dark:text-slate-100 transition-colors duration-300';
+      
+      if (path.includes('/zakat')) return `${base} selection:bg-emerald-200 selection:text-emerald-900`;
+      if (path.includes('/faraidh')) return `${base} selection:bg-blue-200 selection:text-blue-900`;
+      if (path.includes('/hafalan')) return `${base} selection:bg-indigo-200 selection:text-indigo-900`;
+      if (path.includes('/mushaf')) return `${base} selection:bg-teal-200 selection:text-teal-900`;
+      
       return base;
-  }
+  }, [location.pathname]);
+
+  const mainPaddingClass = location.pathname === '/' 
+    ? 'flex-grow' 
+    : 'container mx-auto px-4 py-4 md:py-8 flex-grow pt-[calc(6rem+env(safe-area-inset-top))] md:pt-[calc(8rem+env(safe-area-inset-top))]';
 
   return (
-    <div className={getLayoutClass()}>
+    <div className={layoutClass}>
       <OfflineBanner />
       <Header />
       
@@ -84,14 +90,7 @@ export default function App() {
         </div>
       )}
 
-      <main 
-        className={location.pathname === '/' 
-            ? 'flex-grow' 
-            // FIX: Increased padding-top significantly for inner pages to clear Fixed Header on Desktop
-            // Mobile: pt-24 (6rem), Desktop: pt-28 (7rem) or pt-32 (8rem) depending on preference
-            : 'container mx-auto px-4 py-4 md:py-8 flex-grow pt-[calc(6rem+env(safe-area-inset-top))] md:pt-[calc(8rem+env(safe-area-inset-top))]'
-        }
-      >
+      <main className={mainPaddingClass}>
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<Home />} />

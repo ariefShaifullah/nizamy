@@ -1,6 +1,6 @@
 
-export * from './types/faraidh.ts';
-export * from './types/zakat.ts';
-export * from './types/hafalan.ts';
-export * from './types/prayer.ts';
-export * from './types/mushaf.ts';
+export * from './features/faraidh/types.ts';
+export * from './features/zakat/types.ts';
+export * from './features/hafalan/types.ts';
+export * from './features/prayer/types.ts';
+export * from './features/mushaf/types.ts';

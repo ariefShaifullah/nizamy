@@ -1,6 +1,21 @@
 
-import type { HedeResult, RiskFactor, ActionStep, CategoryScore, HedeCategory, RiskLevel } from '../../../types.ts';
+import type { HedeResult, RiskFactor, ActionStep, CategoryScore, HedeCategory, RiskLevel, Question } from '../../../types.ts';
 import { QUESTIONS_DB } from '../constants.ts';
+
+// Helper: Check if question should be calculated based on dependencies
+const isQuestionRelevant = (question: Question, currentAnswers: Record<string, string>): boolean => {
+    if (!question.dependency) return true;
+
+    const parentAnswer = currentAnswers[question.dependency.id];
+    if (!parentAnswer) return false; 
+
+    const { type, values } = question.dependency;
+    if (type === 'include') {
+        return values.includes(parentAnswer);
+    } else {
+        return !values.includes(parentAnswer);
+    }
+};
 
 // Helper: Generate specific steps based on category, violation type, and approach
 const generateStepsForRisk = (
@@ -126,6 +141,11 @@ export const calculateRiskScore = (answers: Record<string, string>): HedeResult 
 
     // Process Answers
     QUESTIONS_DB.forEach(q => {
+        // IMPORTANT: Check dependencies first. Skip risk calculation if question was irrelevant.
+        if (!isQuestionRelevant(q, answers)) {
+            return; 
+        }
+
         const answerValue = answers[q.id];
         if (!answerValue) return;
 

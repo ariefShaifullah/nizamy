@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { ActionStep } from '../../../../types.ts';
 // @ts-ignore
@@ -11,54 +10,88 @@ interface HedeRoadmapProps {
     roadmap: ActionStep[];
 }
 
-const RoadmapItem: React.FC<{ step: ActionStep; isLast: boolean; index: number }> = ({ step, isLast, index }) => {
+const RoadmapItem: React.FC<{ step: ActionStep; index: number }> = ({ step, index }) => {
     const navigate = useNavigate();
-    let bg = '';
+    const isEven = index % 2 === 0; // Desktop: Left Side Card (Arrow on Right)
+    
+    let bgIcon = '';
     let icon = null;
     let title = '';
+    let colorName = '';
 
+    // Determine content based on phase
     if (step.phase === 'short_term') {
-        bg = 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300';
+        bgIcon = 'bg-red-100 text-red-600 dark:bg-red-900/50 dark:text-red-300';
+        colorName = 'red';
         icon = <FaBolt />;
-        title = "Fase 1: Penyelamatan (Darurat)";
+        title = "Fase 1: Penyelamatan";
     } else if (step.phase === 'mid_term') {
-        bg = 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-300';
+        bgIcon = 'bg-amber-100 text-amber-600 dark:bg-amber-900/50 dark:text-amber-300';
+        colorName = 'amber';
         icon = <FaTools />;
-        title = "Fase 2: Pemulihan (Transisi)";
+        title = "Fase 2: Pemulihan";
     } else {
-        bg = 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300';
+        bgIcon = 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/50 dark:text-emerald-300';
+        colorName = 'emerald';
         icon = <FaFlagCheckered />;
-        title = "Fase 3: Pemurnian (Ideal)";
+        title = "Fase 3: Pemurnian";
     }
 
+    // --- BORDER LOGIC ---
+    // 1. Mobile Default: Arrow is LEFT. Border must be RIGHT.
+    //    We use specific side coloring (border-r-red-500) to ensure only one side is colored.
+    const mobileBorder = `border-r-4 border-r-${colorName}-500`;
+
+    // 2. Desktop Overrides:
+    //    - Even (Left Card): Arrow Right -> Border Left. 
+    //      MUST Reset Right border to default thin slate.
+    //    - Odd (Right Card): Arrow Left -> Border Right. (Inherits Mobile, no change needed).
+    
+    const desktopOverride = isEven 
+        ? `md:border-r md:border-r-slate-200 md:dark:border-r-slate-700 md:border-l-4 md:border-l-${colorName}-500`
+        : ``; // Odd cards match mobile layout (Border Right), so no override needed.
+
+    const borderClass = `${mobileBorder} ${desktopOverride}`;
+
     return (
-        <div className="relative pl-8 md:pl-0">
-            {/* Timeline Line (Mobile: Left, Desktop: Center) */}
-            <div className={`absolute top-0 bottom-0 w-0.5 bg-slate-200 dark:bg-slate-700
-                left-[11px] md:left-1/2 md:-ml-[1px]
-                ${isLast ? 'h-6' : ''}
-            `}></div>
+        <div className={`relative flex items-center justify-between md:justify-between w-full mb-8 ${isEven ? 'md:flex-row-reverse' : ''}`}>
             
-            {/* Timeline Dot */}
-            <div className={`absolute w-6 h-6 rounded-full border-4 border-white dark:border-slate-800 ${bg.split(' ')[0]} z-10 shadow-sm
-                left-0 md:left-1/2 md:-ml-3 mt-6
-            `}></div>
+            {/* 1. Spacer for Desktop (Pushes content to side) */}
+            <div className="hidden md:block w-5/12"></div>
 
-            <div className={`flex flex-col md:flex-row items-center justify-between w-full mb-8 ${index % 2 === 0 ? 'md:flex-row-reverse' : ''}`}>
-                <div className="hidden md:block w-5/12"></div>
+            {/* 2. Central Dot (The Milestone) */}
+            <div className="absolute left-6 md:left-1/2 transform -translate-x-1/2 w-8 h-8 rounded-full border-4 border-white dark:border-slate-900 bg-white dark:bg-slate-800 shadow-md z-10 flex items-center justify-center">
+                <div className={`w-3 h-3 rounded-full ${step.phase === 'short_term' ? 'bg-red-500' : step.phase === 'mid_term' ? 'bg-amber-500' : 'bg-emerald-500'}`}></div>
+            </div>
+
+            {/* 3. The Content Card */}
+            <div className="w-full pl-16 md:pl-0 md:w-5/12 relative">
                 
-                <div className={`w-full md:w-5/12 bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 relative hover:shadow-md transition-shadow group ${step.phase === 'short_term' ? 'border-l-4 border-l-red-500' : ''}`}>
-                    
-                    {/* Arrow for Desktop ZigZag */}
-                    <div className={`hidden md:block absolute top-8 w-3 h-3 bg-white dark:bg-slate-800 border-t border-r border-slate-100 dark:border-slate-700 transform rotate-45 
-                        ${index % 2 === 0 ? '-left-[7px] border-t-0 border-r-0 border-b border-l' : '-right-[7px]'}
-                    `}></div>
+                {/* DESKTOP ARROW */}
+                <div className={`hidden md:block absolute top-6 w-3 h-3 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 transform rotate-45 z-20 
+                    ${isEven 
+                        ? '-right-[7px] border-t border-r' // Left Card -> Arrow on Right -> Points Right
+                        : '-left-[7px] border-b border-l'  // Right Card -> Arrow on Left -> Points Left
+                    }
+                `}></div>
+                
+                {/* MOBILE ARROW */}
+                {/* Always on left, pointing left to the timeline */}
+                <div className="md:hidden absolute top-6 left-[57px] w-3 h-3 bg-white dark:bg-slate-800 border-b border-l border-slate-200 dark:border-slate-700 transform rotate-45 z-20"></div>
 
-                    <div className="flex justify-between items-start mb-2">
-                        <div className={`flex items-center gap-2 text-[10px] md:text-xs font-bold uppercase tracking-wider ${bg.split(' ').slice(3).join(' ')}`}>
-                            <span className="icon-wrapper text-sm">{icon}</span> {title}
+                {/* CARD CONTAINER */}
+                <div className={`bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-shadow duration-300 ${borderClass}`}>
+                    
+                    <div className="flex justify-between items-start mb-3">
+                        <div className="flex items-center gap-2">
+                            <span className={`p-1.5 rounded-lg text-xs ${bgIcon}`}>
+                                {icon}
+                            </span>
+                            <span className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                {title}
+                            </span>
                         </div>
-                        <span className="text-[10px] px-2 py-0.5 bg-slate-100 dark:bg-slate-700 rounded-full text-slate-500 font-bold border border-slate-200 dark:border-slate-600">
+                        <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold border ${step.difficulty === 'easy' ? 'bg-teal-50 text-teal-600 border-teal-100' : step.difficulty === 'medium' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-purple-50 text-purple-600 border-purple-100'} dark:bg-opacity-10 dark:border-opacity-10`}>
                             {step.difficulty === 'easy' ? 'Mudah' : step.difficulty === 'medium' ? 'Sedang' : 'Berat'}
                         </span>
                     </div>
@@ -67,17 +100,18 @@ const RoadmapItem: React.FC<{ step: ActionStep; isLast: boolean; index: number }
                         {step.action}
                     </h4>
                     
-                    <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl text-xs text-slate-600 dark:text-slate-400 italic border border-slate-100 dark:border-slate-700/50">
-                        <span className="font-bold not-italic mr-1">Dampak:</span> {step.impact}
+                    <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl text-xs text-slate-600 dark:text-slate-400 italic border border-slate-100 dark:border-slate-700/50 mb-3">
+                        <span className="font-bold not-italic mr-1 text-slate-700 dark:text-slate-300">Dampak:</span> {step.impact}
                     </div>
 
                     {/* Ecosystem Link Button */}
                     {step.cta && (
                         <button 
                             onClick={() => navigate(step.cta!)}
-                            className="mt-3 w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-lg transition-colors shadow-sm active:scale-95"
+                            className="w-full flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-700 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white text-slate-600 dark:text-slate-300 text-xs font-bold py-2.5 rounded-lg transition-all shadow-sm active:scale-95 group"
                         >
-                            {step.ctaLabel || "Buka Fitur"} <span className="icon-wrapper w-3 h-3"><FaArrowRight /></span>
+                            {step.ctaLabel || "Buka Fitur"} 
+                            <span className="icon-wrapper w-3 h-3 group-hover:translate-x-1 transition-transform"><FaArrowRight /></span>
                         </button>
                     )}
                 </div>
@@ -88,28 +122,40 @@ const RoadmapItem: React.FC<{ step: ActionStep; isLast: boolean; index: number }
 
 export const HedeRoadmap: React.FC<HedeRoadmapProps> = ({ roadmap }) => {
     return (
-        <div className="bg-white dark:bg-slate-800 rounded-3xl p-5 md:p-8 shadow-sm border border-slate-100 dark:border-slate-700">
-            <div className="flex items-center gap-3 mb-6 md:mb-8">
-                <span className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl flex items-center justify-center text-xl">
-                    <div className="icon-wrapper w-5 h-5"><FaRoad /></div>
-                </span>
+        <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-6 md:p-10 shadow-sm border border-slate-100 dark:border-slate-700">
+            <div className="flex items-center gap-4 mb-10">
+                <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-2xl flex items-center justify-center text-xl shadow-lg shadow-indigo-200 dark:shadow-none transform rotate-3">
+                    <div className="icon-wrapper w-6 h-6"><FaRoad /></div>
+                </div>
                 <div>
-                    <h3 className="font-bold text-lg text-slate-800 dark:text-white">Roadmap Hijrah</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Langkah taktis menuju harta yang berkah</p>
+                    <h3 className="font-bold text-xl text-slate-800 dark:text-white">Roadmap Hijrah</h3>
+                    <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400">Langkah taktis menuju harta yang berkah</p>
                 </div>
             </div>
             
             {roadmap.length > 0 ? (
                 <div className="relative">
+                    {/* THE CONTINUOUS LINE */}
+                    <div className="absolute top-4 bottom-4 left-6 md:left-1/2 transform -translate-x-1/2 w-1 bg-gradient-to-b from-red-400 via-amber-400 to-emerald-500 rounded-full opacity-30"></div>
+                    
                     {roadmap.map((step, idx) => (
-                        <RoadmapItem key={idx} step={step} isLast={idx === roadmap.length - 1} index={idx} />
+                        <RoadmapItem key={idx} step={step} index={idx} />
                     ))}
+
+                    {/* Finish Line Flag */}
+                    <div className="relative flex justify-center mt-8">
+                        <div className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest border border-emerald-200 dark:border-emerald-800 z-10">
+                            Harta Halal & Berkah
+                        </div>
+                    </div>
                 </div>
             ) : (
-                <div className="text-center py-12 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
-                    <div className="icon-wrapper w-16 h-16 text-indigo-300 mb-4 flex items-center justify-center text-5xl"><FaShieldAlt /></div>
-                    <h4 className="font-bold text-slate-700 dark:text-slate-300">Istiqamah!</h4>
-                    <p className="text-slate-500 font-medium text-sm mt-1 max-w-xs">Tidak ada langkah korektif yang diperlukan. Pertahankan kondisi ini.</p>
+                <div className="text-center py-16 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900/50 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-700">
+                    <div className="icon-wrapper w-20 h-20 text-indigo-300 mb-6 flex items-center justify-center text-6xl opacity-50"><FaShieldAlt /></div>
+                    <h4 className="font-bold text-slate-700 dark:text-slate-300 text-lg">Istiqamah!</h4>
+                    <p className="text-slate-500 dark:text-slate-400 font-medium text-sm mt-2 max-w-xs leading-relaxed">
+                        Tidak ada langkah korektif yang diperlukan saat ini. Pertahankan kondisi ini dan jangan lupa zakat.
+                    </p>
                 </div>
             )}
         </div>

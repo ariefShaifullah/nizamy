@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from "react";
 import type { HafalanState, HafalanSkillLevel, HafalanItem } from "../../../types.ts";
 import { audioService } from "../../../services/audio.service.ts";
@@ -21,7 +20,7 @@ import {
   CelebrationModal,
 } from "./HafalanModals.tsx";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
-import { FaCog, FaCalendarAlt, FaList, FaBookOpen, FaUser, FaPlus } from "react-icons/fa";
+import { FaCog, FaCalendarAlt, FaList, FaBookOpen, FaUser, FaPlus, FaBell } from "react-icons/fa";
 
 const ProgressChart: React.FC<{ items: HafalanItem[] }> = React.memo(({ items }) => {
     const data = useMemo(() => {
@@ -179,6 +178,37 @@ const MurajaahList: React.FC<{ items: HafalanItem[], onStartReview: (item: Hafal
     </div>
 );
 
+// --- PERMISSION BANNER ---
+const NotificationPermissionBanner: React.FC<{ onEnable: () => void; onClose: () => void }> = ({ onEnable, onClose }) => (
+    <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 p-4 rounded-2xl flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-6 animate-fade-in-down">
+        <div className="flex items-start gap-3">
+            <div className="p-2 bg-indigo-100 dark:bg-indigo-800 rounded-full text-indigo-600 dark:text-indigo-300 mt-1 sm:mt-0">
+                <FaBell />
+            </div>
+            <div>
+                <h4 className="font-bold text-indigo-900 dark:text-indigo-200 text-sm">Aktifkan Pengingat Murajaah?</h4>
+                <p className="text-xs text-indigo-700 dark:text-indigo-300 mt-1 leading-relaxed">
+                    Biar istiqomah, izinkan kami mengingatkan jadwal hafalan kamu setiap hari.
+                </p>
+            </div>
+        </div>
+        <div className="flex gap-2 w-full sm:w-auto">
+            <button 
+                onClick={onClose}
+                className="flex-1 sm:flex-none px-3 py-2 text-xs font-bold text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 rounded-lg transition-colors"
+            >
+                Nanti Saja
+            </button>
+            <button 
+                onClick={onEnable}
+                className="flex-1 sm:flex-none px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg transition-colors shadow-md"
+            >
+                Aktifkan
+            </button>
+        </div>
+    </div>
+);
+
 interface DashboardProps {
   state: HafalanState;
   onAddClick: () => void;
@@ -207,6 +237,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [showTutorial, setShowTutorial] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [selectedDetailItem, setSelectedDetailItem] = useState<any | null>(null);
+  
+  // Notification States
+  const [showNotifBanner, setShowNotifBanner] = useState(false);
 
   const profile = state.profile!;
   
@@ -233,12 +266,37 @@ export const Dashboard: React.FC<DashboardProps> = ({
     return Math.min(100, (state.gamification.weeklyChallengeProgress / state.gamification.weeklyChallengeTarget) * 100);
   }, [state.gamification.weeklyChallengeProgress, state.gamification.weeklyChallengeTarget]);
 
+  // Handle Notification & Banner Logic
   useEffect(() => {
+    // 1. App Badge (Update titik merah di icon)
     notificationService.updateAppBadge(dueItems.length);
-    if (notificationService.isEnabled()) {
-        notificationService.sendReminder(dueItems.length, dailyRemaining);
+
+    // 2. Cek Izin Notifikasi untuk menampilkan Banner
+    if (notificationService.isSupported()) {
+        const permission = notificationService.getPermissionState();
+        
+        // Show banner if permission is 'default' (never asked) AND we have something to notify
+        if (permission === 'default' && dueItems.length > 0) {
+            setShowNotifBanner(true);
+        } else if (permission === 'granted') {
+            setShowNotifBanner(false);
+            // If granted, try sending reminder normally
+            notificationService.sendReminder(dueItems.length, dailyRemaining);
+        }
     }
   }, [dueItems.length, dailyRemaining]);
+
+  const handleEnableNotification = async () => {
+      const granted = await notificationService.requestPermission();
+      if (granted) {
+          setShowNotifBanner(false);
+          showToast('Notifikasi diaktifkan! Pengingat akan dikirim.', 'success');
+          // Force send reminder immediately as feedback
+          notificationService.sendReminder(dueItems.length, dailyRemaining, true);
+      } else {
+          setShowNotifBanner(false); // User denied/closed, hide banner
+      }
+  };
 
   useEffect(() => {
     const hasSeenTutorial = localStorage.getItem("nizamy_hafalan_tutorial_seen");
@@ -262,6 +320,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {earnedBadgesQueue.length > 0 && <CelebrationModal badges={earnedBadgesQueue} onClose={onClearBadges} />}
 
       <StatsHeader profile={profile} gamification={state.gamification} itemCount={state.items.length} onSettings={handleSettingsClick} />
+
+      {/* NOTIFICATION PERMISSION BANNER */}
+      {showNotifBanner && (
+          <NotificationPermissionBanner 
+              onEnable={handleEnableNotification} 
+              onClose={() => setShowNotifBanner(false)} 
+          />
+      )}
 
       <div className="md:grid md:grid-cols-3 gap-6">
         <div className={`md:col-span-2 bg-white dark:bg-slate-800 md:rounded-3xl shadow-sm md:shadow-lg md:shadow-slate-200/50 dark:md:shadow-none border-y md:border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col min-h-[500px] ${activeTab === "profile" || activeTab === "guide" ? "hidden md:flex" : "flex"}`}>

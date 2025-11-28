@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { HedeResult, ViolationType } from '../../../types.ts';
 import { FIQH_GLOSSARY, VIOLATION_STYLES } from '../constants.ts';
 import { exportHedePdf } from '../logic/pdf-export.ts';
@@ -11,7 +11,8 @@ import {
     FaBalanceScale,
     FaBook,
     FaShareAlt,
-    FaExclamationCircle
+    FaExclamationCircle,
+    FaSearch
 } from 'react-icons/fa';
 
 // Import Refactored Components
@@ -24,13 +25,14 @@ interface HedeReportProps {
     onReset: () => void;
 }
 
-const ViolationBadge: React.FC<{ type: ViolationType }> = ({ type }) => {
-    if (type === 'none') return null;
+const ViolationBadge: React.FC<{ type: ViolationType | 'general' }> = ({ type }) => {
+    if (type === 'general' || type === 'none') return <span className="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded ml-2 border bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-600">Umum</span>;
     return <span className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded ml-2 border ${VIOLATION_STYLES[type]}`}>{type}</span>;
 };
 
 export const HedeReport: React.FC<HedeReportProps> = ({ result, onReset }) => {
     const [selectedTerm, setSelectedTerm] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState(""); // State for modal search
     const { showToast } = useToast();
     const fiqhContext = result.fiqhContext;
 
@@ -73,6 +75,16 @@ export const HedeReport: React.FC<HedeReportProps> = ({ result, onReset }) => {
         if (fiqhContext.approach === 'immediate_exit') return 'Bara\'ah';
         return 'Istiqamah';
     };
+
+    // Filter & Sort Logic for Glossary
+    const filteredGlossary = useMemo(() => {
+        return FIQH_GLOSSARY
+            .filter(item => 
+                item.term.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.definition.toLowerCase().includes(searchTerm.toLowerCase())
+            )
+            .sort((a, b) => a.term.localeCompare(b.term)); // A-Z Sorting
+    }, [searchTerm]);
 
     return (
         <div className="max-w-5xl mx-auto space-y-8 animate-fade-in pb-24">
@@ -153,26 +165,43 @@ export const HedeReport: React.FC<HedeReportProps> = ({ result, onReset }) => {
 
             {/* Glossary Modal */}
             {selectedTerm && (
-                <Modal isOpen={true} onClose={() => setSelectedTerm(null)} title="Kamus Muamalah" maxWidth="max-w-sm">
-                    <div className="p-6">
+                <Modal isOpen={true} onClose={() => { setSelectedTerm(null); setSearchTerm(""); }} title="Kamus Muamalah" maxWidth="max-w-sm">
+                    {/* Updated Class: Use Dynamic Height based on content type */}
+                    <div className={`p-6 flex flex-col ${selectedTerm === 'INDEX' ? 'h-[60vh]' : 'h-auto'}`}>
                         {(() => {
                             if (selectedTerm === 'INDEX') {
                                 return (
-                                    <div className="space-y-2">
-                                        <p className="text-sm text-slate-500 mb-4">Pilih istilah untuk melihat definisi:</p>
-                                        <div className="grid gap-2 max-h-[60vh] overflow-y-auto custom-scrollbar">
-                                            {FIQH_GLOSSARY.map(t => (
-                                                <button 
-                                                    key={t.term}
-                                                    onClick={() => setSelectedTerm(t.term)}
-                                                    className="text-left w-full p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 border border-transparent hover:border-slate-200 dark:hover:border-slate-600 transition-all flex items-center justify-between group"
-                                                >
-                                                    <span className="font-bold text-slate-700 dark:text-slate-200">{t.term}</span>
-                                                    <ViolationBadge type={t.category === 'general' ? 'none' : t.category} />
-                                                </button>
-                                            ))}
+                                    <>
+                                        <div className="mb-4 relative shrink-0">
+                                            <span className="absolute left-3 top-3 text-slate-400"><FaSearch /></span>
+                                            <input 
+                                                type="text" 
+                                                placeholder="Cari istilah (contoh: Riba)..."
+                                                className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                                                value={searchTerm}
+                                                onChange={(e) => setSearchTerm(e.target.value)}
+                                                autoFocus
+                                            />
                                         </div>
-                                    </div>
+                                        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-1 pr-1">
+                                            {filteredGlossary.length === 0 ? (
+                                                <div className="text-center py-10 text-slate-400 text-sm">
+                                                    Istilah tidak ditemukan.
+                                                </div>
+                                            ) : (
+                                                filteredGlossary.map(t => (
+                                                    <button 
+                                                        key={t.term}
+                                                        onClick={() => setSelectedTerm(t.term)}
+                                                        className="text-left w-full p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 border border-transparent hover:border-slate-200 dark:hover:border-slate-600 transition-all flex items-center justify-between group"
+                                                    >
+                                                        <span className="font-bold text-slate-700 dark:text-slate-200 text-sm">{t.term}</span>
+                                                        <ViolationBadge type={t.category === 'general' ? 'general' : t.category} />
+                                                    </button>
+                                                ))
+                                            )}
+                                        </div>
+                                    </>
                                 );
                             }
 
@@ -180,15 +209,15 @@ export const HedeReport: React.FC<HedeReportProps> = ({ result, onReset }) => {
                             if (!term) return <p className="text-center text-slate-500">Definisi tidak ditemukan.</p>;
                             
                             return (
-                                <>
+                                <div className="flex flex-col">
                                     <div className="flex items-center gap-2 mb-4">
                                         <h3 className="text-xl font-bold text-slate-800 dark:text-white">{term.term}</h3>
-                                        <ViolationBadge type={term.category === 'general' ? 'none' : term.category} />
+                                        <ViolationBadge type={term.category === 'general' ? 'general' : term.category} />
                                     </div>
                                     <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-6 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
                                         {term.definition}
                                     </p>
-                                    <div className="flex flex-col gap-2">
+                                    <div className="flex flex-col gap-2 mt-2 pt-4 border-t border-slate-100 dark:border-slate-700">
                                         <button 
                                             onClick={() => setSelectedTerm('INDEX')}
                                             className="w-full py-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 text-sm font-bold"
@@ -202,7 +231,7 @@ export const HedeReport: React.FC<HedeReportProps> = ({ result, onReset }) => {
                                             Saya Mengerti
                                         </button>
                                     </div>
-                                </>
+                                </div>
                             );
                         })()}
                     </div>

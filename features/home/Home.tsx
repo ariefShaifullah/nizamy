@@ -165,7 +165,7 @@ export const Home: React.FC = () => {
     },
     {
       id: 'hede',
-      title: 'H.E.D.E.',
+      title: 'HEDE',
       subtitle: 'Diagnosa Halal',
       icon: <FaShieldAlt />,
       colorClass: 'text-purple-600 dark:text-purple-400',

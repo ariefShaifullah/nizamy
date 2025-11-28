@@ -1,3 +1,4 @@
+import type { ZakatState } from '../types.ts';
 
 const PREF_KEY = 'nizamy_notifications_enabled';
 
@@ -26,6 +27,8 @@ export const notificationService = {
       const permission = await Notification.requestPermission();
       if (permission === 'granted') {
         localStorage.setItem(PREF_KEY, 'true');
+        // Reset last notif date to allow immediate notification after granting
+        localStorage.removeItem('nizamy_last_notif_date'); 
         return true;
       }
     } catch (error) {
@@ -66,21 +69,29 @@ export const notificationService = {
   // Helper internal untuk memanggil API notifikasi
   _triggerNotification: async (title: string, options: ExtendedNotificationOptions) => {
       try {
-        // Prioritaskan Service Worker Registration untuk notifikasi (Lebih reliable di Android/PWA)
-        let swRegistration = await navigator.serviceWorker.getRegistration();
+        if (!('serviceWorker' in navigator)) {
+            new Notification(title, options);
+            return;
+        }
+
+        const registration = await navigator.serviceWorker.ready;
         
-        if (swRegistration) {
-            await swRegistration.showNotification(title, options);
+        if (registration) {
+            await registration.showNotification(title, options);
         } else {
-            // Fallback ke Regular Notification API (Desktop biasa)
             new Notification(title, options);
         }
     } catch (e) {
         console.error("Notification dispatch error:", e);
+        try {
+            new Notification(title, options);
+        } catch (err2) {
+            console.error("Fallback notification failed", err2);
+        }
     }
   },
 
-  // Kirim Notifikasi Tes (Bypass logic tanggal/kuota)
+  // Kirim Notifikasi Tes
   sendTestNotification: async () => {
       if (!('Notification' in window) || Notification.permission !== 'granted') return;
 
@@ -96,17 +107,16 @@ export const notificationService = {
   },
 
   // Kirim Notifikasi Lokal (Harian)
-  sendReminder: async (dueCount: number, remainingQuota: number = 0) => {
+  sendReminder: async (dueCount: number, remainingQuota: number = 0, force: boolean = false) => {
     // Validasi basic
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
     
-    // Cek apakah sudah notifikasi hari ini (biar ga spam tiap refresh)
+    // Cek apakah sudah notifikasi hari ini
     const lastNotifDate = localStorage.getItem('nizamy_last_notif_date');
     const today = new Date().toISOString().split('T')[0];
 
-    // Logic: Notifikasi hanya sekali sehari, KECUALI status berubah signifikan (misal pagi belum selesai, sore diingatkan lagi bisa ditambahkan logic jam)
-    // Untuk saat ini kita batasi 1x sehari agar tidak mengganggu.
-    if (lastNotifDate === today) return; 
+    // Logic: Notifikasi hanya sekali sehari, KECUALI dipaksa (force)
+    if (!force && lastNotifDate === today) return; 
 
     let title = '';
     let body = '';
@@ -116,21 +126,21 @@ export const notificationService = {
         title = 'Waktunya Murajaah! 📖';
         body = `Ada ${dueCount} hafalan yang perlu diulang hari ini agar tidak lupa. Semangat!`;
     } 
-    // PRIORITAS 2: Murajaah beres, tapi Target Harian (Poin) belum habis
+    // PRIORITAS 2: Murajaah beres, tapi Target Harian belum habis
     else if (remainingQuota > 0) {
         title = 'Target Belum Tuntas 🌱';
         body = `Jadwal murajaah aman, tapi kamu masih punya sisa kuota ${remainingQuota} poin hari ini. Yuk tambah hafalan baru!`;
     }
-    // PRIORITAS 3: Semua beres (Opsional, biasanya diam lebih baik)
+    // PRIORITAS 3: Semua beres
     else {
-        return; // Tidak perlu notifikasi jika semua beres
+        return; 
     }
     
     const options: ExtendedNotificationOptions = {
       body: body,
       icon: '/images/logo_nizamy.png',
       badge: '/images/logo_nizamy.png', 
-      tag: 'nizamy-reminder', // Tag yang sama akan menimpa notifikasi sebelumnya
+      tag: 'nizamy-reminder',
       renotify: true,
       requireInteraction: true,
       data: {
@@ -140,7 +150,7 @@ export const notificationService = {
 
     await notificationService._triggerNotification(title, options);
     
-    // Simpan log tanggal
+    // Simpan log tanggal HANYA jika sukses terkirim
     localStorage.setItem('nizamy_last_notif_date', today);
   }
 };

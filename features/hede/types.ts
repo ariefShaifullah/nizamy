@@ -1,3 +1,4 @@
+
 // ... (imports remain same)
 
 export type RiskLevel = 'safe' | 'low' | 'medium' | 'high' | 'critical';
@@ -21,11 +22,18 @@ export interface QuestionOption {
   hardshipWeight?: number; // For emergency section: 0 (Easy) to 100 (Impossible)
 }
 
+export interface QuestionDependency {
+  id: string; // The ID of the parent question
+  type: 'include' | 'exclude'; // Show if parent answer matches (include) or doesn't match (exclude)
+  values: string[]; // Values to check against
+}
+
 export interface Question {
   id: string;
   category: HedeCategory;
   text: string;
   options: QuestionOption[];
+  dependency?: QuestionDependency; // Added dependency logic
 }
 
 export interface RiskFactor {

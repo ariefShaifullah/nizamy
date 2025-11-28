@@ -1,4 +1,3 @@
-
 import { get, set, del, keys, clear } from 'idb-keyval';
 
 /**
@@ -23,7 +22,9 @@ export const migrateFromLocalStorage = async () => {
     // Identify keys
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && (key.startsWith('nizamy_hafalan_') || key === 'faraidhHistory' || key === 'zakatHistory')) {
+        // FIXED: Only migrate Hafalan data (heavy JSON). 
+        // Keep faraidhHistory and zakatHistory in LS for synchronous UI access.
+        if (key && key.startsWith('nizamy_hafalan_')) {
             keysToMigrate.push(key);
         }
     }

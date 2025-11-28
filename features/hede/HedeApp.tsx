@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { HedeWizard } from './components/HedeWizard.tsx';
 import { HedeReport } from './components/HedeReport.tsx';
 import { HedeHistory } from './components/HedeHistory.tsx';
 import { TathhirCalculator } from './components/TathhirCalculator.tsx';
-import type { HedeResult, HedeHistoryEntry, ViolationType } from '../../types.ts';
+// FIX: Import HedeTab type from shared types file
+import type { HedeResult, HedeHistoryEntry, ViolationType, HedeTab } from '../../types.ts';
 import { useLocalStorage } from '../../hooks/useLocalStorage.ts';
 import { 
     FaShieldAlt, 
@@ -15,14 +15,57 @@ import {
     FaLightbulb,
     FaSearch,
     FaCheckCircle,
-    FaArrowRight
+    FaArrowRight,
+    FaHeart
 } from 'react-icons/fa';
 import { FAQ } from '../../components/ui/FAQ.tsx';
 import { Modal } from '../../components/ui/Modal.tsx';
 import { HEDE_FAQ, FIQH_GLOSSARY } from './constants.ts';
 import { useToast } from '../../components/ui/Toast.tsx';
 
-type HedeTab = 'diagnosa' | 'tathhir' | 'history' | 'guide';
+type WizardState = 'idle' | 'pre-wizard' | 'wizard';
+
+// --- SUB-COMPONENT: Pre-Wizard Onboarding Screen ---
+const PreWizardScreen: React.FC<{ onStart: () => void; onCancel: () => void }> = ({ onStart, onCancel }) => {
+  return (
+    <div className="fixed inset-0 z-[100] bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4 animate-fade-in">
+      <div className="max-w-2xl w-full bg-white dark:bg-slate-800 rounded-3xl shadow-2xl p-8 text-center border border-slate-100 dark:border-slate-700">
+        <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-3">Bismillah, Mari Periksa Kesehatan Ekonomi Kita.</h2>
+        <p className="text-slate-500 dark:text-slate-400 mb-8">Ini adalah alat introspeksi pribadi, bukan untuk menghakimi.</p>
+        
+        <div className="space-y-4 text-left mb-10">
+          <div className="flex items-start gap-4 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
+            <div className="icon-wrapper w-6 h-6 text-emerald-500 flex-shrink-0 mt-1"><FaCheckCircle /></div>
+            <div>
+              <h4 className="font-bold text-slate-800 dark:text-slate-200">Jujur & Amanah</h4>
+              <p className="text-sm text-slate-600 dark:text-slate-300">Jawaban Anda akan menentukan akurasi hasil.</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-4 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
+            <div className="icon-wrapper w-6 h-6 text-blue-500 flex-shrink-0 mt-1"><FaShieldAlt /></div>
+            <div>
+              <h4 className="font-bold text-slate-800 dark:text-slate-200">100% Privasi</h4>
+              <p className="text-sm text-slate-600 dark:text-slate-300">Semua data hanya tersimpan di perangkat Anda, tidak ada yang dikirim ke server.</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-4 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
+            <div className="icon-wrapper w-6 h-6 text-rose-500 flex-shrink-0 mt-1"><FaHeart /></div>
+            <div>
+              <h4 className="font-bold text-slate-800 dark:text-slate-200">Bukan Menghakimi</h4>
+              <p className="text-sm text-slate-600 dark:text-slate-300">Ini adalah alat bantu untuk introspeksi, bukan fatwa. Setiap perjalanan hijrah itu unik.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3">
+            <button onClick={onCancel} className="w-full sm:w-auto px-6 py-3 text-slate-500 font-bold rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">Batal</button>
+            <button onClick={onStart} className="w-full sm:flex-1 py-4 bg-purple-600 text-white font-bold rounded-2xl hover:bg-purple-700 transition-colors shadow-lg">Lanjut, Saya Siap</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 
 // WCAG Contrast Fix for Main App Badges
 const ViolationBadge: React.FC<{ type: ViolationType | 'general' }> = ({ type }) => {
@@ -47,14 +90,14 @@ const HedeApp: React.FC = () => {
     
     // View State
     const [activeTab, setActiveTab] = useState<HedeTab>('diagnosa');
-    const [isWizardOpen, setIsWizardOpen] = useState(false);
+    const [wizardState, setWizardState] = useState<WizardState>('idle');
     
     // Dictionary State
     const [selectedTerm, setSelectedTerm] = useState<string | null>(null);
     const [dictSearch, setDictSearch] = useState("");
 
     const handleStartAudit = () => {
-        setIsWizardOpen(true);
+        setWizardState('pre-wizard');
     };
     
     const handleCompleteAudit = (data: HedeResult) => {
@@ -70,7 +113,7 @@ const HedeApp: React.FC = () => {
         
         setHistory(prev => [newEntry, ...prev].slice(0, 20));
         
-        setIsWizardOpen(false);
+        setWizardState('idle');
         setActiveTab('diagnosa');
         window.scrollTo({ top: 0, behavior: 'smooth' });
         showToast('Hasil diagnosa tersimpan di Jurnal', 'success');
@@ -109,12 +152,20 @@ const HedeApp: React.FC = () => {
     const termDetail = selectedTerm ? FIQH_GLOSSARY.find(t => t.term === selectedTerm) : null;
 
     // --- RENDER CONTENT ---
-
+    if (wizardState === 'pre-wizard') {
+        return (
+            <PreWizardScreen 
+                onStart={() => setWizardState('wizard')} 
+                onCancel={() => setWizardState('idle')} 
+            />
+        );
+    }
+    
     // IMMERSIVE OVERLAY MODE (WIZARD)
-    if (isWizardOpen) {
+    if (wizardState === 'wizard') {
         return (
             <div className="fixed inset-0 z-[100] bg-slate-50 dark:bg-slate-950 overflow-y-auto animate-fade-in custom-scrollbar">
-                <HedeWizard onComplete={handleCompleteAudit} onCancel={() => setIsWizardOpen(false)} />
+                <HedeWizard onComplete={handleCompleteAudit} onCancel={() => setWizardState('idle')} />
             </div>
         );
     }
@@ -206,16 +257,7 @@ const HedeApp: React.FC = () => {
                             ) : (
                                 // Report View
                                 <div className="w-full">
-                                    <div className="mb-6 flex justify-between items-center bg-purple-50 dark:bg-purple-900/20 p-4 rounded-2xl border border-purple-100 dark:border-purple-800">
-                                        <h2 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                            <span className="text-purple-600 dark:text-purple-400 bg-white dark:bg-slate-800 p-2 rounded-lg shadow-sm"><FaStethoscope/></span> 
-                                            Laporan Diagnosa
-                                        </h2>
-                                        <button onClick={handleReset} className="text-xs font-bold text-slate-500 hover:text-red-500 transition-colors px-4 py-2 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg">
-                                            Ulangi Tes
-                                        </button>
-                                    </div>
-                                    <HedeReport result={result} onReset={handleReset} />
+                                    <HedeReport result={result} onReset={handleReset} onSwitchAppTab={switchTab} />
                                 </div>
                             )}
                         </div>

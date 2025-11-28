@@ -374,7 +374,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <div className="space-y-4 h-full flex flex-col">
                 <div className="flex justify-between items-center">
                   <h3 className="font-bold text-slate-800 dark:text-white text-lg md:text-xl">Daftar Hafalan</h3>
-                  <button onClick={() => { audioService.playClick(); exportHafalanToPdf(state); }} className="text-xs bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-3 py-1.5 rounded-lg font-bold hover:bg-slate-100 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600">PDF</button>
+                  <button onClick={() => { audioService.playClick(); exportHafalanToPdf(state); }} className="text-xs bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-3 py-1.5 rounded-lg font-bold hover:bg-slate-100 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600">Unduh PDF</button>
                 </div>
                 <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-2 pb-20 md:pb-0">
                   {allItems.length === 0 ? <div className="text-center py-12 text-slate-400 italic text-sm">Belum ada data.</div> : allItems.map((item) => (

@@ -1,11 +1,10 @@
-
 import React, { useMemo } from 'react';
-import type { HedeHistoryEntry } from '../../../types.ts';
+import type { HedeHistoryEntry, RiskLevel } from '../../../types.ts';
 import { 
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart 
 } from 'recharts';
 import { formatDate } from '../../../utils.ts';
-import { FaHistory, FaArrowRight, FaTrash, FaChartLine } from 'react-icons/fa';
+import { FaHistory, FaArrowRight, FaTrash, FaChartLine, FaCheckCircle, FaExclamationTriangle, FaExclamationCircle } from 'react-icons/fa';
 import { useConfirm } from '../../../components/ui/ConfirmContext.tsx';
 
 interface HedeHistoryProps {
@@ -13,6 +12,21 @@ interface HedeHistoryProps {
     onLoad: (entry: HedeHistoryEntry) => void;
     onClear: () => void;
     onBack: () => void;
+}
+
+const getIconForRiskLevel = (level: RiskLevel, className: string = 'w-4 h-4') => {
+    switch(level) {
+        case 'safe':
+        case 'low':
+            return <div className={`icon-wrapper ${className} text-emerald-500`}><FaCheckCircle /></div>;
+        case 'medium':
+        case 'high':
+            return <div className={`icon-wrapper ${className} text-yellow-500`}><FaExclamationTriangle /></div>;
+        case 'critical':
+            return <div className={`icon-wrapper ${className} text-red-500`}><FaExclamationCircle /></div>;
+        default:
+            return null;
+    }
 }
 
 export const HedeHistory: React.FC<HedeHistoryProps> = ({ history, onLoad, onClear, onBack }) => {
@@ -65,12 +79,12 @@ export const HedeHistory: React.FC<HedeHistoryProps> = ({ history, onLoad, onCle
 
             {history.length === 0 ? (
                 <div className="text-center py-20 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
-                    <div className="w-20 h-20 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center text-4xl mx-auto mb-4 shadow-sm text-slate-300">
-                        <FaChartLine />
+                    <div className="icon-wrapper w-20 h-20 text-slate-300 dark:text-slate-600 mx-auto mb-4 flex items-center justify-center">
+                        <FaChartLine size="3rem" />
                     </div>
-                    <h3 className="text-lg font-bold text-slate-600 dark:text-slate-300">Belum Ada Catatan</h3>
-                    <p className="text-slate-400 text-sm max-w-xs mx-auto mt-2">
-                        Selesaikan diagnosa pertama Anda untuk mulai mencatat progres hijrah.
+                    <h3 className="text-lg font-bold text-slate-600 dark:text-slate-300">Catat Perjalanan Hijrahmu</h3>
+                    <p className="text-slate-400 text-sm max-w-xs mx-auto mt-2 leading-relaxed">
+                        Setiap diagnosa yang kamu selesaikan akan tersimpan di sini. Pantau progresmu dari waktu ke waktu dan lihat seberapa jauh kamu telah melangkah.
                     </p>
                 </div>
             ) : (
@@ -151,7 +165,8 @@ export const HedeHistory: React.FC<HedeHistoryProps> = ({ history, onLoad, onCle
                                         <p className="text-xs text-slate-400 font-medium uppercase tracking-wide mb-0.5">
                                             {formatDate(entry.timestamp)}
                                         </p>
-                                        <h4 className="font-bold text-slate-800 dark:text-white text-sm md:text-base">
+                                        <h4 className="font-bold text-slate-800 dark:text-white text-sm md:text-base flex items-center gap-2">
+                                            {getIconForRiskLevel(entry.riskLevel)}
                                             {entry.totalScore > 80 ? 'Kondisi Aman (Halal)' : entry.totalScore > 50 ? 'Perlu Perbaikan (Syubhat)' : 'Perlu Tindakan Segera'}
                                         </h4>
                                     </div>

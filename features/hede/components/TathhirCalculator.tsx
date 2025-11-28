@@ -56,13 +56,13 @@ export const TathhirCalculator: React.FC = () => {
                     onClick={() => setMode('savings')}
                     className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${mode === 'savings' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
                 >
-                    🏦 Bunga Tabungan
+                    Bunga Tabungan
                 </button>
                 <button 
                     onClick={() => setMode('income')}
                     className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${mode === 'income' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
                 >
-                    💼 Pendapatan
+                    Pendapatan
                 </button>
             </div>
 
@@ -196,7 +196,7 @@ export const TathhirCalculator: React.FC = () => {
                         onClick={() => setShowInfo(false)}
                         className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold mt-4 hover:bg-indigo-700 shadow-md"
                     >
-                        Faham
+                        Saya Paham
                     </button>
                 </div>
             </Modal>

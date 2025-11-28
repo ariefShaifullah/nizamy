@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { ActionStep } from '../../../../types.ts';
 // @ts-ignore
@@ -85,7 +86,7 @@ const RoadmapItem: React.FC<{ step: ActionStep; index: number }> = ({ step, inde
                     <div className="flex justify-between items-start mb-3">
                         <div className="flex items-center gap-2">
                             <span className={`p-1.5 rounded-lg text-xs ${bgIcon}`}>
-                                {icon}
+                                <span className="icon-wrapper w-4 h-4">{icon}</span>
                             </span>
                             <span className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                                 {title}
@@ -125,7 +126,7 @@ export const HedeRoadmap: React.FC<HedeRoadmapProps> = ({ roadmap }) => {
         <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-6 md:p-10 shadow-sm border border-slate-100 dark:border-slate-700">
             <div className="flex items-center gap-4 mb-10">
                 <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-2xl flex items-center justify-center text-xl shadow-lg shadow-indigo-200 dark:shadow-none transform rotate-3">
-                    <div className="icon-wrapper w-6 h-6"><FaRoad /></div>
+                    <span className="icon-wrapper w-6 h-6"><FaRoad /></span>
                 </div>
                 <div>
                     <h3 className="font-bold text-xl text-slate-800 dark:text-white">Roadmap Hijrah</h3>
@@ -151,7 +152,7 @@ export const HedeRoadmap: React.FC<HedeRoadmapProps> = ({ roadmap }) => {
                 </div>
             ) : (
                 <div className="text-center py-16 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900/50 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-700">
-                    <div className="icon-wrapper w-20 h-20 text-indigo-300 mb-6 flex items-center justify-center text-6xl opacity-50"><FaShieldAlt /></div>
+                    <span className="icon-wrapper w-20 h-20 text-indigo-300 mb-6 flex items-center justify-center text-6xl opacity-50"><FaShieldAlt /></span>
                     <h4 className="font-bold text-slate-700 dark:text-slate-300 text-lg">Istiqamah!</h4>
                     <p className="text-slate-500 dark:text-slate-400 font-medium text-sm mt-2 max-w-xs leading-relaxed">
                         Tidak ada langkah korektif yang diperlukan saat ini. Pertahankan kondisi ini dan jangan lupa zakat.

@@ -1,7 +1,9 @@
-
 // ... (imports remain same)
 
 export type RiskLevel = 'safe' | 'low' | 'medium' | 'high' | 'critical';
+
+// FIX: Export HedeTab type
+export type HedeTab = 'diagnosa' | 'tathhir' | 'history' | 'guide';
 
 export type HedeCategory = 'job' | 'business' | 'finance' | 'digital' | 'payment' | 'emergency';
 

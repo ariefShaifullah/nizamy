@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 // @ts-ignore
 import { useNavigate } from 'react-router-dom';
@@ -22,7 +21,6 @@ interface FeatureItem {
     icon: React.ReactNode;
     colorClass: string;
     bgClass: string;
-    // Removed specific borderClass property to unify contrast logic in component
     path: string;
     spanClass: string; 
 }

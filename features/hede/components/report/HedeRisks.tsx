@@ -24,7 +24,7 @@ const ViolationBadge: React.FC<{ type: ViolationType, onClick?: () => void }> = 
         <button 
             onClick={onClick}
             disabled={!onClick}
-            className={`text-[10px] uppercase font-bold px-3 py-1 rounded-lg border ${badgeStyles[type]} transition-all active:scale-95`}
+            className={`text-[10px] uppercase font-bold px-3 py-1 rounded-lg border ${badgeStyles[type]} transition-all active:scale-95 disabled:cursor-default`}
             title={`Klik untuk definisi ${VIOLATION_LABELS[type]}`}
         >
             {VIOLATION_LABELS[type]}
@@ -34,7 +34,7 @@ const ViolationBadge: React.FC<{ type: ViolationType, onClick?: () => void }> = 
 
 const RiskCard: React.FC<{ risk: RiskFactor; onTermClick: (term: string) => void; onSwitchAppTab?: (tab: HedeTab) => void; }> = ({ risk, onTermClick, onSwitchAppTab }) => {
     const getTermForViolation = (type: ViolationType) => {
-        const map: Record<string, string> = { 'riba': 'Riba', 'gharar': 'Gharar', 'maysir': 'Maysir' };
+        const map: Record<string, string> = { 'riba': 'Riba', 'gharar': 'Gharar', 'maysir': 'Maysir', 'zulm': 'Akad Fasid' };
         return map[type] || 'Akad Fasid';
     };
 
@@ -103,7 +103,7 @@ export const HedeRisks: React.FC<HedeRisksProps> = ({ risks, onOpenTerm, onSwitc
             >
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/20 group-hover:text-indigo-600 transition-colors">
-                        <span className="icon-wrapper w-5 h-5 flex items-center justify-center"><FaExclamationTriangle /></span>
+                        <span className="icon-wrapper w-5 h-5"><FaExclamationTriangle /></span>
                     </div>
                     <div className="text-left">
                         <h3 className="font-bold text-lg text-slate-800 dark:text-white leading-none">Analisis Risiko</h3>
@@ -112,7 +112,7 @@ export const HedeRisks: React.FC<HedeRisksProps> = ({ risks, onOpenTerm, onSwitc
                 </div>
                 
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${showDetail ? 'bg-slate-200 dark:bg-slate-700 rotate-180' : 'bg-slate-100 dark:bg-slate-800'}`}>
-                    <span className="icon-wrapper w-3 h-3 text-slate-500 flex items-center justify-center"><FaChevronDown /></span>
+                    <span className="icon-wrapper w-3 h-3 text-slate-500"><FaChevronDown /></span>
                 </div>
             </button>
 

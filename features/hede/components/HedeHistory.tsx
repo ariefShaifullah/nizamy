@@ -11,7 +11,6 @@ interface HedeHistoryProps {
     history: HedeHistoryEntry[];
     onLoad: (entry: HedeHistoryEntry) => void;
     onClear: () => void;
-    onBack: () => void;
 }
 
 const getIconForRiskLevel = (level: RiskLevel, className: string = 'w-4 h-4') => {
@@ -29,7 +28,7 @@ const getIconForRiskLevel = (level: RiskLevel, className: string = 'w-4 h-4') =>
     }
 }
 
-export const HedeHistory: React.FC<HedeHistoryProps> = ({ history, onLoad, onClear, onBack }) => {
+export const HedeHistory: React.FC<HedeHistoryProps> = ({ history, onLoad, onClear }) => {
     const { confirm } = useConfirm();
 
     const chartData = useMemo(() => {
@@ -69,12 +68,6 @@ export const HedeHistory: React.FC<HedeHistoryProps> = ({ history, onLoad, onCle
                         Pantau progres perbaikan ekonomi syariah Anda dari waktu ke waktu.
                     </p>
                 </div>
-                <button 
-                    onClick={onBack}
-                    className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 transition-colors"
-                >
-                    Kembali
-                </button>
             </div>
 
             {history.length === 0 ? (

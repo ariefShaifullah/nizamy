@@ -32,7 +32,7 @@ export const Header: React.FC = () => {
         subtitle = 'Mushaf & Kamus Tajwid';
     } else if (location.pathname.includes('/hede')) {
         titleColor = 'text-purple-600 dark:text-purple-400';
-        subtitle = 'HEDE (Audit Halal)';
+        subtitle = 'Klinik Finansial';
     }
 
     const logoBgClass = titleColor.replace(/text-/g, 'bg-');

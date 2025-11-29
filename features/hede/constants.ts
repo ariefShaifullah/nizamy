@@ -107,8 +107,8 @@ export const FIQH_GLOSSARY: FiqhTerm[] = [
 
 export const HEDE_FAQ = [
     {
-        question: "Apa itu HEDE?",
-        answer: "HEDE (Halal Economic Diagnostic Engine) adalah alat bantu diagnosa mandiri (self-assessment) untuk mendeteksi potensi pelanggaran syariah dalam aktivitas ekonomi Anda, mulai dari pekerjaan, investasi, hingga kebiasaan transaksi digital."
+        question: "Apa itu Klinik Finansial?",
+        answer: "Klinik Finansial adalah alat bantu diagnosa mandiri (self-assessment) untuk mendeteksi potensi pelanggaran syariah dalam aktivitas ekonomi Anda, mulai dari pekerjaan, investasi, hingga kebiasaan transaksi digital."
     },
     {
         question: "Apa itu fitur 'Tathhir'?",
@@ -116,7 +116,7 @@ export const HEDE_FAQ = [
     },
     {
         question: "Apakah hasil diagnosa ini adalah Fatwa?",
-        answer: "Bukan. Hasil HEDE adalah indikator awal berdasarkan kaidah umum Fiqh Muamalah (Jumhur Ulama). Untuk kasus spesifik dan keputusan hukum final, Anda tetap disarankan berkonsultasi langsung (Talaqqi) dengan Ustadz atau Ahli Fiqh Muamalah."
+        answer: "Bukan. Hasil diagnosa adalah indikator awal berdasarkan kaidah umum Fiqh Muamalah (Jumhur Ulama). Untuk kasus spesifik dan keputusan hukum final, Anda tetap disarankan berkonsultasi langsung (Talaqqi) dengan Ustadz atau Ahli Fiqh Muamalah."
     },
     {
         question: "Apakah data keuangan saya aman?",
@@ -124,7 +124,7 @@ export const HEDE_FAQ = [
     },
     {
         question: "Bagaimana jika hasilnya 'Kritis' atau banyak Riba?",
-        answer: "Jangan panik dan jangan putus asa dari rahmat Allah. HEDE dilengkapi dengan roadmap 'Hijrah Bertahap' (Tadarruj). Jika kondisi ekonomi belum memungkinkan untuk berhenti total seketika, Islam memberikan kelonggaran (Rukhshah) untuk menyelesaikannya secara bertahap sambil bertaubat."
+        answer: "Jangan panik dan jangan putus asa dari rahmat Allah. Klinik Finansial dilengkapi dengan roadmap 'Hijrah Bertahap' (Tadarruj). Jika kondisi ekonomi belum memungkinkan untuk berhenti total seketika, Islam memberikan kelonggaran (Rukhshah) untuk menyelesaikannya secara bertahap sambil bertaubat."
     },
     {
         question: "Apa rujukan Fiqh yang digunakan?",
@@ -386,7 +386,7 @@ export const QUESTIONS_DB: Question[] = [
     options: [
       { value: 'single', label: "Hanya diri sendiri", riskWeight: 0, hardshipWeight: 0, violationType: 'none' },
       { value: 'family', label: "Istri & Anak", riskWeight: 0, hardshipWeight: 60, violationType: 'none' },
-      { value: 'extended', label: "Orang Tua sakit / Keluarga besar", riskWeight: 0, hardshipWeight: 90, violationType: 'none' },
+      { value: 'extended', label: "Keluarga besar", riskWeight: 0, hardshipWeight: 90, violationType: 'none' },
     ]
   }
 ];

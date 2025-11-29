@@ -68,7 +68,7 @@ export const MushafReader: React.FC<MushafReaderProps> = ({
     onLongPressWord
 }) => {
     return (
-        <div className="flex-grow relative w-full max-w-3xl mx-auto bg-white dark:bg-slate-950 pl-5">
+        <div className="grow relative w-full max-w-3xl mx-auto bg-white dark:bg-slate-950 pl-5">
             {error && (
                 <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm p-6 text-center">
                     <div className="w-16 h-16 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4 text-3xl">⚠️</div>

@@ -12,46 +12,46 @@ export const RISK_CONFIG: Record<RiskLevel, {
     safe: { 
         label: 'Aman (Halal)', 
         bg: 'bg-emerald-100', 
-        text: 'text-emerald-900', // Darker for better contrast
+        text: 'text-emerald-950', // Darker for better contrast (WCAG AA)
         border: 'border-emerald-200', 
-        hex: '#064e3b' 
+        hex: '#022c22' // Emerald 950
     },
     low: { 
         label: 'Rendah', 
         bg: 'bg-blue-100', 
-        text: 'text-blue-900', 
+        text: 'text-blue-950', 
         border: 'border-blue-200', 
-        hex: '#1e3a8a' 
+        hex: '#172554' // Blue 950
     },
     medium: { 
         label: 'Menengah (Syubhat)', 
-        bg: 'bg-yellow-100', 
-        text: 'text-yellow-900', 
-        border: 'border-yellow-200', 
-        hex: '#713f12' // Darker yellow/brown
+        bg: 'bg-amber-100', 
+        text: 'text-amber-950', 
+        border: 'border-amber-200', 
+        hex: '#451a03' // Amber 950 - High Contrast
     },
     high: { 
         label: 'Tinggi', 
         bg: 'bg-orange-100', 
-        text: 'text-orange-900', 
+        text: 'text-orange-950', 
         border: 'border-orange-200', 
-        hex: '#9a3412' 
+        hex: '#431407' // Orange 950
     },
     critical: { 
         label: 'Kritis (Haram)', 
         bg: 'bg-red-100', 
-        text: 'text-red-900', 
+        text: 'text-red-950', 
         border: 'border-red-200', 
-        hex: '#991b1b' 
+        hex: '#450a0a' // Red 950
     }
 };
 
-// WCAG Compliant Text Colors
+// WCAG Compliant Text Colors for Badges
 export const VIOLATION_STYLES: Record<ViolationType, string> = {
-    riba: 'bg-red-50 text-red-900 border-red-200 dark:bg-red-900/30 dark:text-red-200 dark:border-red-800',
-    gharar: 'bg-orange-50 text-orange-900 border-orange-200 dark:bg-orange-900/30 dark:text-orange-200 dark:border-orange-800',
-    maysir: 'bg-purple-50 text-purple-900 border-purple-200 dark:bg-purple-900/30 dark:text-purple-200 dark:border-purple-800',
-    zulm: 'bg-slate-50 text-slate-900 border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700',
+    riba: 'bg-red-50 text-red-900 border-red-200 dark:bg-red-900/30 dark:text-red-100 dark:border-red-800',
+    gharar: 'bg-orange-50 text-orange-900 border-orange-200 dark:bg-orange-900/30 dark:text-orange-100 dark:border-orange-800',
+    maysir: 'bg-purple-50 text-purple-900 border-purple-200 dark:bg-purple-900/30 dark:text-purple-100 dark:border-purple-800',
+    zulm: 'bg-slate-50 text-slate-900 border-slate-200 dark:bg-slate-800 dark:text-slate-100 dark:border-slate-700',
     none: 'hidden'
 };
 
@@ -107,8 +107,8 @@ export const FIQH_GLOSSARY: FiqhTerm[] = [
 
 export const HEDE_FAQ = [
     {
-        question: "Apa itu HEDE?",
-        answer: "HEDE (Halal Economic Diagnostic Engine) adalah alat bantu diagnosa mandiri (self-assessment) untuk mendeteksi potensi pelanggaran syariah dalam aktivitas ekonomi Anda, mulai dari pekerjaan, investasi, hingga kebiasaan transaksi digital."
+        question: "Apa itu Klinik Finansial?",
+        answer: "Klinik Finansial adalah alat bantu diagnosa mandiri (self-assessment) untuk mendeteksi potensi pelanggaran syariah dalam aktivitas ekonomi Anda, mulai dari pekerjaan, investasi, hingga kebiasaan transaksi digital."
     },
     {
         question: "Apa itu fitur 'Tathhir'?",
@@ -116,7 +116,7 @@ export const HEDE_FAQ = [
     },
     {
         question: "Apakah hasil diagnosa ini adalah Fatwa?",
-        answer: "Bukan. Hasil HEDE adalah indikator awal berdasarkan kaidah umum Fiqh Muamalah (Jumhur Ulama). Untuk kasus spesifik dan keputusan hukum final, Anda tetap disarankan berkonsultasi langsung (Talaqqi) dengan Ustadz atau Ahli Fiqh Muamalah."
+        answer: "Bukan. Hasil diagnosa adalah indikator awal berdasarkan kaidah umum Fiqh Muamalah (Jumhur Ulama). Untuk kasus spesifik dan keputusan hukum final, Anda tetap disarankan berkonsultasi langsung (Talaqqi) dengan Ustadz atau Ahli Fiqh Muamalah."
     },
     {
         question: "Apakah data keuangan saya aman?",
@@ -124,7 +124,7 @@ export const HEDE_FAQ = [
     },
     {
         question: "Bagaimana jika hasilnya 'Kritis' atau banyak Riba?",
-        answer: "Jangan panik dan jangan putus asa dari rahmat Allah. HEDE dilengkapi dengan roadmap 'Hijrah Bertahap' (Tadarruj). Jika kondisi ekonomi belum memungkinkan untuk berhenti total seketika, Islam memberikan kelonggaran (Rukhshah) untuk menyelesaikannya secara bertahap sambil bertaubat."
+        answer: "Jangan panik dan jangan putus asa dari rahmat Allah. Klinik Finansial dilengkapi dengan roadmap 'Hijrah Bertahap' (Tadarruj). Jika kondisi ekonomi belum memungkinkan untuk berhenti total seketika, Islam memberikan kelonggaran (Rukhshah) untuk menyelesaikannya secara bertahap sambil bertaubat."
     },
     {
         question: "Apa rujukan Fiqh yang digunakan?",

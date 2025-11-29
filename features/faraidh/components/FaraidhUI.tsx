@@ -45,7 +45,7 @@ export const InfoTooltip: React.FC<{ term: keyof typeof FIQH_DEFINITIONS }> = ({
       
       {isOpen && createPortal(
         <div 
-          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 animate-fade-in"
+          className="fixed inset-0 z-9999 flex items-center justify-center p-4 animate-fade-in"
           role="dialog"
           aria-modal="true"
         >

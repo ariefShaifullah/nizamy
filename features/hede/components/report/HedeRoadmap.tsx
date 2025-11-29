@@ -125,7 +125,7 @@ export const HedeRoadmap: React.FC<HedeRoadmapProps> = ({ roadmap }) => {
     return (
         <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-6 md:p-10 shadow-sm border border-slate-100 dark:border-slate-700">
             <div className="flex items-center gap-4 mb-10">
-                <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-2xl flex items-center justify-center text-xl shadow-lg shadow-indigo-200 dark:shadow-none transform rotate-3">
+                <div className="w-12 h-12 bg-linear-to-br from-indigo-500 to-purple-600 text-white rounded-2xl flex items-center justify-center text-xl shadow-lg shadow-indigo-200 dark:shadow-none transform rotate-3">
                     <span className="icon-wrapper w-6 h-6"><FaRoad /></span>
                 </div>
                 <div>
@@ -137,7 +137,7 @@ export const HedeRoadmap: React.FC<HedeRoadmapProps> = ({ roadmap }) => {
             {roadmap.length > 0 ? (
                 <div className="relative">
                     {/* THE CONTINUOUS LINE */}
-                    <div className="absolute top-4 bottom-4 left-6 md:left-1/2 transform -translate-x-1/2 w-1 bg-gradient-to-b from-red-400 via-amber-400 to-emerald-500 rounded-full opacity-30"></div>
+                    <div className="absolute top-4 bottom-4 left-6 md:left-1/2 transform -translate-x-1/2 w-1 bg-linear-to-b from-red-400 via-amber-400 to-emerald-500 rounded-full opacity-30"></div>
                     
                     {roadmap.map((step, idx) => (
                         <RoadmapItem key={idx} step={step} index={idx} />

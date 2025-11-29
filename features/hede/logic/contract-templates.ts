@@ -14,7 +14,7 @@ export const generateContractPdf = async (type: ContractType) => {
         filename = "Template_Akad_Qardh.pdf";
         content = `
             <div style="background:#f8fafc; padding:15px; border-left:4px solid #3b82f6; margin-bottom:20px;">
-                <strong>Definisi:</strong> Akad pinjaman dana kepada pihak lain tanpa imbalan (bunga/tambahan), yang wajib dikembalikan pokoknya saja pada waktu yang disepakati.
+                <strong>Definisi:</strong> Akad pinjaman dana kepada pihak lain tanpa imbalan (bunga/tambahan), yang wajib dikembalikan pokoknya saja pada waktu yang disepakati. Tujuan akad ini adalah Ta'awun (Tolong menolong), bukan mencari keuntungan komersial.
             </div>
 
             <h3 style="${styles.sectionTitle}">PIHAK YANG BERAKAD</h3>
@@ -33,9 +33,9 @@ export const generateContractPdf = async (type: ContractType) => {
             <ol style="margin-left:20px; line-height:1.6;">
                 <li>Muqridh memberikan pinjaman uang sebesar <strong>Rp ........................</strong> kepada Muqtaridh.</li>
                 <li>Muqtaridh berjanji akan mengembalikan pinjaman tersebut selambat-lambatnya pada tanggal <strong>........................</strong>.</li>
-                <li>Akad ini <strong>BEBAS BUNGA/RIBA</strong>. Muqtaridh hanya wajib mengembalikan pokok pinjaman.</li>
-                <li>Segala kelebihan pembayaran yang diberikan Muqtaridh secara sukarela saat pelunasan (tanpa dipersyaratkan di awal) adalah HALAL (Hadiah/Hibah).</li>
-                <li>Jika terjadi keterlambatan karena kesulitan (bukan kelalaian), Muqridh dianjurkan memberi tangguh waktu (QS. Al-Baqarah: 280).</li>
+                <li>Akad ini <strong>MURNI TANPA BUNGA</strong>. Jumlah pengembalian sama persis dengan jumlah pinjaman.</li>
+                <li>Tidak diperjanjikan adanya tambahan, hadiah, atau manfaat lain atas pinjaman ini karena termasuk Riba.</li>
+                <li>Jika terjadi keterlambatan karena kesulitan ekonomi yang nyata (bukan kelalaian), Muqridh dianjurkan memberi tangguh waktu (QS. Al-Baqarah: 280).</li>
             </ol>
 
             <div style="margin-top:50px; display:flex; justify-content:space-between;">

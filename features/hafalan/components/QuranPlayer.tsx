@@ -149,7 +149,7 @@ export const QuranPlayer: React.FC<QuranPlayerProps> = ({
         <button
           onClick={() => setIsPlaying(!isPlaying)}
           aria-label={isPlaying ? "Jeda Audio" : "Putar Audio"}
-          className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm flex-shrink-0 ${
+          className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm shrink-0 ${
             isPlaying
               ? "bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300"
               : "bg-indigo-600 text-white hover:bg-indigo-700"
@@ -231,7 +231,7 @@ export const QuranPlayer: React.FC<QuranPlayerProps> = ({
         <button
           onClick={toggleSpeed}
           aria-label="Ubah Kecepatan"
-          className="px-2 py-1 text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 min-w-[3rem]"
+          className="px-2 py-1 text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600 min-w-12"
         >
           {playbackSpeed}x
         </button>

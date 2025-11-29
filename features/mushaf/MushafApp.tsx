@@ -313,7 +313,7 @@ const MushafApp: React.FC = () => {
 
     return (
         // Update z-index to 60 to stay above Main Header (z-50)
-        <div className="fixed inset-0 z-[60] bg-white dark:bg-slate-950 flex flex-col animate-fade-in select-none">
+        <div className="fixed inset-0 z-60 bg-white dark:bg-slate-950 flex flex-col animate-fade-in select-none">
             {/* Progress Ribbon */}
             <div className="fixed left-0 top-[calc(4rem+env(safe-area-inset-top))] bottom-0 w-1 z-20 bg-slate-100 dark:bg-slate-800/50 pointer-events-none">
                 <div 

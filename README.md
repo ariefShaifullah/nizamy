@@ -1,18 +1,15 @@
 # NIZAMY - Islamic Apps Suite
 
-![Nizamy Banner](public/images/icon.svg)
+![Nizamy Banner](public/images/favicon-32x32.png)
 
-**NIZAMY** adalah *Progressive Web Application* (PWA) komprehensif yang menyediakan solusi digital untuk kebutuhan ibadah umat Islam, meliputi perhitungan waris (Faraidh), kalkulator Zakat, dan pelacak hafalan Al-Quran berbasis metode *Spaced Repetition System* (SRS).
-
-Aplikasi ini dibangun dengan prinsip **Local-First** dan **Privacy-Focused**, di mana seluruh pemrosesan data dan perhitungan dilakukan di sisi klien (browser) tanpa mengirim data sensitif ke server eksternal.
+**NIZAMY** adalah *Progressive Web Application* (PWA) komprehensif yang menyediakan ekosistem alat bantu ibadah digital. Aplikasi ini dirancang dengan prinsip **Local-First** dan **Privacy-Focused**, di mana seluruh data sensitif (keuangan, hafalan, diagnosa) disimpan dan diproses secara lokal di perangkat pengguna tanpa server *backend* terpusat.
 
 ---
 
 ## 📋 Daftar Isi
 - [Fitur Utama](#-fitur-utama)
 - [Tech Stack](#-tech-stack)
-- [Audit Kode & Arsitektur](#-audit-kode--arsitektur)
-- [Struktur Proyek](#-struktur-proyek)
+- [Arsitektur Proyek](#-arsitektur-proyek)
 - [Algoritma Inti](#-algoritma-inti)
 - [Instalasi & Pengembangan](#-instalasi--pengembangan)
 
@@ -20,133 +17,114 @@ Aplikasi ini dibangun dengan prinsip **Local-First** dan **Privacy-Focused**, di
 
 ## 🌟 Fitur Utama
 
-### 1. Kalkulator Waris (Faraidh)
-- **Sesuai Syariat:** Mengimplementasikan aturan hijab (penghalang), 'Aul (pembilang > penyebut), dan Radd (pembilang < penyebut).
-- **Kasus Khusus:** Menangani kasus kompleks seperti *Umariyyatain*, *Al-Musytarakah*, dan *Al-Akdariyyah*.
+### 1. 🔍 H.E.D.E (Halal Economic Diagnostic Engine)
+*Fitur Baru!*
+- **Self-Assessment:** Diagnosa kesehatan ekonomi syariah pribadi (Pekerjaan, Bisnis, Keuangan, Digital).
+- **Risk Scoring:** Mendeteksi potensi Riba, Gharar, Maysir, dan Zulm dengan skor kepatuhan 0-100.
+- **Roadmap Hijrah:** Memberikan langkah taktis (Jangka Pendek/Menengah/Panjang) berdasarkan tingkat risiko dan kondisi darurat (Fiqh Tadarruj vs Bara'ah).
+- **Toolkit:** Unduh template akad syariah (Qardh, Mudharabah, dll) dan panduan Tathhir.
+
+### 2. 📖 Mushaf Al-Quran Digital
+*Fitur Baru!*
+- **Virtual Scroll:** Rendering performa tinggi untuk 6000+ ayat menggunakan `react-virtuoso`.
+- **Analisis Tajwid:** Pewarnaan hukum tajwid otomatis (Ikhfa, Idgham, Mad, dll) berbasis analisis teks regex.
+- **Bedah Kata:** Klik per kata untuk melihat arti, transliterasi, dan bedah makhraj huruf.
+- **Audio Player:** Murottal per ayat atau per kata (Word-by-Word) dengan fitur *sticky player*.
+
+### 3. ⚖️ Kalkulator Waris (Faraidh)
+- **Engine Fiqh:** Mengimplementasikan aturan *Hajb* (penghalang), *'Aul*, dan *Radd*.
+- **Kasus Kompleks:** Menangani kasus khusus seperti *Umariyyatain*, *Musytarakah*, dan *Akdariyyah*.
 - **Visualisasi:** Grafik distribusi harta dan rincian dalil per ahli waris.
-- **Export:** Cetak laporan pembagian waris ke PDF.
+- **Export PDF:** Cetak laporan hasil pembagian waris yang rapi.
 
-### 2. Kalkulator Zakat
-- **Multi-Jenis:** Zakat Fitrah, Maal, Emas/Perak, Perniagaan, Pertanian, Peternakan, dan Rikaz.
-- **Real-time Calculation:** Perhitungan otomatis berdasarkan input dan *settings* harga emas/beras terkini.
-- **Kwitansi:** Pembuatan bukti hitung zakat digital.
+### 4. 💰 Kalkulator Zakat
+- **Multi-Aset:** Zakat Fitrah, Maal, Emas/Perak, Perniagaan, Pertanian, Peternakan, dan Rikaz.
+- **Fitur Nisab:** Visualisasi progress bar pencapaian nisab secara *real-time*.
+- **Kwitansi Digital:** Generate bukti hitung zakat dalam format PDF.
 
-### 3. Hafalan Quran Tracker (SRS)
-- **Metode SRS:** Algoritma pengulangan berjarak (*Spaced Repetition*) untuk menjaga hafalan jangka panjang (Mutqin).
-- **Gamifikasi:** Sistem Level, XP, Streak, dan Badges untuk motivasi.
-- **Audio:** Integrasi audio Qori (via *EveryAyah API*) untuk pengecekan tajwid.
-- **Multi-User:** Mendukung banyak profil pengguna dalam satu perangkat.
-
-### 4. Utilitas Tambahan
-- **Jadwal Sholat:** Integrasi API Aladhan dengan deteksi lokasi otomatis.
-- **Mode Gelap:** Dukungan *Dark Mode* penuh.
-- **PWA:** Dapat diinstal di Android & iOS, berjalan offline.
+### 5. 🧠 Hafalan Quran Tracker (SRS)
+- **Spaced Repetition System:** Algoritma pengulangan berjarak otomatis untuk menjaga hafalan (Mutqin).
+- **Gamifikasi:** Sistem Level, XP, Streak, Badges, dan Weekly Challenge.
+- **Multi-Profile:** Mendukung banyak pengguna dalam satu perangkat (misal: Ayah, Ibu, Anak).
 
 ---
 
 ## 🛠 Tech Stack
 
-- **Core:** React 18 (TypeScript)
-- **Routing:** React Router DOM v6 (`HashRouter`)
-- **Build Tool:** Vite (Asumsi berdasarkan struktur import.meta)
-- **Styling:** Tailwind CSS
-- **State Management:** React Context API + `useReducer` + Custom Hooks
-- **Persistence:** IndexedDB (via `idb-keyval`) & `localStorage`
-- **Visualisasi:** Recharts
+- **Core:** React 18 (TypeScript), Vite
+- **State Management:** React Context + `useReducer`
+- **Persistence:** IndexedDB (`idb-keyval`) untuk data berat & `localStorage` untuk preferensi.
+- **UI Framework:** Tailwind CSS (Dark Mode supported)
+- **Visualization:** Recharts (Grafik HEDE & Waris)
+- **Virtualization:** React Virtuoso (Mushaf List)
 - **PDF Generation:** `jspdf` & `html2canvas`
-- **Audio:** Web Audio API (Synthesizer) + HTML5 Audio
-- **Icons:** React Icons
+- **PWA:** Service Worker, Manifest, Offline Capability
 
 ---
 
-## 🔍 Audit Kode & Arsitektur
+## 📂 Arsitektur Proyek
 
-### Kekuatan (Strengths)
-1.  **Separation of Concerns (SoC):** Logika bisnis yang berat dipisahkan dengan sangat baik ke dalam folder `services/` (contoh: `faraidh.service.ts`, `zakat.service.ts`). Komponen UI hanya berfokus pada rendering.
-2.  **Type Safety:** Penggunaan TypeScript yang ketat (banyak interface dan type definitions di `types/`) mengurangi potensi *runtime errors*.
-3.  **Performance:**
-    - Penggunaan `React.lazy` dan `Suspense` untuk *code splitting* per modul (Faraidh, Zakat, Hafalan).
-    - PWA Service Worker (`sw.js`) dengan strategi *caching* yang agresif untuk aset statis dan API Quran.
-    - Penggunaan `React.memo` dan `useMemo` untuk mencegah re-render yang tidak perlu pada kalkulasi berat.
-4.  **Offline-First:** Seluruh data disimpan di sisi klien. Service worker menangani aset agar aplikasi tetap bisa dibuka tanpa internet.
-5.  **Clean UI/UX:** Implementasi Tailwind CSS yang konsisten dengan *glassmorphism* dan transisi yang halus.
-
-### Area Optimasi (Improvements)
-1.  **Build Process:** Tailwind CSS yang sebelumnya dimuat via CDN, kini telah diintegrasikan ke dalam build process untuk performa yang lebih baik di lingkungan produksi.
-2.  **Storage Scalability:** Data berat (seperti Hafalan) telah dimigrasikan ke `IndexedDB` untuk mengatasi batas `localStorage`. Data ringan (seperti history) tetap di `localStorage` untuk akses UI yang sinkron.
-3.  **Testing Coverage:** Logika Faraidh yang kompleks sudah memiliki *unit tests*. Disarankan untuk terus memperluas cakupan tes ke modul lain seperti Zakat dan Hafalan untuk memastikan akurasi perhitungan syariah seiring berkembangnya aplikasi.
-
----
-
-## 📂 Struktur Proyek
+Proyek ini menggunakan struktur **Feature-Based** (Feature Sliced) untuk skalabilitas:
 
 ```text
 /
-├── components/          # Komponen UI (Atomic design)
-│   ├── faraidh/         # Komponen spesifik modul Waris
-│   ├── zakat/           # Komponen spesifik modul Zakat
-│   ├── hafalan/         # Komponen spesifik modul Hafalan
-│   ├── ui/              # Komponen generik (Toast, Modal, dll)
-│   └── ...
-├── services/            # Logika Bisnis Murni (Tanpa UI)
-│   ├── faraidh.service.ts
-│   ├── zakat.service.ts
-│   ├── hafalan.service.ts
-│   ├── audio.service.ts
-│   └── ...
-├── hooks/               # Custom React Hooks (Logic Reuse)
-├── types/               # Definisi TypeScript
-├── reducers/            # State logic untuk useReducer
-├── constants.ts         # Data statis (Ayat, Aturan, Config)
-├── App.tsx              # Entry point & Routing logic
-├── index.tsx            # Mounting point
-└── sw.js                # Service Worker (PWA Cache)
+├── components/          # Komponen UI Generik (Button, Modal, Toast)
+├── features/            # Modul Fungsional Utama
+│   ├── faraidh/         # Logika & UI Waris
+│   ├── zakat/           # Logika & UI Zakat
+│   ├── hafalan/         # Logic SRS, Gamification, Dashboard
+│   ├── mushaf/          # Reader, Audio, Tajwid Engine
+│   ├── hede/            # Logic Diagnosa, Scoring, Report
+│   └── settings/        # Backup/Restore, Global Config
+├── services/            # Service Singleton (Audio, DB, PDF, Notification)
+├── hooks/               # Custom Hooks (usePWA, useWakeLock, useLocalStorage)
+├── context/             # Global Context (Theme, Toast)
+└── types/               # Definisi TypeScript Global
 ```
 
 ---
 
 ## 🧠 Algoritma Inti
 
-### Faraidh Engine (`faraidh.service.ts`)
-1.  **Hajb Detection:** Mendeteksi ahli waris yang terhalang (mahjub) oleh ahli waris lain (misal: Cucu terhalang Anak Laki-laki).
-2.  **Share Calculation:** Menghitung bagian pasti (*Furudh*) masing-masing ahli waris.
-3.  **Ashabah Handling:** Mendistribusikan sisa harta kepada ahli waris *Ashabah*.
-4.  **Correction:**
-    - **'Aul:** Jika total bagian > 1, penyebut dinaikkan (bagian mengecil).
-    - **Radd:** Jika total bagian < 1 & tidak ada Ashabah, sisa dikembalikan proporsional.
+### 1. HEDE Risk Engine (`hede.service.ts`)
+- Menghitung skor risiko tertimbang dari jawaban user.
+- Menerapkan logika *Dependency* (pertanyaan muncul bersyarat).
+- **Poison Logic:** Jika terdeteksi pelanggaran berat (misal: Riba), skor total dibatasi maksimal 40 (Kritis), meskipun aspek lain aman. Ini sesuai kaidah bahwa "kerusakan menghilangkan keberkahan".
 
-### Hafalan SRS (`hafalan.service.ts`)
-Menggunakan interval pengulangan eksponensial:
-- **Stage 0:** Baru
-- **Stage 1:** 1 hari
-- **Stage 2:** 3 hari
-- **Stage 3:** 7 hari
-- **Stage 4:** 14 hari
-- **Stage 5:** 30 hari (Mutqin)
+### 2. Tajwid Analysis Engine (`tajwid.helper.ts`)
+- Menggunakan Regex kompleks untuk mendeteksi pola huruf hijaiyah dan harakat.
+- Mengidentifikasi hukum tajwid (Nun Mati, Mim Mati, Mad, Qalqalah, dll) secara *client-side*.
+- Menangani kasus *Gharib* (bacaan khusus) berdasarkan lokasi surat/ayat.
+
+### 3. Hafalan SRS Logic (`hafalan.service.ts`)
+- Menjadwalkan review ulang berdasarkan interval eksponensial: 1, 3, 7, 14, 30 hari.
+- Menghitung beban harian (*Daily Load*) berdasarkan bobot ayat (panjang/pendek).
 
 ---
 
 ## 🚀 Instalasi & Pengembangan
 
-Karena proyek ini menggunakan ES Modules dan Vite (tersirat), langkah standarnya:
+1.  **Clone Repository**
+    ```bash
+    git clone https://github.com/username/nizamy.git
+    cd nizamy
+    ```
 
-1.  **Install Dependencies**
+2.  **Install Dependencies**
     ```bash
     npm install
     ```
 
-2.  **Run Development Server**
+3.  **Run Development Server**
     ```bash
     npm run dev
     ```
 
-3.  **Build for Production**
+4.  **Build for Production**
     ```bash
     npm run build
     ```
 
-**Catatan:** Aplikasi ini tidak memerlukan backend server. Seluruh logika berjalan di browser.
-
 ---
 
-*Dibuat dengan ❤️ oleh Tim Pengembang NIZAMY*
+*Dibuat dengan ❤️ oleh Si Pengembang NIZAMY*

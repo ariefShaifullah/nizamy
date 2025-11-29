@@ -11,7 +11,7 @@ import {
   FaBrain,
   FaChevronRight,
   FaDownload,
-  FaShieldAlt
+  FaStethoscope
 } from "react-icons/fa";
 
 interface FeatureItem {
@@ -38,9 +38,9 @@ const BentoCard: React.FC<{ feature: FeatureItem; onClick: () => void; delay: nu
         <button
             onClick={onClick}
             className={`
-                group relative overflow-hidden w-full h-full min-h-[160px] md:min-h-[220px]
+                group relative overflow-hidden w-full h-full min-h-40 md:min-h-[220px]
                 flex flex-col items-start justify-between
-                rounded-[2rem] p-6
+                rounded-4xl p-6
                 transition-all duration-300 ease-out
                 animate-fade-in-up backface-hidden
                 
@@ -69,7 +69,7 @@ const BentoCard: React.FC<{ feature: FeatureItem; onClick: () => void; delay: nu
             
             {/* 2. Gradient Overlay for Hero Card */}
             {isHero && (
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-transparent dark:from-indigo-900/10 dark:to-transparent pointer-events-none"></div>
+                <div className="absolute inset-0 bg-linear-to-br from-indigo-50/50 to-transparent dark:from-indigo-900/10 dark:to-transparent pointer-events-none"></div>
             )}
 
             {/* 3. Icon Badge */}
@@ -163,9 +163,9 @@ export const Home: React.FC = () => {
     },
     {
       id: 'hede',
-      title: 'HEDE',
-      subtitle: 'Diagnosa Halal',
-      icon: <FaShieldAlt />,
+      title: 'Klinik Finansial',
+      subtitle: 'Cek Kehalalan',
+      icon: <FaStethoscope />,
       colorClass: 'text-purple-600 dark:text-purple-400',
       bgClass: 'bg-purple-50 dark:bg-purple-900/30',
       path: '/hede',
@@ -177,29 +177,18 @@ export const Home: React.FC = () => {
   const showInstallBtn = isInstallable || (isIOS && !isStandalone);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-24 md:pb-10 overflow-x-hidden transition-colors duration-500">
+    <div className="min-h-screen pb-24 md:pb-10 overflow-x-hidden transition-colors duration-500">
       {showIOSGuide && <IOSInstallModal onClose={() => setShowIOSGuide(false)} />}
       
-      <style>{`
-        @keyframes gradient-xy {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        .animate-gradient-xy {
-            background-size: 200% 200%;
-            animation: gradient-xy 15s ease infinite;
-        }
-      `}</style>
-
-      {/* --- 1. HERO SECTION (ANIMATED AURORA) --- */}
+      {/* --- 1. HERO SECTION (OPTIMIZED STATIC GRADIENT) --- */}
+      {/* Optimized: Replaced heavy transition logic with static efficient gradients */}
       <div className="relative pt-[calc(env(safe-area-inset-top)+5.5rem)] pb-36 px-6 overflow-hidden shadow-sm group">
           
-          {/* Animated Gradient Background */}
-          <div className="absolute inset-0 animate-gradient-xy bg-gradient-to-br from-blue-500 via-indigo-500 to-teal-400 dark:from-slate-900 dark:via-indigo-950 dark:to-slate-900 opacity-95 dark:opacity-100 transition-colors duration-1000"></div>
+          {/* Static Gradient Background */}
+          <div className="absolute inset-0 bg-linear-to-br from-blue-600 via-indigo-600 to-teal-500 dark:from-slate-900 dark:via-indigo-950 dark:to-slate-900"></div>
           
           {/* Overlay for depth */}
-          <div className="absolute inset-0 bg-transparent dark:bg-gradient-to-b dark:from-transparent dark:to-slate-950/90"></div>
+          <div className="absolute inset-0 bg-transparent dark:bg-linear-to-b dark:from-transparent dark:to-slate-950/90"></div>
 
           {/* Pattern Overlay */}
           <div 
@@ -226,7 +215,7 @@ export const Home: React.FC = () => {
       <div className="w-full px-4 sm:px-6 lg:px-8 relative z-20 -mt-28">
           
           {/* --- 2. PRAYER WIDGET --- */}
-          <div className="mb-10 max-w-5xl mx-auto transform transition-transform hover:scale-[1.005] duration-500">
+          <div className="mb-10 max-w-5xl mx-auto transform transition-transform hover:scale-[1.005] duration-500 will-change-transform">
               <PrayerWidget />
           </div>
 
@@ -255,7 +244,7 @@ export const Home: React.FC = () => {
           {/* --- 4. INSTALL BANNER --- */}
           {showInstallBtn && (
             <div className="mt-12 max-w-5xl mx-auto bg-slate-900 dark:bg-black text-white rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative overflow-hidden animate-fade-in ring-4 ring-slate-50 dark:ring-slate-800">
-                <div className="absolute right-0 top-0 h-full w-3/4 bg-gradient-to-l from-indigo-600/20 to-transparent pointer-events-none"></div>
+                <div className="absolute right-0 top-0 h-full w-3/4 bg-linear-to-l from-indigo-600/20 to-transparent pointer-events-none"></div>
                 
                 <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
                     <div>

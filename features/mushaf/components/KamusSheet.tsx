@@ -29,7 +29,7 @@ const HighlightedArabicText: React.FC<{ text: string; rules: TajwidRule[]; fontS
     return (
         <p 
             className={`font-arabic ${fontSize} dir-rtl text-center py-6 px-2`}
-            style={{ lineHeight: '2.8', direction: 'rtl' }} // RELAXED LINE HEIGHT
+            style={{ fontFamily: '"Amiri", serif', lineHeight: '2.8', direction: 'rtl' }} // RELAXED LINE HEIGHT & FONT
         >
             {chars.map((c, i) => (
                 <span key={i} className={`${c.colorClass} transition-colors duration-300 relative`}>
@@ -115,7 +115,7 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
 
     return (
         <div 
-            className={`fixed inset-0 z-[100] flex items-end justify-center sm:items-center transition-opacity duration-300 ${isClosing ? 'opacity-0' : 'opacity-100'}`}
+            className={`fixed inset-0 z-100 flex items-end justify-center sm:items-center transition-opacity duration-300 ${isClosing ? 'opacity-0' : 'opacity-100'}`}
             role="dialog"
             aria-modal="true"
         >
@@ -198,7 +198,7 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
                                 showToast("Audio tidak tersedia", "error");
                             }
                         }}
-                        className="w-full bg-gradient-to-r from-teal-600 to-emerald-600 text-white py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-lg shadow-teal-500/30 hover:shadow-teal-500/40 active:scale-[0.98] transition-all"
+                        className="w-full bg-linear-to-r from-teal-600 to-emerald-600 text-white py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-lg shadow-teal-500/30 hover:shadow-teal-500/40 active:scale-[0.98] transition-all"
                     >
                         <span className="bg-white/20 p-2 rounded-full pl-2.5">
                             <FaPlay size={14} />
@@ -286,7 +286,7 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
                                     <div className="space-y-3">
                                         {makhrajList.map((m, idx) => (
                                             <div key={idx} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex gap-4">
-                                                <div className="w-12 h-12 flex-shrink-0 bg-white dark:bg-slate-900 rounded-full flex items-center justify-center text-2xl font-arabic border border-slate-100 dark:border-slate-600 text-slate-800 dark:text-slate-200">
+                                                <div className="w-12 h-12 shrink-0 bg-white dark:bg-slate-900 rounded-full flex items-center justify-center text-2xl font-arabic border border-slate-100 dark:border-slate-600 text-slate-800 dark:text-slate-200" style={{ fontFamily: '"Amiri", serif' }}>
                                                     {m.letter}
                                                 </div>
                                                 <div className="flex-1">

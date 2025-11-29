@@ -73,7 +73,7 @@ export const NisabStatus: React.FC<NisabStatusProps> = ({ value, nisab, label, u
                         style={{ width: `${percentage}%` }}
                     >
                         {/* Striped animation pattern */}
-                        <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,.15)_25%,transparent_25%,transparent_50%,rgba(255,255,255,.15)_50%,rgba(255,255,255,.15)_75%,transparent_75%,transparent)] bg-[length:1rem_1rem] animate-[pulse_2s_linear_infinite]"></div>
+                        <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,.15)_25%,transparent_25%,transparent_50%,rgba(255,255,255,.15)_50%,rgba(255,255,255,.15)_75%,transparent_75%,transparent)] bg-size-[1rem_1rem] animate-[pulse_2s_linear_infinite]"></div>
                     </div>
                 </div>
 

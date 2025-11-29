@@ -28,7 +28,7 @@ export const usePageMetadata = () => {
         title = `${baseTitle} | HEDE (Audit Halal)`;
         themeColor = "#7e22ce"; // Purple
     } else {
-        title = `${baseTitle}: Aplikasi Ibadah Islam (Waris, Zakat, Hafalan)`;
+        title = `${baseTitle}: Aplikasi Ibadah Islam (Waris, Zakat, Hafalan, Klinik Finansial)`;
         themeColor = "#4f46e5";
     }
 

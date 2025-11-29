@@ -54,7 +54,7 @@ export const MushafSettingsModal: React.FC<MushafSettingsProps> = ({ fontSize, s
                         className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700 accent-teal-600"
                     />
                     <div className="mt-4 p-4 bg-white dark:bg-slate-900 rounded-xl text-center border border-slate-100 dark:border-slate-800 shadow-inner" dir="rtl">
-                        <p className="font-arabic leading-[2.2]" style={{ fontSize: `${fontSize}px` }}>
+                        <p className="font-arabic leading-[2.2]" style={{ fontSize: `${fontSize}px`, fontFamily: '"Amiri", serif' }}>
                             بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
                         </p>
                     </div>

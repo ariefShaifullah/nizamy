@@ -54,7 +54,7 @@ export const UserSelection: React.FC<UserSelectionProps> = ({ users, onSelect, o
                 className="flex flex-row md:flex-col items-center w-full md:w-48 p-4 md:p-8 pr-14 md:pr-8 bg-white dark:bg-slate-800 rounded-2xl md:rounded-3xl shadow-sm md:shadow-lg border border-slate-100 dark:border-slate-700 hover:border-indigo-100 dark:hover:border-indigo-800 hover:shadow-md md:hover:shadow-2xl md:hover:-translate-y-2 transition-all duration-300 text-left md:text-center relative overflow-hidden"
               >
                 <div
-                  className={`w-12 h-12 md:w-24 md:h-24 rounded-full flex-shrink-0 flex items-center justify-center text-lg md:text-4xl text-white font-bold shadow-md ring-2 md:ring-4 ring-white dark:ring-slate-700 mr-4 md:mr-0 md:mb-4 ${user.avatarColor}`}
+                  className={`w-12 h-12 md:w-24 md:h-24 rounded-full shrink-0 flex items-center justify-center text-lg md:text-4xl text-white font-bold shadow-md ring-2 md:ring-4 ring-white dark:ring-slate-700 mr-4 md:mr-0 md:mb-4 ${user.avatarColor}`}
                 >
                   {user.name.charAt(0).toUpperCase()}
                 </div>
@@ -93,7 +93,7 @@ export const UserSelection: React.FC<UserSelectionProps> = ({ users, onSelect, o
             }}
             className="flex flex-row md:flex-col items-center justify-center md:justify-start w-full md:w-48 p-4 md:p-8 bg-slate-50 dark:bg-slate-800/50 rounded-2xl md:rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all group md:space-y-4 space-x-4 md:space-x-0"
           >
-            <div className="w-12 h-12 md:w-24 md:h-24 rounded-full flex-shrink-0 flex items-center justify-center text-2xl md:text-4xl text-slate-400 dark:text-slate-500 border-2 border-dashed border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 group-hover:text-indigo-400 dark:group-hover:text-indigo-300 transition-colors">
+            <div className="w-12 h-12 md:w-24 md:h-24 rounded-full shrink-0 flex items-center justify-center text-2xl md:text-4xl text-slate-400 dark:text-slate-500 border-2 border-dashed border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 group-hover:text-indigo-400 dark:group-hover:text-indigo-300 transition-colors">
               +
             </div>
             <div className="text-left md:text-center flex-1 md:flex-none">

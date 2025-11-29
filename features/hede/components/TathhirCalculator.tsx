@@ -29,7 +29,7 @@ export const TathhirCalculator: React.FC = () => {
 
     return (
         <div className="max-w-2xl mx-auto space-y-6 animate-fade-in pb-12 px-4 md:px-0">
-            <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white p-6 md:p-8 rounded-[2rem] shadow-xl relative overflow-hidden">
+            <div className="bg-linear-to-br from-slate-900 to-slate-800 text-white p-6 md:p-8 rounded-4xl shadow-xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-4 opacity-10">
                     <FaBroom size={100} />
                 </div>

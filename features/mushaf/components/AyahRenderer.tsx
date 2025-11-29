@@ -97,11 +97,15 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
                 {...(!wordMode ? ayahGestures : {})}
             >
                 <div 
-                    className="text-slate-800 dark:text-slate-100 font-arabic tracking-normal text-justify leading-loose"
+                    className="text-slate-800 dark:text-slate-100 tracking-normal text-justify leading-loose"
                     style={{ 
+                        fontFamily: '"Amiri", "Traditional Arabic", serif',
                         lineHeight: lineHeight,
                         fontSize: `${fontSize}px`,
-                        textAlignLast: 'right' // Pastikan baris terakhir (nomor ayat) ada di kiri (karena RTL)
+                        textAlignLast: 'right', // Pastikan baris terakhir (nomor ayat) ada di kiri (karena RTL)
+                        // OPTIMIZATION: Critical for Uthmani fonts ligature rendering
+                        fontFeatureSettings: '"cv01" 1, "cv02" 1, "ss01" 1',
+                        WebkitFontFeatureSettings: '"cv01" 1, "cv02" 1, "ss01" 1'
                     }}
                 >
                     {ayah.words.map((word, index) => (
@@ -123,7 +127,7 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
                         className={`inline-flex items-center justify-center mx-2 align-middle select-none h-[0.9em] w-[0.9em] relative bottom-[0.15em] ${isPlaying ? 'text-teal-600 dark:text-teal-400' : 'text-slate-300 dark:text-slate-600'}`}
                         style={{ fontSize: `${fontSize}px` }}
                     >
-                        <span className="font-arabic text-[1em] leading-none">۝</span>
+                        <span className="text-[1em] leading-none" style={{ fontFamily: '"Amiri", serif' }}>۝</span>
                         <span 
                             className="absolute inset-0 flex items-center justify-center font-sans font-bold text-slate-500 dark:text-slate-900"
                             style={{ 
@@ -196,8 +200,8 @@ const WordItem: React.FC<{
     if (isWaqaf) {
         return (
             <span 
-                className="inline-block text-amber-600 dark:text-amber-500 pointer-events-none font-arabic px-1 opacity-80 select-none relative -top-[0.4em]"
-                style={{ fontSize: `${fontSize * 0.55}px` }}
+                className="inline-block text-amber-600 dark:text-amber-500 pointer-events-none px-1 opacity-80 select-none relative -top-[0.4em]"
+                style={{ fontSize: `${fontSize * 0.55}px`, fontFamily: '"Amiri", serif' }}
             >
                 {word.text_uthmani}
             </span>
@@ -207,7 +211,10 @@ const WordItem: React.FC<{
     // Non-interactive text
     if (!isInteractive) {
          return (
-            <span className="inline-block text-slate-800 dark:text-slate-100 font-arabic px-0.5 select-none">
+            <span 
+                className="inline-block text-slate-800 dark:text-slate-100 px-0.5 select-none"
+                style={{ fontFamily: '"Amiri", serif' }}
+            >
                 {word.text_uthmani}
             </span>
         );
@@ -219,7 +226,7 @@ const WordItem: React.FC<{
             {...(wordMode ? wordGestures : {})}
             onContextMenu={(e) => e.preventDefault()}
             className={`
-                inline-block rounded-lg transition-all duration-200 font-arabic select-none cursor-pointer
+                inline-block rounded-lg transition-all duration-200 select-none cursor-pointer
                 relative
                 ${wordMode ? 'py-2 my-1' : 'py-0 my-0'} 
                 ${isActive 
@@ -229,6 +236,7 @@ const WordItem: React.FC<{
                         : 'text-slate-800 dark:text-slate-100 px-0.5 mx-0.5'
                 }
             `}
+            style={{ fontFamily: '"Amiri", serif' }}
         >
             {word.text_uthmani}
         </span>

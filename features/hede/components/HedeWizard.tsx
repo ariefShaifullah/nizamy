@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { QUESTIONS_DB, CATEGORY_LABELS } from '../constants.ts';
 import { HedeResult, HedeCategory, Question } from '../../../types.ts';
-import { FaChevronLeft, FaCheckCircle } from 'react-icons/fa';
+import { FaChevronLeft, FaCheck } from 'react-icons/fa';
 import { audioService } from '../../../services/audio.service.ts';
 
 interface HedeWizardProps {
@@ -117,7 +117,7 @@ export const HedeWizard: React.FC<HedeWizardProps> = ({ onComplete, onCancel }) 
                 {/* Progress Bar */}
                 <div className="h-1 w-full bg-slate-200 dark:bg-slate-800 absolute bottom-0">
                     <div 
-                        className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 transition-all duration-700 ease-out"
+                        className="h-full bg-linear-to-r from-indigo-500 to-purple-600 transition-all duration-700 ease-out"
                         style={{ width: `${progress}%` }}
                     ></div>
                 </div>
@@ -153,13 +153,13 @@ export const HedeWizard: React.FC<HedeWizardProps> = ({ onComplete, onCancel }) 
                                     `}
                                 >
                                     <div className="flex items-start gap-4">
-                                        <div className={`w-6 h-6 mt-0.5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors duration-300
+                                        <div className={`w-6 h-6 mt-0.5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors duration-300
                                             ${isSelected 
                                                 ? 'bg-indigo-600 border-indigo-600' 
                                                 : 'border-slate-300 dark:border-slate-600 group-hover:border-indigo-400'
                                             }
                                         `}>
-                                            {isSelected && <div className="icon-wrapper w-3.5 h-3.5 text-white"><FaCheckCircle /></div>}
+                                            {isSelected && <div className="icon-wrapper w-3.5 h-3.5 text-white flex items-center justify-center"><FaCheck /></div>}
                                         </div>
                                         <span className={`text-base font-medium leading-relaxed ${isSelected ? 'text-indigo-900 dark:text-indigo-100' : 'text-slate-700 dark:text-slate-200'}`}>
                                             {opt.label}

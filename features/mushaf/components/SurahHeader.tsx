@@ -11,7 +11,7 @@ export const SurahHeader: React.FC<SurahHeaderProps> = React.memo(({ surah }) =>
         {/* Glow Effect Behind */}
         <div className="absolute inset-0 bg-teal-500/20 blur-3xl rounded-3xl transform scale-90 translate-y-4 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
         
-        <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 rounded-[2rem] p-8 text-white text-center shadow-2xl overflow-hidden border border-white/10">
+        <div className="relative bg-linear-to-br from-slate-900 via-slate-800 to-emerald-950 rounded-4xl p-8 text-white text-center shadow-2xl overflow-hidden border border-white/10">
             
             {/* Decorative Islamic Pattern Overlay */}
             <div className="absolute inset-0 opacity-10 pointer-events-none" 
@@ -31,7 +31,7 @@ export const SurahHeader: React.FC<SurahHeaderProps> = React.memo(({ surah }) =>
                 </div>
                 
                 {/* Title */}
-                <h2 className="text-4xl md:text-5xl font-bold mb-2 tracking-tight drop-shadow-sm bg-clip-text text-transparent bg-gradient-to-b from-white to-emerald-100">
+                <h2 className="text-4xl md:text-5xl font-bold mb-2 tracking-tight drop-shadow-sm bg-clip-text text-transparent bg-linear-to-b from-white to-emerald-100">
                     {surah.name}
                 </h2>
                 
@@ -52,7 +52,7 @@ export const SurahHeader: React.FC<SurahHeaderProps> = React.memo(({ surah }) =>
                 {/* Bismillah */}
                 {surah.number !== 1 && surah.number !== 9 && (
                     <div className="mt-10 pt-8 border-t border-white/10 w-full max-w-xs mx-auto">
-                        <p className="font-arabic text-3xl md:text-4xl text-emerald-50 opacity-90 drop-shadow-md leading-loose">
+                        <p className="font-arabic text-3xl md:text-4xl text-emerald-50 opacity-90 drop-shadow-md leading-loose" style={{ fontFamily: '"Amiri", serif' }}>
                             بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
                         </p>
                     </div>

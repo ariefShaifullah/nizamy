@@ -93,7 +93,7 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
 
   return (
     <div className="animate-fade-in">
-      <div className="fixed inset-0 z-[100] bg-slate-50 dark:bg-slate-950 flex flex-col h-[100dvh] md:static md:h-auto md:bg-transparent md:z-auto md:block md:inset-auto">
+      <div className="fixed inset-0 z-100 bg-slate-50 dark:bg-slate-950 flex flex-col h-dvh md:static md:h-auto md:bg-transparent md:z-auto md:block md:inset-auto">
         <div className="w-full h-full flex flex-col md:max-w-5xl md:mx-auto md:bg-white md:dark:bg-slate-900 md:rounded-[2.5rem] md:shadow-2xl md:shadow-slate-200/70 md:dark:shadow-none md:border md:border-slate-100 md:dark:border-slate-800 md:overflow-hidden md:relative md:min-h-[600px] md:h-[85vh]">
           
           <div className="flex-none bg-white dark:bg-slate-900 z-20 relative shadow-sm border-b border-slate-100 dark:border-slate-800 pt-[env(safe-area-inset-top)]">

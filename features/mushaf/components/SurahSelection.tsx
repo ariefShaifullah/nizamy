@@ -74,7 +74,7 @@ export const SurahSelection: React.FC<SurahSelectionProps> = ({ lastRead, onSele
                 <div className="mb-8 md:mb-10 animate-fade-in-down">
                     <button 
                         onClick={onJumpToLastRead}
-                        className="w-full relative overflow-hidden bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl p-6 text-white shadow-xl shadow-slate-200/50 dark:shadow-none group text-left border border-slate-700"
+                        className="w-full relative overflow-hidden bg-linear-to-r from-slate-900 to-slate-800 rounded-3xl p-6 text-white shadow-xl shadow-slate-200/50 dark:shadow-none group text-left border border-slate-700"
                     >
                         <div className="absolute top-0 right-0 w-40 h-40 bg-teal-500/20 rounded-full blur-[50px] translate-x-10 -translate-y-10 group-hover:bg-teal-500/30 transition-all duration-700"></div>
                         
@@ -104,7 +104,7 @@ export const SurahSelection: React.FC<SurahSelectionProps> = ({ lastRead, onSele
                             <button
                                 key={link.number}
                                 onClick={() => onSelectSurah(link.number)}
-                                className={`flex flex-col items-center justify-center p-4 rounded-2xl font-bold text-sm bg-gradient-to-br ${link.gradient} ${link.text} hover:-translate-y-1 transition-transform shadow-sm border border-white/20 dark:border-white/5`}
+                                className={`flex flex-col items-center justify-center p-4 rounded-2xl font-bold text-sm bg-linear-to-br ${link.gradient} ${link.text} hover:-translate-y-1 transition-transform shadow-sm border border-white/20 dark:border-white/5`}
                             >
                                 <span className="text-2xl mb-2">{link.icon}</span>
                                 {link.label}
@@ -125,7 +125,7 @@ export const SurahSelection: React.FC<SurahSelectionProps> = ({ lastRead, onSele
                             onClick={() => onSelectSurah(surah.number)}
                             className="group relative bg-white dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-100 dark:border-slate-700 hover:border-teal-500 dark:hover:border-teal-500 transition-all hover:shadow-md hover:bg-slate-50/50 dark:hover:bg-slate-800 text-left flex items-center gap-4"
                         >
-                            <div className="w-12 h-12 flex-shrink-0 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 font-serif font-bold flex items-center justify-center group-hover:bg-teal-500 group-hover:text-white transition-colors text-lg">
+                            <div className="w-12 h-12 shrink-0 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 font-serif font-bold flex items-center justify-center group-hover:bg-teal-500 group-hover:text-white transition-colors text-lg">
                                 {surah.number}
                             </div>
                             

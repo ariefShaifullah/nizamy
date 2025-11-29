@@ -377,15 +377,15 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
         {/* Simple CSS Confetti Background effect */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-50">
           <div
-            className="absolute top-[-10px] left-[20%] w-2 h-2 bg-red-400 rounded-full animate-bounce"
+            className="absolute -top-2.5 left-[20%] w-2 h-2 bg-red-400 rounded-full animate-bounce"
             style={{ animationDuration: "2s" }}
           ></div>
           <div
-            className="absolute top-[-10px] left-[50%] w-2 h-2 bg-yellow-400 rounded-full animate-bounce"
+            className="absolute -top-2.5 left-[50%] w-2 h-2 bg-yellow-400 rounded-full animate-bounce"
             style={{ animationDuration: "1.5s", animationDelay: "0.2s" }}
           ></div>
           <div
-            className="absolute top-[-10px] left-[80%] w-2 h-2 bg-blue-400 rounded-full animate-bounce"
+            className="absolute -top-2.5 left-[80%] w-2 h-2 bg-blue-400 rounded-full animate-bounce"
             style={{ animationDuration: "2.2s", animationDelay: "0.5s" }}
           ></div>
         </div>
@@ -405,7 +405,7 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
           {earnedBadges.map((badge, idx) => (
             <div
               key={idx}
-              className="bg-gradient-to-r from-indigo-50 to-white dark:from-indigo-900/30 dark:to-slate-800 p-4 rounded-xl border border-indigo-100 dark:border-indigo-800 flex items-center gap-4 text-left shadow-sm transform hover:scale-105 transition-transform"
+              className="bg-linear-to-r from-indigo-50 to-white dark:from-indigo-900/30 dark:to-slate-800 p-4 rounded-xl border border-indigo-100 dark:border-indigo-800 flex items-center gap-4 text-left shadow-sm transform hover:scale-105 transition-transform"
             >
               <div className="text-3xl filter drop-shadow-sm">
                 {badge?.icon}

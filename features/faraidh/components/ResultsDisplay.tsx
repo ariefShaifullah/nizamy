@@ -56,7 +56,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl shadow-blue-100/20 dark:shadow-none border border-slate-100 dark:border-slate-700 relative transition-colors">
-      <div className="p-5 border-b border-slate-100 dark:border-slate-700 bg-gradient-to-b from-slate-50 to-white dark:from-slate-800 dark:to-slate-800 flex justify-between items-center rounded-t-3xl">
+      <div className="p-5 border-b border-slate-100 dark:border-slate-700 bg-linear-to-b from-slate-50 to-white dark:from-slate-800 dark:to-slate-800 flex justify-between items-center rounded-t-3xl">
             <div>
                 <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center">
                     <span className="w-2 h-2 bg-blue-500 rounded-full mr-2 animate-pulse"></span>
@@ -74,7 +74,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
       </div>
       
       <div className="p-5">
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-700 dark:to-indigo-900 p-6 rounded-2xl text-white shadow-lg shadow-blue-500/20 dark:shadow-none mb-6 relative overflow-hidden">
+        <div className="bg-linear-to-r from-blue-600 to-indigo-600 dark:from-blue-700 dark:to-indigo-900 p-6 rounded-2xl text-white shadow-lg shadow-blue-500/20 dark:shadow-none mb-6 relative overflow-hidden">
             <div className="absolute -right-6 -top-6 bg-white/10 w-24 h-24 rounded-full blur-2xl"></div>
             <p className="text-blue-100 text-xs font-bold mb-1 uppercase tracking-widest opacity-80">Total Dibagi</p>
             <p className="text-3xl font-extrabold tracking-tight">{formatCurrency(result.estate)}</p>
@@ -92,7 +92,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
 
                     return (
                         <div key={index} className="flex items-start">
-                            <span className="icon-wrapper w-5 h-5 text-amber-500 mr-2.5 mt-0.5 flex-shrink-0"><FaExclamationCircle /></span>
+                            <span className="icon-wrapper w-5 h-5 text-amber-500 mr-2.5 mt-0.5 shrink-0"><FaExclamationCircle /></span>
                             <div className="flex-1">
                                 <span className="text-sm font-bold text-amber-900 dark:text-amber-200 leading-snug">
                                     {note}
@@ -158,10 +158,10 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
                         {chartData.map((entry, index) => (
                             <div key={index} className="flex justify-between items-center group text-sm">
                                 <div className="flex items-center overflow-hidden">
-                                    <span className="w-3 h-3 rounded-full mr-3 flex-shrink-0" style={{ backgroundColor: entry.name.includes('Baitul Mal') ? '#94a3b8' : COLORS[index % COLORS.length] }}></span>
+                                    <span className="w-3 h-3 rounded-full mr-3 shrink-0" style={{ backgroundColor: entry.name.includes('Baitul Mal') ? '#94a3b8' : COLORS[index % COLORS.length] }}></span>
                                     <span className="text-slate-600 dark:text-slate-300 font-medium truncate max-w-[140px]">{entry.name}</span>
                                 </div>
-                                <div className="text-right pl-2 flex-shrink-0">
+                                <div className="text-right pl-2 shrink-0">
                                     <span className="font-bold text-slate-900 dark:text-white">{entry.value.toFixed(1)}%</span>
                                 </div>
                             </div>

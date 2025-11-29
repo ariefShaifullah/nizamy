@@ -62,7 +62,7 @@ export const HedeCharts = forwardRef<HTMLDivElement, HedeChartsProps>(({ result 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* A. Overall Score (Gauge) */}
                 <div className="lg:col-span-1 bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-xl shadow-indigo-100/50 dark:shadow-none border border-slate-100 dark:border-slate-700 p-8 flex flex-col items-center justify-center relative overflow-hidden group">
-                    <div className={`absolute top-0 w-full h-1.5 ${riskConfig.bg.replace('bg-', 'bg-gradient-to-r from-transparent via-')}`}></div>
+                    <div className={`absolute top-0 w-full h-1.5 ${riskConfig.bg.replace('bg-', 'bg-linear-to-r from-transparent via-')}`}></div>
                     
                     <div className="relative mb-6">
                         <svg viewBox="0 0 200 200" className="w-48 h-48 transform -rotate-90">
@@ -100,7 +100,7 @@ export const HedeCharts = forwardRef<HTMLDivElement, HedeChartsProps>(({ result 
                         </h3>
                     </div>
                     
-                    <div className="w-full h-[280px] md:h-[320px]">
+                    <div className="w-full h-[280px] md:h-80">
                         <ResponsiveContainer width="100%" height="100%">
                             <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
                                 <PolarGrid stroke="#e2e8f0" strokeOpacity={0.6} className="dark:stroke-slate-700" />

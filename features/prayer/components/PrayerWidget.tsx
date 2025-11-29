@@ -168,7 +168,7 @@ export const PrayerWidget: React.FC = () => {
                 <div className="text-center mb-8">
                     <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-1 font-bold">Menuju {nextPrayerName}</p>
                     {/* Added tabular-nums to prevent layout jitter during countdown */}
-                    <h2 className="text-5xl md:text-6xl font-black tracking-tight font-mono tabular-nums text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-indigo-600 dark:from-teal-400 dark:to-indigo-400">
+                    <h2 className="text-5xl md:text-6xl font-black tracking-tight font-mono tabular-nums text-transparent bg-clip-text bg-linear-to-r from-teal-600 to-indigo-600 dark:from-teal-400 dark:to-indigo-400">
                         {timeLeft}
                     </h2>
                 </div>

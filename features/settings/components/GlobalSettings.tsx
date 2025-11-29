@@ -92,7 +92,7 @@ export const GlobalSettings: React.FC<GlobalSettingsProps> = ({ isOpen, onClose 
                         <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800">
                             <h4 className="font-bold text-blue-800 dark:text-blue-200 mb-1">Backup & Restore</h4>
                             <p className="text-xs text-blue-600 dark:text-blue-300 mb-4">
-                                Simpan data aplikasi (Waris, Zakat, Hafalan) ke file agar tidak hilang saat clear cache atau ganti perangkat.
+                                Simpan data aplikasi (Waris, Zakat, Hafalan, Diagnosa Finansial) ke file agar tidak hilang saat clear cache atau ganti perangkat.
                             </p>
                             <div className="flex gap-3">
                                 <button 

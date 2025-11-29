@@ -124,7 +124,7 @@ const FaraidhCalculator: React.FC = () => {
               </div>
           </div>
           
-          <div className={`w-full lg:w-[480px] xl:w-[520px] flex-shrink-0 ${activeTab === 'result' ? 'block' : 'hidden lg:block'}`}>
+          <div className={`w-full lg:w-[480px] xl:w-[520px] shrink-0 ${activeTab === 'result' ? 'block' : 'hidden lg:block'}`}>
             <div className="lg:sticky lg:top-28 transition-all duration-300 pb-24 lg:pb-0 space-y-6">
                <ResultsDisplay result={result} />
             </div>

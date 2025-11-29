@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 // @ts-ignore
 import { useLocation, useNavigate, Link } from 'react-router-dom';
@@ -8,17 +7,17 @@ import { LegalModal, type LegalType } from '../../features/settings/components/L
 import { FaBars, FaSun, FaMoon, FaCog, FaArrowLeft, FaShieldAlt, FaFileContract } from 'react-icons/fa';
 
 export const Header: React.FC = () => {
-    const { theme, setTheme } = useTheme();
+    // Consume simpler API from Context
+    const { toggleTheme, isDark } = useTheme(); 
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     
     const location = useLocation();
     const navigate = useNavigate();
     const isHome = location.pathname === '/';
 
-    let titleColor = 'text-indigo-600 dark:text-indigo-400'; // Default Base
+    let titleColor = 'text-indigo-600 dark:text-indigo-400';
     let subtitle = '';
 
-    // Dynamic Theming based on Active Route
     if (location.pathname.includes('/zakat')) {
         titleColor = 'text-emerald-600 dark:text-emerald-400';
         subtitle = 'Kalkulator Zakat';
@@ -36,7 +35,6 @@ export const Header: React.FC = () => {
         subtitle = 'HEDE (Audit Halal)';
     }
 
-    // Helper for Logo Masking
     const logoBgClass = titleColor.replace(/text-/g, 'bg-');
     
     const logoStyle = {
@@ -50,19 +48,18 @@ export const Header: React.FC = () => {
         WebkitMaskPosition: 'center'
     };
 
-    const toggleTheme = () => {
-      if (theme === 'dark') setTheme('light');
-      else setTheme('dark');
+    const handleToggle = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleTheme();
     };
 
     return (
       <>
-      {/* Changed from sticky to fixed for iOS full top coverage */}
       <header className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl shadow-sm fixed top-0 left-0 right-0 z-50 border-b border-white/20 dark:border-slate-700/50 transition-all duration-300 pt-[env(safe-area-inset-top)]">
         <div className="container mx-auto px-4 py-3 md:py-4 flex justify-between items-center">
           <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity group focus:outline-none">
              
-             {/* Mobile: Contextual Icon (Logo on Home, Back Arrow on Inner Pages) */}
              <div className="md:hidden">
                 {isHome ? (
                     <div 
@@ -76,7 +73,6 @@ export const Header: React.FC = () => {
                 )}
              </div>
 
-             {/* Desktop: Always Logo */}
              <div 
                 className={`hidden md:block w-11 h-11 transition-all duration-500 drop-shadow-sm ${logoBgClass}`}
                 style={logoStyle}
@@ -92,21 +88,23 @@ export const Header: React.FC = () => {
             </div>
           </Link>
           
-          {/* Right Side Actions */}
           <div className="flex items-center gap-2 md:gap-3">
-              {/* Theme Toggle */}
               <button 
-                  onClick={toggleTheme}
-                  className="p-2 md:p-2.5 rounded-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-md text-slate-600 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700 hover:text-indigo-500 dark:hover:text-yellow-400 border border-white/20 dark:border-slate-700 transition-all shadow-sm icon-wrapper w-10 h-10 flex items-center justify-center"
-                  aria-label="Toggle Theme"
+                  onClick={handleToggle}
+                  className="p-2 md:p-2.5 rounded-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-md text-slate-600 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700 hover:text-indigo-500 dark:hover:text-yellow-400 border border-white/20 dark:border-slate-700 transition-all shadow-sm icon-wrapper w-10 h-10 flex items-center justify-center active:scale-95 group"
+                  aria-label={isDark ? "Ubah ke Mode Terang" : "Ubah ke Mode Gelap"}
+                  title={isDark ? "Mode Terang" : "Mode Gelap"}
               >
-                  {theme === 'dark' ? <FaSun /> : <FaMoon />}
+                  {isDark ? (
+                      <div className="text-yellow-400 animate-fade-in"><FaSun  /></div>
+                  ) : (
+                      <div className="text-indigo-600 animate-fade-in"><FaMoon  /></div>
+                  )}
               </button>
 
-              {/* Global Settings Button */}
               <button 
                   onClick={() => setIsSettingsOpen(true)}
-                  className="p-2 md:p-2.5 rounded-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-md text-slate-600 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700 border border-white/20 dark:border-slate-700 transition-all shadow-sm icon-wrapper w-10 h-10 flex items-center justify-center"
+                  className="p-2 md:p-2.5 rounded-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-md text-slate-600 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700 border border-white/20 dark:border-slate-700 transition-all shadow-sm icon-wrapper w-10 h-10 flex items-center justify-center active:scale-95"
                   aria-label="Pengaturan Aplikasi"
               >
                   <FaCog />

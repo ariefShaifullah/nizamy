@@ -41,7 +41,7 @@ export const MushafStickyPlayer: React.FC<MushafStickyPlayerProps> = ({
                 <div className="flex items-center justify-between gap-3">
                     {/* Left: Info Track */}
                     <div className="flex-1 min-w-0 flex items-center gap-3">
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-500 ${isPlaying ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/20' : 'bg-slate-800 text-slate-500'}`}>
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-all duration-500 ${isPlaying ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/20' : 'bg-slate-800 text-slate-500'}`}>
                             {/* Display Surah:Ayah Number (e.g. 2:10) */}
                             <span className="font-bold text-xs font-sans tracking-tighter">
                                 {surahNumber}:{ayahNumber}

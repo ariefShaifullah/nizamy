@@ -42,8 +42,8 @@ export const HeirsForm: React.FC<HeirsFormProps> = React.memo(({ heirs, dispatch
       <div className="flex flex-col gap-8 pb-40 lg:pb-0">
         
         {/* 1. Premium Hero Estate Input */}
-        <div className="relative group rounded-[2rem] p-1 bg-gradient-to-br from-blue-100 via-blue-50 to-white dark:from-blue-900 dark:via-slate-800 dark:to-slate-900 shadow-xl shadow-blue-100/50 dark:shadow-none transition-all duration-500 hover:shadow-2xl hover:shadow-blue-200/50 dark:hover:shadow-none">
-            <div className="absolute inset-0 bg-white dark:bg-slate-900 rounded-[1.9rem] m-[1px]"></div>
+        <div className="relative group rounded-4xl p-1 bg-linear-to-br from-blue-100 via-blue-50 to-white dark:from-blue-900 dark:via-slate-800 dark:to-slate-900 shadow-xl shadow-blue-100/50 dark:shadow-none transition-all duration-500 hover:shadow-2xl hover:shadow-blue-200/50 dark:hover:shadow-none">
+            <div className="absolute inset-0 bg-white dark:bg-slate-900 rounded-[1.9rem] m-px"></div>
             
             <div className="relative p-6 md:p-8 flex flex-col justify-center h-full overflow-hidden rounded-[1.9rem]">
                 {/* Decorative Background Pattern */}
@@ -77,9 +77,9 @@ export const HeirsForm: React.FC<HeirsFormProps> = React.memo(({ heirs, dispatch
                 {leftColumnGroups.map((group) => (
                     <div key={group.title} className="space-y-4">
                         <div className="flex items-center px-2">
-                            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent"></div>
+                            <div className="h-px flex-1 bg-linear-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent"></div>
                             <h4 className="mx-4 font-bold text-xs text-slate-400 dark:text-slate-500 uppercase tracking-widest">{group.title}</h4>
-                            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent"></div>
+                            <div className="h-px flex-1 bg-linear-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent"></div>
                         </div>
                         <div className="grid grid-cols-1 gap-4">
                             {group.heirs.map((heirKey) => (
@@ -100,9 +100,9 @@ export const HeirsForm: React.FC<HeirsFormProps> = React.memo(({ heirs, dispatch
                 {rightColumnGroups.map((group) => (
                     <div key={group.title} className="space-y-4">
                        <div className="flex items-center px-2">
-                            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent"></div>
+                            <div className="h-px flex-1 bg-linear-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent"></div>
                             <h4 className="mx-4 font-bold text-xs text-slate-400 dark:text-slate-500 uppercase tracking-widest">{group.title}</h4>
-                            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent"></div>
+                            <div className="h-px flex-1 bg-linear-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent"></div>
                         </div>
                         <div className="grid grid-cols-1 gap-4">
                             {group.heirs.map((heirKey) => (

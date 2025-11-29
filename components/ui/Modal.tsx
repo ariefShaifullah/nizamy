@@ -77,7 +77,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
 
   // Use Portal to render outside root div, avoiding z-index/stacking context issues with Header
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" aria-modal="true" role="dialog">
+    <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" aria-modal="true" role="dialog">
       <div 
         ref={modalRef}
         tabIndex={-1}

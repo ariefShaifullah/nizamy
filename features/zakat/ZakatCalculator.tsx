@@ -223,14 +223,14 @@ const ZakatCalculator: React.FC = () => {
             )}
 
             <div className="flex flex-col lg:flex-row gap-6 md:gap-8 items-start">
-                <div className="w-full lg:w-64 flex-shrink-0 sticky top-[74px] lg:top-24 z-30 py-2 lg:py-0 mb-2 lg:mb-0">
+                <div className="w-full lg:w-64 shrink-0 sticky top-[74px] lg:top-24 z-30 py-2 lg:py-0 mb-2 lg:mb-0">
                     <div className="relative bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-white/20 dark:border-slate-700 rounded-2xl shadow-lg lg:bg-transparent lg:border-0 lg:shadow-none lg:rounded-none lg:backdrop-blur-none overflow-hidden lg:overflow-visible">
                         <div ref={navRef} className="flex lg:flex-col overflow-x-auto lg:overflow-visible space-x-2 lg:space-x-0 lg:space-y-2 hide-scrollbar p-2 lg:p-0" aria-label="Tabs">
                             {TABS.map(tab => (
                                 <button
                                     key={tab.id}
                                     onClick={() => handleSwitchTab(tab.id)}
-                                    className={`whitespace-nowrap px-4 py-2.5 text-sm font-bold rounded-xl transition-all flex items-center flex-shrink-0 border ${
+                                    className={`whitespace-nowrap px-4 py-2.5 text-sm font-bold rounded-xl transition-all flex items-center shrink-0 border ${
                                         activeTab === tab.id 
                                         ? 'bg-emerald-600 text-white shadow-md shadow-emerald-200/50 dark:shadow-none border-emerald-600 lg:translate-x-2' 
                                         : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border-transparent hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:text-emerald-700 dark:hover:text-emerald-400'
@@ -240,14 +240,14 @@ const ZakatCalculator: React.FC = () => {
                                     {tab.label}
                                 </button>
                             ))}
-                            <div className="w-2 flex-shrink-0 lg:hidden"></div>
+                            <div className="w-2 shrink-0 lg:hidden"></div>
                         </div>
-                        <div className="lg:hidden absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white dark:from-slate-900 to-transparent pointer-events-none"></div>
-                        <div className="lg:hidden absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-white dark:from-slate-900 to-transparent pointer-events-none"></div>
+                        <div className="lg:hidden absolute inset-y-0 right-0 w-8 bg-linear-to-l from-white dark:from-slate-900 to-transparent pointer-events-none"></div>
+                        <div className="lg:hidden absolute inset-y-0 left-0 w-4 bg-linear-to-r from-white dark:from-slate-900 to-transparent pointer-events-none"></div>
                     </div>
                 </div>
 
-                <div className="flex-1 w-full min-w-0 bg-white/70 dark:bg-slate-800/60 backdrop-blur-xl rounded-[2rem] shadow-xl shadow-emerald-100/20 dark:shadow-none border border-white/50 dark:border-slate-700/50 md:min-h-[500px] p-5 md:p-8 relative">
+                <div className="flex-1 w-full min-w-0 bg-white/70 dark:bg-slate-800/60 backdrop-blur-xl rounded-4xl shadow-xl shadow-emerald-100/20 dark:shadow-none border border-white/50 dark:border-slate-700/50 md:min-h-[500px] p-5 md:p-8 relative">
                     {activeTab === 'fitrah' && <FitrahView state={state} settings={settings} onChange={handleInputChange} onNext={goToSummary} />}
                     {activeTab === 'maal' && <MaalView state={state} settings={settings} onChange={handleInputChange} onNext={goToSummary} />}
                     {activeTab === 'gold' && <GoldSilverView state={state} settings={settings} onChange={handleInputChange} onNext={goToSummary} />}

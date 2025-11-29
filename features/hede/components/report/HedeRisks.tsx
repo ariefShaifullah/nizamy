@@ -66,7 +66,7 @@ const RiskCard: React.FC<{ risk: RiskFactor; onTermClick: (term: string) => void
             
             {/* Footer Dalil */}
             <div className="flex items-start gap-2 bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
-                <span className="icon-wrapper w-3 h-3 text-indigo-400 mt-0.5 flex-shrink-0"><FaBook /></span>
+                <span className="icon-wrapper w-3 h-3 text-indigo-400 mt-0.5 shrink-0"><FaBook /></span>
                 <div className="text-xs text-slate-600 dark:text-slate-400">
                     <span className="font-bold text-slate-700 dark:text-slate-300 mr-1">Rujukan:</span> 
                     {risk.fiqhRule}

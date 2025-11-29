@@ -19,7 +19,7 @@ graph TD
     end
 
     subgraph Client_Side_React
-        RouterNode["App.tsx - State Router"]
+        RouterNode["App.tsx - React Router"]
         ContextNode["Global Contexts (Theme, Toast, Confirm)"]
 
         RouterNode --> HomeNode["Home"]
@@ -29,15 +29,18 @@ graph TD
     end
 
     subgraph Persistence
-        LSNode["LocalStorage"]
+        direction LR
+        LSNode["LocalStorage (Sinkron)"]
+        IDBNode["IndexedDB (Asinkron)"]
     end
 
-    FaraidhNode <--> LSNode
-    ZakatNode <--> LSNode
-    HafalanNode <--> LSNode
+    FaraidhNode --> LSNode
+    ZakatNode --> LSNode
+    HafalanNode --> IDBNode
     HafalanNode --> AlquranNode
     HafalanNode --> AudioNode
 ```
+**Catatan Arsitektur:** Aplikasi menggunakan strategi penyimpanan *hybrid*. Data berat yang tidak memerlukan akses sinkron (seperti data Hafalan) disimpan di **IndexedDB** untuk skalabilitas. Data ringan yang dibutuhkan UI secara langsung saat render (seperti riwayat Zakat & Waris) disimpan di **LocalStorage**.
 
 ---
 
@@ -87,7 +90,7 @@ sequenceDiagram
     participant U as User
     participant UI as Dashboard
     participant SRS as SRS Logic
-    participant DB as LocalStorage
+    participant DB as IndexedDB
 
     U->>UI: Tambah Hafalan Baru (Surat X: 1-5)
     UI->>SRS: Validate Quota (Cek beban harian)
@@ -128,5 +131,5 @@ Untuk menghindari masalah performa dan _Auto-play policy_ browser.
 
 1.  **Inisialisasi:** `AudioContext` dibuat dalam mode _Suspended_.
 2.  **User Interaction:** Saat user klik tombol pertama kali, `AudioContext` di-_resume_.
-3.  **Synthesizer (SFX):** Menggunakan Oscillator node untuk suara 'Ting' (Lancar) atau 'Buzz' (Lupa). Ringan, tanpa download file mp3.
+3.  **Synthesizer (SFX):** Menggunakan Oscillator node untuk suara 'Ting' (Sukses) atau 'Buzz' (Gagal). Ringan, tanpa download file mp3.
 4.  **Quran Player:** Menggunakan HTML5 `<audio>` standar yang mengambil sumber dari CDN `everyayah.com`.

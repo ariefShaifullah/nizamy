@@ -21,7 +21,12 @@ import {
     FaArrowRight,
     FaSpinner,
     FaCopy,
-    FaTimes
+    FaTimes,
+    FaUsers,
+    FaUserTie,
+    FaFileContract,
+    FaFileInvoiceDollar,
+    FaInfoCircle
 } from 'react-icons/fa';
 
 import { HedeCharts } from './report/HedeCharts.tsx';
@@ -40,6 +45,32 @@ interface HedeReportProps {
 }
 
 type ReportTab = 'summary' | 'details' | 'roadmap';
+
+const TOOLKIT_ITEMS: { type: ContractType; icon: React.ReactNode; title: string; subtitle: string; color: string; }[] = [
+    { type: 'qardh', icon: <FaHandshake />, title: 'Akad Qardh', subtitle: 'Utang (No Riba)', color: 'blue' },
+    { type: 'mudharabah', icon: <FaBalanceScale />, title: 'Akad Mudharabah', subtitle: 'Investasi Bagi Hasil', color: 'emerald' },
+    { type: 'musyarakah', icon: <FaUsers />, title: 'Akad Musyarakah', subtitle: 'Kerja Sama Modal', color: 'teal' },
+    { type: 'wakalah', icon: <FaUserTie />, title: 'Akad Wakalah', subtitle: 'Agen/Dropship', color: 'sky' },
+    { type: 'ijarah', icon: <FaFileContract />, title: 'Akad Ijarah', subtitle: 'Kontrak Jasa/Sewa', color: 'indigo' },
+    { type: 'loan_payoff', icon: <FaFileInvoiceDollar />, title: 'Surat Pelunasan', subtitle: 'Niat Lunas KPR', color: 'rose' },
+    { type: 'tathhir_guide', icon: <FaInfoCircle />, title: 'Panduan Tathhir', subtitle: 'Penyaluran Dana', color: 'amber' },
+    { type: 'taubat', icon: <FaPray />, title: 'Ikrar Bara\'ah', subtitle: 'Niat Taubat', color: 'purple' },
+];
+
+const getToolkitColorClasses = (color: string) => {
+    switch (color) {
+        case 'blue': return 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400';
+        case 'emerald': return 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400';
+        case 'teal': return 'bg-teal-50 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400';
+        case 'sky': return 'bg-sky-50 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400';
+        case 'indigo': return 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400';
+        case 'rose': return 'bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400';
+        case 'amber': return 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400';
+        case 'purple': return 'bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400';
+        default: return 'bg-slate-50 text-slate-600 dark:bg-slate-900/30 dark:text-slate-400';
+    }
+};
+
 
 export const HedeReport: React.FC<HedeReportProps> = ({ result, onReset, onSwitchAppTab, onOpenTerm, showOnboarding, onOnboardingComplete }) => {
     const [activeTab, setActiveTab] = useState<ReportTab>('summary');
@@ -128,7 +159,7 @@ export const HedeReport: React.FC<HedeReportProps> = ({ result, onReset, onSwitc
     ];
 
     const TabNavigation = () => (
-        <div id="hede-tab-navigation" className="p-1.5 bg-slate-100 dark:bg-slate-900 rounded-2xl gap-1 sticky top-[calc(env(safe-area-inset-top)+4.5rem)] md:top-24 z-20 flex">
+        <div id="hede-tab-navigation" className="p-1.5 bg-slate-100 dark:bg-slate-900 rounded-2xl gap-1 sticky top-[calc(env(safe-area-inset-top)+4.5rem)] md:top-24 z-30 flex">
             {TABS.map(tab => (
                 <button
                     key={tab.id}
@@ -140,7 +171,7 @@ export const HedeReport: React.FC<HedeReportProps> = ({ result, onReset, onSwitc
                         : 'text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-800'
                     }`}
                 >
-                    <span className="icon-wrapper w-4 h-4 flex-shrink-0">{tab.icon}</span>
+                    <span className="icon-wrapper w-4 h-4 shrink-0">{tab.icon}</span>
                     <span className={`${activeTab === tab.id ? 'inline' : 'hidden md:inline'}`}>
                         {activeTab === tab.id ? tab.label : ''}
                         <span className="hidden sm:inline">{activeTab !== tab.id ? tab.label : ''}</span>
@@ -166,11 +197,11 @@ export const HedeReport: React.FC<HedeReportProps> = ({ result, onReset, onSwitc
                         <section id="hede-score-section">
                             <HedeCharts ref={shareCardRef} result={result} />
                         </section>
-                        <section className="bg-slate-900 text-white rounded-[2rem] p-8 md:p-10 relative overflow-hidden shadow-2xl shadow-indigo-900/30">
-                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 opacity-90"></div>
+                        <section className="bg-slate-900 text-white rounded-4xl p-8 md:p-10 relative overflow-hidden shadow-2xl shadow-indigo-900/30">
+                            <div className="absolute inset-0 bg-linear-to-br from-indigo-900 via-purple-900 to-slate-900 opacity-90"></div>
                             <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
                             <div className="relative z-10 flex flex-col lg:flex-row items-start gap-8">
-                                <div className="bg-white/10 p-5 rounded-2xl backdrop-blur-md border border-white/10 shadow-inner flex-shrink-0">
+                                <div className="bg-white/10 p-5 rounded-2xl backdrop-blur-md border border-white/10 shadow-inner shrink-0">
                                     <span className="icon-wrapper w-12 h-12 text-4xl flex items-center justify-center text-indigo-200"><FaBalanceScale /></span>
                                 </div>
                                 <div className="flex-1">
@@ -214,25 +245,21 @@ export const HedeReport: React.FC<HedeReportProps> = ({ result, onReset, onSwitc
                                     <p className="text-sm text-slate-500 dark:text-slate-400">Unduh template akad & dokumen pendukung.</p>
                                 </div>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <button onClick={() => handleDownloadTemplate('qardh')} className="flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:border-cyan-400 hover:shadow-md transition-all group">
-                                    <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"><span className="icon-wrapper w-6 h-6 flex items-center justify-center"><FaHandshake /></span></div>
-                                    <span className="font-bold text-slate-700 dark:text-slate-200 text-sm">Akad Qardh</span>
-                                    <span className="text-[10px] text-slate-400 mt-1">Utang Piutang (No Riba)</span>
-                                    <span className="mt-3 text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1"><span className="icon-wrapper w-3 h-3 flex items-center justify-center"><FaDownload /></span> Unduh PDF</span>
-                                </button>
-                                <button onClick={() => handleDownloadTemplate('mudharabah')} className="flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:border-cyan-400 hover:shadow-md transition-all group">
-                                    <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"><span className="icon-wrapper w-6 h-6 flex items-center justify-center"><FaBalanceScale /></span></div>
-                                    <span className="font-bold text-slate-700 dark:text-slate-200 text-sm">Akad Mudharabah</span>
-                                    <span className="text-[10px] text-slate-400 mt-1">Investasi Bagi Hasil</span>
-                                    <span className="mt-3 text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1"><span className="icon-wrapper w-3 h-3 flex items-center justify-center"><FaDownload /></span> Unduh PDF</span>
-                                </button>
-                                <button onClick={() => handleDownloadTemplate('taubat')} className="flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:border-cyan-400 hover:shadow-md transition-all group">
-                                    <div className="w-12 h-12 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"><span className="icon-wrapper w-6 h-6 flex items-center justify-center"><FaPray /></span></div>
-                                    <span className="font-bold text-slate-700 dark:text-slate-200 text-sm">Ikrar Bara'ah</span>
-                                    <span className="text-[10px] text-slate-400 mt-1">Pernyataan Taubat</span>
-                                    <span className="mt-3 text-xs font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1"><span className="icon-wrapper w-3 h-3 flex items-center justify-center"><FaDownload /></span> Unduh PDF</span>
-                                </button>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                {TOOLKIT_ITEMS.map(item => (
+                                    <button 
+                                        key={item.type}
+                                        onClick={() => handleDownloadTemplate(item.type)} 
+                                        className="flex flex-col items-center justify-center text-center p-4 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:border-cyan-400 hover:shadow-md transition-all group h-full"
+                                    >
+                                        <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform ${getToolkitColorClasses(item.color)}`}>
+                                            <span className="icon-wrapper w-6 h-6 flex items-center justify-center">{item.icon}</span>
+                                        </div>
+                                        <span className="font-bold text-slate-700 dark:text-slate-200 text-sm leading-tight">{item.title}</span>
+                                        <span className="text-[10px] text-slate-400 mt-1">{item.subtitle}</span>
+                                        <span className={`mt-3 text-xs font-bold ${getToolkitColorClasses(item.color).split(' ')[1]} flex items-center gap-1`}><span className="icon-wrapper w-3 h-3 flex items-center justify-center"><FaDownload /></span> Unduh</span>
+                                    </button>
+                                ))}
                             </div>
                         </section>
                     </div>

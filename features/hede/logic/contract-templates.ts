@@ -1,8 +1,7 @@
-
 import { generatePdfFromHtml, pdfStyles as styles } from '../../../services/pdf.service.ts';
 import { formatDate } from '../../../utils.ts';
 
-export type ContractType = 'qardh' | 'mudharabah' | 'taubat';
+export type ContractType = 'qardh' | 'mudharabah' | 'taubat' | 'musyarakah' | 'wakalah' | 'ijarah' | 'loan_payoff' | 'tathhir_guide';
 
 export const generateContractPdf = async (type: ContractType) => {
     const dateStr = formatDate(new Date().toISOString());
@@ -143,6 +142,109 @@ export const generateContractPdf = async (type: ContractType) => {
                 <p>( ........................... )</p>
                 <p style="font-size:10px;">Hamba Allah</p>
             </div>
+        `;
+    } else if (type === 'musyarakah') {
+        title = "Akad Musyarakah (Kerja Sama Modal)";
+        filename = "Template_Akad_Musyarakah.pdf";
+        content = `
+             <div style="background:#f0f9ff; padding:15px; border-left:4px solid #38bdf8; margin-bottom:20px;">
+                <strong>Definisi:</strong> Kerjasama usaha di mana semua pihak menyetorkan modal (Syirkah 'Inan). Keuntungan dibagi sesuai kesepakatan, kerugian dibagi proporsional sesuai modal.
+            </div>
+
+            <h3 style="${styles.sectionTitle}">PARA PIHAK (SYURAKA)</h3>
+            <p>1. Pihak A: ........................ (Modal: Rp ........................)</p>
+            <p>2. Pihak B: ........................ (Modal: Rp ........................)</p>
+            <p>3. Pihak C: ........................ (Modal: Rp ........................)</p>
+            <p><em>(Tambah atau kurangi sesuai kebutuhan)</em></p>
+            
+            <h3 style="${styles.sectionTitle}">POKOK KERJASAMA</h3>
+            <p><strong>Jenis Usaha:</strong> .................................................................</p>
+            
+            <h3 style="${styles.sectionTitle}">NISBAH BAGI HASIL (KEUNTUNGAN)</h3>
+            <p>Pihak A: ....% | Pihak B: ....% | Pihak C: ....%</p>
+            
+            <h3 style="${styles.sectionTitle}">PEMBAGIAN KERUGIAN</h3>
+            <p>Kerugian dibagi secara proporsional sesuai porsi modal masing-masing pihak.</p>
+        `;
+    } else if (type === 'wakalah') {
+        title = "Akad Wakalah bil Ujrah (Agensi)";
+        filename = "Template_Akad_Wakalah.pdf";
+        content = `
+            <div style="background:#ecfdf5; padding:15px; border-left:4px solid #34d399; margin-bottom:20px;">
+                <strong>Definisi:</strong> Pelimpahan wewenang dari satu pihak (Muwakkil) kepada pihak lain (Wakil/Agen) untuk melakukan tugas tertentu dengan imbalan upah (Ujrah). Solusi untuk Dropshipper.
+            </div>
+
+            <h3 style="${styles.sectionTitle}">PARA PIHAK</h3>
+            <p><strong>1. PEMBERI KUASA (Muwakkil/Supplier):</strong> ........................</p>
+            <p><strong>2. PENERIMA KUASA (Wakil/Dropshipper):</strong> ........................</p>
+
+            <h3 style="${styles.sectionTitle}">OBJEK PERWAKILAN</h3>
+            <p>Muwakkil memberikan kuasa kepada Wakil untuk memasarkan dan menjual produk ........................ milik Muwakkil.</p>
+            
+            <h3 style="${styles.sectionTitle}">UPAH (UJRAH)</h3>
+            <p>Atas jasanya, Wakil berhak mendapatkan upah sebesar <strong>Rp ........................</strong> atau <strong>...........%</strong> dari setiap produk yang berhasil dijual.</p>
+        `;
+    } else if (type === 'ijarah') {
+        title = "Akad Ijarah (Jasa & Sewa)";
+        filename = "Template_Akad_Ijarah.pdf";
+        content = `
+            <div style="background:#f1f5f9; padding:15px; border-left:4px solid #64748b; margin-bottom:20px;">
+                <strong>Definisi:</strong> Akad sewa-menyewa atau kontrak kerja atas suatu jasa/manfaat yang jelas dengan upah yang jelas.
+            </div>
+
+            <h3 style="${styles.sectionTitle}">PARA PIHAK</h3>
+            <p><strong>1. PEMBERI KERJA/SEWA (Musta'jir):</strong> ........................</p>
+            <p><strong>2. PEKERJA/PENYEDIA JASA (Ajir):</strong> ........................</p>
+
+            <h3 style="${styles.sectionTitle}">OBJEK AKAD</h3>
+            <p><strong>Jasa/Manfaat yang Diberikan:</strong> .................................................................</p>
+            <p><strong>Durasi:</strong> .................................................................</p>
+            
+            <h3 style="${styles.sectionTitle}">UPAH (UJRAH)</h3>
+            <p>Musta'jir wajib membayar upah sebesar <strong>Rp ........................</strong> kepada Ajir.</p>
+        `;
+    } else if (type === 'loan_payoff') {
+        title = "Surat Niat Pelunasan Dipercepat";
+        filename = "Surat_Niat_Pelunasan_Riba.pdf";
+        content = `
+            <p>Kepada Yth,<br/>Pimpinan [Nama Bank/Leasing]<br/>di Tempat</p>
+            <br/>
+            <p><strong>Perihal: Permohonan Pelunasan Dipercepat dan Penghapusan Denda/Bunga Berjalan</strong></p>
+            <br/>
+            <p>Dengan hormat,<br/>Saya yang bertanda tangan di bawah ini:</p>
+            <p>Nama: .................................................................</p>
+            <p>No. Kontrak: ........................................................</p>
+            <br/>
+            <p>Dengan ini mengajukan permohonan untuk melakukan pelunasan dipercepat atas sisa pokok utang saya. Saya memohon kebijakan dari pihak [Bank/Leasing] untuk dapat menghapuskan sisa bunga berjalan dan/atau denda keterlambatan, sebagai bagian dari ikhtiar saya untuk terbebas dari transaksi ribawi.</p>
+            <br/>
+            <p>Hormat saya,</p>
+            <br/><br/><br/>
+            <p>(...........................)</p>
+        `;
+    } else if (type === 'tathhir_guide') {
+        title = "Panduan Praktis Tathhirul Mal";
+        filename = "Panduan_Tathhirul_Mal.pdf";
+        content = `
+            <div style="background:#fffbeb; padding:15px; border:1px solid #fcd34d; border-radius:8px; margin-bottom:20px;">
+                <strong>PENTING:</strong> Dana non-halal (bunga, hasil judi, dll) <strong>BUKAN MILIK ANDA</strong>. Dana ini wajib dikeluarkan dari harta Anda, namun <strong>TIDAK BOLEH diniatkan sebagai sedekah</strong> dan tidak mendapat pahala sedekah. Niatkan sebagai bentuk taubat dan melepaskan hak orang lain.
+            </div>
+
+            <h3 style="${styles.sectionTitle}">PRIORITAS PENYALURAN DANA NON-HALAL</h3>
+            <p>Menurut mayoritas ulama kontemporer, dana ini disalurkan untuk <strong>kemaslahatan/fasilitas umum</strong> yang bisa dimanfaatkan oleh siapa saja (muslim maupun non-muslim). Tujuannya adalah membuang 'kotoran' tersebut ke tempat yang paling umum.</p>
+            
+            <ol style="margin-left:20px; line-height:1.8;">
+                <li><strong>Toilet Umum:</strong> Pembangunan atau perbaikan WC di pasar, terminal, atau masjid (area luar).</li>
+                <li><strong>Perbaikan Infrastruktur:</strong> Menambal jalan berlubang, memperbaiki jembatan desa, atau membuat saluran air.</li>
+                <li><strong>Fasilitas Kebersihan:</strong> Menyediakan tempat sampah umum.</li>
+                <li><strong>Diberikan kepada Fakir Miskin:</strong> Ini adalah pilihan terakhir jika fasilitas umum tidak memungkinkan, dengan catatan tetap tidak boleh diniatkan sebagai sedekah, melainkan hanya sebagai bentuk pelepasan beban.</li>
+            </ol>
+
+             <h3 style="${styles.sectionTitle}">YANG DILARANG</h3>
+             <ul style="margin-left:20px; line-height:1.8; color:#b91c1c;">
+                <li>Membangun bagian inti masjid (ruang shalat, mihrab).</li>
+                <li>Membeli Al-Quran, mukena, atau perlengkapan ibadah.</li>
+                <li>Digunakan untuk makan, minum, atau kebutuhan pribadi.</li>
+             </ul>
         `;
     }
 

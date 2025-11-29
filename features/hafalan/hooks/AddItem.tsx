@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import type { HafalanState, HafalanItem } from "../../../types.ts";
 import { SURAH_DATA } from "../../../constants.ts";
@@ -341,7 +340,7 @@ export const AddItem: React.FC<AddItemProps> = ({
           )}
           
           {isSuggestionMode && (
-              <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-4 rounded-xl text-white shadow-md flex items-start animate-fade-in">
+              <div className="bg-linear-to-r from-indigo-500 to-purple-600 p-4 rounded-xl text-white shadow-md flex items-start animate-fade-in">
                   <span className="text-2xl mr-3">🚀</span>
                   <div>
                       <h4 className="font-bold text-sm">
@@ -389,7 +388,16 @@ export const AddItem: React.FC<AddItemProps> = ({
                 }`}
                 value={newAyahStart}
                 onChange={(e) => {
-                    setNewAyahStart(Number(e.target.value));
+                    const val = Number(e.target.value);
+                    if (selectedSurahData) {
+                        const clampedVal = Math.max(1, Math.min(val, selectedSurahData.verses));
+                        setNewAyahStart(clampedVal);
+                        if (newAyahEnd < clampedVal) {
+                            setNewAyahEnd(clampedVal);
+                        }
+                    } else {
+                        setNewAyahStart(val);
+                    }
                     setIsSuggestionMode(false);
                 }}
               />
@@ -407,7 +415,13 @@ export const AddItem: React.FC<AddItemProps> = ({
                 }`}
                 value={newAyahEnd}
                 onChange={(e) => {
-                    setNewAyahEnd(Number(e.target.value));
+                    const val = Number(e.target.value);
+                    if (selectedSurahData) {
+                        const clampedVal = Math.max(newAyahStart, Math.min(val, selectedSurahData.verses));
+                        setNewAyahEnd(clampedVal);
+                    } else {
+                        setNewAyahEnd(val);
+                    }
                     setIsSuggestionMode(false);
                 }}
               />
@@ -457,7 +471,7 @@ export const AddItem: React.FC<AddItemProps> = ({
     </div>
 
     {isSelectorOpen && (
-        <div className="fixed inset-0 z-[60] bg-slate-900/50 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-4 animate-fade-in">
+        <div className="fixed inset-0 z-60 bg-slate-900/50 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-4 animate-fade-in">
             <div className="bg-white dark:bg-slate-800 w-full md:max-w-md h-[85vh] md:h-[600px] rounded-t-3xl md:rounded-3xl flex flex-col shadow-2xl overflow-hidden animate-fade-in-up border border-slate-200 dark:border-slate-700">
                 
                 <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 z-10 flex items-center justify-between">
@@ -529,4 +543,4 @@ export const AddItem: React.FC<AddItemProps> = ({
     )}
     </>
   );
-};
+}

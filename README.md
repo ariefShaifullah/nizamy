@@ -1,6 +1,6 @@
 # NIZAMY - Islamic Apps Suite
 
-![Nizamy Banner](public/images/android-chrome-192x192.png)
+![Nizamy Banner](public/images/icon.svg)
 
 **NIZAMY** adalah *Progressive Web Application* (PWA) komprehensif yang menyediakan solusi digital untuk kebutuhan ibadah umat Islam, meliputi perhitungan waris (Faraidh), kalkulator Zakat, dan pelacak hafalan Al-Quran berbasis metode *Spaced Repetition System* (SRS).
 
@@ -47,10 +47,11 @@ Aplikasi ini dibangun dengan prinsip **Local-First** dan **Privacy-Focused**, di
 ## 🛠 Tech Stack
 
 - **Core:** React 18 (TypeScript)
-- **Build Tool:** Vite
+- **Routing:** React Router DOM v6 (`HashRouter`)
+- **Build Tool:** Vite (Asumsi berdasarkan struktur import.meta)
 - **Styling:** Tailwind CSS
 - **State Management:** React Context API + `useReducer` + Custom Hooks
-- **Persistence:** `localStorage` (via `useLocalStorage` hook)
+- **Persistence:** IndexedDB (via `idb-keyval`) & `localStorage`
 - **Visualisasi:** Recharts
 - **PDF Generation:** `jspdf` & `html2canvas`
 - **Audio:** Web Audio API (Synthesizer) + HTML5 Audio
@@ -67,13 +68,13 @@ Aplikasi ini dibangun dengan prinsip **Local-First** dan **Privacy-Focused**, di
     - Penggunaan `React.lazy` dan `Suspense` untuk *code splitting* per modul (Faraidh, Zakat, Hafalan).
     - PWA Service Worker (`sw.js`) dengan strategi *caching* yang agresif untuk aset statis dan API Quran.
     - Penggunaan `React.memo` dan `useMemo` untuk mencegah re-render yang tidak perlu pada kalkulasi berat.
-4.  **Offline-First:** Seluruh data disimpan di `localStorage`. Service worker menangani aset agar aplikasi tetap bisa dibuka tanpa internet.
+4.  **Offline-First:** Seluruh data disimpan di sisi klien. Service worker menangani aset agar aplikasi tetap bisa dibuka tanpa internet.
 5.  **Clean UI/UX:** Implementasi Tailwind CSS yang konsisten dengan *glassmorphism* dan transisi yang halus.
 
 ### Area Optimasi (Improvements)
-1.  **Routing:** Saat ini menggunakan *State-based Routing* manual (`window.history`). Untuk skalabilitas jangka panjang, migrasi ke `react-router-dom` disarankan untuk manajemen URL dan *deep linking* yang lebih robust.
-2.  **Storage Limit:** Ketergantungan pada `localStorage` (max ~5-10MB) aman untuk teks, namun jika fitur berkembang (misal: simpan rekaman suara user), perlu migrasi ke `IndexedDB`.
-3.  **Testing:** Logika Faraidh sangat kompleks. Disarankan menambahkan *Unit Testing* (Vitest/Jest) khusus untuk `faraidh.service.ts` guna memastikan akurasi perhitungan syariah.
+1.  **Build Process:** Tailwind CSS yang sebelumnya dimuat via CDN, kini telah diintegrasikan ke dalam build process untuk performa yang lebih baik di lingkungan produksi.
+2.  **Storage Scalability:** Data berat (seperti Hafalan) telah dimigrasikan ke `IndexedDB` untuk mengatasi batas `localStorage`. Data ringan (seperti history) tetap di `localStorage` untuk akses UI yang sinkron.
+3.  **Testing Coverage:** Logika Faraidh yang kompleks sudah memiliki *unit tests*. Disarankan untuk terus memperluas cakupan tes ke modul lain seperti Zakat dan Hafalan untuk memastikan akurasi perhitungan syariah seiring berkembangnya aplikasi.
 
 ---
 
@@ -127,7 +128,7 @@ Menggunakan interval pengulangan eksponensial:
 
 ## 🚀 Instalasi & Pengembangan
 
-Karena proyek ini menggunakan ES Modules dan Vite, langkah standarnya:
+Karena proyek ini menggunakan ES Modules dan Vite (tersirat), langkah standarnya:
 
 1.  **Install Dependencies**
     ```bash
@@ -148,4 +149,4 @@ Karena proyek ini menggunakan ES Modules dan Vite, langkah standarnya:
 
 ---
 
-*Dibuat dengan ❤️ oleh si Pengembang NIZAMY*
+*Dibuat dengan ❤️ oleh Tim Pengembang NIZAMY*

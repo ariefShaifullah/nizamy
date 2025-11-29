@@ -29,20 +29,18 @@ type ViewState = 'landing' | 'report';
 
 // --- SUB-COMPONENT: Landing Screen ---
 const HedeLandingScreen: React.FC<{ 
-    lastResult: HedeResult | null;
     onStartAudit: () => void; 
-    onViewLastReport: () => void;
     onViewFaq: () => void;
-}> = ({ lastResult, onStartAudit, onViewLastReport, onViewFaq }) => {
+}> = ({ onStartAudit, onViewFaq }) => {
     return (
         <div className="bg-white dark:bg-slate-800/50 rounded-[2.5rem] p-8 md:p-12 text-center shadow-sm border border-slate-100 dark:border-slate-800 relative overflow-hidden group">
             <div className="relative z-10 flex flex-col items-center">
-                <div className="w-24 h-24 bg-gradient-to-br from-indigo-50 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-3xl flex items-center justify-center text-purple-600 dark:text-purple-400 mb-6 shadow-md border border-white dark:border-slate-700">
+                <div className="w-24 h-24 bg-linear-to-br from-indigo-50 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-3xl flex items-center justify-center text-purple-600 dark:text-purple-400 mb-6 shadow-md border border-white dark:border-slate-700">
                     <div className="icon-wrapper w-12 h-12 flex items-center justify-center text-5xl drop-shadow-sm"><FaShieldAlt /></div>
                 </div>
                 <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-slate-900 dark:text-white mb-2">HEDE</h1>
                 <p className="font-bold text-purple-600 dark:text-purple-400 text-sm md:text-base uppercase tracking-widest mb-4">Halal Economic Diagnostic Engine</p>
-                <p className="hidden md:block text-base md:text-lg font-medium text-slate-500 dark:text-slate-400 mb-10 max-w-2xl leading-relaxed">
+                <p className="hidden md:block text-base md:text-lg font-medium text-slate-500 dark:text-slate-400 mb-12 max-w-2xl leading-relaxed">
                     Cek kesehatan finansial Anda dari Riba, Gharar, & Maysir. Dapatkan roadmap hijrah personal untuk menuju harta yang lebih berkah.
                 </p>
                 
@@ -50,12 +48,6 @@ const HedeLandingScreen: React.FC<{
                     Mulai Diagnosa
                     <div className="icon-wrapper w-5 h-5 group-hover:translate-x-1 transition-transform flex items-center justify-center"><FaArrowRight /></div>
                 </button>
-
-                {lastResult && (
-                    <button onClick={onViewLastReport} className="mt-4 text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
-                        Lihat Laporan Terakhir
-                    </button>
-                )}
 
                 <div className="flex items-center justify-center gap-4 mt-8">
                     <button onClick={onViewFaq} className="text-xs font-bold text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors flex items-center gap-1.5">
@@ -75,28 +67,28 @@ const HedeLandingScreen: React.FC<{
 // --- SUB-COMPONENT: Pre-Wizard Onboarding Screen ---
 const PreWizardScreen: React.FC<{ onStart: () => void; onCancel: () => void }> = ({ onStart, onCancel }) => {
   return (
-    <div className="fixed inset-0 z-[100] bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4 animate-fade-in">
+    <div className="fixed inset-0 z-100 bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4 animate-fade-in">
       <div className="max-w-md w-full bg-white dark:bg-slate-800 rounded-3xl shadow-2xl p-6 sm:p-8 text-center border border-slate-100 dark:border-slate-700">
         <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-2 sm:mb-3">Bismillah, Mari Periksa Kesehatan Ekonomi Kita.</h2>
         <p className="text-slate-500 dark:text-slate-400 mb-6 sm:mb-8 text-sm sm:text-base">Ini adalah alat introspeksi, bukan penghakiman.</p>
         
         <div className="space-y-3 text-left mb-8 sm:mb-10">
           <div className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
-            <div className="icon-wrapper w-5 h-5 text-emerald-500 flex-shrink-0 mt-1"><FaCheckCircle /></div>
+            <div className="icon-wrapper w-5 h-5 text-emerald-500 shrink-0 mt-1"><FaCheckCircle /></div>
             <div>
               <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm">Jujur & Amanah</h4>
               <p className="text-xs text-slate-600 dark:text-slate-300">Jawaban Anda akan menentukan akurasi hasil.</p>
             </div>
           </div>
           <div className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
-            <div className="icon-wrapper w-5 h-5 text-blue-500 flex-shrink-0 mt-1"><FaShieldAlt /></div>
+            <div className="icon-wrapper w-5 h-5 text-blue-500 shrink-0 mt-1"><FaShieldAlt /></div>
             <div>
               <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm">100% Privasi</h4>
               <p className="text-xs text-slate-600 dark:text-slate-300">Semua data hanya tersimpan di perangkat Anda.</p>
             </div>
           </div>
           <div className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
-            <div className="icon-wrapper w-5 h-5 text-rose-500 flex-shrink-0 mt-1"><FaHeart /></div>
+            <div className="icon-wrapper w-5 h-5 text-rose-500 shrink-0 mt-1"><FaHeart /></div>
             <div>
               <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm">Bukan Menghakimi</h4>
               <p className="text-xs text-slate-600 dark:text-slate-300">Setiap perjalanan hijrah itu unik.</p>
@@ -211,7 +203,7 @@ const HedeApp: React.FC = () => {
     };
 
     const switchTab = (tab: HedeTab) => {
-        // If switching to 'diagnosa' from another tab, decide where to go.
+        // If switching to 'diagnosa' from another tab, always go to landing page
         if (tab === 'diagnosa') {
             setView('landing');
         }
@@ -221,7 +213,14 @@ const HedeApp: React.FC = () => {
 
     const handleOpenTerm = (term: string) => {
         setSelectedTerm(term);
-        setIsDictOpen(true);
+        if (window.innerWidth < 1024) {
+            setIsDictOpen(true);
+        }
+    };
+    
+    const handleSidebarTermClick = (term: string) => {
+        setSelectedTerm(term);
+        // On desktop, we ONLY open the definition modal, not the whole dictionary modal.
     };
 
     const filteredGlossary = useMemo(() =>
@@ -241,7 +240,7 @@ const HedeApp: React.FC = () => {
     
     if (wizardState === 'wizard') {
         return (
-            <div className="fixed inset-0 z-[100] bg-slate-50 dark:bg-slate-950 overflow-y-auto animate-fade-in custom-scrollbar">
+            <div className="fixed inset-0 z-100 bg-slate-50 dark:bg-slate-950 overflow-y-auto animate-fade-in custom-scrollbar">
                 <HedeWizard onComplete={handleWizardComplete} onCancel={handleCancelWizard} />
             </div>
         );
@@ -275,9 +274,7 @@ const HedeApp: React.FC = () => {
                 }
                 return (
                     <HedeLandingScreen 
-                        lastResult={result} 
                         onStartAudit={handleStartAudit}
-                        onViewLastReport={() => setView('report')}
                         onViewFaq={() => setIsFaqOpen(true)}
                     />
                 );
@@ -317,7 +314,7 @@ const HedeApp: React.FC = () => {
 
                 <div className="hidden lg:block lg:col-span-4 min-w-0">
                     <div className="sticky top-24 space-y-6">
-                        <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl p-6 text-white shadow-lg relative overflow-hidden group">
+                        <div className="bg-linear-to-br from-indigo-600 to-purple-700 rounded-3xl p-6 text-white shadow-lg relative overflow-hidden group">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10 group-hover:bg-white/20 transition-colors"></div>
                             <div className="relative z-10">
                                 <div className="flex items-center gap-3 mb-3"><div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm"><FaLightbulb /></div><h3 className="font-bold text-lg">Tahukah Anda?</h3></div>
@@ -334,7 +331,7 @@ const HedeApp: React.FC = () => {
                             </div>
                             <div className="overflow-y-auto custom-scrollbar p-2 space-y-1">
                                 {filteredGlossary.map((item, idx) => (
-                                    <button key={idx} onClick={() => { setIsDictOpen(true); setSelectedTerm(item.term); }} className="w-full text-left p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center justify-between group border border-transparent hover:border-slate-100 dark:hover:border-slate-600">
+                                    <button key={idx} onClick={() => handleSidebarTermClick(item.term)} className="w-full text-left p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center justify-between group border border-transparent hover:border-slate-100 dark:hover:border-slate-600">
                                         <span className="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">{item.term}</span>
                                         <ViolationBadge type={item.category} />
                                     </button>
@@ -367,7 +364,7 @@ const HedeApp: React.FC = () => {
                     </div>
                     <div className="flex-1 overflow-y-auto custom-scrollbar space-y-1 pr-1">
                         {filteredGlossary.map(t => (
-                            <button key={t.term} onClick={() => setSelectedTerm(t.term)} className="text-left w-full p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 flex items-center justify-between group">
+                            <button key={t.term} onClick={() => handleOpenTerm(t.term)} className="text-left w-full p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 flex items-center justify-between group">
                                 <span className="font-bold text-slate-700 dark:text-slate-200 text-sm group-hover:text-indigo-600">{t.term}</span>
                                 <ViolationBadge type={t.category} />
                             </button>

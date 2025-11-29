@@ -138,7 +138,7 @@ export const HedeHistory: React.FC<HedeHistoryProps> = ({ history, onLoad, onCle
                     {/* History List */}
                     <div className="space-y-4">
                         <div className="flex justify-between items-end px-2">
-                            <h3 className="font-bold text-slate-800 dark:text-white">Riwayat Diagnosa</h3>
+                            <h3 className="font-bold text-slate-800 dark:text-white">Catatan Jurnal</h3>
                             <button onClick={handleClear} className="text-xs text-red-500 hover:text-red-700 font-medium flex items-center gap-1">
                                 <FaTrash /> Bersihkan
                             </button>

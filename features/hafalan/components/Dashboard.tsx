@@ -21,7 +21,7 @@ import {
   CelebrationModal,
 } from "./HafalanModals.tsx";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
-import { FaCog, FaCalendarAlt, FaList, FaBookOpen, FaUser, FaPlus, FaBell, FaCheck, FaExclamationTriangle } from "react-icons/fa";
+import { FaCog, FaCalendarAlt, FaList, FaBookOpen, FaUser, FaPlus, FaBell, FaCheck, FaExclamationTriangle, FaArrowRight } from "react-icons/fa";
 
 // --- SUB-COMPONENTS EXTRACTED ---
 
@@ -133,13 +133,13 @@ const MurajaahList: React.FC<{ items: HafalanItem[], onStartReview: (item: Hafal
                     <div className="flex items-center gap-2 mb-1.5">
                         <h4 className="font-bold text-slate-800 dark:text-white text-base truncate">{item.surahName}</h4>
                         <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wide border ${item.stage === 0 ? "bg-indigo-50 text-indigo-700 border-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-800" : "bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800"}`}>
-                            {item.stage === 0 ? "Baru" : "Ulang"}
+                            {item.stage === 0 ? "Baru" : "Murajaah"}
                         </span>
                     </div>
                     <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Ayat {item.startAyah} - {item.endAyah}</p>
                 </div>
                 <button onClick={() => onStartReview(item)} className="bg-indigo-50 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 p-3 md:px-5 md:py-2.5 rounded-xl text-sm font-bold group-hover:bg-indigo-600 group-hover:text-white transition-all active:scale-95 flex items-center gap-2">
-                    <span className="hidden md:inline">Mulai</span> <FaCheck />
+                    <span className="hidden md:inline">Mulai</span> <FaArrowRight />
                 </button>
             </div>
         ))}
@@ -209,15 +209,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
   }, [state.gamification.weeklyChallengeProgress, state.gamification.weeklyChallengeTarget]);
 
   useEffect(() => {
+    // Update app badge
     notificationService.updateAppBadge(dueItems.length);
+    
+    // Show banner if permission not yet requested
     if (notificationService.isSupported()) {
         const permission = notificationService.getPermissionState();
-        if (permission === 'default' && dueItems.length > 0) setShowNotifBanner(true);
-        else if (permission === 'granted') {
+        if (permission === 'default' && dueItems.length > 0) {
+            setShowNotifBanner(true);
+        } else {
             setShowNotifBanner(false);
-            notificationService.sendReminder(dueItems.length, dailyRemaining);
         }
     }
+    
+    // NOTE: Notifikasi reminder sekarang ditangani di App level (App.tsx)
+    // via useHafalanReminder() agar aktif bahkan saat user tidak buka fitur hafalan
   }, [dueItems.length, dailyRemaining]);
 
   const handleEnableNotification = async () => {
@@ -225,7 +231,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
       if (granted) {
           setShowNotifBanner(false);
           showToast('Notifikasi diaktifkan! Pengingat akan dikirim.', 'success');
-          notificationService.sendReminder(dueItems.length, dailyRemaining, true);
+          // Send test notification as confirmation
+          notificationService.sendTestNotification();
       } else {
           setShowNotifBanner(false);
       }

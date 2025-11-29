@@ -8,6 +8,7 @@ import { useToast } from './components/ui/Toast.tsx';
 import { usePWA } from './hooks/usePWA.ts';
 import { usePageMetadata } from './hooks/usePageMetadata.ts';
 import { OfflineBanner } from './components/ui/OfflineBanner.tsx';
+import { useHafalanReminder } from './hooks/useHafalanReminder.ts';
 
 // Lazy Load Components (Feature-Based)
 const FaraidhCalculator = React.lazy(() => import('./features/faraidh/FaraidhCalculator.tsx'));
@@ -43,6 +44,9 @@ const AppContent = () => {
 
   // Handle SEO & Theme Color Side Effects
   usePageMetadata();
+  
+  // Initialize Hafalan Reminder System
+  useHafalanReminder();
 
   // Network Status Monitoring
   useEffect(() => {

@@ -163,8 +163,8 @@ export const Home: React.FC = () => {
     },
     {
       id: 'hede',
-      title: 'Klinik Finansial',
-      subtitle: 'Cek Kehalalan',
+      title: 'Klinik',
+      subtitle: 'Diagnosa Keuangan',
       icon: <FaStethoscope />,
       colorClass: 'text-purple-600 dark:text-purple-400',
       bgClass: 'bg-purple-50 dark:bg-purple-900/30',

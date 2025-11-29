@@ -1,7 +1,7 @@
 import type { RiskLevel, Question, HedeCategory, ViolationType, FiqhTerm } from '../../types.ts';
 
 // --- CENTRALIZED STYLING CONFIG ---
-// Improved Contrast: Darker Text colors for better readability on light backgrounds (WCAG compliant)
+// Updated Hex colors to vibrant shades (500 series) for better visibility on both Light (White) and Dark (Slate-900) backgrounds.
 export const RISK_CONFIG: Record<RiskLevel, { 
     label: string; 
     bg: string; 
@@ -11,38 +11,38 @@ export const RISK_CONFIG: Record<RiskLevel, {
 }> = {
     safe: { 
         label: 'Aman (Halal)', 
-        bg: 'bg-emerald-100', 
-        text: 'text-emerald-950', // Darker for better contrast (WCAG AA)
-        border: 'border-emerald-200', 
-        hex: '#022c22' // Emerald 950
+        bg: 'bg-emerald-100 dark:bg-emerald-900/30', 
+        text: 'text-emerald-800 dark:text-emerald-400', 
+        border: 'border-emerald-200 dark:border-emerald-800', 
+        hex: '#10b981' // Emerald 500
     },
     low: { 
         label: 'Rendah', 
-        bg: 'bg-blue-100', 
-        text: 'text-blue-950', 
-        border: 'border-blue-200', 
-        hex: '#172554' // Blue 950
+        bg: 'bg-blue-100 dark:bg-blue-900/30', 
+        text: 'text-blue-800 dark:text-blue-400', 
+        border: 'border-blue-200 dark:border-blue-800', 
+        hex: '#3b82f6' // Blue 500
     },
     medium: { 
         label: 'Menengah (Syubhat)', 
-        bg: 'bg-amber-100', 
-        text: 'text-amber-950', 
-        border: 'border-amber-200', 
-        hex: '#451a03' // Amber 950 - High Contrast
+        bg: 'bg-amber-100 dark:bg-amber-900/30', 
+        text: 'text-amber-800 dark:text-amber-400', 
+        border: 'border-amber-200 dark:border-amber-800', 
+        hex: '#f59e0b' // Amber 500
     },
     high: { 
         label: 'Tinggi', 
-        bg: 'bg-orange-100', 
-        text: 'text-orange-950', 
-        border: 'border-orange-200', 
-        hex: '#431407' // Orange 950
+        bg: 'bg-orange-100 dark:bg-orange-900/30', 
+        text: 'text-orange-800 dark:text-orange-400', 
+        border: 'border-orange-200 dark:border-orange-800', 
+        hex: '#f97316' // Orange 500
     },
     critical: { 
         label: 'Kritis (Haram)', 
-        bg: 'bg-red-100', 
-        text: 'text-red-950', 
-        border: 'border-red-200', 
-        hex: '#450a0a' // Red 950
+        bg: 'bg-red-100 dark:bg-red-900/30', 
+        text: 'text-red-800 dark:text-red-400', 
+        border: 'border-red-200 dark:border-red-800', 
+        hex: '#ef4444' // Red 500
     }
 };
 
@@ -89,7 +89,7 @@ export const FIQH_GLOSSARY: FiqhTerm[] = [
     { term: 'Ijarah', category: 'general', definition: 'Akad pemindahan hak guna (manfaat) atas barang atau jasa dalam waktu tertentu dengan pembayaran upah/sewa (Ujrah), tanpa diikuti pemindahan kepemilikan barang. Dasar hukum gaji karyawan.' },
     { term: 'Ju\'alah', category: 'general', definition: 'Akad sayembara atau komisi berbasis hasil. Upah hanya diberikan jika pekerjaan selesai atau target tercapai (Success Fee). Umum digunakan untuk marketing freelance atau agen.' },
     { term: 'Wakalah', category: 'general', definition: 'Akad pelimpahan kekuasaan dari satu pihak (Muwakkil) kepada pihak lain (Wakil) untuk melakukan sesuatu yang boleh diwakilkan. Dasar hukum Dropship Syariah (menjadi agen penjual).' },
-    { term: 'Syirkah', category: 'general', definition: 'Akad kerja sama antara dua pihak atau lebih untuk suatu usaha tertentu di mana masing-masing pihak memberikan kontribusi dana/amal dengan kesepakatan keuntungan dan risiko ditanggung bersama.' },
+    { term: 'Syirkah', category: 'general', definition: 'Akad kerja sama usaha antara dua pihak atau lebih untuk suatu usaha tertentu di mana masing-masing pihak memberikan kontribusi dana/amal dengan kesepakatan keuntungan dan risiko ditanggung bersama.' },
     { term: 'Mudharabah', category: 'general', definition: 'Kerja sama usaha antara pemilik modal (Shahibul Maal) dan pengelola (Mudharib). Keuntungan dibagi bagi hasil, kerugian finansial ditanggung pemilik modal (selama bukan kelalaian pengelola).' },
     { term: 'Musyarakah', category: 'general', definition: 'Kerja sama di mana semua pihak menyetor modal. Keuntungan dibagi sesuai nisbah sepakat, kerugian dibagi proporsional sesuai porsi modal.' },
     { term: 'Murabahah', category: 'general', definition: 'Akad jual beli barang dengan menegaskan harga perolehan dan keuntungan (margin) yang disepakati. Umum digunakan di Bank Syariah untuk KPR/Kendaraan.' },
@@ -107,8 +107,8 @@ export const FIQH_GLOSSARY: FiqhTerm[] = [
 
 export const HEDE_FAQ = [
     {
-        question: "Apa itu Klinik Finansial?",
-        answer: "Klinik Finansial adalah alat bantu diagnosa mandiri (self-assessment) untuk mendeteksi potensi pelanggaran syariah dalam aktivitas ekonomi Anda, mulai dari pekerjaan, investasi, hingga kebiasaan transaksi digital."
+        question: "Apa itu HEDE?",
+        answer: "HEDE (Halal Economic Diagnostic Engine) adalah alat bantu diagnosa mandiri (self-assessment) untuk mendeteksi potensi pelanggaran syariah dalam aktivitas ekonomi Anda, mulai dari pekerjaan, investasi, hingga kebiasaan transaksi digital."
     },
     {
         question: "Apa itu fitur 'Tathhir'?",
@@ -116,7 +116,7 @@ export const HEDE_FAQ = [
     },
     {
         question: "Apakah hasil diagnosa ini adalah Fatwa?",
-        answer: "Bukan. Hasil diagnosa adalah indikator awal berdasarkan kaidah umum Fiqh Muamalah (Jumhur Ulama). Untuk kasus spesifik dan keputusan hukum final, Anda tetap disarankan berkonsultasi langsung (Talaqqi) dengan Ustadz atau Ahli Fiqh Muamalah."
+        answer: "Bukan. Hasil HEDE adalah indikator awal berdasarkan kaidah umum Fiqh Muamalah (Jumhur Ulama). Untuk kasus spesifik dan keputusan hukum final, Anda tetap disarankan berkonsultasi langsung (Talaqqi) dengan Ustadz atau Ahli Fiqh Muamalah."
     },
     {
         question: "Apakah data keuangan saya aman?",
@@ -124,7 +124,7 @@ export const HEDE_FAQ = [
     },
     {
         question: "Bagaimana jika hasilnya 'Kritis' atau banyak Riba?",
-        answer: "Jangan panik dan jangan putus asa dari rahmat Allah. Klinik Finansial dilengkapi dengan roadmap 'Hijrah Bertahap' (Tadarruj). Jika kondisi ekonomi belum memungkinkan untuk berhenti total seketika, Islam memberikan kelonggaran (Rukhshah) untuk menyelesaikannya secara bertahap sambil bertaubat."
+        answer: "Jangan panik dan jangan putus asa dari rahmat Allah. HEDE dilengkapi dengan roadmap 'Hijrah Bertahap' (Tadarruj). Jika kondisi ekonomi belum memungkinkan untuk berhenti total seketika, Islam memberikan kelonggaran (Rukhshah) untuk menyelesaikannya secara bertahap sambil bertaubat."
     },
     {
         question: "Apa rujukan Fiqh yang digunakan?",

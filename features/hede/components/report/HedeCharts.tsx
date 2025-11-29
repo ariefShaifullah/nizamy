@@ -103,11 +103,11 @@ export const HedeCharts = forwardRef<HTMLDivElement, HedeChartsProps>(({ result 
                     <div className="w-full h-[280px] md:h-80">
                         <ResponsiveContainer width="100%" height="100%">
                             <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
-                                <PolarGrid stroke="#e2e8f0" strokeOpacity={0.6} className="dark:stroke-slate-700" />
+                                <PolarGrid stroke="#e2e8f0" strokeOpacity={0.6} className="dark:stroke-slate-600" />
                                 <PolarAngleAxis 
                                     dataKey="subject" 
-                                    tick={{ fill: '#64748b', fontSize: 11, fontWeight: 700 }} 
-                                    className="dark:fill-slate-400"
+                                    tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 700 }} 
+                                    
                                 />
                                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                                 <Radar
@@ -152,10 +152,10 @@ export const HedeCharts = forwardRef<HTMLDivElement, HedeChartsProps>(({ result 
                     <ResponsiveContainer width="100%" height="100%">
                         {/* Fix: isAnimationActive is not a valid prop for RadarChart. It should be on the Radar component. */}
                         <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
-                            <PolarGrid stroke="#e2e8f0" strokeOpacity={0.6} className="dark:stroke-slate-700" />
+                            <PolarGrid stroke="#e2e8f0" strokeOpacity={0.6} className="dark:stroke-slate-600" />
                             <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }} className="dark:fill-slate-400" />
                             <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
-                            <Radar name="Skor" dataKey="A" stroke={strokeColorHex} strokeWidth={2} fill={strokeColorHex} fillOpacity={0.2} isAnimationActive={false} />
+                            <Radar name="Skor" dataKey="A" stroke={strokeColorHex} strokeWidth={2} fill={strokeColorHex} fillOpacity={0.6} isAnimationActive={false} />
                         </RadarChart>
                     </ResponsiveContainer>
                 </div>

@@ -46,7 +46,7 @@ const ListItem: React.FC<{ title: string; children: React.ReactNode }> = ({ titl
 const TermsContent = () => (
     <div className="space-y-3">
         <p className="text-xs text-slate-500">Terakhir Diperbarui: November 2025</p>
-        <p>Selamat datang di <strong>NIZAMY</strong>. Aplikasi ini menyediakan alat bantu ibadah (Kalkulator Zakat, Waris, Hafalan Quran, dan H.E.D.E). Dengan menggunakan aplikasi ini, Anda menyetujui ketentuan berikut:</p>
+        <p>Selamat datang di <strong>NIZAMY</strong>. Aplikasi ini menyediakan alat bantu ibadah (Kalkulator Zakat, Waris, Hafalan Quran, dan Klinik Finansial). Dengan menggunakan aplikasi ini, Anda menyetujui ketentuan berikut:</p>
 
         <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg border border-amber-200 dark:border-amber-800 my-4 text-xs md:text-sm">
             <SectionTitle>1. Penafian Penting (Important Disclaimer)</SectionTitle>
@@ -66,7 +66,7 @@ const TermsContent = () => (
                 <strong>Kalkulator Zakat:</strong> Perhitungan menggunakan asumsi harga emas/beras standar pasar. Pengguna disarankan menyesuaikan dengan harga aktual di daerah masing-masing saat pembayaran.
             </li>
             <li>
-                <strong>H.E.D.E (Audit Halal):</strong> Fitur ini adalah alat <em>self-assessment</em> (diagnosa mandiri). Status "Kritis", "Syubhat", atau "Aman" adalah indikator teknis sistem, bukan vonis hukum syara' mutlak terhadap individu.
+                <strong>Klinik Finansial (Audit Finansial):</strong> Fitur ini adalah alat <em>self-assessment</em> (diagnosa mandiri). Status "Kritis", "Syubhat", atau "Aman" adalah indikator teknis sistem, bukan vonis hukum syara' mutlak terhadap individu.
             </li>
             <li>
                 <strong>Al-Quran & Hafalan:</strong> Teks ayat diambil dari API publik. Jika menemukan kesalahan penulisan, mohon merujuk pada Mushaf Utsmani cetak. Fitur audio streaming menggunakan kuota data internet Anda.
@@ -100,7 +100,7 @@ const PrivacyContent = () => (
         <p>Seluruh data berikut disimpan secara terenkripsi di dalam memori browser (Local Storage / IndexedDB) perangkat Anda sendiri:</p>
         <ul className="list-disc pl-5 space-y-1 mt-2">
             <li>Data keluarga & harta waris.</li>
-            <li>Nominal aset & utang (Zakat/H.E.D.E).</li>
+            <li>Nominal aset & utang (Zakat/Klinik Finansial).</li>
             <li>Progress hafalan Quran & riwayat murajaah.</li>
             <li>Jawaban diagnosa ekonomi.</li>
         </ul>

@@ -128,7 +128,7 @@ export const HedeReport: React.FC<HedeReportProps> = ({ result, onReset, onSwitc
         const file = new File([shareImageData.blob], 'hede_report.png', { type: 'image/png' });
         const shareData = {
             files: [file],
-            title: 'Hasil Audit H.E.D.E Syariah Saya',
+            title: 'Hasil Audit Finansial Syariah Saya',
             text: `Lihat hasil audit ekonomi syariah saya! Skor Kepatuhan: ${result.totalScore}/100. Cek punyamu di NIZAMY App.`,
         };
         
@@ -141,7 +141,7 @@ export const HedeReport: React.FC<HedeReportProps> = ({ result, onReset, onSwitc
     };
 
     const copySummaryText = async () => {
-        const fallbackText = `📊 *Hasil Audit H.E.D.E - NIZAMY*\n\nSkor Kepatuhan: ${result.totalScore}/100\nStatus: ${result.totalScore > 80 ? 'Halal Thayyib' : result.totalScore > 50 ? 'Syubhat (Hati-hati)' : 'Kritis'}\n\nDiagnosa ekonomi syariah mandiri sekarang di NIZAMY App.`;
+        const fallbackText = `📊 *Hasil Audit Finansial - NIZAMY*\n\nSkor Kepatuhan: ${result.totalScore}/100\nStatus: ${result.totalScore > 80 ? 'Halal Thayyib' : result.totalScore > 50 ? 'Syubhat (Hati-hati)' : 'Kritis'}\n\nDiagnosa ekonomi syariah mandiri sekarang di NIZAMY App.`;
         try {
             await navigator.clipboard.writeText(fallbackText);
             showToast('Ringkasan berhasil disalin!', 'success');

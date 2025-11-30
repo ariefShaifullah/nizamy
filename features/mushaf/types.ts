@@ -1,4 +1,3 @@
-
 export interface QuranWord {
   id: number;
   position: number;
@@ -38,10 +37,21 @@ export interface KamusData {
   reference?: string; // "QS 1:1"
   nextWordText?: string; // Context for Tajwid rules between two words
   isEndAyah?: boolean; // Context for Waqaf rules (Mad Arid, Qalqalah Kubra)
+  bookmark: Bookmark | null; // Pass the full bookmark object or null
 }
 
 export interface LastReadState {
   surahId: number;
   ayahNumber: number;
   timestamp: number;
+}
+
+export type BookmarkCategory = 'general' | 'favorite' | 'memorize' | 'study';
+
+export interface Bookmark {
+  id: string; // e.g., "2:255"
+  surahId: number;
+  ayahNumber: number;
+  timestamp: number;
+  category: BookmarkCategory;
 }

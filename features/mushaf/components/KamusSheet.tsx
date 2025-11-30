@@ -1,24 +1,21 @@
-
 import React, { useEffect, useState } from 'react';
-import type { KamusData } from '../../../types.ts';
+import type { KamusData, QuranAyah, BookmarkCategory } from '../../../types.ts';
 import type { TajwidRule } from '../logic/tajwid.helper.ts';
 import { analyzeTajwid, getMakhrajDetails } from '../logic/tajwid.helper.ts';
 import { getAyahAudioUrl, getWordAudioUrl } from '../logic/mushaf.service.ts';
 import { useToast } from '../../../components/ui/Toast.tsx';
-import { FaTimes, FaPlay, FaCopy, FaLanguage } from 'react-icons/fa';
+import { FaTimes, FaPlay, FaCopy, FaLanguage, FaBookmark, FaStar, FaRegStar, FaHeart, FaBrain, FaBookOpen, FaTrash } from 'react-icons/fa';
 
 interface KamusSheetProps {
     data: KamusData | null;
     onClose: () => void;
     onPlayAudio: (url: string) => void;
+    onSetLastRead: (ayah: QuranAyah) => void;
+    onUpdateBookmark: (ayah: QuranAyah, category: BookmarkCategory | null) => void;
 }
 
-// --- HELPER: Colored Text Renderer ---
 const HighlightedArabicText: React.FC<{ text: string; rules: TajwidRule[]; fontSize?: string }> = ({ text, rules, fontSize = 'text-3xl md:text-4xl lg:text-5xl' }) => {
-    // Create an array of character objects
     const chars = text.split('').map((char, index) => {
-        // Find if this index is covered by any rule
-        // We take the LAST rule found (highest priority usually) or combine styles
         const activeRule = rules.find(r => r.indexes && r.indexes.includes(index));
         return {
             char,
@@ -29,7 +26,7 @@ const HighlightedArabicText: React.FC<{ text: string; rules: TajwidRule[]; fontS
     return (
         <p 
             className={`font-arabic ${fontSize} dir-rtl text-center py-6 px-2`}
-            style={{ fontFamily: '"Amiri", serif', lineHeight: '2.8', direction: 'rtl' }} // RELAXED LINE HEIGHT & FONT
+            style={{ fontFamily: '"Amiri", serif', lineHeight: '2.8', direction: 'rtl' }}
         >
             {chars.map((c, i) => (
                 <span key={i} className={`${c.colorClass} transition-colors duration-300 relative`}>
@@ -40,11 +37,17 @@ const HighlightedArabicText: React.FC<{ text: string; rules: TajwidRule[]; fontS
     );
 };
 
-export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAudio }) => {
+const CATEGORY_BUTTONS: { category: BookmarkCategory; icon: React.ReactNode; label: string; color: string; }[] = [
+    { category: 'favorite', icon: <FaHeart />, label: 'Favorit', color: 'rose' },
+    { category: 'memorize', icon: <FaBrain />, label: 'Hafalan', color: 'indigo' },
+    { category: 'study', icon: <FaBookOpen />, label: 'Tadabbur', color: 'sky' },
+    { category: 'general', icon: <FaStar />, label: 'Umum', color: 'amber' },
+];
+
+export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAudio, onSetLastRead, onUpdateBookmark }) => {
     const { showToast } = useToast();
     const [isClosing, setIsClosing] = useState(false);
 
-    // Clear selection to prevent UI glitch on mobile
     useEffect(() => {
         const clearSelection = () => {
             if (window.getSelection) {
@@ -61,7 +64,7 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
         setTimeout(() => {
             setIsClosing(false);
             onClose();
-        }, 300); // Match animation duration
+        }, 300); 
     };
 
     if (!data) return null;
@@ -70,11 +73,8 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
     const title = isAyah ? `Opsi Ayat (${data.reference})` : 'Detail Kata & Tajwid';
     const arabicText = (data.data as any).text_uthmani;
 
-    // ANALISIS TAJWID
-    // Jika Ayat: Analisis seluruh teks ayat (tanpa context nextWord)
-    // Jika Kata: Analisis kata dengan context nextWord
     const tajwidRules = isAyah 
-        ? analyzeTajwid(arabicText, undefined, undefined, true) // Assume end of ayah logic applies loosely here
+        ? analyzeTajwid(arabicText, undefined, undefined, true)
         : analyzeTajwid(
             arabicText, 
             data.nextWordText, 
@@ -86,7 +86,6 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
         ? getMakhrajDetails(arabicText)
         : [];
 
-    // Copy Helper
     const copyToClipboard = async (text: string, label: string) => {
         if (!text) return;
         try {
@@ -101,10 +100,7 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
         }
     };
 
-    const handleCopyText = () => {
-        copyToClipboard(arabicText, 'Teks Arab');
-    };
-
+    const handleCopyText = () => copyToClipboard(arabicText, 'Teks Arab');
     const handleCopyTranslation = () => {
         if (!isAyah) return;
         const trans = (data.data as any).translations?.[0]?.text?.replace(/<[^>]*>?/gm, '');
@@ -119,13 +115,10 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
             role="dialog"
             aria-modal="true"
         >
-            {/* Backdrop */}
             <div 
                 className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
                 onClick={handleClose}
             />
-
-            {/* Sheet Content */}
             <div 
                 className={`
                     relative bg-white dark:bg-slate-900 w-full max-w-xl 
@@ -139,12 +132,9 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
                 `}
                 onClick={e => e.stopPropagation()}
             >
-                {/* Drag Handle */}
                 <div className="w-full flex justify-center pt-4 pb-2 cursor-grab active:cursor-grabbing" onClick={handleClose}>
                     <div className="w-16 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full"></div>
                 </div>
-
-                {/* Header Actions */}
                 <div className="px-6 pb-4 flex justify-between items-center border-b border-slate-50 dark:border-slate-800/50">
                     <div>
                         <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
@@ -164,15 +154,10 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
                         <FaTimes size={18} />
                     </button>
                 </div>
-
-                {/* Scrollable Body */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
-                    
-                    {/* Hero Arabic Text (Color Coded for BOTH Ayah and Word) */}
                     <div className="relative group">
                         <div className="absolute inset-0 bg-teal-500/5 dark:bg-teal-500/10 rounded-3xl blur-xl transform group-hover:scale-105 transition-transform duration-500"></div>
                         <div className="relative bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-3xl px-2 shadow-sm overflow-hidden">
-                             {/* Added subtle background pattern */}
                              <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
                                 style={{ backgroundImage: 'radial-gradient(circle, #0f766e 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
                             </div>
@@ -185,7 +170,6 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
                         )}
                     </div>
 
-                    {/* Play Button */}
                     <button 
                         onClick={() => {
                             const url = isAyah 
@@ -206,21 +190,46 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
                         Putar Audio {isAyah ? 'Ayat' : 'Kata'}
                     </button>
 
-                    {/* Action Grid */}
-                    <div className={`grid gap-3 ${isAyah ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                    {isAyah && (
+                        <div className="space-y-3">
+                            <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                                Opsi Penanda
+                            </h4>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                {CATEGORY_BUTTONS.map(btn => {
+                                    const isActive = data.bookmark?.category === btn.category;
+                                    const activeClasses = `bg-${btn.color}-600 text-white border-${btn.color}-600 shadow-md`;
+                                    const inactiveClasses = `bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-${btn.color}-50 dark:hover:bg-${btn.color}-900/20 hover:text-${btn.color}-700`;
+                                    
+                                    return (
+                                        <button 
+                                            key={btn.category} 
+                                            onClick={() => onUpdateBookmark(data.data as QuranAyah, btn.category)}
+                                            className={`flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm border transition-colors ${isActive ? activeClasses : inactiveClasses}`}
+                                        >
+                                            {btn.icon} {btn.label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            {data.bookmark && (
+                                <button onClick={() => onUpdateBookmark(data.data as QuranAyah, null)} className="w-full flex items-center justify-center gap-2 py-2.5 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-xl font-semibold text-xs hover:bg-red-100 transition-colors">
+                                    <FaTrash /> Hapus Penanda
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-3">
                         <button onClick={handleCopyText} className="flex items-center justify-center gap-2 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-700 dark:text-slate-300 font-semibold text-sm hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors">
                             <FaCopy size={16} />
                             Salin Arab
                         </button>
-                        {isAyah && (
-                            <button onClick={handleCopyTranslation} className="flex items-center justify-center gap-2 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-700 dark:text-slate-300 font-semibold text-sm hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors">
-                                <span className="text-lg"><FaLanguage /></span>
-                                Salin Arti
-                            </button>
-                        )}
+                         <button onClick={() => onSetLastRead(data.data as QuranAyah)} className="flex items-center justify-center gap-2 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-teal-700 dark:text-teal-400 font-semibold text-sm hover:bg-teal-50 dark:hover:bg-teal-900/20 border border-slate-200 dark:border-slate-700 transition-colors">
+                            <FaBookmark />
+                            Terakhir Dibaca
+                        </button>
                     </div>
-
-                    {/* Content Detail */}
                     {isAyah ? (
                         <div className="space-y-3">
                             <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-2">
@@ -231,10 +240,13 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
                                     {(data.data as any).translations?.[0]?.text?.replace(/<[^>]*>?/gm, '')}
                                 </p>
                             </div>
+                             <button onClick={handleCopyTranslation} className="w-full flex items-center justify-center gap-2 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-700 dark:text-slate-300 font-semibold text-xs hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors">
+                                <span className="text-sm"><FaLanguage /></span>
+                                Salin Terjemahan
+                            </button>
                         </div>
                     ) : (
                         <div className="space-y-8">
-                            {/* Word Info Cards */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-800/50">
                                     <p className="text-xs text-indigo-600 dark:text-indigo-400 font-bold uppercase mb-1">Transliterasi</p>
@@ -245,8 +257,6 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
                                     <p className="font-bold text-teal-900 dark:text-teal-100 text-lg">{(data.data as any).translation?.text}</p>
                                 </div>
                             </div>
-
-                            {/* Tajwid Analysis */}
                             <div>
                                 <div className="flex items-center gap-2 mb-3">
                                     <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
@@ -276,8 +286,6 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
                                     </div>
                                 )}
                             </div>
-
-                            {/* Makharijul Huruf */}
                             <div>
                                 <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-3">
                                     Bedah Makhraj Huruf
@@ -295,8 +303,6 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
                                                         <span className="text-xs bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded text-slate-600 dark:text-slate-300 font-medium">{m.area}</span>
                                                     </div>
                                                     <p className="text-sm text-slate-600 dark:text-slate-300 mb-2">{m.place}</p>
-                                                    
-                                                    {/* Sifat Pills */}
                                                     <div className="flex flex-wrap gap-1.5 mb-2">
                                                         {m.sifat.map(s => (
                                                             <span key={s} className="text-[10px] bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded text-slate-500 dark:text-slate-400">

@@ -1,8 +1,7 @@
-
-import React, { useCallback } from 'react';
-import type { QuranAyah, QuranWord } from '../../../types.ts';
+import React, { useCallback, useMemo } from 'react';
+import type { QuranAyah, QuranWord, LastReadState, Bookmark, BookmarkCategory } from '../../../types.ts';
 import { useLongPress } from '../../../hooks/useLongPress.ts';
-import { FaEllipsisH, FaPlay } from 'react-icons/fa';
+import { FaEllipsisH, FaPlay, FaBookmark, FaStar } from 'react-icons/fa';
 
 interface AyahRendererProps {
     ayah: QuranAyah;
@@ -12,14 +11,23 @@ interface AyahRendererProps {
     wordMode: boolean;
     fontSize: number;
     showTranslation: boolean;
+    lastRead: LastReadState | null;
+    bookmarks: Bookmark[];
     onTapAyah: (ayah: QuranAyah) => void; 
     onLongPressAyah: (ayah: QuranAyah) => void;
     onTapWord: (word: QuranWord) => void;
     onLongPressWord: (word: QuranWord, parentAyah: QuranAyah) => void;
 }
 
+const CATEGORY_COLORS: Record<BookmarkCategory, string> = {
+    general: 'text-amber-500 dark:text-amber-400',
+    favorite: 'text-rose-500 dark:text-rose-400',
+    memorize: 'text-indigo-500 dark:text-indigo-400',
+    study: 'text-sky-500 dark:text-sky-400',
+};
+
 export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({ 
-    ayah, globalIndex, isPlaying, activeWordIndex, wordMode, fontSize, showTranslation,
+    ayah, globalIndex, isPlaying, activeWordIndex, wordMode, fontSize, showTranslation, lastRead, bookmarks,
     onTapAyah, onLongPressAyah, onTapWord, onLongPressWord 
 }) => {
     
@@ -42,9 +50,13 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
         onLongPressAyah(ayah);
     };
 
-    // UX: Dynamic Line Height agar harakat tidak bertabrakan
-    // Semakin besar font, semakin renggang barisnya
     const lineHeight = fontSize > 40 ? 2.8 : 2.5; 
+
+    const isLastRead = lastRead?.surahId === parseInt(ayah.verse_key.split(':')[0]) && lastRead?.ayahNumber === ayah.verse_number;
+    
+    const bookmarkForAyah = useMemo(() => 
+        bookmarks.find(b => b.surahId === parseInt(ayah.verse_key.split(':')[0]) && b.ayahNumber === ayah.verse_number),
+    [bookmarks, ayah.verse_key, ayah.verse_number]);
 
     return (
         <div 
@@ -56,17 +68,24 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
                 : 'bg-transparent'
             }`}
         >
-            {/* Top Info Bar (Nomor Surat & Menu) */}
-            {/* UX Rule: Sembunyikan Play Button global jika sedang mode per kata untuk mencegah error klik */}
             <div className="flex justify-between items-center mb-6 px-5 md:px-10">
                 <div className="flex items-center gap-3">
                     <span className="text-[10px] font-bold font-sans bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700">
                         {ayah.verse_key}
                     </span>
+                    {isLastRead && (
+                        <div className="text-teal-500 dark:text-teal-400 animate-fade-in" title="Terakhir dibaca">
+                            <FaBookmark />
+                        </div>
+                    )}
+                    {bookmarkForAyah && (
+                        <div className={`${CATEGORY_COLORS[bookmarkForAyah.category]} animate-fade-in`} title="Penanda Tersimpan">
+                            <FaStar />
+                        </div>
+                    )}
                 </div>
                 
                 <div className="flex gap-1">
-                     {/* Tombol Play Ayat HANYA muncul jika BUKAN mode kata */}
                      {!wordMode && (
                         <button 
                             onClick={(e) => { e.stopPropagation(); onTapAyah(ayah); }}
@@ -90,7 +109,6 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
                 </div>
             </div>
 
-            {/* ARABIC TEXT AREA */}
             <div 
                 className="w-full text-right px-5 md:px-10 mb-6 touch-manipulation" 
                 dir="rtl"
@@ -102,8 +120,7 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
                         fontFamily: '"Amiri", "Traditional Arabic", serif',
                         lineHeight: lineHeight,
                         fontSize: `${fontSize}px`,
-                        textAlignLast: 'right', // Pastikan baris terakhir (nomor ayat) ada di kiri (karena RTL)
-                        // OPTIMIZATION: Critical for Uthmani fonts ligature rendering
+                        textAlignLast: 'right',
                         fontFeatureSettings: '"cv01" 1, "cv02" 1, "ss01" 1',
                         WebkitFontFeatureSettings: '"cv01" 1, "cv02" 1, "ss01" 1'
                     }}
@@ -121,8 +138,6 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
                         />
                     ))}
                     
-                    {/* Inline End of Ayah Symbol (Circle with Number) */}
-                    {/* Ini digabung dalam flow teks agar layoutnya natural seperti di Mushaf cetak */}
                     <span 
                         className={`inline-flex items-center justify-center mx-2 align-middle select-none h-[0.9em] w-[0.9em] relative bottom-[0.15em] ${isPlaying ? 'text-teal-600 dark:text-teal-400' : 'text-slate-300 dark:text-slate-600'}`}
                         style={{ fontSize: `${fontSize}px` }}
@@ -142,7 +157,6 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
                 </div>
             </div>
 
-            {/* Translation Area */}
             {showTranslation && (
                 <div 
                     className="px-5 md:px-10"
@@ -156,6 +170,22 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
         </div>
     );
 }, (prevProps, nextProps) => {
+    const areLastReadsEqual = (prev: LastReadState | null, next: LastReadState | null) => {
+        if (prev === next) return true;
+        if (!prev || !next) return false;
+        return prev.surahId === next.surahId && prev.ayahNumber === next.ayahNumber;
+    };
+
+    const areBookmarksEqual = (prev: Bookmark[], next: Bookmark[]) => {
+        const ayahKey = `${parseInt(prevProps.ayah.verse_key.split(':')[0])}:${prevProps.ayah.verse_number}`;
+        const prevBookmark = prev.find(b => b.id === ayahKey);
+        const nextBookmark = next.find(b => b.id === ayahKey);
+
+        if (!prevBookmark && !nextBookmark) return true; // Both null
+        if (!prevBookmark || !nextBookmark) return false; // One is null
+        return prevBookmark.category === nextBookmark.category; // Compare category
+    };
+    
     return (
         prevProps.ayah.id === nextProps.ayah.id &&
         prevProps.isPlaying === nextProps.isPlaying &&
@@ -163,7 +193,9 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
         prevProps.wordMode === nextProps.wordMode &&
         prevProps.fontSize === nextProps.fontSize &&
         prevProps.showTranslation === nextProps.showTranslation &&
-        prevProps.globalIndex === nextProps.globalIndex
+        prevProps.globalIndex === nextProps.globalIndex &&
+        areLastReadsEqual(prevProps.lastRead, nextProps.lastRead) &&
+        areBookmarksEqual(prevProps.bookmarks, nextProps.bookmarks)
     );
 });
 
@@ -196,7 +228,6 @@ const WordItem: React.FC<{
     const isWaqaf = word.char_type_name === 'pause';
     const isInteractive = word.char_type_name === 'word' && !!word.audio_url;
     
-    // Waqaf signs (tanda berhenti)
     if (isWaqaf) {
         return (
             <span 
@@ -208,7 +239,6 @@ const WordItem: React.FC<{
         );
     }
 
-    // Non-interactive text
     if (!isInteractive) {
          return (
             <span 
@@ -220,7 +250,6 @@ const WordItem: React.FC<{
         );
     }
 
-    // Interactive Word with optimized Hit Area
     return (
         <span
             {...(wordMode ? wordGestures : {})}

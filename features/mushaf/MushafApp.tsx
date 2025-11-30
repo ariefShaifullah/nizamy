@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { type VirtuosoHandle } from 'react-virtuoso';
 import { SURAH_DATA } from '../../constants.ts';
@@ -8,12 +7,13 @@ import { KamusSheet } from './components/KamusSheet.tsx';
 import { MushafSettingsModal } from './components/MushafSettingsModal.tsx';
 import { MushafHelpModal } from './components/MushafHelpModal.tsx';
 import { Modal } from '../../components/ui/Modal.tsx'; 
-import type { QuranAyah, KamusData, QuranWord, LastReadState } from '../../types.ts';
+import type { QuranAyah, KamusData, QuranWord, LastReadState, Bookmark, BookmarkCategory } from '../../types.ts';
 import { useToast } from '../../components/ui/Toast.tsx';
 import { useLocalStorage } from '../../hooks/useLocalStorage.ts';
 import { useMushafAudio } from './hooks/useMushafAudio.ts';
 import { useMushafData } from './hooks/useMushafData.ts';
-import { FaArrowLeft, FaHashtag, FaQuestionCircle, FaCog } from 'react-icons/fa';
+import { useWakeLock } from '../../hooks/useWakeLock.ts';
+import { FaArrowLeft, FaHashtag, FaQuestionCircle, FaCog, FaBookmark } from 'react-icons/fa';
 
 // Sub-components
 import { SurahSelection } from './components/SurahSelection.tsx';
@@ -25,6 +25,7 @@ const MushafApp: React.FC = () => {
     
     // Local Storage
     const [lastRead, setLastRead] = useLocalStorage<LastReadState | null>("mushaf_lastRead", null);
+    const [bookmarks, setBookmarks] = useLocalStorage<Bookmark[]>("mushaf_bookmarks_v2", []);
     const [fontSize, setFontSize] = useLocalStorage("mushaf_fontSize", 32);
     const [showTranslation, setShowTranslation] = useLocalStorage("mushaf_showTranslation", true);
     const [wordMode, setWordMode] = useLocalStorage("mushaf_wordMode", false);
@@ -41,6 +42,9 @@ const MushafApp: React.FC = () => {
     // Navigation & State
     const [selectedSurahId, setSelectedSurahId] = useState<number | null>(null);
     
+    // Wake Lock Integration
+    const { requestLock, releaseLock } = useWakeLock();
+
     // Jumping State
     const [jumpAyahInput, setJumpAyahInput] = useState("");
     const [isJumping, setIsJumping] = useState(false);
@@ -64,6 +68,19 @@ const MushafApp: React.FC = () => {
             setIsHelpOpen(true);
         }
     }, [selectedSurahId]);
+
+    // Handle Wake Lock based on Reading State
+    useEffect(() => {
+        if (selectedSurahId) {
+            requestLock();
+        } else {
+            releaseLock();
+        }
+        // Cleanup on unmount
+        return () => {
+            releaseLock();
+        };
+    }, [selectedSurahId, requestLock, releaseLock]);
 
     const closeHelp = () => {
         localStorage.setItem('nizamy_mushaf_tutorial_seen', 'true');
@@ -124,21 +141,74 @@ const MushafApp: React.FC = () => {
     }, [handleNextTrack]);
 
     // --- LAST READ SAVER ---
+    // Auto-save on scroll stop
     useEffect(() => {
-        if (!selectedSurahId || verses.length === 0) return;
+        if (!selectedSurahId || verses.length === 0 || loading) return;
         
         const saveTimeout = setTimeout(() => {
             if (visibleRange.startIndex >= 0 && verses[visibleRange.startIndex]) {
-                setLastRead({
-                    surahId: selectedSurahId,
-                    ayahNumber: verses[visibleRange.startIndex].verse_number,
-                    timestamp: Date.now()
-                });
+                const visibleAyahNumber = verses[visibleRange.startIndex].verse_number;
+                if (!lastRead || lastRead.surahId !== selectedSurahId || lastRead.ayahNumber !== visibleAyahNumber) {
+                    setLastRead({
+                        surahId: selectedSurahId,
+                        ayahNumber: visibleAyahNumber,
+                        timestamp: Date.now()
+                    });
+                }
             }
-        }, 1000);
+        }, 2000); // Save 2 seconds after scroll stops
         
         return () => clearTimeout(saveTimeout);
-    }, [visibleRange.startIndex, selectedSurahId, verses, setLastRead]);
+    }, [visibleRange.startIndex, selectedSurahId, verses, setLastRead, loading, lastRead]);
+
+    // --- BOOKMARK LOGIC ---
+    const findBookmark = useCallback((surahId: number, ayahNumber: number): Bookmark | null => {
+        return bookmarks.find(b => b.surahId === surahId && b.ayahNumber === ayahNumber) || null;
+    }, [bookmarks]);
+
+    const updateBookmark = (ayah: QuranAyah, category: BookmarkCategory | null) => {
+        const surahId = selectedSurahId!;
+        const ayahNumber = ayah.verse_number;
+        const bookmarkId = `${surahId}:${ayahNumber}`;
+
+        if (category === null) {
+            // Delete bookmark
+            setBookmarks(prev => prev.filter(b => b.id !== bookmarkId));
+            showToast("Penanda dihapus", "info");
+        } else {
+            // Add or Update bookmark
+            const existingBookmark = findBookmark(surahId, ayahNumber);
+            if (existingBookmark) {
+                // Update category
+                setBookmarks(prev => prev.map(b => b.id === bookmarkId ? { ...b, category } : b));
+                showToast("Kategori penanda diubah", "success");
+            } else {
+                // Add new
+                const newBookmark: Bookmark = {
+                    id: bookmarkId,
+                    surahId,
+                    ayahNumber,
+                    timestamp: Date.now(),
+                    category
+                };
+                setBookmarks(prev => [...prev, newBookmark].sort((a,b) => a.surahId - b.surahId || a.ayahNumber - b.ayahNumber));
+                showToast("Penanda disimpan!", "success");
+            }
+        }
+        setKamusData(null); // Close sheet
+    };
+
+    const removeBookmarkById = (bookmarkId: string) => {
+        setBookmarks(prev => prev.filter(b => b.id !== bookmarkId));
+        showToast("Penanda dihapus", "info");
+    };
+
+    // --- JUMP/NAV LOGIC ---
+    const jumpTo = (surahId: number, ayahNumber: number) => {
+        setPendingJumpAyah(ayahNumber);
+        setSelectedSurahId(surahId);
+    };
+
 
     // --- INIT VIEW & HANDLE JUMP ---
     useEffect(() => {
@@ -155,7 +225,6 @@ const MushafApp: React.FC = () => {
                             await loadUntilAyah(pendingJumpAyah);
                         }
                         
-                        // Use requestAnimationFrame for robust UI update after data load
                         requestAnimationFrame(() => {
                             setTimeout(() => {
                                 virtuosoRef.current?.scrollToIndex({ 
@@ -168,10 +237,9 @@ const MushafApp: React.FC = () => {
                         });
                     } catch (err) {
                         console.error(err);
-                        showToast("Gagal memuat posisi terakhir.", "error");
+                        showToast("Gagal memuat posisi.", "error");
                     }
                 } else {
-                    // Small delay to ensure virtualizer is mounted
                     requestAnimationFrame(() => {
                         virtuosoRef.current?.scrollToIndex({ index: 0, align: 'start' });
                     });
@@ -184,7 +252,6 @@ const MushafApp: React.FC = () => {
 
     useEffect(() => {
         if (isJumpModalOpen && jumpInputRef.current) {
-            // Wait for modal animation
             setTimeout(() => jumpInputRef.current?.focus(), 150);
         }
     }, [isJumpModalOpen]);
@@ -201,7 +268,6 @@ const MushafApp: React.FC = () => {
             setIsJumpModalOpen(false); 
             
             try {
-                // Preload data if needed
                 await loadUntilAyah(targetAyah);
                 
                 requestAnimationFrame(() => {
@@ -267,9 +333,10 @@ const MushafApp: React.FC = () => {
                 verses_count: 0,
                 revelation_place: ''
             },
-            reference: `QS ${selectedSurahId}:${ayah.verse_number}`
+            reference: `QS ${selectedSurahId}:${ayah.verse_number}`,
+            bookmark: findBookmark(selectedSurahId, ayah.verse_number)
         });
-    }, [selectedSurahId, currentSurah]);
+    }, [selectedSurahId, currentSurah, findBookmark]);
 
     const handleLongPressWord = useCallback((word: QuranWord, parentAyah: QuranAyah) => {
         audioService.playClick();
@@ -291,20 +358,33 @@ const MushafApp: React.FC = () => {
                 }
             }
         }
-        setKamusData({ type: 'word', data: word, nextWordText, isEndAyah });
+        setKamusData({ type: 'word', data: word, nextWordText, isEndAyah, bookmark: null });
     }, []);
+
+    const handleSetLastRead = (ayah: QuranAyah) => {
+        if (!selectedSurahId) return;
+        const newLastRead: LastReadState = {
+            surahId: selectedSurahId,
+            ayahNumber: ayah.verse_number,
+            timestamp: Date.now()
+        };
+        setLastRead(newLastRead);
+        setKamusData(null); // Close sheet
+        showToast("✨ Posisi terakhir disimpan", "success");
+    };
+
 
     if (!selectedSurahId || !currentSurah) {
         return (
             <SurahSelection 
-                lastRead={lastRead} 
-                onSelectSurah={setSelectedSurahId} 
+                lastRead={lastRead}
+                bookmarks={bookmarks}
+                onSelectSurah={setSelectedSurahId}
                 onJumpToLastRead={() => {
-                    if(lastRead) {
-                        setPendingJumpAyah(lastRead.ayahNumber); 
-                        setSelectedSurahId(lastRead.surahId);
-                    }
+                    if(lastRead) jumpTo(lastRead.surahId, lastRead.ayahNumber);
                 }}
+                onJumpToBookmark={(surahId, ayahNumber) => jumpTo(surahId, ayahNumber)}
+                onRemoveBookmark={removeBookmarkById}
             />
         );
     }
@@ -312,9 +392,7 @@ const MushafApp: React.FC = () => {
     const activePlayingAyah = playingAyahId ? verses.find(v => v.id === playingAyahId) : null;
 
     return (
-        // Update z-index to 60 to stay above Main Header (z-50)
         <div className="fixed inset-0 z-60 bg-white dark:bg-slate-950 flex flex-col animate-fade-in select-none">
-            {/* Progress Ribbon */}
             <div className="fixed left-0 top-[calc(4rem+env(safe-area-inset-top))] bottom-0 w-1 z-20 bg-slate-100 dark:bg-slate-800/50 pointer-events-none">
                 <div 
                     className="relative w-full bg-teal-500 transition-all duration-500 ease-out rounded-b-full opacity-80"
@@ -322,7 +400,6 @@ const MushafApp: React.FC = () => {
                 ></div>
             </div>
 
-            {/* Navigation Header */}
             <div className="sticky top-0 z-30 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800 pt-[env(safe-area-inset-top)]">
                 <div className="flex justify-between items-center px-4 py-3 max-w-3xl mx-auto w-full">
                     <button 
@@ -341,6 +418,19 @@ const MushafApp: React.FC = () => {
                     </button>
 
                     <div className="flex items-center gap-1">
+                        {lastRead && lastRead.surahId === selectedSurahId && (
+                           <button 
+                                onClick={() => {
+                                    setJumpAyahInput(String(lastRead.ayahNumber));
+                                    setTimeout(() => handleJumpToAyah(), 0);
+                                }}
+                                className="p-2.5 rounded-xl text-teal-500 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 transition-colors"
+                                aria-label="Lompat ke Penanda"
+                                title={`Lompat ke Ayat ${lastRead.ayahNumber}`}
+                           >
+                               <div className="icon-wrapper w-4 h-4"><FaBookmark /></div>
+                           </button>
+                        )}
                         <button 
                             onClick={() => setIsJumpModalOpen(true)}
                             className="p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
@@ -368,7 +458,6 @@ const MushafApp: React.FC = () => {
                 </div>
             </div>
 
-            {/* Reader Area */}
             <MushafReader
                 surah={currentSurah}
                 verses={verses}
@@ -379,6 +468,8 @@ const MushafApp: React.FC = () => {
                 retry={retry}
                 virtuosoRef={virtuosoRef}
                 onRangeChange={setVisibleRange}
+                lastRead={lastRead}
+                bookmarks={bookmarks}
                 isPlaying={isPlaying}
                 playingAyahId={playingAyahId}
                 playingWordId={playingWordId}
@@ -391,7 +482,6 @@ const MushafApp: React.FC = () => {
                 onLongPressWord={handleLongPressWord}
             />
 
-            {/* Floating Sticky Player (New Dock Design) */}
             {isPlaying && activePlayingAyah && !wordMode && (
                 <MushafStickyPlayer
                     surahName={currentSurah.name}
@@ -422,7 +512,6 @@ const MushafApp: React.FC = () => {
                 <MushafHelpModal onClose={closeHelp} />
             )}
 
-            {/* Unified Jump Modal */}
             {isJumpModalOpen && (
                 <Modal isOpen={true} onClose={() => setIsJumpModalOpen(false)} title="Loncat ke Ayat" maxWidth="max-w-sm">
                     <div className="p-6">
@@ -466,7 +555,9 @@ const MushafApp: React.FC = () => {
             <KamusSheet 
                 data={kamusData} 
                 onClose={() => setKamusData(null)} 
-                onPlayAudio={(url) => playAudio(url, kamusData?.type === 'ayah' ? 'ayah' : 'word', 0)}
+                onPlayAudio={(url) => playAudio(url, kamusData?.type === 'ayah' ? 'ayah' : 'word', kamusData?.data.id || 0)}
+                onSetLastRead={handleSetLastRead}
+                onUpdateBookmark={updateBookmark}
             />
         </div>
     );

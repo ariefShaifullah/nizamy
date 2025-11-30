@@ -1,4 +1,3 @@
-
 import { useState, useRef, useCallback } from 'react';
 import { fetchVersesWithWords } from '../logic/mushaf.service.ts';
 import type { QuranAyah } from '../../../types.ts';

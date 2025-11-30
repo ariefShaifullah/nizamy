@@ -1,27 +1,108 @@
-
 import React, { useState, useMemo } from 'react';
 import { SURAH_DATA } from '../../../constants.ts';
-import { FaSearch, FaArrowRight, FaQuran } from 'react-icons/fa';
+import { FaSearch, FaArrowRight, FaQuran, FaBookmark, FaStar, FaTrash, FaHeart, FaBrain, FaBookOpen } from 'react-icons/fa';
 import { useDebounce } from '../../../hooks/useDebounce.ts';
-import type { LastReadState } from '../../../types.ts';
+import type { LastReadState, Bookmark, BookmarkCategory } from '../../../types.ts';
+import { Modal } from '../../../components/ui/Modal.tsx';
 
 const QUICK_LINKS = [
     { number: 18, label: 'Al-Kahfi', icon: '⛰️', gradient: 'from-amber-100 to-orange-100 dark:from-amber-900/40 dark:to-orange-900/40', text: 'text-amber-800 dark:text-amber-200' },
     { number: 36, label: 'Ya-Sin', icon: '❤️', gradient: 'from-rose-100 to-pink-100 dark:from-rose-900/40 dark:to-pink-900/40', text: 'text-rose-800 dark:text-rose-200' },
     { number: 55, label: 'Ar-Rahman', icon: '🎁', gradient: 'from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40', text: 'text-emerald-800 dark:text-emerald-200' },
-    { number: 56, label: 'Al-Waqi\'ah', icon: '🌋', gradient: 'from-indigo-100 to-blue-100 dark:from-indigo-900/40 dark:to-blue-900/40', text: 'text-indigo-800 dark:text-indigo-200' },
+    { number: 56, label: 'Al-Waqi\'ah', icon: '💰', gradient: 'from-indigo-100 to-blue-100 dark:from-indigo-900/40 dark:to-blue-900/40', text: 'text-indigo-800 dark:text-indigo-200' },
     { number: 67, label: 'Al-Mulk', icon: '🛡️', gradient: 'from-sky-100 to-cyan-100 dark:from-sky-900/40 dark:to-cyan-900/40', text: 'text-sky-800 dark:text-sky-200' },
     { number: 78, label: 'Juz 30', icon: '🎓', gradient: 'from-violet-100 to-purple-100 dark:from-violet-900/40 dark:to-purple-900/40', text: 'text-violet-800 dark:text-violet-200' }
 ];
 
 interface SurahSelectionProps {
     lastRead: LastReadState | null;
+    bookmarks: Bookmark[];
     onSelectSurah: (id: number) => void;
     onJumpToLastRead: () => void;
+    onJumpToBookmark: (surahId: number, ayahNumber: number) => void;
+    onRemoveBookmark: (bookmarkId: string) => void;
 }
 
-export const SurahSelection: React.FC<SurahSelectionProps> = ({ lastRead, onSelectSurah, onJumpToLastRead }) => {
+const CATEGORY_CONFIG: Record<BookmarkCategory, { icon: React.ReactNode; label: string; color: string; }> = {
+    general: { icon: <FaStar />, label: 'Umum', color: 'amber' },
+    favorite: { icon: <FaHeart />, label: 'Favorit', color: 'rose' },
+    memorize: { icon: <FaBrain />, label: 'Hafalan', color: 'indigo' },
+    study: { icon: <FaBookOpen />, label: 'Tadabbur', color: 'sky' },
+};
+
+const BookmarkListModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    bookmarks: Bookmark[];
+    onJump: (surahId: number, ayahNumber: number) => void;
+    onRemove: (bookmarkId: string) => void;
+}> = ({ isOpen, onClose, bookmarks, onJump, onRemove }) => {
+    const [activeTab, setActiveTab] = useState<BookmarkCategory | 'all'>('all');
+
+    const filteredBookmarks = useMemo(() => {
+        if (activeTab === 'all') return bookmarks;
+        return bookmarks.filter(b => b.category === activeTab);
+    }, [bookmarks, activeTab]);
+
+    const TABS: { id: BookmarkCategory | 'all'; label: string; }[] = [
+        { id: 'all', label: 'Semua' },
+        { id: 'favorite', label: 'Favorit' },
+        { id: 'memorize', label: 'Hafalan' },
+        { id: 'study', label: 'Tadabbur' },
+    ];
+    
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title="Penanda Tersimpan" maxWidth="max-w-md">
+            <div className="p-2 flex flex-col h-[70vh] max-h-[500px]">
+                <div className="shrink-0 p-2 space-x-2 border-b border-slate-100 dark:border-slate-800 mb-2">
+                    {TABS.map(tab => (
+                        <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${activeTab === tab.id ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}>
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
+
+                {filteredBookmarks.length > 0 ? (
+                    <div className="overflow-y-auto custom-scrollbar space-y-2 p-2">
+                        {filteredBookmarks.map(bookmark => {
+                            const surah = SURAH_DATA.find(s => s.number === bookmark.surahId);
+                            if (!surah) return null;
+                            const category = CATEGORY_CONFIG[bookmark.category || 'general'];
+                            const colorClasses = `bg-${category.color}-100 text-${category.color}-600 dark:bg-${category.color}-900/30 dark:text-${category.color}-400`;
+
+                            return (
+                                <div key={bookmark.id} className="group bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                                    <button onClick={() => { onJump(bookmark.surahId, bookmark.ayahNumber); onClose(); }} className="flex-1 text-left flex items-center gap-3">
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${colorClasses}`}>
+                                            {category.icon}
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-slate-800 dark:text-white group-hover:text-indigo-600">{surah.name}</p>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400">Ayat {bookmark.ayahNumber}</p>
+                                        </div>
+                                    </button>
+                                    <button onClick={() => onRemove(bookmark.id)} className="p-2 text-slate-400 hover:text-red-500 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20">
+                                        <FaTrash />
+                                    </button>
+                                </div>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <div className="text-center py-12 text-slate-400 flex-1 flex flex-col justify-center">
+                        <p className="text-4xl mb-4">⭐</p>
+                        <p className="font-medium">Belum ada penanda.</p>
+                        <p className="text-xs mt-1">Tekan lama/titik tiga pada ayat untuk menyimpan.</p>
+                    </div>
+                )}
+            </div>
+        </Modal>
+    );
+};
+
+export const SurahSelection: React.FC<SurahSelectionProps> = ({ lastRead, bookmarks, onSelectSurah, onJumpToLastRead, onJumpToBookmark, onRemoveBookmark }) => {
     const [searchTerm, setSearchTerm] = useState("");
+    const [isBookmarkModalOpen, setIsBookmarkModalOpen] = useState(false);
     const debouncedSearch = useDebounce(searchTerm, 300);
 
     const lastReadSurah = lastRead ? SURAH_DATA.find(s => s.number === lastRead.surahId) : null;
@@ -38,9 +119,7 @@ export const SurahSelection: React.FC<SurahSelectionProps> = ({ lastRead, onSele
 
     return (
         <div className="animate-fade-in pb-20 max-w-5xl mx-auto px-4 md:px-6 pt-0 md:pt-2">
-            {/* Header Section */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6 mt-0 md:mt-6 mb-6 md:mb-8">
-                {/* Title & Desc Hidden on Mobile, Visible on Desktop */}
                 <div className="hidden md:block">
                     <h2 className="text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight flex items-center gap-3">
                         <span className="text-teal-600 dark:text-teal-400"><FaQuran /></span>
@@ -51,7 +130,6 @@ export const SurahSelection: React.FC<SurahSelectionProps> = ({ lastRead, onSele
                     </p>
                 </div>
                 
-                {/* Search Bar - Always Visible, High Visibility */}
                 <div className="relative w-full md:w-72 group z-10">
                     <div className="absolute inset-0 bg-teal-500/10 rounded-2xl blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div className="relative">
@@ -69,25 +147,44 @@ export const SurahSelection: React.FC<SurahSelectionProps> = ({ lastRead, onSele
                 </div>
             </div>
 
-            {/* Last Read Card */}
-            {lastRead && lastReadSurah && !searchTerm && (
-                <div className="mb-8 md:mb-10 animate-fade-in-down">
-                    <button 
-                        onClick={onJumpToLastRead}
-                        className="w-full relative overflow-hidden bg-linear-to-r from-slate-900 to-slate-800 rounded-3xl p-6 text-white shadow-xl shadow-slate-200/50 dark:shadow-none group text-left border border-slate-700"
+            {!searchTerm && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                    {lastRead && lastReadSurah && (
+                        <button 
+                            onClick={onJumpToLastRead}
+                            className="w-full relative overflow-hidden bg-linear-to-r from-slate-900 to-slate-800 rounded-3xl p-6 text-white shadow-xl shadow-slate-200/50 dark:shadow-none group text-left border border-slate-700"
+                        >
+                            <div className="absolute top-0 right-0 w-40 h-40 bg-teal-500/20 rounded-full blur-[50px] translate-x-10 -translate-y-10 group-hover:bg-teal-500/30 transition-all duration-700"></div>
+                            <div className="relative z-10 flex items-center justify-between">
+                                <div>
+                                    <div className="flex items-center gap-2 text-teal-400 text-xs font-bold uppercase tracking-widest mb-2">
+                                        <FaBookmark />
+                                        Terakhir Dibaca
+                                    </div>
+                                    <h3 className="text-xl md:text-2xl font-bold mb-1">{lastReadSurah.name}</h3>
+                                    <p className="text-slate-400 text-sm font-medium">Ayat {lastRead.ayahNumber}</p>
+                                </div>
+                                <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md group-hover:scale-110 transition-transform border border-white/10 text-white">
+                                    <FaArrowRight />
+                                </div>
+                            </div>
+                        </button>
+                    )}
+                     <button 
+                        onClick={() => setIsBookmarkModalOpen(true)}
+                        className="w-full relative overflow-hidden bg-linear-to-r from-amber-500 to-yellow-600 rounded-3xl p-6 text-white shadow-xl shadow-amber-200/50 dark:shadow-none group text-left border border-amber-400"
                     >
-                        <div className="absolute top-0 right-0 w-40 h-40 bg-teal-500/20 rounded-full blur-[50px] translate-x-10 -translate-y-10 group-hover:bg-teal-500/30 transition-all duration-700"></div>
-                        
+                        <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-[50px] translate-x-10 -translate-y-10 group-hover:bg-white/20 transition-all duration-700"></div>
                         <div className="relative z-10 flex items-center justify-between">
                             <div>
-                                <div className="flex items-center gap-2 text-teal-400 text-xs font-bold uppercase tracking-widest mb-2">
-                                    <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>
-                                    Terakhir Dibaca
+                                <div className="flex items-center gap-2 text-yellow-200 text-xs font-bold uppercase tracking-widest mb-2">
+                                    <FaStar />
+                                    Penanda Tersimpan
                                 </div>
-                                <h3 className="text-2xl md:text-3xl font-bold mb-1">{lastReadSurah.name}</h3>
-                                <p className="text-slate-400 text-sm font-medium">Melanjutkan Ayat {lastRead.ayahNumber}</p>
+                                <h3 className="text-xl md:text-2xl font-bold">Lihat Daftar</h3>
+                                <p className="text-yellow-100/80 text-sm font-medium">{bookmarks.length} Penanda</p>
                             </div>
-                            <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md group-hover:scale-110 transition-transform border border-white/10 text-white">
+                            <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md group-hover:scale-110 transition-transform border border-white/10 text-white">
                                 <FaArrowRight />
                             </div>
                         </div>
@@ -95,7 +192,6 @@ export const SurahSelection: React.FC<SurahSelectionProps> = ({ lastRead, onSele
                 </div>
             )}
 
-            {/* Quick Links */}
             {!searchTerm && (
                 <div className="mb-8">
                     <h4 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4">Jalan Pintas</h4>
@@ -114,7 +210,6 @@ export const SurahSelection: React.FC<SurahSelectionProps> = ({ lastRead, onSele
                 </div>
             )}
 
-            {/* Surah Grid */}
             <div>
                 {!searchTerm && <h4 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4">Daftar Surat</h4>}
                 
@@ -152,6 +247,13 @@ export const SurahSelection: React.FC<SurahSelectionProps> = ({ lastRead, onSele
                     </div>
                 )}
             </div>
+            <BookmarkListModal
+                isOpen={isBookmarkModalOpen}
+                onClose={() => setIsBookmarkModalOpen(false)}
+                bookmarks={bookmarks}
+                onJump={onJumpToBookmark}
+                onRemove={onRemoveBookmark}
+            />
         </div>
     );
 };

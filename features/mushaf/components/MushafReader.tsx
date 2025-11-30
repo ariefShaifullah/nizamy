@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { Virtuoso, type VirtuosoHandle, type ListRange } from 'react-virtuoso';
 import { AyahRenderer } from './AyahRenderer.tsx';
 import { SurahHeader } from './SurahHeader.tsx';
 import { SURAH_DATA } from '../../../constants.ts';
-import type { QuranAyah, QuranWord } from '../../../types.ts';
+import type { QuranAyah, QuranWord, LastReadState, Bookmark } from '../../../types.ts';
 
 // Skeleton Component
 const VersesSkeleton = () => (
@@ -32,6 +31,8 @@ interface MushafReaderProps {
     onRangeChange: (range: ListRange) => void;
     
     // Settings & State
+    lastRead: LastReadState | null;
+    bookmarks: Bookmark[];
     isPlaying: boolean;
     playingAyahId: number | null;
     playingWordId: number | null;
@@ -56,6 +57,8 @@ export const MushafReader: React.FC<MushafReaderProps> = ({
     retry,
     virtuosoRef,
     onRangeChange,
+    lastRead,
+    bookmarks,
     isPlaying,
     playingAyahId,
     playingWordId,
@@ -106,6 +109,8 @@ export const MushafReader: React.FC<MushafReaderProps> = ({
                                 wordMode={wordMode}
                                 fontSize={fontSize}
                                 showTranslation={showTranslation}
+                                lastRead={lastRead}
+                                bookmarks={bookmarks}
                                 onTapAyah={onTapAyah}
                                 onLongPressAyah={onLongPressAyah}
                                 onTapWord={onTapWord}

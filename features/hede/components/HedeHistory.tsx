@@ -1,17 +1,20 @@
+
 import React, { useMemo } from 'react';
-import type { HedeHistoryEntry, RiskLevel } from '../../../types.ts';
+import type { HedeHistoryEntry, RiskLevel, HedeResult } from '../../../types.ts';
 import { 
-    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart 
+    XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart, ComposedChart, Line
 } from 'recharts';
 import { formatDate } from '../../../utils.ts';
-import { FaHistory, FaArrowRight, FaTrash, FaChartLine, FaCheckCircle, FaExclamationTriangle, FaExclamationCircle, FaMedal } from 'react-icons/fa';
+import { FaHistory, FaArrowRight, FaTrash, FaChartLine, FaCheckCircle, FaExclamationTriangle, FaExclamationCircle, FaMedal, FaLightbulb } from 'react-icons/fa';
 import { useConfirm } from '../../../components/ui/ConfirmContext.tsx';
-import { useLocalStorage } from '../../../hooks/useLocalStorage.ts';
+import { calculateDynamicScore } from '../logic/hede.service.ts';
 
 interface HedeHistoryProps {
     history: HedeHistoryEntry[];
     onLoad: (entry: HedeHistoryEntry) => void;
     onClear: () => void;
+    currentResult: HedeResult | null;
+    completedSteps: string[];
 }
 
 const getIconForRiskLevel = (level: RiskLevel, isResolved: boolean, className: string = 'w-4 h-4') => {
@@ -33,19 +36,59 @@ const getIconForRiskLevel = (level: RiskLevel, isResolved: boolean, className: s
     }
 }
 
-export const HedeHistory: React.FC<HedeHistoryProps> = ({ history, onLoad, onClear }) => {
+// Custom Dot untuk membedakan titik "Proyeksi"
+const CustomizedDot = (props: any) => {
+    const { cx, cy, payload } = props;
+  
+    if (payload.type === 'projected') {
+      return (
+        <svg x={cx - 6} y={cy - 6} width={12} height={12} fill="white" viewBox="0 0 1024 1024">
+            <circle cx="512" cy="512" r="512" fill="#8b5cf6" fillOpacity="0.3" className="animate-ping" />
+            <circle cx="512" cy="512" r="300" fill="#8b5cf6" stroke="white" strokeWidth="50" />
+        </svg>
+      );
+    }
+  
+    return (
+        <circle cx={cx} cy={cy} r={4} stroke="#8b5cf6" strokeWidth={2} fill="white" />
+    );
+};
+
+export const HedeHistory: React.FC<HedeHistoryProps> = ({ history, onLoad, onClear, currentResult, completedSteps }) => {
     const { confirm } = useConfirm();
-    // Read progress to update cards dynamically
-    const [completedSteps] = useLocalStorage<string[]>('hede_roadmap_progress', []);
 
     const chartData = useMemo(() => {
-        // Reverse array to show oldest to newest on chart
-        return [...history].reverse().map(entry => ({
+        // Base historical data
+        const data = [...history].reverse().map(entry => ({
             date: new Date(entry.timestamp).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
             score: entry.totalScore,
-            fullDate: formatDate(entry.timestamp)
+            fullDate: formatDate(entry.timestamp),
+            type: 'history',
+            riskLevel: entry.riskLevel
         }));
-    }, [history]);
+
+        // Append Current Dynamic State
+        if (currentResult && data.length > 0) {
+            const roadmapSteps = currentResult.roadmap.length;
+            const completedCount = currentResult.roadmap.filter(s => completedSteps.includes(s.action)).length;
+            
+            const currentDynamicScore = calculateDynamicScore(currentResult.totalScore, roadmapSteps, completedCount);
+            
+            // If current score is significantly different from the last history entry, plot it as "Today"
+            const lastEntry = data[data.length - 1];
+            
+            // Always show projection to indicate "Live Status"
+            data.push({
+                date: 'Sekarang',
+                score: currentDynamicScore,
+                fullDate: 'Status Saat Ini (Proyeksi Roadmap)',
+                type: 'projected',
+                riskLevel: currentDynamicScore > 80 ? 'safe' : currentDynamicScore > 50 ? 'medium' : 'critical'
+            });
+        }
+
+        return data;
+    }, [history, currentResult, completedSteps]);
 
     const handleClear = async () => {
         const isConfirmed = await confirm({
@@ -103,7 +146,7 @@ export const HedeHistory: React.FC<HedeHistoryProps> = ({ history, onLoad, onCle
                         
                         <div className="h-[250px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
@@ -126,20 +169,49 @@ export const HedeHistory: React.FC<HedeHistoryProps> = ({ history, onLoad, onCle
                                     />
                                     <Tooltip 
                                         contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                                        cursor={{ stroke: '#8b5cf6', strokeWidth: 2 }}
+                                        cursor={{ stroke: '#8b5cf6', strokeWidth: 2, strokeDasharray: '5 5' }}
+                                        labelFormatter={(label, payload) => {
+                                            if (payload && payload.length > 0 && payload[0].payload.type === 'projected') {
+                                                return "Proyeksi Saat Ini";
+                                            }
+                                            return label;
+                                        }}
+                                        formatter={(value: number, name: string, props: any) => {
+                                            if (props.payload.type === 'projected') {
+                                                return [`${value} (Dinamis)`, 'Skor'];
+                                            }
+                                            return [value, 'Skor'];
+                                        }}
                                     />
                                     <Area 
                                         type="monotone" 
                                         dataKey="score" 
-                                        stroke="#8b5cf6" 
-                                        strokeWidth={3}
+                                        stroke="none"
                                         fillOpacity={1} 
                                         fill="url(#colorScore)" 
+                                    />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="score"
+                                        stroke="#8b5cf6"
+                                        strokeWidth={3}
+                                        dot={<CustomizedDot />}
+                                        activeDot={{ r: 6, strokeWidth: 0 }}
                                         animationDuration={1500}
                                     />
-                                </AreaChart>
+                                </ComposedChart>
                             </ResponsiveContainer>
                         </div>
+                        
+                        {/* Legend for Projection */}
+                        {chartData.some(d => d.type === 'projected') && (
+                            <div className="flex items-start gap-2 mt-4 text-[10px] text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+                               <div className="text-yellow-500 mt-0.5 shrink-0" ><FaLightbulb /></div>
+                                <p>
+                                    Titik berdenyut menunjukkan <strong>Skor Dinamis</strong> yang naik seiring Anda menyelesaikan tugas di Roadmap, tanpa perlu melakukan diagnosa ulang.
+                                </p>
+                            </div>
+                        )}
                     </div>
 
                     {/* History List */}
@@ -155,10 +227,15 @@ export const HedeHistory: React.FC<HedeHistoryProps> = ({ history, onLoad, onCle
                             // Calculate Real-time Status based on Roadmap Completion
                             const roadmap = entry.result.roadmap || [];
                             const totalSteps = roadmap.length;
+                            // Only count steps relevant to this history entry's roadmap
                             const completedCount = roadmap.filter(step => completedSteps.includes(step.action)).length;
+                            
                             const progress = totalSteps > 0 ? (completedCount / totalSteps) * 100 : 100;
                             const isResolved = progress === 100;
                             const hasProgress = progress > 0 && progress < 100;
+                            
+                            // Dynamic score for the list item view
+                            const itemDynamicScore = calculateDynamicScore(entry.totalScore, totalSteps, completedCount);
 
                             return (
                                 <div 
@@ -181,9 +258,9 @@ export const HedeHistory: React.FC<HedeHistoryProps> = ({ history, onLoad, onCle
                                             <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-lg font-black ${
                                                 isResolved 
                                                 ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400' 
-                                                : getScoreColor(entry.totalScore)
+                                                : getScoreColor(itemDynamicScore)
                                             }`}>
-                                                {entry.totalScore}
+                                                {itemDynamicScore}
                                             </div>
                                             <div>
                                                 <p className="text-xs text-slate-400 font-medium uppercase tracking-wide mb-0.5">
@@ -195,9 +272,9 @@ export const HedeHistory: React.FC<HedeHistoryProps> = ({ history, onLoad, onCle
                                                     {getIconForRiskLevel(entry.riskLevel, isResolved)}
                                                     {isResolved 
                                                         ? 'Ikhtiar Tuntas (Resolved)' 
-                                                        : entry.totalScore > 80 
+                                                        : itemDynamicScore > 80 
                                                             ? 'Kondisi Aman' 
-                                                            : entry.totalScore > 50 
+                                                            : itemDynamicScore > 50 
                                                                 ? 'Perlu Perbaikan' 
                                                                 : 'Perlu Tindakan Segera'
                                                     }

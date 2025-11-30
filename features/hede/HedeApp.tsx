@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { HedeWizard } from './components/HedeWizard.tsx';
 import { HedeReport } from './components/HedeReport.tsx';
@@ -24,6 +25,7 @@ import { HEDE_FAQ, FIQH_GLOSSARY } from './constants.ts';
 import { useToast } from '../../components/ui/Toast.tsx';
 import { useConfirm } from '../../components/ui/ConfirmContext.tsx';
 import { calculateRiskScore } from './logic/hede.service.ts';
+import { audioService } from '../../services/audio.service.ts';
 
 type WizardState = 'idle' | 'pre-wizard' | 'wizard' | 'analyzing';
 type ViewState = 'landing' | 'report';
@@ -39,8 +41,10 @@ const HedeLandingScreen: React.FC<{
                 <div className="w-24 h-24 bg-linear-to-br from-indigo-50 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-3xl flex items-center justify-center text-purple-600 dark:text-purple-400 mb-6 shadow-md border border-white dark:border-slate-700">
                     <div className="icon-wrapper w-12 h-12 flex items-center justify-center text-5xl drop-shadow-sm"><FaShieldAlt /></div>
                 </div>
-                <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-slate-900 dark:text-white mb-2">HEDE</h1>
-                <p className="font-bold text-purple-600 dark:text-purple-400 text-sm md:text-base uppercase tracking-widest mb-4">Halal Economic Diagnostic Engine</p>
+                <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-slate-900 dark:text-white mb-2">Klinik Finansial</h1>
+                <p className="font-bold text-purple-600 dark:text-purple-400 text-sm md:text-base uppercase tracking-widest mb-4">Cek Kesehatan Finansial
+
+</p>
                 <p className="hidden md:block text-base md:text-lg font-medium text-slate-500 dark:text-slate-400 mb-12 max-w-2xl leading-relaxed">
                     Cek kesehatan finansial Anda dari Riba, Gharar, & Maysir. Dapatkan roadmap hijrah personal untuk menuju harta yang lebih berkah.
                 </p>
@@ -129,6 +133,10 @@ const HedeApp: React.FC = () => {
     const [result, setResult] = useLocalStorage<HedeResult | null>('hede_last_result', null);
     const [history, setHistory] = useLocalStorage<HedeHistoryEntry[]>('hede_history', []);
     
+    // LIFTED STATE: Roadmap Progress
+    // Shared between Report (for projection) and History (for trends)
+    const [completedSteps, setCompletedSteps] = useLocalStorage<string[]>('hede_roadmap_progress', []);
+
     // View State
     const [activeTab, setActiveTab] = useState<HedeTab>('diagnosa');
     const [wizardState, setWizardState] = useState<WizardState>('idle');
@@ -156,6 +164,22 @@ const HedeApp: React.FC = () => {
         setAnalyzingAnswers(null);
     };
 
+    const toggleStep = (action: string) => {
+        // Haptic Feedback
+        if (navigator.vibrate) navigator.vibrate(15);
+
+        setCompletedSteps(prev => {
+            const isExist = prev.includes(action);
+            if (isExist) {
+                audioService.playClick(); 
+                return prev.filter(a => a !== action);
+            } else {
+                audioService.playSuccess();
+                return [...prev, action];
+            }
+        });
+    };
+
     useEffect(() => {
         let analysisTimeout: ReturnType<typeof setTimeout>;
         if (wizardState === 'analyzing' && analyzingAnswers) {
@@ -171,25 +195,31 @@ const HedeApp: React.FC = () => {
                     result: data
                 };
                 
+                // Clear previous roadmap progress on new diagnosis to allow fresh start?
+                // Option A: Keep progress (Continuous improvement). 
+                // Option B: Reset (New snapshot). 
+                // Decision: Keep progress for now, as roadmap items might be same.
+                // But usually a new diagnosis means a reset of state. 
+                // Let's reset completedSteps IF the new result has different roadmap items or just to be safe.
+                setCompletedSteps([]); // Reset roadmap progress on new diagnosis
+                
                 setHistory(prev => [newEntry, ...prev].slice(0, 20));
                 
                 setWizardState('idle');
                 setActiveTab('diagnosa');
-                setView('report'); // Directly show the new report
-                setShowOnboarding(true); // Trigger onboarding for the new report
+                setView('report'); 
+                setShowOnboarding(true); 
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 showToast('Hasil diagnosa tersimpan di Jurnal', 'success');
-            }, 2500); // 2.5 second delay
+            }, 2500); 
         }
         return () => clearTimeout(analysisTimeout);
-    }, [wizardState, analyzingAnswers, setResult, setHistory, showToast]);
+    }, [wizardState, analyzingAnswers, setResult, setHistory, showToast, setCompletedSteps]);
 
 
-    // UPDATE: Removed confirmation modal as the action is non-destructive
     const handleReset = () => {
         setResult(null);
         setView('landing'); 
-        // Roadmap progress is preserved
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
@@ -197,19 +227,19 @@ const HedeApp: React.FC = () => {
         setResult(entry.result);
         setView('report');
         setActiveTab('diagnosa');
+        // When loading old history, we might want to preserve current roadmap progress OR load historical?
+        // Current design: Roadmap progress is global 'current state'.
         window.scrollTo({ top: 0, behavior: 'smooth' });
         showToast('Laporan lama dimuat', 'info');
     };
 
     const handleClearHistory = () => {
         setHistory([]);
-        // Clear roadmap progress only when history is wiped
-        localStorage.removeItem('hede_roadmap_progress');
+        setCompletedSteps([]);
         showToast('Jurnal berhasil dibersihkan', 'info');
     };
 
     const switchTab = (tab: HedeTab) => {
-        // If switching to 'diagnosa' from another tab, always go to landing page
         if (tab === 'diagnosa') {
             setView('landing');
         }
@@ -226,7 +256,6 @@ const HedeApp: React.FC = () => {
     
     const handleSidebarTermClick = (term: string) => {
         setSelectedTerm(term);
-        // On desktop, we ONLY open the definition modal, not the whole dictionary modal.
     };
 
     const filteredGlossary = useMemo(() =>
@@ -275,6 +304,8 @@ const HedeApp: React.FC = () => {
                             onOpenTerm={handleOpenTerm}
                             showOnboarding={showOnboarding}
                             onOnboardingComplete={() => setShowOnboarding(false)}
+                            completedSteps={completedSteps}
+                            onToggleStep={toggleStep}
                         />
                     );
                 }
@@ -287,7 +318,15 @@ const HedeApp: React.FC = () => {
             case 'tathhir':
                 return <TathhirCalculator />;
             case 'history':
-                return <HedeHistory history={history} onLoad={handleLoadHistory} onClear={handleClearHistory} />;
+                return (
+                    <HedeHistory 
+                        history={history} 
+                        onLoad={handleLoadHistory} 
+                        onClear={handleClearHistory}
+                        currentResult={result}
+                        completedSteps={completedSteps}
+                    />
+                );
             default:
                 return null;
         }
@@ -315,7 +354,7 @@ const HedeApp: React.FC = () => {
             <div className="lg:grid lg:grid-cols-12 lg:gap-8 px-4 md:px-6">
                 <div className="lg:col-span-8 w-full min-w-0 flex flex-col gap-8">
                     {renderContent()}
-                    <div className="hidden lg:block border-t border-slate-200 dark:border-slate-700 pt-8"><FAQ title="Panduan HEDE" subtitle="Pertanyaan seputar metode diagnosa dan hukum fiqh." data={HEDE_FAQ} /></div>
+                    <div className="hidden lg:block border-t border-slate-200 dark:border-slate-700 pt-8"><FAQ title="Panduan Klinik Finansial" subtitle="Pertanyaan seputar metode diagnosa dan hukum fiqh." data={HEDE_FAQ} /></div>
                 </div>
 
                 <div className="hidden lg:block lg:col-span-4 min-w-0">

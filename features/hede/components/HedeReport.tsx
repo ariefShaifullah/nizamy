@@ -1,15 +1,16 @@
-import React, { useState, useRef, useEffect } from 'react';
+
+import React, { useState, useRef, useMemo } from 'react';
 import type { HedeResult, HedeTab } from '../../../types.ts';
 import { exportHedePdf } from '../logic/pdf-export.ts';
 import { generateContractPdf, type ContractType } from '../logic/contract-templates.ts';
 import { useToast } from '../../../components/ui/Toast.tsx';
 import { Modal } from '../../../components/ui/Modal.tsx';
 import html2canvas from 'html2canvas';
+import { calculateDynamicScore } from '../logic/hede.service.ts';
 import { 
     FaDownload, 
     FaRedo, 
     FaBalanceScale,
-    FaBook,
     FaShareAlt,
     FaExclamationCircle,
     FaFileSignature,
@@ -42,6 +43,8 @@ interface HedeReportProps {
     onOpenTerm: (term: string) => void;
     showOnboarding: boolean;
     onOnboardingComplete: () => void;
+    completedSteps: string[];
+    onToggleStep: (action: string) => void;
 }
 
 type ReportTab = 'summary' | 'details' | 'roadmap';
@@ -72,7 +75,16 @@ const getToolkitColorClasses = (color: string) => {
 };
 
 
-export const HedeReport: React.FC<HedeReportProps> = ({ result, onReset, onSwitchAppTab, onOpenTerm, showOnboarding, onOnboardingComplete }) => {
+export const HedeReport: React.FC<HedeReportProps> = ({ 
+    result, 
+    onReset, 
+    onSwitchAppTab, 
+    onOpenTerm, 
+    showOnboarding, 
+    onOnboardingComplete,
+    completedSteps,
+    onToggleStep
+}) => {
     const [activeTab, setActiveTab] = useState<ReportTab>('summary');
     const { showToast } = useToast();
     const fiqhContext = result.fiqhContext;
@@ -82,6 +94,18 @@ export const HedeReport: React.FC<HedeReportProps> = ({ result, onReset, onSwitc
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const [shareImageData, setShareImageData] = useState<{ url: string; blob: Blob | null }>({ url: '', blob: null });
     const [isGeneratingShare, setIsGeneratingShare] = useState(false);
+
+    // Calculate Resolution Status based on Roadmap
+    const totalRoadmapSteps = result.roadmap.length;
+    // Only count completed steps that belong to THIS result's roadmap
+    const relevantCompletedCount = result.roadmap.filter(step => completedSteps.includes(step.action)).length;
+    
+    const isResolved = totalRoadmapSteps > 0 && relevantCompletedCount === totalRoadmapSteps;
+    
+    // Dynamic Score: Proyeksi skor based on roadmap completion
+    const dynamicScore = useMemo(() => {
+        return calculateDynamicScore(result.totalScore, totalRoadmapSteps, relevantCompletedCount);
+    }, [result.totalScore, totalRoadmapSteps, relevantCompletedCount]);
 
     const handleDownload = async () => {
         showToast('Mengunduh laporan...', 'info');
@@ -142,7 +166,7 @@ export const HedeReport: React.FC<HedeReportProps> = ({ result, onReset, onSwitc
         const shareData = {
             files: [file],
             title: 'Hasil Audit Finansial Syariah Saya',
-            text: `Lihat hasil audit ekonomi syariah saya! Skor Kepatuhan: ${result.totalScore}/100. Cek punyamu di NIZAMY App.`,
+            text: `Lihat hasil audit ekonomi syariah saya! Skor Kepatuhan: ${dynamicScore}/100. Cek punyamu di NIZAMY App.`,
         };
         
         try {
@@ -154,7 +178,7 @@ export const HedeReport: React.FC<HedeReportProps> = ({ result, onReset, onSwitc
     };
 
     const copySummaryText = async () => {
-        const fallbackText = `📊 *Hasil Audit Finansial - NIZAMY*\n\nSkor Kepatuhan: ${result.totalScore}/100\nStatus: ${result.totalScore > 80 ? 'Halal Thayyib' : result.totalScore > 50 ? 'Syubhat (Hati-hati)' : 'Kritis'}\n\nDiagnosa ekonomi syariah mandiri sekarang di NIZAMY App.`;
+        const fallbackText = `📊 *Hasil Audit Finansial - NIZAMY*\n\nSkor Kepatuhan: ${dynamicScore}/100\nStatus: ${dynamicScore > 80 ? 'Halal Thayyib' : dynamicScore > 50 ? 'Syubhat (Hati-hati)' : 'Kritis'}\n\nDiagnosa ekonomi syariah mandiri sekarang di NIZAMY App.`;
         try {
             await navigator.clipboard.writeText(fallbackText);
             showToast('Ringkasan berhasil disalin!', 'success');
@@ -208,7 +232,8 @@ export const HedeReport: React.FC<HedeReportProps> = ({ result, onReset, onSwitc
                 <div className={activeTab === 'summary' ? 'block' : 'hidden'}>
                     <div className="animate-fade-in space-y-10">
                         <section id="hede-score-section">
-                            <HedeCharts ref={shareCardRef} result={result} />
+                            {/* Use dynamicScore to reflect real-time updates */}
+                            <HedeCharts ref={shareCardRef} result={result} isResolved={isResolved} dynamicScore={dynamicScore} />
                         </section>
                         <section className="bg-slate-900 text-white rounded-4xl p-8 md:p-10 relative overflow-hidden shadow-2xl shadow-indigo-900/30">
                             <div className="absolute inset-0 bg-linear-to-br from-indigo-900 via-purple-900 to-slate-900 opacity-90"></div>
@@ -230,12 +255,18 @@ export const HedeReport: React.FC<HedeReportProps> = ({ result, onReset, onSwitc
                                 </div>
                             </div>
                         </section>
-                         {result.risks.length > 0 && (
+                         {result.risks.length > 0 && !isResolved && (
                             <div className="text-center">
                                 <button onClick={() => setActiveTab('details')} className="group w-full md:w-auto px-8 py-4 bg-purple-600 text-white rounded-2xl font-bold text-lg transition-all shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3">
                                     Lihat {result.risks.length} Risiko Terdeteksi
                                     <div className="icon-wrapper w-5 h-5 group-hover:translate-x-1 transition-transform flex items-center justify-center"><FaArrowRight /></div>
                                 </button>
+                            </div>
+                        )}
+                        {isResolved && (
+                            <div className="text-center bg-emerald-50 dark:bg-emerald-900/20 p-6 rounded-3xl border border-emerald-100 dark:border-emerald-800">
+                                <h3 className="text-emerald-700 dark:text-emerald-400 font-bold text-lg">Alhamdulillah!</h3>
+                                <p className="text-emerald-600/80 dark:text-emerald-300/80 text-sm mt-1">Anda telah menyelesaikan semua langkah perbaikan. Pertahankan keistiqamahan ini.</p>
                             </div>
                         )}
                     </div>
@@ -250,7 +281,12 @@ export const HedeReport: React.FC<HedeReportProps> = ({ result, onReset, onSwitc
                 <div id="hede-roadmap-section" className={activeTab === 'roadmap' ? 'block' : 'hidden'}>
                     <div className="animate-fade-in space-y-10">
                         <section>
-                            <HedeRoadmap roadmap={result.roadmap} onInternalAction={handleRoadmapAction} />
+                            <HedeRoadmap 
+                                roadmap={result.roadmap} 
+                                onInternalAction={handleRoadmapAction}
+                                completedSteps={completedSteps}
+                                onToggleStep={onToggleStep}
+                            />
                         </section>
                         <section className="bg-cyan-50 dark:bg-cyan-900/10 rounded-[2.5rem] p-6 md:p-8 border border-cyan-100 dark:border-cyan-800/30">
                             <div className="flex items-center gap-3 mb-6">
@@ -271,7 +307,7 @@ export const HedeReport: React.FC<HedeReportProps> = ({ result, onReset, onSwitc
                                             <span className="icon-wrapper w-6 h-6 flex items-center justify-center">{item.icon}</span>
                                         </div>
                                         <span className="font-bold text-slate-700 dark:text-slate-200 text-sm leading-tight">{item.title}</span>
-                                        <span className="text-[10px] text-slate-400 mt-1">{item.subtitle}</span>
+                                        <span className="text--[10px] text-slate-400 mt-1">{item.subtitle}</span>
                                         <span className={`mt-3 text-xs font-bold ${getToolkitColorClasses(item.color).split(' ')[1]} flex items-center gap-1`}><span className="icon-wrapper w-3 h-3 flex items-center justify-center"><FaDownload /></span> Unduh</span>
                                     </button>
                                 ))}

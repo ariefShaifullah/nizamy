@@ -1,13 +1,16 @@
+
 import React, { forwardRef } from 'react';
 import { 
     Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip 
 } from 'recharts';
 import type { HedeResult, RiskLevel } from '../../../../types.ts';
 import { CATEGORY_LABELS, RISK_CONFIG } from '../../constants.ts';
-import { FaCheckCircle, FaExclamationTriangle, FaExclamationCircle, FaShieldAlt } from 'react-icons/fa';
+import { FaCheckCircle, FaExclamationTriangle, FaExclamationCircle, FaMedal, FaShieldAlt } from 'react-icons/fa';
 
 interface HedeChartsProps {
     result: HedeResult;
+    isResolved?: boolean;
+    dynamicScore?: number; // New prop for real-time updates
 }
 
 // Custom Tooltip for Radar
@@ -41,20 +44,44 @@ const getIconForRiskLevel = (level: RiskLevel) => {
     }
 }
 
-export const HedeCharts = forwardRef<HTMLDivElement, HedeChartsProps>(({ result }, ref) => {
-    const riskConfig = RISK_CONFIG[result.riskLevel];
+export const HedeCharts = forwardRef<HTMLDivElement, HedeChartsProps>(({ result, isResolved, dynamicScore }, ref) => {
+    // Determine effective score:
+    // 1. isResolved (100% complete) -> 100
+    // 2. dynamicScore (roadmap progress) -> calculated
+    // 3. result.totalScore -> base
+    
+    let effectiveScore = result.totalScore;
+    if (isResolved) {
+        effectiveScore = 100;
+    } else if (dynamicScore !== undefined) {
+        effectiveScore = dynamicScore;
+    }
+
+    // Determine effective risk level for visuals based on dynamic score
+    // Logic matches logic in hede.service.ts roughly
+    let effectiveRiskLevel: RiskLevel = result.riskLevel;
+    if (effectiveScore > 90) effectiveRiskLevel = 'safe';
+    else if (effectiveScore > 80) effectiveRiskLevel = 'low';
+    else if (effectiveScore > 50) effectiveRiskLevel = 'medium';
+    
+    if (isResolved) effectiveRiskLevel = 'safe';
+
+    const riskConfig = RISK_CONFIG[effectiveRiskLevel];
     const scoreColorClass = riskConfig.text;
     const strokeColorHex = riskConfig.hex;
 
     const radarData = result.categoryScores.map(c => ({
         subject: CATEGORY_LABELS[c.category].split(' ')[0], // Short label
         fullSubject: CATEGORY_LABELS[c.category],
-        A: c.score,
+        A: isResolved ? 100 : c.score,
         fullMark: 100
     }));
 
-    const statusLabel = result.totalScore > 80 ? 'Halal Thayyib' : result.totalScore > 50 ? 'Syubhat' : 'Kritis (Haram)';
-    const statusIcon = getIconForRiskLevel(result.riskLevel);
+    let statusLabel = effectiveScore > 80 ? 'Halal Thayyib' : effectiveScore > 50 ? 'Syubhat' : 'Kritis (Haram)';
+    if (isResolved) statusLabel = "Ikhtiar Tuntas (Insya Allah Aman)";
+    else if (effectiveScore > result.totalScore) statusLabel = "Progres Membaik";
+    
+    const statusIcon = isResolved ? <FaMedal /> : getIconForRiskLevel(effectiveRiskLevel);
 
     return (
         <>
@@ -70,14 +97,16 @@ export const HedeCharts = forwardRef<HTMLDivElement, HedeChartsProps>(({ result 
                             <circle 
                                 cx="100" cy="100" r="85" stroke={strokeColorHex} strokeWidth="12" fill="transparent" 
                                 strokeDasharray={534} 
-                                strokeDashoffset={534 - (534 * result.totalScore) / 100} 
+                                strokeDashoffset={534 - (534 * effectiveScore) / 100} 
                                 strokeLinecap="round"
                                 className="transition-all duration-1500 ease-out drop-shadow-md" 
                             />
                         </svg>
                         <div className="absolute inset-0 flex flex-col items-center justify-center">
-                            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Skor Total</span>
-                            <span className={`text-5xl font-black tracking-tighter ${scoreColorClass}`}>{result.totalScore}</span>
+                            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">
+                                {isResolved ? 'Proyeksi Skor' : dynamicScore !== undefined && dynamicScore > result.totalScore ? 'Skor Saat Ini' : 'Skor Awal'}
+                            </span>
+                            <span className={`text-5xl font-black tracking-tighter ${scoreColorClass} transition-all duration-700`}>{effectiveScore}</span>
                         </div>
                     </div>
                     
@@ -87,7 +116,11 @@ export const HedeCharts = forwardRef<HTMLDivElement, HedeChartsProps>(({ result 
                     </div>
                     
                     <p className="text-center text-xs text-slate-400 mt-6 leading-relaxed max-w-[200px]">
-                        Skor ini mencerminkan tingkat kepatuhan transaksi Anda terhadap kaidah Fiqh Muamalah.
+                        {isResolved 
+                            ? "Alhamdulillah, Anda telah menyelesaikan semua langkah perbaikan." 
+                            : dynamicScore !== undefined && dynamicScore > result.totalScore
+                                ? "Skor meningkat seiring progres roadmap Anda. Terus tingkatkan!"
+                                : "Skor ini mencerminkan tingkat kepatuhan transaksi awal Anda."}
                     </p>
                 </div>
 
@@ -96,7 +129,7 @@ export const HedeCharts = forwardRef<HTMLDivElement, HedeChartsProps>(({ result 
                     <div className="flex justify-between items-center mb-4 relative z-10">
                         <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest flex items-center gap-2">
                             <span className="w-2 h-6 bg-indigo-500 rounded-full"></span>
-                            Peta Diagnosa
+                            Peta Diagnosa {isResolved ? '(Proyeksi)' : ''}
                         </h3>
                     </div>
                     
@@ -142,15 +175,14 @@ export const HedeCharts = forwardRef<HTMLDivElement, HedeChartsProps>(({ result 
                     </div>
                 </div>
                 <div className="w-full h-px bg-slate-200 dark:bg-slate-700 my-4"></div>
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Skor Kepatuhan</span>
-                <span className={`text-7xl font-black tracking-tighter ${scoreColorClass}`}>{result.totalScore}</span>
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{isResolved ? 'Proyeksi Skor' : 'Skor Kepatuhan'}</span>
+                <span className={`text-7xl font-black tracking-tighter ${scoreColorClass}`}>{effectiveScore}</span>
                 <div className={`mt-2 px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wide border-2 flex items-center gap-2 ${riskConfig.bg} ${riskConfig.text} ${riskConfig.border}`}>
                     {statusIcon && <span className="icon-wrapper w-3 h-3">{statusIcon}</span>}
                     <span>{statusLabel}</span>
                 </div>
                 <div className="w-full h-[220px] mt-4">
                     <ResponsiveContainer width="100%" height="100%">
-                        {/* Fix: isAnimationActive is not a valid prop for RadarChart. It should be on the Radar component. */}
                         <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
                             <PolarGrid stroke="#e2e8f0" strokeOpacity={0.6} className="dark:stroke-slate-600" />
                             <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }} className="dark:fill-slate-400" />

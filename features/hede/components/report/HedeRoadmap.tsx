@@ -1,16 +1,17 @@
-import React, { useState, useEffect, useMemo } from 'react';
+
+import React, { useMemo } from 'react';
 import type { ActionStep } from '../../../../types.ts';
 // @ts-ignore
 import { useNavigate } from 'react-router-dom';
 import { 
     FaBolt, FaTools, FaFlagCheckered, FaArrowRight, FaRoad, FaShieldAlt, FaCheckCircle, FaRegCircle
 } from 'react-icons/fa';
-import { audioService } from '../../../../services/audio.service.ts';
-import { useLocalStorage } from '../../../../hooks/useLocalStorage.ts';
 
 interface HedeRoadmapProps {
     roadmap: ActionStep[];
     onInternalAction?: (action: string) => void;
+    completedSteps: string[];
+    onToggleStep: (action: string) => void;
 }
 
 const RoadmapItem: React.FC<{ 
@@ -155,30 +156,12 @@ const RoadmapItem: React.FC<{
     );
 };
 
-export const HedeRoadmap: React.FC<HedeRoadmapProps> = ({ roadmap, onInternalAction }) => {
-    // Persist completed steps based on action string (unique enough for this context)
-    const [completedSteps, setCompletedSteps] = useLocalStorage<string[]>('hede_roadmap_progress', []);
-    const [isAllDone, setIsAllDone] = useState(false);
-
-    const toggleStep = (action: string) => {
-        // Haptic Feedback for Mobile Feel
-        if (navigator.vibrate) navigator.vibrate(15);
-
-        setCompletedSteps(prev => {
-            const isExist = prev.includes(action);
-            if (isExist) {
-                audioService.playClick(); // Softer click for undo
-                return prev.filter(a => a !== action);
-            } else {
-                audioService.playSuccess(); // Success sound for completing
-                return [...prev, action];
-            }
-        });
-    };
-
-    // Calculate progress: Only count steps that exist in the CURRENT roadmap
+export const HedeRoadmap: React.FC<HedeRoadmapProps> = ({ roadmap, onInternalAction, completedSteps, onToggleStep }) => {
+    
+    // Calculate progress based on props
     const progress = useMemo(() => {
         if (roadmap.length === 0) return 0;
+        // Count only steps that are in current roadmap
         const validCompleted = completedSteps.filter(action => 
             roadmap.some(step => step.action === action)
         );
@@ -186,15 +169,7 @@ export const HedeRoadmap: React.FC<HedeRoadmapProps> = ({ roadmap, onInternalAct
         return Math.min(100, Math.max(0, percent));
     }, [roadmap, completedSteps]);
 
-    useEffect(() => {
-        if (progress === 100 && !isAllDone && roadmap.length > 0) {
-            audioService.playSuccessMajor();
-            if (navigator.vibrate) navigator.vibrate([50, 100, 50]); // Success pattern
-            setIsAllDone(true);
-        } else if (progress < 100) {
-            setIsAllDone(false);
-        }
-    }, [progress, isAllDone, roadmap.length]);
+    const isAllDone = progress === 100;
 
     return (
         <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-6 md:p-10 shadow-sm border border-slate-100 dark:border-slate-700 relative overflow-hidden">
@@ -253,7 +228,7 @@ export const HedeRoadmap: React.FC<HedeRoadmapProps> = ({ roadmap, onInternalAct
                                     step={step} 
                                     index={idx} 
                                     isCompleted={isCompleted}
-                                    onToggle={() => toggleStep(step.action)}
+                                    onToggle={() => onToggleStep(step.action)}
                                     onAction={onInternalAction} 
                                 />
                             );

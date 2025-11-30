@@ -1,3 +1,4 @@
+
 import type { HedeResult, RiskFactor, ActionStep, CategoryScore, HedeCategory, RiskLevel, Question } from '../../../types.ts';
 import { QUESTIONS_DB } from '../constants.ts';
 
@@ -14,6 +15,18 @@ const isQuestionRelevant = (question: Question, currentAnswers: Record<string, s
     } else {
         return !values.includes(parentAnswer);
     }
+};
+
+/**
+ * Menghitung skor dinamis berdasarkan progres roadmap.
+ * Rumus: Skor Sekarang = Skor Awal + ((100 - Skor Awal) * % Penyelesaian Roadmap)
+ */
+export const calculateDynamicScore = (baseScore: number, totalSteps: number, completedStepsCount: number): number => {
+    if (totalSteps === 0) return 100;
+    const progress = completedStepsCount / totalSteps;
+    const remainingPotential = 100 - baseScore;
+    const addedScore = remainingPotential * progress;
+    return Math.round(baseScore + addedScore);
 };
 
 // --- WORLD CLASS ROADMAP GENERATOR ---

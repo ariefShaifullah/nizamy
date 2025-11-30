@@ -66,6 +66,14 @@ const HeirResultCard: React.FC<{ heir: HeirResult }> = React.memo(({ heir }) => 
                           <p className="font-bold text-slate-900 dark:text-white text-lg tracking-tight">
                               {formatCurrency(heir.value)}
                           </p>
+                          
+                          {/* Per Person Breakdown */}
+                          {heir.count > 1 && (
+                              <div className="mt-1 flex items-center gap-1 text-[10px] font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700/50 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-600">
+                                  <span>@{formatCurrency(heir.value / heir.count)}</span>
+                                  <span className="opacity-70">/org</span>
+                              </div>
+                          )}
                       </div>
                   </div>
               )}
@@ -252,8 +260,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
                 {/* Cards List */}
                 <div>
                     <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4 flex items-center uppercase tracking-widest border-b border-slate-100 dark:border-slate-700 pb-2">
-                        <div className="mr-2 text-slate-400" ><FaBookOpen /></div>
-                        Rincian & Dalil
+                        <div className="mr-2 text-slate-400" ><FaBookOpen /></div>                        Rincian & Dalil
                     </h4>
                     <div className="space-y-4 max-h-[600px] overflow-y-auto pr-1 custom-scrollbar">
                          {result.heirResults.map((heir, idx) => (

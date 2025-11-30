@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { SURAH_DATA } from '../../../constants.ts';
+import { FaCertificate, FaMosque } from 'react-icons/fa';
 
 interface SurahHeaderProps {
     surah: typeof SURAH_DATA[0];
@@ -11,23 +12,26 @@ export const SurahHeader: React.FC<SurahHeaderProps> = React.memo(({ surah }) =>
         {/* Glow Effect Behind */}
         <div className="absolute inset-0 bg-teal-500/20 blur-3xl rounded-3xl transform scale-90 translate-y-4 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
         
-        <div className="relative bg-linear-to-br from-slate-900 via-slate-800 to-emerald-950 rounded-4xl p-8 text-white text-center shadow-2xl overflow-hidden border border-white/10">
+        <div className="relative bg-linear-to-br from-slate-900 via-slate-800 to-emerald-950 rounded-[2.5rem] p-8 text-white text-center shadow-2xl overflow-hidden border border-white/10">
             
-            {/* Decorative Islamic Pattern Overlay */}
-            <div className="absolute inset-0 opacity-10 pointer-events-none" 
-                 style={{ backgroundImage: 'radial-gradient(circle, #ffffff 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
+            {/* Background Decoration: Large Icon Pattern */}
+            {/* Fixed color (text-white/5) to ensure visibility on the dark gradient background regardless of Light/Dark mode */}
+            <div className="absolute -left-10 -bottom-10 text-white/5 pointer-events-none transform rotate-12">
+                <FaMosque size={200} />
             </div>
             
             {/* Ambient Orbs */}
-            <div className="absolute top-[-50%] left-[-20%] w-96 h-96 bg-teal-500/20 rounded-full blur-[80px]"></div>
-            <div className="absolute bottom-[-50%] right-[-20%] w-96 h-96 bg-emerald-600/20 rounded-full blur-[80px]"></div>
+            <div className="absolute top-[-50%] right-[-20%] w-96 h-96 bg-teal-500/20 rounded-full blur-[80px]"></div>
 
             <div className="relative z-10 flex flex-col items-center">
-                {/* Surah Badge */}
-                <div className="w-14 h-14 mb-5 relative flex items-center justify-center">
-                    <div className="absolute inset-0 border-2 border-emerald-500/30 rounded-full animate-[spin_10s_linear_infinite]"></div>
-                    <div className="absolute inset-1 border border-emerald-400/50 rounded-full"></div>
-                    <span className="font-serif font-bold text-lg text-emerald-400">{surah.number}</span>
+                {/* Surah Badge (Rub el Hizb Style using FaCertificate) */}
+                <div className="w-16 h-16 mb-4 relative flex items-center justify-center text-emerald-400">
+                    <div className="w-full h-full drop-shadow-lg">
+                        <FaCertificate size="100%" />
+                    </div>
+                    <span className="absolute inset-0 flex items-center justify-center font-serif font-bold text-xl text-slate-900 pt-1">
+                        {surah.number}
+                    </span>
                 </div>
                 
                 {/* Title */}
@@ -36,15 +40,15 @@ export const SurahHeader: React.FC<SurahHeaderProps> = React.memo(({ surah }) =>
                 </h2>
                 
                 {/* Subtitle */}
-                <div className="flex items-center gap-2 text-emerald-200/80 text-sm font-medium mb-6 uppercase tracking-widest">
+                <div className="flex items-center gap-3 text-emerald-200/90 text-sm font-bold mb-6 uppercase tracking-widest">
                     <span>{surah.arti}</span>
-                    <span className="w-1 h-1 rounded-full bg-emerald-500"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                     <span>{surah.type}</span>
                 </div>
                 
                 {/* Stats Pill */}
-                <div className="inline-flex items-center bg-white/5 border border-white/10 px-6 py-2 rounded-full backdrop-blur-md shadow-inner">
-                    <span className="text-xs font-bold text-emerald-100 tracking-wide">
+                <div className="inline-flex items-center bg-white/10 border border-white/10 px-5 py-1.5 rounded-full backdrop-blur-md shadow-inner">
+                    <span className="text-xs font-bold text-emerald-50 tracking-wide">
                         {surah.verses} AYAT
                     </span>
                 </div>

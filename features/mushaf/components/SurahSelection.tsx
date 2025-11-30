@@ -1,9 +1,10 @@
+
 import React, { useState, useMemo } from 'react';
 import { SURAH_DATA } from '../../../constants.ts';
-import { FaSearch, FaArrowRight, FaQuran, FaBookmark, FaStar, FaTrash, FaHeart, FaBrain, FaBookOpen } from 'react-icons/fa';
+import { FaSearch, FaArrowRight, FaQuran, FaBookmark, FaStar, FaTrash, FaCertificate, FaMosque } from 'react-icons/fa';
 import { useDebounce } from '../../../hooks/useDebounce.ts';
-import type { LastReadState, Bookmark, BookmarkCategory } from '../../../types.ts';
-import { Modal } from '../../../components/ui/Modal.tsx';
+import type { LastReadState, Bookmark } from '../../../types.ts';
+import { audioService } from '../../../services/audio.service.ts';
 
 const QUICK_LINKS = [
     { number: 18, label: 'Al-Kahfi', icon: '⛰️', gradient: 'from-amber-100 to-orange-100 dark:from-amber-900/40 dark:to-orange-900/40', text: 'text-amber-800 dark:text-amber-200' },
@@ -11,8 +12,17 @@ const QUICK_LINKS = [
     { number: 55, label: 'Ar-Rahman', icon: '🎁', gradient: 'from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40', text: 'text-emerald-800 dark:text-emerald-200' },
     { number: 56, label: 'Al-Waqi\'ah', icon: '💰', gradient: 'from-indigo-100 to-blue-100 dark:from-indigo-900/40 dark:to-blue-900/40', text: 'text-indigo-800 dark:text-indigo-200' },
     { number: 67, label: 'Al-Mulk', icon: '🛡️', gradient: 'from-sky-100 to-cyan-100 dark:from-sky-900/40 dark:to-cyan-900/40', text: 'text-sky-800 dark:text-sky-200' },
-    { number: 78, label: 'Juz 30', icon: '🎓', gradient: 'from-violet-100 to-purple-100 dark:from-violet-900/40 dark:to-purple-900/40', text: 'text-violet-800 dark:text-violet-200' }
 ];
+
+// Data Dummy Nama Arab (Idealnya ada di constants.ts atau API)
+const getArabicName = (name: string) => {
+    const map: Record<string, string> = {
+        "Al-Fatihah": "الفاتحة", "Al-Baqarah": "البقرة", "Ali 'Imran": "آل عمران", "An-Nisa'": "النساء",
+        "Al-Ma'idah": "المائدة", "Al-Kahf": "الكهف", "Ya-Sin": "يس", "Ar-Rahman": "الرحمن",
+        "Al-Waqi'ah": "الواقعة", "Al-Mulk": "الملك", "Al-Ikhlas": "الإخلاص", "Al-Falaq": "الفلق", "An-Nas": "الناس"
+    };
+    return map[name] || "سورة";
+};
 
 interface SurahSelectionProps {
     lastRead: LastReadState | null;
@@ -23,86 +33,11 @@ interface SurahSelectionProps {
     onRemoveBookmark: (bookmarkId: string) => void;
 }
 
-const CATEGORY_CONFIG: Record<BookmarkCategory, { icon: React.ReactNode; label: string; color: string; }> = {
-    general: { icon: <FaStar />, label: 'Umum', color: 'amber' },
-    favorite: { icon: <FaHeart />, label: 'Favorit', color: 'rose' },
-    memorize: { icon: <FaBrain />, label: 'Hafalan', color: 'indigo' },
-    study: { icon: <FaBookOpen />, label: 'Tadabbur', color: 'sky' },
-};
-
-const BookmarkListModal: React.FC<{
-    isOpen: boolean;
-    onClose: () => void;
-    bookmarks: Bookmark[];
-    onJump: (surahId: number, ayahNumber: number) => void;
-    onRemove: (bookmarkId: string) => void;
-}> = ({ isOpen, onClose, bookmarks, onJump, onRemove }) => {
-    const [activeTab, setActiveTab] = useState<BookmarkCategory | 'all'>('all');
-
-    const filteredBookmarks = useMemo(() => {
-        if (activeTab === 'all') return bookmarks;
-        return bookmarks.filter(b => b.category === activeTab);
-    }, [bookmarks, activeTab]);
-
-    const TABS: { id: BookmarkCategory | 'all'; label: string; }[] = [
-        { id: 'all', label: 'Semua' },
-        { id: 'favorite', label: 'Favorit' },
-        { id: 'memorize', label: 'Hafalan' },
-        { id: 'study', label: 'Tadabbur' },
-    ];
-    
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Penanda Tersimpan" maxWidth="max-w-md">
-            <div className="p-2 flex flex-col h-[70vh] max-h-[500px]">
-                <div className="shrink-0 p-2 space-x-2 border-b border-slate-100 dark:border-slate-800 mb-2">
-                    {TABS.map(tab => (
-                        <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${activeTab === tab.id ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}>
-                            {tab.label}
-                        </button>
-                    ))}
-                </div>
-
-                {filteredBookmarks.length > 0 ? (
-                    <div className="overflow-y-auto custom-scrollbar space-y-2 p-2">
-                        {filteredBookmarks.map(bookmark => {
-                            const surah = SURAH_DATA.find(s => s.number === bookmark.surahId);
-                            if (!surah) return null;
-                            const category = CATEGORY_CONFIG[bookmark.category || 'general'];
-                            const colorClasses = `bg-${category.color}-100 text-${category.color}-600 dark:bg-${category.color}-900/30 dark:text-${category.color}-400`;
-
-                            return (
-                                <div key={bookmark.id} className="group bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700 flex justify-between items-center">
-                                    <button onClick={() => { onJump(bookmark.surahId, bookmark.ayahNumber); onClose(); }} className="flex-1 text-left flex items-center gap-3">
-                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${colorClasses}`}>
-                                            {category.icon}
-                                        </div>
-                                        <div>
-                                            <p className="font-bold text-slate-800 dark:text-white group-hover:text-indigo-600">{surah.name}</p>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400">Ayat {bookmark.ayahNumber}</p>
-                                        </div>
-                                    </button>
-                                    <button onClick={() => onRemove(bookmark.id)} className="p-2 text-slate-400 hover:text-red-500 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20">
-                                        <FaTrash />
-                                    </button>
-                                </div>
-                            );
-                        })}
-                    </div>
-                ) : (
-                    <div className="text-center py-12 text-slate-400 flex-1 flex flex-col justify-center">
-                        <p className="text-4xl mb-4">⭐</p>
-                        <p className="font-medium">Belum ada penanda.</p>
-                        <p className="text-xs mt-1">Tekan lama/titik tiga pada ayat untuk menyimpan.</p>
-                    </div>
-                )}
-            </div>
-        </Modal>
-    );
-};
-
-export const SurahSelection: React.FC<SurahSelectionProps> = ({ lastRead, bookmarks, onSelectSurah, onJumpToLastRead, onJumpToBookmark, onRemoveBookmark }) => {
+export const SurahSelection: React.FC<SurahSelectionProps> = ({ 
+    lastRead, bookmarks, onSelectSurah, onJumpToLastRead, onJumpToBookmark, onRemoveBookmark 
+}) => {
     const [searchTerm, setSearchTerm] = useState("");
-    const [isBookmarkModalOpen, setIsBookmarkModalOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState<'surah' | 'bookmark'>('surah');
     const debouncedSearch = useDebounce(searchTerm, 300);
 
     const lastReadSurah = lastRead ? SURAH_DATA.find(s => s.number === lastRead.surahId) : null;
@@ -118,20 +53,55 @@ export const SurahSelection: React.FC<SurahSelectionProps> = ({ lastRead, bookma
     }, [debouncedSearch]);
 
     return (
-        <div className="animate-fade-in pb-20 max-w-5xl mx-auto px-4 md:px-6 pt-0 md:pt-2">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6 mt-0 md:mt-6 mb-6 md:mb-8">
-                <div className="hidden md:block">
-                    <h2 className="text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight flex items-center gap-3">
-                        <span className="text-teal-600 dark:text-teal-400"><FaQuran /></span>
-                        Mushaf Digital
-                    </h2>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm mt-2 font-medium">
-                        Bacaan Al-Quran interaktif dengan audio per kata & tajwid.
-                    </p>
+        <div className="animate-fade-in pb-24 max-w-5xl mx-auto px-4 md:px-6 pt-2">
+            
+            {/* 1. Header & Search */}
+            <div className="flex flex-col gap-4 md:gap-6 mb-8">
+                {/* Title Section: Hidden on Mobile, Visible on Desktop */}
+                <div className="hidden md:flex justify-between items-end">
+                    <div>
+                        <h2 className="text-2xl md:text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight flex items-center gap-3">
+                            <span className="text-teal-600 dark:text-teal-400 text-3xl"><FaQuran /></span>
+                            Mushaf Digital
+                        </h2>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 font-medium ml-1">
+                            Bacaan Al-Quran, Terjemahan & Audio
+                        </p>
+                    </div>
                 </div>
-                
-                <div className="relative w-full md:w-72 group z-10">
-                    <div className="absolute inset-0 bg-teal-500/10 rounded-2xl blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
+
+                {/* Hero Card: Last Read */}
+                {lastRead && lastReadSurah && !searchTerm && (
+                    <div 
+                        onClick={() => { audioService.playClick(); onJumpToLastRead(); }}
+                        className="relative w-full overflow-hidden bg-linear-to-r from-teal-600 to-emerald-600 rounded-3xl p-6 md:p-8 text-white shadow-xl shadow-teal-500/20 cursor-pointer group transform transition-all hover:scale-[1.01] mt-2 md:mt-0"
+                    >
+                        {/* Decorative Icons Background */}
+                        <div className="absolute -right-6 -bottom-10 opacity-20 transform rotate-12 group-hover:rotate-0 group-hover:scale-110 transition-all duration-700">
+                            <FaMosque size={180} />
+                        </div>
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+
+                        <div className="relative z-10">
+                            <div className="flex items-center gap-2 text-teal-100 text-xs font-bold uppercase tracking-widest mb-3 bg-white/10 w-fit px-3 py-1 rounded-full backdrop-blur-sm border border-white/10">
+                                <FaBookmark /> Terakhir Dibaca
+                            </div>
+                            <div className="flex justify-between items-end">
+                                <div>
+                                    <h3 className="text-3xl md:text-4xl font-bold mb-1 leading-tight">{lastReadSurah.name}</h3>
+                                    <p className="text-teal-100 text-lg font-medium">Ayat {lastRead.ayahNumber}</p>
+                                </div>
+                                <div className="w-12 h-12 bg-white text-teal-600 rounded-full flex items-center justify-center shadow-lg group-hover:bg-teal-50 transition-colors">
+                                    <FaArrowRight />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Search Bar */}
+                <div className="relative group z-20">
+                    <div className="absolute inset-0 bg-teal-500/5 rounded-2xl blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div className="relative">
                         <span className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-teal-500 transition-colors">
                             <FaSearch />
@@ -139,7 +109,7 @@ export const SurahSelection: React.FC<SurahSelectionProps> = ({ lastRead, bookma
                         <input 
                             type="text"
                             placeholder="Cari surat..."
-                            className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all text-slate-800 dark:text-white font-medium placeholder-slate-400 shadow-sm md:shadow-none"
+                            className="w-full pl-12 pr-4 py-3.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all text-slate-800 dark:text-white font-medium placeholder-slate-400 shadow-sm"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -147,62 +117,17 @@ export const SurahSelection: React.FC<SurahSelectionProps> = ({ lastRead, bookma
                 </div>
             </div>
 
+            {/* 2. Quick Links (Chips) */}
             {!searchTerm && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-                    {lastRead && lastReadSurah && (
-                        <button 
-                            onClick={onJumpToLastRead}
-                            className="w-full relative overflow-hidden bg-linear-to-r from-slate-900 to-slate-800 rounded-3xl p-6 text-white shadow-xl shadow-slate-200/50 dark:shadow-none group text-left border border-slate-700"
-                        >
-                            <div className="absolute top-0 right-0 w-40 h-40 bg-teal-500/20 rounded-full blur-[50px] translate-x-10 -translate-y-10 group-hover:bg-teal-500/30 transition-all duration-700"></div>
-                            <div className="relative z-10 flex items-center justify-between">
-                                <div>
-                                    <div className="flex items-center gap-2 text-teal-400 text-xs font-bold uppercase tracking-widest mb-2">
-                                        <FaBookmark />
-                                        Terakhir Dibaca
-                                    </div>
-                                    <h3 className="text-xl md:text-2xl font-bold mb-1">{lastReadSurah.name}</h3>
-                                    <p className="text-slate-400 text-sm font-medium">Ayat {lastRead.ayahNumber}</p>
-                                </div>
-                                <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md group-hover:scale-110 transition-transform border border-white/10 text-white">
-                                    <FaArrowRight />
-                                </div>
-                            </div>
-                        </button>
-                    )}
-                     <button 
-                        onClick={() => setIsBookmarkModalOpen(true)}
-                        className="w-full relative overflow-hidden bg-linear-to-r from-amber-500 to-yellow-600 rounded-3xl p-6 text-white shadow-xl shadow-amber-200/50 dark:shadow-none group text-left border border-amber-400"
-                    >
-                        <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-[50px] translate-x-10 -translate-y-10 group-hover:bg-white/20 transition-all duration-700"></div>
-                        <div className="relative z-10 flex items-center justify-between">
-                            <div>
-                                <div className="flex items-center gap-2 text-yellow-200 text-xs font-bold uppercase tracking-widest mb-2">
-                                    <FaStar />
-                                    Penanda Tersimpan
-                                </div>
-                                <h3 className="text-xl md:text-2xl font-bold">Lihat Daftar</h3>
-                                <p className="text-yellow-100/80 text-sm font-medium">{bookmarks.length} Penanda</p>
-                            </div>
-                            <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md group-hover:scale-110 transition-transform border border-white/10 text-white">
-                                <FaArrowRight />
-                            </div>
-                        </div>
-                    </button>
-                </div>
-            )}
-
-            {!searchTerm && (
-                <div className="mb-8">
-                    <h4 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4">Jalan Pintas</h4>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                <div className="mb-8 overflow-x-auto pb-4 hide-scrollbar">
+                    <div className="flex gap-3">
                         {QUICK_LINKS.map((link) => (
                             <button
                                 key={link.number}
-                                onClick={() => onSelectSurah(link.number)}
-                                className={`flex flex-col items-center justify-center p-4 rounded-2xl font-bold text-sm bg-linear-to-br ${link.gradient} ${link.text} hover:-translate-y-1 transition-transform shadow-sm border border-white/20 dark:border-white/5`}
+                                onClick={() => { audioService.playClick(); onSelectSurah(link.number); }}
+                                className={`shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-linear-to-br ${link.gradient} ${link.text} border border-white/20 dark:border-white/5 hover:scale-105 transition-transform shadow-sm`}
                             >
-                                <span className="text-2xl mb-2">{link.icon}</span>
+                                <span>{link.icon}</span>
                                 {link.label}
                             </button>
                         ))}
@@ -210,50 +135,118 @@ export const SurahSelection: React.FC<SurahSelectionProps> = ({ lastRead, bookma
                 </div>
             )}
 
-            <div>
-                {!searchTerm && <h4 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4">Daftar Surat</h4>}
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {filteredSurahs.map(surah => (
-                        <button
-                            key={surah.number}
-                            onClick={() => onSelectSurah(surah.number)}
-                            className="group relative bg-white dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-100 dark:border-slate-700 hover:border-teal-500 dark:hover:border-teal-500 transition-all hover:shadow-md hover:bg-slate-50/50 dark:hover:bg-slate-800 text-left flex items-center gap-4"
-                        >
-                            <div className="w-12 h-12 shrink-0 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 font-serif font-bold flex items-center justify-center group-hover:bg-teal-500 group-hover:text-white transition-colors text-lg">
-                                {surah.number}
-                            </div>
-                            
-                            <div className="flex-1 min-w-0">
-                                <div className="flex justify-between items-center mb-0.5">
-                                    <h4 className="font-bold text-slate-800 dark:text-white text-base group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors truncate">
-                                        {surah.name}
-                                    </h4>
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide bg-slate-50 dark:bg-slate-900 px-2 py-0.5 rounded border border-slate-100 dark:border-slate-800">
-                                        {surah.type}
-                                    </span>
+            {/* 3. Tab Switcher */}
+            <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl mb-6">
+                <button 
+                    onClick={() => { audioService.playClick(); setActiveTab('surah'); }}
+                    className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
+                        activeTab === 'surah' 
+                        ? 'bg-white dark:bg-slate-700 text-teal-700 dark:text-teal-400 shadow-sm' 
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                    }`}
+                >
+                    <FaQuran /> Daftar Surat
+                </button>
+                <button 
+                    onClick={() => { audioService.playClick(); setActiveTab('bookmark'); }}
+                    className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
+                        activeTab === 'bookmark' 
+                        ? 'bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 shadow-sm' 
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                    }`}
+                >
+                    <FaStar /> Penanda <span className="bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-300 text-[10px] px-1.5 py-0.5 rounded-md ml-1">{bookmarks.length}</span>
+                </button>
+            </div>
+
+            {/* 4. Content Area */}
+            <div className="min-h-[400px]">
+                {activeTab === 'surah' ? (
+                    <div className="space-y-3">
+                        {filteredSurahs.map(surah => (
+                            <button
+                                key={surah.number}
+                                onClick={() => { audioService.playClick(); onSelectSurah(surah.number); }}
+                                className="w-full bg-white dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 hover:border-teal-300 dark:hover:border-teal-700/50 hover:bg-teal-50/50 dark:hover:bg-slate-800 transition-all group flex items-center gap-4 text-left"
+                            >
+                                {/* Rub el Hizb Number - Using size prop for wrapper div compatibility */}
+                                <div className="relative w-10 h-10 shrink-0 flex items-center justify-center text-teal-600 dark:text-teal-400">
+                                    <div className="absolute inset-0 opacity-20 group-hover:opacity-100 transition-opacity drop-shadow-sm">
+                                        <FaCertificate size="100%" />
+                                    </div>
+                                    <span className="absolute text-xs font-bold font-sans text-teal-700 dark:text-teal-300 group-hover:text-white dark:group-hover:text-slate-900 transition-colors z-10">{surah.number}</span>
                                 </div>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate font-medium">
-                                    {surah.arti} • {surah.verses} Ayat
-                                </p>
+                                
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex justify-between items-center">
+                                        <h4 className="font-bold text-slate-800 dark:text-white text-base group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors truncate">
+                                            {surah.name}
+                                        </h4>
+                                        {/* Arabic Name Placeholder */}
+                                        <span className="font-arabic text-xl text-slate-400 dark:text-slate-600 group-hover:text-teal-600/50 dark:group-hover:text-teal-400/50 font-normal">
+                                            {getArabicName(surah.name)}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">{surah.arti}</span>
+                                        <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+                                        <span className="text-xs text-slate-400 dark:text-slate-500">{surah.verses} Ayat</span>
+                                        <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+                                        <span className="text-[10px] uppercase font-bold text-slate-400 border border-slate-200 dark:border-slate-700 px-1.5 rounded">{surah.type}</span>
+                                    </div>
+                                </div>
+                            </button>
+                        ))}
+                        
+                        {filteredSurahs.length === 0 && (
+                            <div className="text-center py-20">
+                                <p className="text-slate-400 font-medium">Surat tidak ditemukan.</p>
                             </div>
-                        </button>
-                    ))}
-                </div>
-                
-                {filteredSurahs.length === 0 && (
-                    <div className="text-center py-20">
-                        <p className="text-slate-400 font-medium">Surat tidak ditemukan.</p>
+                        )}
+                    </div>
+                ) : (
+                    // Bookmark View
+                    <div className="space-y-3">
+                        {bookmarks.length > 0 ? (
+                            bookmarks.map(bookmark => {
+                                const surah = SURAH_DATA.find(s => s.number === bookmark.surahId);
+                                if (!surah) return null;
+                                return (
+                                    <div key={bookmark.id} className="group bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 flex justify-between items-center shadow-sm">
+                                        <button 
+                                            onClick={() => { audioService.playClick(); onJumpToBookmark(bookmark.surahId, bookmark.ayahNumber); }} 
+                                            className="flex-1 text-left flex items-center gap-4"
+                                        >
+                                            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400">
+                                                <FaStar />
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-slate-800 dark:text-white group-hover:text-amber-600 transition-colors">{surah.name}</p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400">Ayat {bookmark.ayahNumber} • <span className="capitalize">{bookmark.category}</span></p>
+                                            </div>
+                                        </button>
+                                        <button 
+                                            onClick={() => { audioService.playClick(); onRemoveBookmark(bookmark.id); }} 
+                                            className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all"
+                                            title="Hapus Penanda"
+                                        >
+                                            <FaTrash />
+                                        </button>
+                                    </div>
+                                );
+                            })
+                        ) : (
+                            <div className="text-center py-20 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
+                                <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center text-3xl mb-4 text-slate-300 dark:text-slate-600 shadow-sm">
+                                    <FaStar />
+                                </div>
+                                <p className="font-bold text-slate-600 dark:text-slate-300">Belum ada penanda.</p>
+                                <p className="text-xs text-slate-400 mt-1 max-w-xs">Tekan lama pada ayat saat membaca untuk menyimpan ke sini.</p>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
-            <BookmarkListModal
-                isOpen={isBookmarkModalOpen}
-                onClose={() => setIsBookmarkModalOpen(false)}
-                bookmarks={bookmarks}
-                onJump={onJumpToBookmark}
-                onRemove={onRemoveBookmark}
-            />
         </div>
     );
 };

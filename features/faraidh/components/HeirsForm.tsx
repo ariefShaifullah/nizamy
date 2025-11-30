@@ -212,7 +212,7 @@ export const HeirsForm: React.FC<HeirsFormProps> = React.memo(({ heirs, dispatch
                     <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 p-1.5 rounded-lg">
                         <FaUserFriends size={14} />
                     </span>
-                    <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">Susunan Keluarga</h3>
+                    <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">Ahli Waris</h3>
                 </div>
                 {totalHeirs > 0 && (
                     <span className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full">

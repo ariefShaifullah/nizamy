@@ -4,8 +4,9 @@ import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart 
 } from 'recharts';
 import { formatDate } from '../../../utils.ts';
-import { FaHistory, FaArrowRight, FaTrash, FaChartLine, FaCheckCircle, FaExclamationTriangle, FaExclamationCircle } from 'react-icons/fa';
+import { FaHistory, FaArrowRight, FaTrash, FaChartLine, FaCheckCircle, FaExclamationTriangle, FaExclamationCircle, FaMedal } from 'react-icons/fa';
 import { useConfirm } from '../../../components/ui/ConfirmContext.tsx';
+import { useLocalStorage } from '../../../hooks/useLocalStorage.ts';
 
 interface HedeHistoryProps {
     history: HedeHistoryEntry[];
@@ -13,7 +14,11 @@ interface HedeHistoryProps {
     onClear: () => void;
 }
 
-const getIconForRiskLevel = (level: RiskLevel, className: string = 'w-4 h-4') => {
+const getIconForRiskLevel = (level: RiskLevel, isResolved: boolean, className: string = 'w-4 h-4') => {
+    if (isResolved) {
+        return <div className={`icon-wrapper ${className} text-teal-500`}><FaMedal /></div>;
+    }
+
     switch(level) {
         case 'safe':
         case 'low':
@@ -30,6 +35,8 @@ const getIconForRiskLevel = (level: RiskLevel, className: string = 'w-4 h-4') =>
 
 export const HedeHistory: React.FC<HedeHistoryProps> = ({ history, onLoad, onClear }) => {
     const { confirm } = useConfirm();
+    // Read progress to update cards dynamically
+    const [completedSteps] = useLocalStorage<string[]>('hede_roadmap_progress', []);
 
     const chartData = useMemo(() => {
         // Reverse array to show oldest to newest on chart
@@ -144,31 +151,76 @@ export const HedeHistory: React.FC<HedeHistoryProps> = ({ history, onLoad, onCle
                             </button>
                         </div>
 
-                        {history.map((entry) => (
-                            <div 
-                                key={entry.id} 
-                                onClick={() => onLoad(entry)}
-                                className="group bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 hover:border-purple-200 dark:hover:border-purple-800 hover:shadow-md transition-all cursor-pointer flex items-center justify-between"
-                            >
-                                <div className="flex items-center gap-4">
-                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-lg font-black ${getScoreColor(entry.totalScore)}`}>
-                                        {entry.totalScore}
+                        {history.map((entry) => {
+                            // Calculate Real-time Status based on Roadmap Completion
+                            const roadmap = entry.result.roadmap || [];
+                            const totalSteps = roadmap.length;
+                            const completedCount = roadmap.filter(step => completedSteps.includes(step.action)).length;
+                            const progress = totalSteps > 0 ? (completedCount / totalSteps) * 100 : 100;
+                            const isResolved = progress === 100;
+                            const hasProgress = progress > 0 && progress < 100;
+
+                            return (
+                                <div 
+                                    key={entry.id} 
+                                    onClick={() => onLoad(entry)}
+                                    className={`group bg-white dark:bg-slate-800 p-4 rounded-2xl border transition-all cursor-pointer flex flex-col gap-3 relative overflow-hidden ${
+                                        isResolved 
+                                        ? 'border-teal-200 dark:border-teal-900/50 shadow-sm' 
+                                        : 'border-slate-100 dark:border-slate-700 hover:border-purple-200 dark:hover:border-purple-800 hover:shadow-md'
+                                    }`}
+                                >
+                                    {isResolved && (
+                                        <div className="absolute top-0 right-0 bg-teal-500 text-white text-[9px] font-bold px-3 py-1 rounded-bl-xl shadow-sm">
+                                            SELESAI
+                                        </div>
+                                    )}
+
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-4">
+                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-lg font-black ${
+                                                isResolved 
+                                                ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400' 
+                                                : getScoreColor(entry.totalScore)
+                                            }`}>
+                                                {entry.totalScore}
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-slate-400 font-medium uppercase tracking-wide mb-0.5">
+                                                    {formatDate(entry.timestamp)}
+                                                </p>
+                                                <h4 className={`font-bold text-sm md:text-base flex items-center gap-2 ${
+                                                    isResolved ? 'text-teal-700 dark:text-teal-400' : 'text-slate-800 dark:text-white'
+                                                }`}>
+                                                    {getIconForRiskLevel(entry.riskLevel, isResolved)}
+                                                    {isResolved 
+                                                        ? 'Ikhtiar Tuntas (Resolved)' 
+                                                        : entry.totalScore > 80 
+                                                            ? 'Kondisi Aman' 
+                                                            : entry.totalScore > 50 
+                                                                ? 'Perlu Perbaikan' 
+                                                                : 'Perlu Tindakan Segera'
+                                                    }
+                                                </h4>
+                                            </div>
+                                        </div>
+                                        <div className="text-slate-300 group-hover:text-purple-500 transition-colors">
+                                            <FaArrowRight />
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-xs text-slate-400 font-medium uppercase tracking-wide mb-0.5">
-                                            {formatDate(entry.timestamp)}
-                                        </p>
-                                        <h4 className="font-bold text-slate-800 dark:text-white text-sm md:text-base flex items-center gap-2">
-                                            {getIconForRiskLevel(entry.riskLevel)}
-                                            {entry.totalScore > 80 ? 'Kondisi Aman (Halal)' : entry.totalScore > 50 ? 'Perlu Perbaikan (Syubhat)' : 'Perlu Tindakan Segera'}
-                                        </h4>
-                                    </div>
+
+                                    {/* Progress Bar for incomplete items */}
+                                    {hasProgress && (
+                                        <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden mt-1">
+                                            <div 
+                                                className="h-full bg-indigo-500 rounded-full transition-all duration-1000"
+                                                style={{ width: `${progress}%` }}
+                                            ></div>
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="text-slate-300 group-hover:text-purple-500 transition-colors">
-                                    <FaArrowRight />
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </>
             )}

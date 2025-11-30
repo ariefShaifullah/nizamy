@@ -377,10 +377,10 @@ export const QUESTIONS_DB: Question[] = [
     ]
   },
   
-  // --- 4. DIGITAL & LIFESTYLE ---
+  // --- 4. PAYMENT & LIFESTYLE (Reorganized) ---
   {
     id: 'dig_ewallet',
-    category: 'digital',
+    category: 'payment',
     text: "Bagaimana kebiasaan Anda menggunakan E-Wallet (Gopay/OVO/ShopeePay)?",
     helperText: "Saldo di E-Wallet adalah titipan/utang kita ke aplikasi (Wadi'ah/Qardh). Mengambil manfaat (diskon/cashback) atas utang adalah Riba. Solusi: Jangan endapkan saldo.",
     options: [
@@ -391,7 +391,7 @@ export const QUESTIONS_DB: Question[] = [
   },
   {
     id: 'dig_paylater',
-    category: 'digital',
+    category: 'payment',
     text: "Jujur, apakah Anda sering menggunakan Paylater saat belanja?",
     helperText: "Fitur 'Beli Sekarang Bayar Nanti' dengan denda keterlambatan adalah bentuk Riba Jahiliyah modern. Hindari jika mampu.",
     options: [

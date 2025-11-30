@@ -1,4 +1,3 @@
-
 import type { HedeResult, RiskFactor, ActionStep, CategoryScore, HedeCategory, RiskLevel, Question } from '../../../types.ts';
 import { QUESTIONS_DB } from '../constants.ts';
 
@@ -17,106 +16,193 @@ const isQuestionRelevant = (question: Question, currentAnswers: Record<string, s
     }
 };
 
-// Helper: Generate specific steps based on category, violation type, and approach
+// --- WORLD CLASS ROADMAP GENERATOR ---
 const generateStepsForRisk = (
     risk: RiskFactor, 
-    approach: 'immediate_exit' | 'gradual_exit' | 'maintenance'
+    approach: 'immediate_exit' | 'gradual_exit' | 'maintenance',
+    answers: Record<string, string> // Need answers for context
 ): ActionStep[] => {
     const steps: ActionStep[] = [];
     const isGradual = approach === 'gradual_exit';
+    const riskId = risk.id.replace('risk_', ''); // e.g. 'job_affiliate'
 
-    // 1. SPECIAL ECOSYSTEM INTEGRATION (Cross-Selling Features)
-    if (risk.id === 'risk_fin_zakat') {
-        steps.push({
-            phase: 'short_term',
-            action: "Hitung potensi Zakat Maal Anda sekarang untuk membersihkan harta.",
-            impact: "Membersihkan harta dari hak fakir miskin (Tathhir).",
-            difficulty: 'easy',
-            cta: '/zakat',
-            ctaLabel: 'Buka Kalkulator Zakat'
-        });
-        return steps; 
-    }
+    // --- 1. SPESIFIK: JOB & PROFESI ---
     
-    if (risk.id === 'risk_fin_inheritance') {
-        steps.push({
-            phase: 'short_term',
-            action: "Segera hitung & bagikan harta warisan yang tertahan sesuai syariat.",
-            impact: "Mencegah sengketa keluarga dan memakan harta batil (Ghasab).",
-            difficulty: 'medium',
-            cta: '/faraidh',
-            ctaLabel: 'Buka Kalkulator Waris'
-        });
-        return steps;
-    }
-
-    // 2. VIOLATION BASED LOGIC
-    if (risk.violationType === 'riba') {
-        steps.push({
-            phase: 'short_term',
-            action: "Taubat Nasuha & Stop menambah utang baru (Top-up/Gali lubang tutup lubang).",
-            impact: "Memutus rantai dosa Riba yang diperangi Allah.",
-            difficulty: 'easy'
-        });
-        
-        if (risk.category === 'finance' || risk.category === 'payment') {
-            if (isGradual) {
-                steps.push({
-                    phase: 'mid_term',
-                    action: "Jual aset sekunder (Gadget/Kendaraan) untuk melunasi pokok utang.",
-                    impact: "Mengurangi beban bunga drastis & mempercepat lunas.",
-                    difficulty: 'medium'
-                });
-            } else {
-                steps.push({
-                    phase: 'mid_term',
-                    action: "Likuidasi aset investasi & tabungan untuk pelunasan total.",
-                    impact: "Membersihkan harta dari sisa Riba seketika.",
-                    difficulty: 'hard'
-                });
-            }
-        } else if (risk.category === 'job') {
-             steps.push({
+    // Case: Afiliator / Fake Review
+    if (riskId === 'job_affiliate') {
+        if (risk.violationType === 'zulm') { // Fake Review
+            steps.push({
+                phase: 'short_term',
+                action: "Hapus/Take-down konten review palsu & produk haram.",
+                impact: "Menghentikan dosa jariyah dari penipuan (Qaul Zur).",
+                difficulty: 'medium',
+                cta: 'internal:toolkit:taubat',
+                ctaLabel: 'Buat Ikrar Taubat'
+            });
+            steps.push({
                 phase: 'mid_term',
-                action: isGradual 
-                    ? "Mulai membangun 'Side Hustle' atau melamar kerja di sektor riil." 
-                    : "Ajukan resign. Yakinlah rezeki Allah itu luas.",
-                impact: "Transisi dari pencatat riba menjadi pencari rezeki halal.",
+                action: "Buat konten ralat/klarifikasi jika memungkinkan, atau mulai review jujur barang yang dimiliki.",
+                impact: "Membangun kepercayaan audiens yang berkah.",
                 difficulty: 'hard'
             });
+        } else if (risk.violationType === 'gharar') { // Blind Share
+            steps.push({
+                phase: 'short_term',
+                action: "Hanya share link produk yang Anda tahu kualitasnya atau dari toko Official/Terpercaya.",
+                impact: "Menghindari mempromosikan 'kucing dalam karung'.",
+                difficulty: 'easy'
+            });
         }
-    } else if (risk.violationType === 'gharar') {
+    }
+
+    // Case: Software Bajakan (Crack)
+    if (riskId === 'job_tools') {
         steps.push({
             phase: 'short_term',
-            action: "Perbaiki akad kerja/bisnis. Pastikan jobdesc & KPI jelas (Ijarah/Ju'alah).",
-            impact: "Menghilangkan ketidakjelasan yang memicu sengketa.",
+            action: "Uninstall software bajakan untuk pekerjaan produktif utama.",
+            impact: "Membersihkan sarana pencari nafkah dari Ghasab hak cipta.",
             difficulty: 'medium'
         });
-    } else if (risk.violationType === 'maysir') {
+        steps.push({
+            phase: 'mid_term',
+            action: "Beralih ke alternatif Open Source Gratis (Linux, LibreOffice, Inkscape, GIMP) atau beli lisensi bertahap.",
+            impact: "Solusi permanen tanpa biaya mahal.",
+            difficulty: 'medium'
+        });
+    }
+
+    // Case: Pekerja Lapangan (Curang Timbangan/Spek)
+    if (riskId === 'field_integrity') {
         steps.push({
             phase: 'short_term',
-            action: "Tarik seluruh modal pokok (Cut Loss jika perlu). Tinggalkan market futures/judi.",
-            impact: "Menyelamatkan sisa harta dari kehancuran spekulasi.",
+            action: "Kalibrasi ulang timbangan/meteran dan jujur soal spesifikasi bahan kepada klien.",
+            impact: "Menghindari dosa Al-Mutaffifin (Orang curang).",
+            difficulty: 'easy'
+        });
+    }
+
+    // Case: Risywah (Suap/Kickback)
+    if (riskId === 'job_risywah') {
+        steps.push({
+            phase: 'short_term',
+            action: "Tolak tegas 'fee' di luar kontrak resmi. Jika dipaksa sistem, catat sebagai bukti & niatkan benci dalam hati.",
+            impact: "Menjaga integritas dan keberkahan gaji.",
             difficulty: 'hard'
         });
-    } else if (risk.violationType === 'zulm') {
-        if (risk.category === 'digital' || risk.category === 'payment') {
-             steps.push({
+    }
+
+    // --- 2. SPESIFIK: KEUANGAN ---
+
+    // Case: Asuransi Konvensional
+    if (riskId === 'fin_insurance') {
+        steps.push({
+            phase: 'short_term',
+            action: "Tutup polis asuransi konvensional (terutama Unit Link yang rugi). Beralih ke BPJS Kesehatan.",
+            impact: "BPJS dinilai Maslahah Mursalah oleh ulama & bebas Gharar investasi.",
+            difficulty: 'medium'
+        });
+        steps.push({
+            phase: 'mid_term',
+            action: "Jika butuh proteksi lebih, buka polis Asuransi Syariah (Takaful) murni (bukan investasi).",
+            impact: "Proteksi halal dengan akad Tabarru' (Tolong menolong).",
+            difficulty: 'medium'
+        });
+    }
+
+    // Case: Warisan (Inheritance)
+    if (riskId === 'fin_inheritance') {
+        steps.push({
+            phase: 'short_term',
+            action: "Segera kumpulkan ahli waris untuk musyawarah pembagian.",
+            impact: "Mencegah memakan harta anak yatim/saudara secara batil.",
+            difficulty: 'medium',
+            cta: '/faraidh',
+            ctaLabel: 'Hitung Waris Sekarang'
+        });
+    }
+
+    // Case: Zakat
+    if (riskId === 'fin_zakat') {
+        steps.push({
+            phase: 'short_term',
+            action: "Hitung total aset (Emas, Tabungan, Saham). Jika > 85gr Emas, tunaikan 2.5%.",
+            impact: "Membersihkan harta dari hak fakir miskin.",
+            difficulty: 'easy',
+            cta: '/zakat',
+            ctaLabel: 'Hitung Zakat Maal'
+        });
+    }
+
+    // Case: Utang Riba (KPR/Leasing)
+    if (riskId === 'fin_debt') {
+        steps.push({
+            phase: 'short_term',
+            action: "Stop Top-up Plafond (Gali lubang tutup lubang). Niatkan lunas.",
+            impact: "Langkah awal taubat.",
+            difficulty: 'easy'
+        });
+        if (isGradual) {
+            steps.push({
+                phase: 'mid_term',
+                action: "Jual aset non-produktif (Gadget/Hobi/Motor ke-2) untuk kurangi pokok utang.",
+                impact: "Mengurangi beban bunga & mempercepat lunas.",
+                difficulty: 'hard'
+            });
+        } else {
+            steps.push({
+                phase: 'mid_term',
+                action: "Over Kredit atau Jual Aset Agunan untuk pelunasan total (Cut Loss).",
+                impact: "Bebas total dari Riba.",
+                difficulty: 'hard',
+                cta: 'internal:toolkit:loan_payoff',
+                ctaLabel: 'Download Surat Pelunasan'
+            });
+        }
+    }
+
+    // --- 3. SPESIFIK: DIGITAL ---
+
+    // Case: E-Wallet / Paylater
+    if (riskId === 'dig_ewallet' || riskId === 'dig_paylater') {
+        steps.push({
+            phase: 'short_term',
+            action: "Lunasi tagihan Paylater & Matikan fiturnya. Kosongkan saldo E-Wallet (gunakan sistem pass-through).",
+            impact: "Menghindari Riba Qardh (Manfaat atas utang/saldo mengendap).",
+            difficulty: 'easy'
+        });
+    }
+
+    // Case: Crypto Futures / Gacha
+    if (riskId === 'fin_invest' || riskId === 'dig_gacha') {
+        if (risk.violationType === 'maysir') {
+            steps.push({
                 phase: 'short_term',
-                action: "Tutup akun/kartu tersebut. Jangan menyepakati denda riba meski yakin bisa bayar.",
-                impact: "Keluar dari perjanjian yang batil.",
+                action: "Tarik seluruh modal dari akun Futures/Judi. Hapus aplikasi.",
+                impact: "Menyelamatkan sisa harta dari spekulasi haram.",
                 difficulty: 'medium'
             });
         }
     }
 
-    if (risk.category === 'digital' && risk.description.includes('E-Wallet')) {
-         steps.push({
-            phase: 'short_term',
-            action: "Kosongkan saldo mengendap. Top-up hanya saat checkout (Pass-through).",
-            impact: "Menghindari Riba Qardh (Utang yang mengambil manfaat diskon).",
-            difficulty: 'easy'
-        });
+    // --- 4. GENERIC FALLBACKS (Jika tidak ada match spesifik) ---
+    if (steps.length === 0) {
+        if (risk.violationType === 'riba') {
+            steps.push({
+                phase: 'mid_term',
+                action: "Prioritaskan pelunasan utang ini di atas gaya hidup.",
+                impact: "Fokus pada kebebasan finansial.",
+                difficulty: 'medium',
+                cta: 'internal:tathhir',
+                ctaLabel: 'Hitung Dana Tathhir'
+            });
+        } else if (risk.violationType === 'gharar') {
+            steps.push({
+                phase: 'short_term',
+                action: "Perbaiki akad agar jelas (transparan) di awal.",
+                impact: "Menghilangkan potensi sengketa.",
+                difficulty: 'easy'
+            });
+        }
     }
 
     return steps;
@@ -141,7 +227,6 @@ export const calculateRiskScore = (answers: Record<string, string>): HedeResult 
 
     // Process Answers
     QUESTIONS_DB.forEach(q => {
-        // IMPORTANT: Check dependencies first. Skip risk calculation if question was irrelevant.
         if (!isQuestionRelevant(q, answers)) {
             return; 
         }
@@ -158,45 +243,46 @@ export const calculateRiskScore = (answers: Record<string, string>): HedeResult 
             categoryScores[q.category].count += 1;
             categoryScores[q.category].maxRisk = Math.max(categoryScores[q.category].maxRisk, selectedOption.riskWeight);
             
-            // Update Global Max Risk
             globalMaxRisk = Math.max(globalMaxRisk, selectedOption.riskWeight);
         } else {
             hardshipScore += (selectedOption.hardshipWeight || 0);
         }
 
-        // Detect Risks (Weight >= 30 is typically Syubhat/Warning)
+        // Detect Risks
         if (selectedOption.riskWeight >= 30) {
             let desc = '';
             let rule = '';
             
+            // Contextual Descriptions based on Question ID for better UX
+            if (q.id === 'job_tools') desc = "Penggunaan software tanpa lisensi resmi (Bajakan/Crack).";
+            else if (q.id === 'job_affiliate') desc = "Promosi produk dengan cara yang tidak jujur (Fake Review/Blind Share).";
+            else if (q.id === 'fin_insurance') desc = "Asuransi dengan akad pertukaran (jual beli) yang mengandung Gharar & Maysir.";
+            else if (q.id === 'fin_inheritance') desc = "Penundaan pembagian waris yang menzalimi hak ahli waris lain.";
+            else if (q.id === 'field_integrity') desc = "Kecurangan dalam takaran/timbangan atau spesifikasi kerja.";
+            else {
+                switch (selectedOption.violationType) {
+                    case 'riba': desc = "Terindikasi transaksi Riba (Bunga/Pertambahan nilai)."; break;
+                    case 'gharar': desc = "Ketidakjelasan (Gharar) dalam objek/akad."; break;
+                    case 'maysir': desc = "Unsur spekulasi tinggi/perjudian."; break;
+                    case 'zulm': desc = "Akad bermasalah atau mengambil hak orang lain."; break;
+                    default: desc = "Risiko syariah yang perlu diperhatikan.";
+                }
+            }
+
+            // Rules
             switch (selectedOption.violationType) {
-                case 'riba':
-                    desc = "Terindikasi adanya transaksi Riba (Bunga/Pertambahan nilai pinjaman).";
-                    rule = "QS. Al-Baqarah: 275 - Allah menghalalkan jual beli dan mengharamkan riba.";
-                    break;
-                case 'gharar':
-                    desc = "Terdapat ketidakjelasan (Gharar) dalam objek atau akad transaksi.";
-                    rule = "Hadits: Rasulullah SAW melarang jual beli gharar (HR. Muslim).";
-                    break;
-                case 'maysir':
-                    desc = "Mengandung unsur spekulasi tinggi atau perjudian (Zero Sum Game).";
-                    rule = "QS. Al-Maidah: 90 - Judi adalah perbuatan keji termasuk perbuatan syaitan.";
-                    break;
-                case 'zulm':
-                    desc = "Akad bermasalah/rusak (Fasid) atau mengambil hak orang lain (Ghasab).";
-                    rule = "Kaidah: Kerusakan akad membatalkan keberkahan transaksi.";
-                    break;
-                default:
-                    desc = "Risiko syariah ringan/syubhat yang perlu diperhatikan.";
-                    rule = "Tinggalkan yang meragukan menuju yang tidak meragukan.";
+                case 'riba': rule = "QS. Al-Baqarah: 275 - Allah menghalalkan jual beli dan mengharamkan riba."; break;
+                case 'gharar': rule = "Hadits: Rasulullah SAW melarang jual beli gharar (HR. Muslim)."; break;
+                case 'maysir': rule = "QS. Al-Maidah: 90 - Judi adalah perbuatan keji."; break;
+                case 'zulm': rule = "Kaidah: Kerusakan akad membatalkan keberkahan."; break;
+                default: rule = "Prinsip Kehati-hatian (Wara').";
             }
 
             risks.push({
-                id: `risk_${q.id}`,
+                id: `risk_${q.id}`, // e.g., risk_job_affiliate
                 category: q.category,
                 title: q.text, 
                 description: desc,
-                // Assign visual level based on individual question weight
                 riskLevel: selectedOption.riskWeight >= 80 ? 'critical' : selectedOption.riskWeight >= 50 ? 'high' : 'medium',
                 violationType: selectedOption.violationType || 'none',
                 fiqhRule: rule
@@ -208,24 +294,17 @@ export const calculateRiskScore = (answers: Record<string, string>): HedeResult 
     const emergencyQCount = QUESTIONS_DB.filter(q => q.category === 'emergency').length;
     hardshipScore = emergencyQCount > 0 ? hardshipScore / emergencyQCount : 0;
 
-    // --- SCORING LOGIC V2 (Constraint-Based + Micro Progress) ---
-    
+    // --- SCORING LOGIC ---
     const finalCategoryScores: CategoryScore[] = Object.keys(categoryScores)
         .filter(k => k !== 'emergency')
         .map(key => {
             const cat = key as HedeCategory;
             const data = categoryScores[cat];
-            
-            // Base score: 100 - weighted average risk
             const avgRisk = data.count > 0 ? data.totalWeight / data.count : 0;
             let score = Math.max(0, 100 - avgRisk);
             
-            // Category Constraint: Critical violation caps category score
-            if (data.maxRisk >= 80) {
-                score = Math.min(score, 40);
-            } else if (data.maxRisk >= 50) {
-                score = Math.min(score, 60);
-            }
+            if (data.maxRisk >= 80) score = Math.min(score, 40);
+            else if (data.maxRisk >= 50) score = Math.min(score, 60);
 
             let level: RiskLevel = 'safe';
             if (score < 40) level = 'critical';
@@ -233,54 +312,28 @@ export const calculateRiskScore = (answers: Record<string, string>): HedeResult 
             else if (score < 80) level = 'medium';
             else if (score < 95) level = 'low';
 
-            return {
-                category: cat,
-                score: Math.round(score),
-                riskLevel: level
-            };
+            return { category: cat, score: Math.round(score), riskLevel: level };
         });
 
-    // 2. Calculate Total Score
+    // Total Score Calculation
     const totalQuestions = Object.values(categoryScores).reduce((acc, curr) => acc + curr.count, 0);
     const sumAllWeights = Object.values(categoryScores).reduce((acc, curr) => acc + curr.totalWeight, 0);
     
-    // Raw Score (Pure Average)
     let rawScore = 100;
-    if (totalQuestions > 0) {
-        rawScore = Math.max(0, 100 - (sumAllWeights / totalQuestions));
-    }
+    if (totalQuestions > 0) rawScore = Math.max(0, 100 - (sumAllWeights / totalQuestions));
 
-    // --- POISON LOGIC (Improved) ---
-    // Instead of hard capping at 40/60/80 flat, we allow "Micro Progress" within the bracket.
-    // Example: Hard Riba = Cap 40. But if Raw Score is 90 (meaning everything else is Halal), 
-    // we allow the final score to be up to 49. This rewards the user for being good elsewhere.
-    
     let scoreCap = 100;
-    let poisonFactor = 0; // Penalties
+    let poisonFactor = 0;
 
-    if (globalMaxRisk >= 80) { // Critical (e.g. Riba)
-        scoreCap = 40; 
-        poisonFactor = 0.1; // Allowed 10% of surplus raw score
-    } else if (globalMaxRisk >= 50) { // High
-        scoreCap = 60;
-        poisonFactor = 0.2; // Allowed 20% of surplus raw score
-    } else if (globalMaxRisk >= 30) { // Medium
-        scoreCap = 80;
-        poisonFactor = 0.5;
-    }
+    if (globalMaxRisk >= 80) { scoreCap = 40; poisonFactor = 0.1; }
+    else if (globalMaxRisk >= 50) { scoreCap = 60; poisonFactor = 0.2; }
+    else if (globalMaxRisk >= 30) { scoreCap = 80; poisonFactor = 0.5; }
 
-    // Calculate final score with micro-progress
     let totalScore = Math.round(Math.min(rawScore, scoreCap));
-    
-    // Apply Micro-Progress: If raw score > cap, allow a small bump
-    if (rawScore > scoreCap) {
-        const bonus = (rawScore - scoreCap) * poisonFactor;
-        totalScore = Math.round(scoreCap + bonus);
-    }
+    if (rawScore > scoreCap) totalScore = Math.round(scoreCap + ((rawScore - scoreCap) * poisonFactor));
 
-    // Determine Final Risk Level
     let riskLevel: RiskLevel = 'safe';
-    if (totalScore <= 49) riskLevel = 'critical'; // Adjusted threshold
+    if (totalScore <= 49) riskLevel = 'critical';
     else if (totalScore <= 69) riskLevel = 'high';
     else if (totalScore <= 85) riskLevel = 'medium';
     else if (totalScore < 95) riskLevel = 'low';
@@ -292,7 +345,7 @@ export const calculateRiskScore = (answers: Record<string, string>): HedeResult 
     if (riskLevel === 'critical' || riskLevel === 'high') {
         if (hardshipScore > 60) {
             approach = 'gradual_exit';
-            explanation = "Terdeteksi pelanggaran syariah serius, namun kondisi ekonomi masuk kategori Dharurat. Fiqh menyarankan Tadarruj (bertahap): Fokus lunasi utang pokok & cari pengganti sebelum lepas total.";
+            explanation = "Terdeteksi pelanggaran syariah serius, namun kondisi ekonomi masuk kategori Dharurat/Hajah. Fiqh menyarankan Tadarruj (bertahap): Fokus lunasi utang pokok & cari pengganti sebelum lepas total.";
         } else {
             approach = 'immediate_exit';
             explanation = "Risiko syariah tinggi dan Anda memiliki kemampuan (qudrah) untuk berhijrah. Disarankan Bara'ah (berlepas diri) secepatnya untuk keberkahan.";
@@ -302,8 +355,10 @@ export const calculateRiskScore = (answers: Record<string, string>): HedeResult 
         explanation = "Terdapat transaksi syubhat (meragukan). Sebaiknya ditinggalkan segera untuk menjaga kesucian harta (Wara').";
     }
 
+    // GENERATE ROADMAP STEPS
     risks.forEach(risk => {
-        const riskSteps = generateStepsForRisk(risk, approach);
+        // Pass 'answers' to generator for context-aware advice
+        const riskSteps = generateStepsForRisk(risk, approach, answers);
         roadmap = [...roadmap, ...riskSteps];
     });
 

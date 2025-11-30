@@ -1,26 +1,33 @@
-
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import type { ActionStep } from '../../../../types.ts';
 // @ts-ignore
 import { useNavigate } from 'react-router-dom';
 import { 
-    FaBolt, FaTools, FaFlagCheckered, FaArrowRight, FaRoad, FaShieldAlt
+    FaBolt, FaTools, FaFlagCheckered, FaArrowRight, FaRoad, FaShieldAlt, FaCheckCircle, FaRegCircle
 } from 'react-icons/fa';
+import { audioService } from '../../../../services/audio.service.ts';
+import { useLocalStorage } from '../../../../hooks/useLocalStorage.ts';
 
 interface HedeRoadmapProps {
     roadmap: ActionStep[];
+    onInternalAction?: (action: string) => void;
 }
 
-const RoadmapItem: React.FC<{ step: ActionStep; index: number }> = ({ step, index }) => {
+const RoadmapItem: React.FC<{ 
+    step: ActionStep; 
+    index: number; 
+    isCompleted: boolean;
+    onToggle: () => void;
+    onAction?: (a: string) => void 
+}> = ({ step, index, isCompleted, onToggle, onAction }) => {
     const navigate = useNavigate();
-    const isEven = index % 2 === 0; // Desktop: Left Side Card (Arrow on Right)
+    const isEven = index % 2 === 0;
     
     let bgIcon = '';
     let icon = null;
     let title = '';
     let colorName = '';
 
-    // Determine content based on phase
     if (step.phase === 'short_term') {
         bgIcon = 'bg-red-100 text-red-600 dark:bg-red-900/50 dark:text-red-300';
         colorName = 'red';
@@ -38,81 +45,108 @@ const RoadmapItem: React.FC<{ step: ActionStep; index: number }> = ({ step, inde
         title = "Fase 3: Pemurnian";
     }
 
-    // --- BORDER LOGIC ---
-    // 1. Mobile Default: Arrow is LEFT. Border must be RIGHT.
-    //    We use specific side coloring (border-r-red-500) to ensure only one side is colored.
-    const mobileBorder = `border-r-4 border-r-${colorName}-500`;
+    // Override colors if completed
+    if (isCompleted) {
+        bgIcon = 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500';
+        colorName = 'slate';
+    }
 
-    // 2. Desktop Overrides:
-    //    - Even (Left Card): Arrow Right -> Border Left. 
-    //      MUST Reset Right border to default thin slate.
-    //    - Odd (Right Card): Arrow Left -> Border Right. (Inherits Mobile, no change needed).
-    
+    const mobileBorder = `border-r-4 border-r-${colorName}-500`;
     const desktopOverride = isEven 
         ? `md:border-r md:border-r-slate-200 md:dark:border-r-slate-700 md:border-l-4 md:border-l-${colorName}-500`
-        : ``; // Odd cards match mobile layout (Border Right), so no override needed.
+        : ``;
 
     const borderClass = `${mobileBorder} ${desktopOverride}`;
 
+    const handleCta = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        // Haptic on button press
+        if (navigator.vibrate) navigator.vibrate(10);
+        
+        if (!step.cta) return;
+        
+        if (step.cta.startsWith('internal:')) {
+            onAction?.(step.cta);
+        } else {
+            navigate(step.cta);
+        }
+    };
+
     return (
-        <div className={`relative flex items-center justify-between md:justify-between w-full mb-8 ${isEven ? 'md:flex-row-reverse' : ''}`}>
+        <div 
+            className={`relative flex items-center justify-between md:justify-between w-full mb-8 ${isEven ? 'md:flex-row-reverse' : ''} animate-fade-in-up`}
+            style={{ animationDelay: `${index * 100}ms` }}
+        >
             
-            {/* 1. Spacer for Desktop (Pushes content to side) */}
             <div className="hidden md:block w-5/12"></div>
 
-            {/* 2. Central Dot (The Milestone) */}
-            <div className="absolute left-6 md:left-1/2 transform -translate-x-1/2 w-8 h-8 rounded-full border-4 border-white dark:border-slate-900 bg-white dark:bg-slate-800 shadow-md z-10 flex items-center justify-center">
-                <div className={`w-3 h-3 rounded-full ${step.phase === 'short_term' ? 'bg-red-500' : step.phase === 'mid_term' ? 'bg-amber-500' : 'bg-emerald-500'}`}></div>
+            {/* Center Timeline Node */}
+            <div className={`absolute left-6 md:left-1/2 transform -translate-x-1/2 w-8 h-8 rounded-full border-4 shadow-md z-10 flex items-center justify-center transition-all duration-500 ${isCompleted ? 'bg-emerald-500 border-emerald-200 dark:border-emerald-900 scale-110' : 'bg-white dark:bg-slate-800 border-white dark:border-slate-900'}`}>
+                {isCompleted ? (
+                    <div className="text-white text-xs animate-fade-in"><FaCheckCircle /></div>
+                ) : (
+                    <div className={`w-3 h-3 rounded-full ${step.phase === 'short_term' ? 'bg-red-500' : step.phase === 'mid_term' ? 'bg-amber-500' : 'bg-emerald-500'}`}></div>
+                )}
             </div>
 
-            {/* 3. The Content Card */}
             <div className="w-full pl-16 md:pl-0 md:w-5/12 relative">
                 
-                {/* DESKTOP ARROW */}
                 <div className={`hidden md:block absolute top-6 w-3 h-3 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 transform rotate-45 z-20 
                     ${isEven 
-                        ? '-right-[7px] border-t border-r' // Left Card -> Arrow on Right -> Points Right
-                        : '-left-[7px] border-b border-l'  // Right Card -> Arrow on Left -> Points Left
+                        ? '-right-[7px] border-t border-r'
+                        : '-left-[7px] border-b border-l'
                     }
                 `}></div>
                 
-                {/* MOBILE ARROW */}
-                {/* Always on left, pointing left to the timeline */}
-                <div className="md:hidden absolute top-6 left-[57px] w-3 h-3 bg-white dark:bg-slate-800 border-b border-l border-slate-200 dark:border-slate-700 transform rotate-45 z-20"></div>
+                {/* Main Card */}
+                <div 
+                    onClick={onToggle}
+                    className={`
+                        relative p-5 rounded-2xl shadow-sm border transition-all duration-300 cursor-pointer group select-none
+                        ${isCompleted 
+                            ? 'bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-slate-800 opacity-75 grayscale-[0.8] scale-[0.98]' 
+                            : `bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:shadow-lg hover:-translate-y-1`
+                        }
+                        ${borderClass}
+                    `}
+                >
+                    {/* Checkbox Overlay Indicator */}
+                    <div className="absolute top-4 right-4 text-xl transition-all duration-300">
+                        {isCompleted ? (
+                            <span className="text-emerald-500 drop-shadow-sm scale-110"><FaCheckCircle /></span>
+                        ) : (
+                            <span className="text-slate-200 dark:text-slate-700 group-hover:text-indigo-400 transition-colors"><FaRegCircle /></span>
+                        )}
+                    </div>
 
-                {/* CARD CONTAINER */}
-                <div className={`bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-shadow duration-300 ${borderClass}`}>
-                    
-                    <div className="flex justify-between items-start mb-3">
+                    <div className="flex justify-between items-start mb-3 pr-8">
                         <div className="flex items-center gap-2">
-                            <span className={`p-1.5 rounded-lg text-xs ${bgIcon}`}>
+                            <span className={`p-1.5 rounded-lg text-xs transition-colors ${bgIcon}`}>
                                 <span className="icon-wrapper w-4 h-4">{icon}</span>
                             </span>
-                            <span className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                            <span className={`text-[10px] md:text-xs font-bold uppercase tracking-wider ${isCompleted ? 'text-slate-400' : 'text-slate-500 dark:text-slate-400'}`}>
                                 {title}
                             </span>
                         </div>
-                        <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold border ${step.difficulty === 'easy' ? 'bg-teal-50 text-teal-600 border-teal-100' : step.difficulty === 'medium' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-purple-50 text-purple-600 border-purple-100'} dark:bg-opacity-10 dark:border-opacity-10`}>
-                            {step.difficulty === 'easy' ? 'Mudah' : step.difficulty === 'medium' ? 'Sedang' : 'Berat'}
-                        </span>
                     </div>
                     
-                    <h4 className="font-bold text-slate-800 dark:text-white mb-2 leading-snug text-sm md:text-base">
+                    <h4 className={`font-bold mb-2 leading-snug text-sm md:text-base transition-colors ${isCompleted ? 'text-slate-500 line-through decoration-slate-400' : 'text-slate-800 dark:text-white'}`}>
                         {step.action}
                     </h4>
                     
-                    <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl text-xs text-slate-600 dark:text-slate-400 italic border border-slate-100 dark:border-slate-700/50 mb-3">
-                        <span className="font-bold not-italic mr-1 text-slate-700 dark:text-slate-300">Dampak:</span> {step.impact}
-                    </div>
+                    {!isCompleted && (
+                        <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl text-xs text-slate-600 dark:text-slate-400 italic border border-slate-100 dark:border-slate-700/50 mb-3">
+                            <span className="font-bold not-italic mr-1 text-slate-700 dark:text-slate-300">Dampak:</span> {step.impact}
+                        </div>
+                    )}
 
-                    {/* Ecosystem Link Button */}
-                    {step.cta && (
+                    {step.cta && !isCompleted && (
                         <button 
-                            onClick={() => navigate(step.cta!)}
-                            className="w-full flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-700 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white text-slate-600 dark:text-slate-300 text-xs font-bold py-2.5 rounded-lg transition-all shadow-sm active:scale-95 group"
+                            onClick={handleCta}
+                            className="w-full flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-700 hover:bg-purple-600 hover:text-white dark:hover:bg-purple-600 dark:hover:text-white text-slate-600 dark:text-slate-300 text-xs font-bold py-2.5 rounded-lg transition-all shadow-sm active:scale-95 group/btn"
                         >
                             {step.ctaLabel || "Buka Fitur"} 
-                            <span className="icon-wrapper w-3 h-3 group-hover:translate-x-1 transition-transform"><FaArrowRight /></span>
+                            <span className="icon-wrapper w-3 h-3 group-hover/btn:translate-x-1 transition-transform"><FaArrowRight /></span>
                         </button>
                     )}
                 </div>
@@ -121,44 +155,134 @@ const RoadmapItem: React.FC<{ step: ActionStep; index: number }> = ({ step, inde
     );
 };
 
-export const HedeRoadmap: React.FC<HedeRoadmapProps> = ({ roadmap }) => {
-    return (
-        <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-6 md:p-10 shadow-sm border border-slate-100 dark:border-slate-700">
-            <div className="flex items-center gap-4 mb-10">
-                <div className="w-12 h-12 bg-linear-to-br from-indigo-500 to-purple-600 text-white rounded-2xl flex items-center justify-center text-xl shadow-lg shadow-indigo-200 dark:shadow-none transform rotate-3">
-                    <span className="icon-wrapper w-6 h-6"><FaRoad /></span>
-                </div>
-                <div>
-                    <h3 className="font-bold text-xl text-slate-800 dark:text-white">Roadmap Hijrah</h3>
-                    <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400">Langkah taktis menuju harta yang berkah</p>
-                </div>
-            </div>
-            
-            {roadmap.length > 0 ? (
-                <div className="relative">
-                    {/* THE CONTINUOUS LINE */}
-                    <div className="absolute top-4 bottom-4 left-6 md:left-1/2 transform -translate-x-1/2 w-1 bg-linear-to-b from-red-400 via-amber-400 to-emerald-500 rounded-full opacity-30"></div>
-                    
-                    {roadmap.map((step, idx) => (
-                        <RoadmapItem key={idx} step={step} index={idx} />
-                    ))}
+export const HedeRoadmap: React.FC<HedeRoadmapProps> = ({ roadmap, onInternalAction }) => {
+    // Persist completed steps based on action string (unique enough for this context)
+    const [completedSteps, setCompletedSteps] = useLocalStorage<string[]>('hede_roadmap_progress', []);
+    const [isAllDone, setIsAllDone] = useState(false);
 
-                    {/* Finish Line Flag */}
-                    <div className="relative flex justify-center mt-8">
-                        <div className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest border border-emerald-200 dark:border-emerald-800 z-10">
-                            Harta Halal & Berkah
+    const toggleStep = (action: string) => {
+        // Haptic Feedback for Mobile Feel
+        if (navigator.vibrate) navigator.vibrate(15);
+
+        setCompletedSteps(prev => {
+            const isExist = prev.includes(action);
+            if (isExist) {
+                audioService.playClick(); // Softer click for undo
+                return prev.filter(a => a !== action);
+            } else {
+                audioService.playSuccess(); // Success sound for completing
+                return [...prev, action];
+            }
+        });
+    };
+
+    // Calculate progress: Only count steps that exist in the CURRENT roadmap
+    const progress = useMemo(() => {
+        if (roadmap.length === 0) return 0;
+        const validCompleted = completedSteps.filter(action => 
+            roadmap.some(step => step.action === action)
+        );
+        const percent = Math.round((validCompleted.length / roadmap.length) * 100);
+        return Math.min(100, Math.max(0, percent));
+    }, [roadmap, completedSteps]);
+
+    useEffect(() => {
+        if (progress === 100 && !isAllDone && roadmap.length > 0) {
+            audioService.playSuccessMajor();
+            if (navigator.vibrate) navigator.vibrate([50, 100, 50]); // Success pattern
+            setIsAllDone(true);
+        } else if (progress < 100) {
+            setIsAllDone(false);
+        }
+    }, [progress, isAllDone, roadmap.length]);
+
+    return (
+        <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-6 md:p-10 shadow-sm border border-slate-100 dark:border-slate-700 relative overflow-hidden">
+            {/* Celebration Background */}
+            {isAllDone && (
+                <div className="absolute inset-0 pointer-events-none z-0">
+                    <div className="absolute top-0 left-0 w-full h-full bg-linear-to-b from-emerald-500/10 to-transparent animate-fade-in"></div>
+                    <div className="absolute -top-20 -right-20 w-64 h-64 bg-emerald-400/20 rounded-full blur-3xl animate-pulse"></div>
+                </div>
+            )}
+
+            <div className="relative z-10">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+                    <div className="flex items-center gap-4">
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-lg transition-all duration-500 ${isAllDone ? 'bg-emerald-500 text-white shadow-emerald-200 scale-110 rotate-12' : 'bg-linear-to-br from-indigo-500 to-purple-600 text-white shadow-indigo-200 dark:shadow-none'}`}>
+                            <span className="icon-wrapper w-6 h-6">{isAllDone ? <FaCheckCircle /> : <FaRoad />}</span>
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-xl text-slate-800 dark:text-white transition-colors">
+                                {isAllDone ? "Masya Allah, Sempurna!" : "Roadmap Hijrah"}
+                            </h3>
+                            <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400">
+                                {isAllDone ? "Anda telah menyelesaikan semua langkah ikhtiar." : "Centang langkah yang sudah Anda kerjakan."}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="w-full md:w-48">
+                        <div className="flex justify-between text-xs font-bold mb-1.5">
+                            <span className="text-slate-500 dark:text-slate-400">Proses</span>
+                            <span className={`transition-colors ${isAllDone ? "text-emerald-600" : "text-indigo-600"}`}>{progress}%</span>
+                        </div>
+                        <div className="h-2.5 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                            <div 
+                                className={`h-full rounded-full transition-all duration-1000 ease-out relative overflow-hidden ${isAllDone ? 'bg-emerald-500' : 'bg-indigo-600'}`}
+                                style={{ width: `${progress}%` }}
+                            >
+                                {/* Shimmer Effect on Progress Bar */}
+                                <div className="absolute inset-0 bg-white/20 skew-x-12 -translate-x-full animate-[shimmer_2s_infinite]"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            ) : (
-                <div className="text-center py-16 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900/50 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-700">
-                    <span className="icon-wrapper w-20 h-20 text-indigo-300 mb-6 flex items-center justify-center text-6xl opacity-50"><FaShieldAlt /></span>
-                    <h4 className="font-bold text-slate-700 dark:text-slate-300 text-lg">Istiqamah!</h4>
-                    <p className="text-slate-500 dark:text-slate-400 font-medium text-sm mt-2 max-w-xs leading-relaxed">
-                        Tidak ada langkah korektif yang diperlukan saat ini. Pertahankan kondisi ini dan jangan lupa zakat.
-                    </p>
-                </div>
-            )}
+                
+                {roadmap.length > 0 ? (
+                    <div className="relative">
+                        {/* Timeline Line */}
+                        <div className="absolute top-4 bottom-4 left-6 md:left-1/2 transform -translate-x-1/2 w-1 bg-linear-to-b from-red-400 via-amber-400 to-emerald-500 rounded-full opacity-20"></div>
+                        
+                        {roadmap.map((step, idx) => {
+                            const isCompleted = completedSteps.includes(step.action);
+                            return (
+                                <RoadmapItem 
+                                    key={idx} 
+                                    step={step} 
+                                    index={idx} 
+                                    isCompleted={isCompleted}
+                                    onToggle={() => toggleStep(step.action)}
+                                    onAction={onInternalAction} 
+                                />
+                            );
+                        })}
+
+                        {/* Final Badge */}
+                        <div className="relative flex justify-center mt-8">
+                            <div className={`
+                                px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest border transition-all duration-500 z-10 flex items-center gap-2
+                                ${isAllDone 
+                                    ? 'bg-emerald-600 text-white border-emerald-500 shadow-xl shadow-emerald-200/50 scale-110' 
+                                    : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
+                                }
+                            `}>
+                                {isAllDone && <FaCheckCircle />}
+                                {isAllDone ? "Harta Halal & Berkah" : "Menuju Harta Berkah"}
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="text-center py-16 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900/50 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-700">
+                        <span className="icon-wrapper w-20 h-20 text-indigo-300 mb-6 flex items-center justify-center text-6xl opacity-50"><FaShieldAlt /></span>
+                        <h4 className="font-bold text-slate-700 dark:text-slate-300 text-lg">Istiqamah!</h4>
+                        <p className="text-slate-500 dark:text-slate-400 font-medium text-sm mt-2 max-w-xs leading-relaxed">
+                            Tidak ada langkah korektif yang diperlukan saat ini. Pertahankan kondisi ini dan jangan lupa zakat.
+                        </p>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

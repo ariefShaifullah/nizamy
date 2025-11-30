@@ -6,22 +6,23 @@ import { TathhirCalculator } from './components/TathhirCalculator.tsx';
 import { HedeAnalyzing } from './components/report/HedeAnalyzing.tsx';
 import type { HedeResult, HedeHistoryEntry, ViolationType, HedeTab } from '../../types.ts';
 import { useLocalStorage } from '../../hooks/useLocalStorage.ts';
-import {  
+import { 
+    FaShieldAlt, 
     FaHistory, 
     FaBroom, 
     FaBookOpen, 
-    FaStethoscope,
-    FaLightbulb,
-    FaSearch,
-    FaCheckCircle,
-    FaArrowRight,
-    FaHeart,
-    FaShieldAlt
+    FaStethoscope, 
+    FaLightbulb, 
+    FaSearch, 
+    FaCheckCircle, 
+    FaArrowRight, 
+    FaHeart 
 } from 'react-icons/fa';
 import { FAQ } from '../../components/ui/FAQ.tsx';
 import { Modal } from '../../components/ui/Modal.tsx';
 import { HEDE_FAQ, FIQH_GLOSSARY } from './constants.ts';
 import { useToast } from '../../components/ui/Toast.tsx';
+import { useConfirm } from '../../components/ui/ConfirmContext.tsx';
 import { calculateRiskScore } from './logic/hede.service.ts';
 
 type WizardState = 'idle' | 'pre-wizard' | 'wizard' | 'analyzing';
@@ -36,10 +37,10 @@ const HedeLandingScreen: React.FC<{
         <div className="bg-white dark:bg-slate-800/50 rounded-[2.5rem] p-8 md:p-12 text-center shadow-sm border border-slate-100 dark:border-slate-800 relative overflow-hidden group">
             <div className="relative z-10 flex flex-col items-center">
                 <div className="w-24 h-24 bg-linear-to-br from-indigo-50 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-3xl flex items-center justify-center text-purple-600 dark:text-purple-400 mb-6 shadow-md border border-white dark:border-slate-700">
-                    <div className="icon-wrapper w-12 h-12 flex items-center justify-center text-5xl drop-shadow-sm"><FaStethoscope /></div>
+                    <div className="icon-wrapper w-12 h-12 flex items-center justify-center text-5xl drop-shadow-sm"><FaShieldAlt /></div>
                 </div>
-                <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-slate-900 dark:text-white mb-2">Klinik Finansial</h1>
-                <p className="font-bold text-purple-600 dark:text-purple-400 text-sm md:text-base uppercase tracking-widest mb-4">Cek Kesehatan Finansial Kamu</p>
+                <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-slate-900 dark:text-white mb-2">HEDE</h1>
+                <p className="font-bold text-purple-600 dark:text-purple-400 text-sm md:text-base uppercase tracking-widest mb-4">Halal Economic Diagnostic Engine</p>
                 <p className="hidden md:block text-base md:text-lg font-medium text-slate-500 dark:text-slate-400 mb-12 max-w-2xl leading-relaxed">
                     Cek kesehatan finansial Anda dari Riba, Gharar, & Maysir. Dapatkan roadmap hijrah personal untuk menuju harta yang lebih berkah.
                 </p>
@@ -122,6 +123,7 @@ const ViolationBadge: React.FC<{ type: ViolationType | 'general' }> = ({ type })
 
 const HedeApp: React.FC = () => {
     const { showToast } = useToast();
+    const { confirm } = useConfirm();
     
     // Data Persistence
     const [result, setResult] = useLocalStorage<HedeResult | null>('hede_last_result', null);
@@ -183,9 +185,11 @@ const HedeApp: React.FC = () => {
     }, [wizardState, analyzingAnswers, setResult, setHistory, showToast]);
 
 
+    // UPDATE: Removed confirmation modal as the action is non-destructive
     const handleReset = () => {
         setResult(null);
-        setView('landing'); // Go back to landing page after resetting
+        setView('landing'); 
+        // Roadmap progress is preserved
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
@@ -199,6 +203,8 @@ const HedeApp: React.FC = () => {
 
     const handleClearHistory = () => {
         setHistory([]);
+        // Clear roadmap progress only when history is wiped
+        localStorage.removeItem('hede_roadmap_progress');
         showToast('Jurnal berhasil dibersihkan', 'info');
     };
 
@@ -253,7 +259,7 @@ const HedeApp: React.FC = () => {
     const mainNavTabs = [
         { id: 'diagnosa', icon: <FaStethoscope />, label: 'Diagnosa' },
         { id: 'tathhir', icon: <FaBroom />, label: 'Tathhir' },
-        { id: 'history', icon: <FaHistory />, label: 'Jurnal' },
+        { id: 'history', icon: <FaHistory />, label: 'Jurnal Hijrah' },
         { id: 'kamus', icon: <FaBookOpen />, label: 'Kamus' },
     ];
     
@@ -309,7 +315,7 @@ const HedeApp: React.FC = () => {
             <div className="lg:grid lg:grid-cols-12 lg:gap-8 px-4 md:px-6">
                 <div className="lg:col-span-8 w-full min-w-0 flex flex-col gap-8">
                     {renderContent()}
-                    <div className="hidden lg:block border-t border-slate-200 dark:border-slate-700 pt-8"><FAQ title="Panduan Klinik Finansial" subtitle="Pertanyaan seputar metode diagnosa dan hukum fiqh." data={HEDE_FAQ} /></div>
+                    <div className="hidden lg:block border-t border-slate-200 dark:border-slate-700 pt-8"><FAQ title="Panduan HEDE" subtitle="Pertanyaan seputar metode diagnosa dan hukum fiqh." data={HEDE_FAQ} /></div>
                 </div>
 
                 <div className="hidden lg:block lg:col-span-4 min-w-0">
@@ -342,13 +348,7 @@ const HedeApp: React.FC = () => {
                 </div>
             </div>
 
-            <div 
-              className="md:hidden fixed bottom-0 left-0 right-0 bg-white/55 dark:bg-slate-900/55 border-t border-slate-200 dark:border-slate-800 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 px-2 z-50 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.05)]"
-              style={{
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)'
-              }}
-            >
+            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 px-2 z-50 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
                 {mainNavTabs.map(tab => (
                     <button key={tab.id} onClick={() => tab.id === 'kamus' ? setIsDictOpen(true) : switchTab(tab.id as HedeTab)} className={`flex-1 flex flex-col items-center p-2 rounded-xl transition-all duration-300 ${activeTab === tab.id ? "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 font-bold transform -translate-y-1" : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 font-medium"}`}>
                         <span className="icon-wrapper w-5 h-5 mb-1 text-lg">{tab.icon}</span><span className="text-[10px] uppercase tracking-wide">{tab.label}</span>

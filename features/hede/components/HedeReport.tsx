@@ -95,6 +95,19 @@ export const HedeReport: React.FC<HedeReportProps> = ({ result, onReset, onSwitc
         catch (error) { console.error(error); showToast('Gagal membuat dokumen.', 'error'); }
     };
 
+    const handleRoadmapAction = (actionString: string) => {
+        // Parse 'internal:type:arg'
+        const parts = actionString.split(':');
+        const type = parts[1]; // e.g., 'toolkit' or 'tathhir'
+        const arg = parts[2]; // e.g., 'loan_payoff'
+
+        if (type === 'tathhir') {
+            onSwitchAppTab('tathhir');
+        } else if (type === 'toolkit' && arg) {
+            handleDownloadTemplate(arg as ContractType);
+        }
+    };
+
     const prepareAndOpenShareModal = async () => {
         const element = shareCardRef.current;
         if (!element || isGeneratingShare) return;
@@ -236,7 +249,9 @@ export const HedeReport: React.FC<HedeReportProps> = ({ result, onReset, onSwitc
 
                 <div id="hede-roadmap-section" className={activeTab === 'roadmap' ? 'block' : 'hidden'}>
                     <div className="animate-fade-in space-y-10">
-                        <section><HedeRoadmap roadmap={result.roadmap} /></section>
+                        <section>
+                            <HedeRoadmap roadmap={result.roadmap} onInternalAction={handleRoadmapAction} />
+                        </section>
                         <section className="bg-cyan-50 dark:bg-cyan-900/10 rounded-[2.5rem] p-6 md:p-8 border border-cyan-100 dark:border-cyan-800/30">
                             <div className="flex items-center gap-3 mb-6">
                                 <div className="p-3 bg-cyan-100 dark:bg-cyan-900/50 text-cyan-600 dark:text-cyan-400 rounded-xl"><span className="icon-wrapper w-6 h-6"><FaFileSignature /></span></div>

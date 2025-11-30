@@ -189,7 +189,16 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
                         </span>
                         Putar Audio {isAyah ? 'Ayat' : 'Kata'}
                     </button>
-
+                    <div className="grid grid-cols-2 gap-3">
+                        <button onClick={handleCopyText} className="flex items-center justify-center gap-2 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-700 dark:text-slate-300 font-semibold text-sm hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors">
+                            <FaCopy size={16} />
+                            Salin Arab
+                        </button>
+                         <button onClick={() => onSetLastRead(data.data as QuranAyah)} className="flex items-center justify-center gap-2 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-teal-700 dark:text-teal-400 font-semibold text-sm hover:bg-teal-50 dark:hover:bg-teal-900/20 border border-slate-200 dark:border-slate-700 transition-colors">
+                            <FaBookmark />
+                            Terakhir Dibaca
+                        </button>
+                    </div>
                     {isAyah && (
                         <div className="space-y-3">
                             <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
@@ -198,14 +207,43 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                 {CATEGORY_BUTTONS.map(btn => {
                                     const isActive = data.bookmark?.category === btn.category;
-                                    const activeClasses = `bg-${btn.color}-600 text-white border-${btn.color}-600 shadow-md`;
-                                    const inactiveClasses = `bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-${btn.color}-50 dark:hover:bg-${btn.color}-900/20 hover:text-${btn.color}-700`;
+                                    
+                                    // Define color classes based on category
+                                    const getActiveClasses = () => {
+                                        switch(btn.category) {
+                                            case 'favorite':
+                                                return 'bg-rose-600 text-white border-rose-600 shadow-md';
+                                            case 'memorize':
+                                                return 'bg-indigo-600 text-white border-indigo-600 shadow-md';
+                                            case 'study':
+                                                return 'bg-sky-600 text-white border-sky-600 shadow-md';
+                                            case 'general':
+                                                return 'bg-amber-600 text-white border-amber-600 shadow-md';
+                                            default:
+                                                return 'bg-slate-600 text-white border-slate-600 shadow-md';
+                                        }
+                                    };
+                                    
+                                    const getInactiveClasses = () => {
+                                        switch(btn.category) {
+                                            case 'favorite':
+                                                return 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:text-rose-700 dark:hover:text-rose-400 hover:border-rose-200 dark:hover:border-rose-800';
+                                            case 'memorize':
+                                                return 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-700 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-800';
+                                            case 'study':
+                                                return 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-sky-50 dark:hover:bg-sky-900/20 hover:text-sky-700 dark:hover:text-sky-400 hover:border-sky-200 dark:hover:border-sky-800';
+                                            case 'general':
+                                                return 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-amber-50 dark:hover:bg-amber-900/20 hover:text-amber-700 dark:hover:text-amber-400 hover:border-amber-200 dark:hover:border-amber-800';
+                                            default:
+                                                return 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700';
+                                        }
+                                    };
                                     
                                     return (
                                         <button 
                                             key={btn.category} 
                                             onClick={() => onUpdateBookmark(data.data as QuranAyah, btn.category)}
-                                            className={`flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm border transition-colors ${isActive ? activeClasses : inactiveClasses}`}
+                                            className={`flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm border transition-colors ${isActive ? getActiveClasses() : getInactiveClasses()}`}
                                         >
                                             {btn.icon} {btn.label}
                                         </button>
@@ -220,16 +258,7 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
                         </div>
                     )}
 
-                    <div className="grid grid-cols-2 gap-3">
-                        <button onClick={handleCopyText} className="flex items-center justify-center gap-2 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-700 dark:text-slate-300 font-semibold text-sm hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors">
-                            <FaCopy size={16} />
-                            Salin Arab
-                        </button>
-                         <button onClick={() => onSetLastRead(data.data as QuranAyah)} className="flex items-center justify-center gap-2 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-teal-700 dark:text-teal-400 font-semibold text-sm hover:bg-teal-50 dark:hover:bg-teal-900/20 border border-slate-200 dark:border-slate-700 transition-colors">
-                            <FaBookmark />
-                            Terakhir Dibaca
-                        </button>
-                    </div>
+
                     {isAyah ? (
                         <div className="space-y-3">
                             <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-2">

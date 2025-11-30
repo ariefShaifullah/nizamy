@@ -34,6 +34,7 @@ export interface Question {
   id: string;
   category: HedeCategory;
   text: string;
+  helperText?: string; // NEW: Context/Dalil explanation for the question
   options: QuestionOption[];
   dependency?: QuestionDependency; // Added dependency logic
 }

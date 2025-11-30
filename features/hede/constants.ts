@@ -1,52 +1,50 @@
 import type { RiskLevel, Question, HedeCategory, ViolationType, FiqhTerm } from '../../types.ts';
 
 // --- CENTRALIZED STYLING CONFIG ---
-// Updated Hex colors to vibrant shades (500 series) for better visibility on both Light (White) and Dark (Slate-900) backgrounds.
 export const RISK_CONFIG: Record<RiskLevel, { 
     label: string; 
     bg: string; 
     text: string; 
     border: string; 
-    hex: string; // For Charts & PDF
+    hex: string; 
 }> = {
     safe: { 
         label: 'Aman (Halal)', 
         bg: 'bg-emerald-100 dark:bg-emerald-900/30', 
         text: 'text-emerald-800 dark:text-emerald-400', 
         border: 'border-emerald-200 dark:border-emerald-800', 
-        hex: '#10b981' // Emerald 500
+        hex: '#10b981' 
     },
     low: { 
         label: 'Rendah', 
         bg: 'bg-blue-100 dark:bg-blue-900/30', 
         text: 'text-blue-800 dark:text-blue-400', 
         border: 'border-blue-200 dark:border-blue-800', 
-        hex: '#3b82f6' // Blue 500
+        hex: '#3b82f6' 
     },
     medium: { 
-        label: 'Menengah (Syubhat)', 
+        label: 'Syubhat (Hati-hati)', 
         bg: 'bg-amber-100 dark:bg-amber-900/30', 
         text: 'text-amber-800 dark:text-amber-400', 
         border: 'border-amber-200 dark:border-amber-800', 
-        hex: '#f59e0b' // Amber 500
+        hex: '#f59e0b' 
     },
     high: { 
         label: 'Tinggi', 
         bg: 'bg-orange-100 dark:bg-orange-900/30', 
         text: 'text-orange-800 dark:text-orange-400', 
         border: 'border-orange-200 dark:border-orange-800', 
-        hex: '#f97316' // Orange 500
+        hex: '#f97316' 
     },
     critical: { 
         label: 'Kritis (Haram)', 
         bg: 'bg-red-100 dark:bg-red-900/30', 
         text: 'text-red-800 dark:text-red-400', 
         border: 'border-red-200 dark:border-red-800', 
-        hex: '#ef4444' // Red 500
+        hex: '#ef4444' 
     }
 };
 
-// WCAG Compliant Text Colors for Badges
 export const VIOLATION_STYLES: Record<ViolationType, string> = {
     riba: 'bg-red-50 text-red-900 border-red-200 dark:bg-red-900/30 dark:text-red-100 dark:border-red-800',
     gharar: 'bg-orange-50 text-orange-900 border-orange-200 dark:bg-orange-900/30 dark:text-orange-100 dark:border-orange-800',
@@ -64,329 +62,364 @@ export const VIOLATION_LABELS: Record<ViolationType, string> = {
 };
 
 export const CATEGORY_LABELS: Record<HedeCategory, string> = {
-    job: 'Pekerjaan & Profesi',
+    job: 'Sumber Penghasilan',
     business: 'Model Bisnis',
-    finance: 'Keuangan & Investasi',
-    digital: 'Transaksi Digital',
-    payment: 'Sistem Pembayaran',
-    emergency: 'Kondisi Kedaruratan'
+    finance: 'Kondisi Keuangan',
+    digital: 'Gaya Hidup Digital',
+    payment: 'Metode Bayar',
+    emergency: 'Kedaruratan'
 };
 
 export const FIQH_GLOSSARY: FiqhTerm[] = [
-    // --- PELANGGARAN ---
+    // --- RIBA ---
     { term: 'Riba', category: 'riba', definition: 'Setiap penambahan (ziyadah) yang diambil tanpa adanya transaksi pengganti (iwadh) yang sah atau penambahan dalam utang piutang.' },
-    { term: 'Riba Fadhl', category: 'riba', definition: 'Riba dalam tukar menukar barang ribawi sejenis (emas, perak, kurma, gandum, garam) dengan takaran/kadar berbeda.' },
-    { term: 'Riba Nasi\'ah', category: 'riba', definition: 'Riba karena penundaan penyerahan atau pembayaran (bunga kredit/utang).' },
-    { term: 'Gharar', category: 'gharar', definition: 'Ketidakjelasan dalam transaksi (objek, harga, waktu, atau kemampuan serah terima) yang dapat memicu perselisihan.' },
-    { term: 'Maysir', category: 'maysir', definition: 'Transaksi spekulatif yang menggantungkan keuntungan pada keberuntungan semata (judi/zero-sum game).' },
-    { term: 'Risywah', category: 'zulm', definition: 'Pemberian (suap) untuk membatalkan yang hak atau membenarkan yang batil. Pemberi dan penerima sama-sama dilaknat.' },
-    { term: 'Ghasab', category: 'zulm', definition: 'Menguasai hak/harta orang lain secara zalim (tanpa izin). Contoh: Menggunakan harta warisan yang belum dibagi, memakai tanah tetangga, atau software bajakan.' },
-    { term: 'Israf', category: 'zulm', definition: 'Perilaku berlebih-lebihan dalam membelanjakan harta (boros) untuk hal mubah, yang melampaui batas kepatutan.' },
-    { term: 'Akad Fasid', category: 'zulm', definition: 'Akad yang rusak karena tidak terpenuhinya syarat atau rukun syariah, meskipun mungkin sah secara administratif negara.' },
-    { term: 'Bai\' Kali bi Kali', category: 'gharar', definition: 'Jual beli utang dengan utang (menunda penyerahan barang dan harga sekaligus), dilarang karena gharar tinggi.' },
-
-    // --- AKAD & SOLUSI (MUAMALAH) ---
-    { term: 'Ijarah', category: 'general', definition: 'Akad pemindahan hak guna (manfaat) atas barang atau jasa dalam waktu tertentu dengan pembayaran upah/sewa (Ujrah), tanpa diikuti pemindahan kepemilikan barang. Dasar hukum gaji karyawan.' },
-    { term: 'Ju\'alah', category: 'general', definition: 'Akad sayembara atau komisi berbasis hasil. Upah hanya diberikan jika pekerjaan selesai atau target tercapai (Success Fee). Umum digunakan untuk marketing freelance atau agen.' },
-    { term: 'Wakalah', category: 'general', definition: 'Akad pelimpahan kekuasaan dari satu pihak (Muwakkil) kepada pihak lain (Wakil) untuk melakukan sesuatu yang boleh diwakilkan. Dasar hukum Dropship Syariah (menjadi agen penjual).' },
-    { term: 'Syirkah', category: 'general', definition: 'Akad kerja sama usaha antara dua pihak atau lebih untuk suatu usaha tertentu di mana masing-masing pihak memberikan kontribusi dana/amal dengan kesepakatan keuntungan dan risiko ditanggung bersama.' },
-    { term: 'Mudharabah', category: 'general', definition: 'Kerja sama usaha antara pemilik modal (Shahibul Maal) dan pengelola (Mudharib). Keuntungan dibagi bagi hasil, kerugian finansial ditanggung pemilik modal (selama bukan kelalaian pengelola).' },
-    { term: 'Musyarakah', category: 'general', definition: 'Kerja sama di mana semua pihak menyetor modal. Keuntungan dibagi sesuai nisbah sepakat, kerugian dibagi proporsional sesuai porsi modal.' },
-    { term: 'Murabahah', category: 'general', definition: 'Akad jual beli barang dengan menegaskan harga perolehan dan keuntungan (margin) yang disepakati. Umum digunakan di Bank Syariah untuk KPR/Kendaraan.' },
-    { term: 'Kafalah', category: 'general', definition: 'Akad jaminan/penanggungan yang diberikan oleh penanggung (Kafil) kepada pihak ketiga untuk memenuhi kewajiban pihak kedua. Dasar hukum Kartu Kredit Syariah (Syariah Card).' },
-    { term: 'Qardh', category: 'general', definition: 'Akad pinjam meminjam uang murni tanpa bunga. Dalam Islam, Qardh adalah akad sosial (Tabarru\'), dilarang mengambil keuntungan materi.' },
-    { term: 'Taqabudh', category: 'general', definition: 'Serah terima barang secara tunai/langsung (haqiqi) atau secara hukum/administrasi (hukmi) dalam satu majelis. Syarat mutlak sahnya jual beli Emas dan Valas.' },
+    { term: 'Riba Nasi\'ah', category: 'riba', definition: 'Riba yang muncul karena penangguhan waktu pembayaran utang dengan syarat tambahan (bunga). Contoh: Bunga KPR, Kartu Kredit.' },
+    { term: 'Riba Fadhl', category: 'riba', definition: 'Riba dalam tukar menukar barang ribawi sejenis dengan takaran/timbangan yang berbeda. Contoh: Tukar emas lama dengan emas baru ada tambahan biaya.' },
+    { term: 'Riba Qardh', category: 'riba', definition: 'Manfaat tambahan yang disyaratkan oleh pemberi utang kepada penerima utang. "Setiap piutang yang menarik manfaat adalah Riba".' },
     
-    // --- KONSEP ---
-    { term: 'Tathhirul Mal', category: 'general', definition: 'Proses membersihkan harta dari unsur haram/syubhat dengan mengeluarkannya untuk fasilitas umum tanpa mengharap pahala sedekah.' },
-    { term: 'Tadarruj', category: 'general', definition: 'Prinsip bertahap dalam menerapkan hukum Islam, digunakan saat kondisi sulit/darurat untuk mencapai ideal (misal: melunasi utang riba satu per satu).' },
-    { term: 'Bara\'ah', category: 'general', definition: 'Sikap berlepas diri sepenuhnya dan seketika dari segala bentuk transaksi haram. Wajib dilakukan jika memiliki kemampuan (qudrah) untuk meninggalkan haram tanpa membahayakan nyawa.' },
-    { term: 'Wara\'', category: 'general', definition: 'Sikap kehati-hatian tingkat tinggi dengan meninggalkan hal yang mubah (boleh) karena khawatir terjerumus pada yang haram, apalagi meninggalkan yang syubhat.' },
-    { term: 'Tabarru\'', category: 'general', definition: 'Akad hibah/sumbangan/tolong-menolong yang tidak mencari keuntungan komersial. Dasar dari asuransi syariah (sesama peserta saling menanggung risiko).' },
+    // --- GHARAR ---
+    { term: 'Gharar', category: 'gharar', definition: 'Ketidakjelasan (ambiguitas) yang signifikan dalam transaksi, baik pada objek, harga, atau waktu serah terima, yang dapat memicu perselisihan.' },
+    { term: 'Jual Beli Ijon', category: 'gharar', definition: 'Menjual buah-buahan yang belum matang/layak panen. Dilarang karena mengandung spekulasi tinggi.' },
+    { term: 'Talaqqi Rukban', category: 'gharar', definition: 'Mencegat pedagang desa sebelum masuk pasar untuk membeli barang dengan harga murah karena ketidaktahuan mereka akan harga pasar.' },
+    
+    // --- MAYSIR ---
+    { term: 'Maysir', category: 'maysir', definition: 'Setiap transaksi yang bersifat untung-untungan (spekulatif) di mana satu pihak untung dan pihak lain rugi secara mutlak (Zero Sum Game).' },
+    { term: 'Qimar', category: 'maysir', definition: 'Perjudian atau taruhan.' },
+    
+    // --- ZULM / BATIL ---
+    { term: 'Ghasab', category: 'zulm', definition: 'Menguasai hak/harta orang lain secara zalim (tanpa izin), seperti memakai tanah tetangga, listrik umum, atau software bajakan.' },
+    { term: 'Ghulul', category: 'zulm', definition: 'Pengkhianatan dalam amanah, khususnya mengambil harta rampasan perang, harta publik, atau dana yayasan/masjid untuk kepentingan pribadi.' },
+    { term: 'Risywah', category: 'zulm', definition: 'Suap menyuap. Memberi sesuatu kepada pihak berwenang untuk membatalkan hak atau membenarkan yang batil.' },
+    { term: 'Ihtikar', category: 'zulm', definition: 'Menimbun barang kebutuhan pokok saat langka agar harga naik, lalu menjualnya dengan harga tinggi.' },
+    { term: 'Najasy', category: 'zulm', definition: 'Pura-pura menawar barang dengan harga tinggi untuk memancing pembeli lain (goreng harga).' },
+    { term: 'Tadlis', category: 'zulm', definition: 'Menyembunyikan cacat barang (aib) saat jual beli agar pembeli mengira barang tersebut sempurna (termasuk Fake Review).' },
+    { term: 'Tatfif', category: 'zulm', definition: 'Kecurangan dalam menakar atau menimbang. "Celakalah bagi orangorang yang curang (Al-Mutaffifin)".' },
+    { term: 'Akad Fasid', category: 'zulm', definition: 'Akad yang rusak karena tidak terpenuhinya syarat, namun rukunnya ada. Konsekuensinya harus diperbaiki atau dibatalkan.' },
+    { term: 'Akad Bathil', category: 'zulm', definition: 'Akad yang tidak sah sejak awal karena melanggar rukun/syariat (misal: jual beli babi). Dianggap tidak pernah terjadi.' },
+    
+    // --- GENERAL ---
+    { term: 'Tathhirul Mal', category: 'general', definition: 'Membersihkan harta dari unsur haram dengan menyalurkannya untuk fasilitas umum atau fakir miskin tanpa niat sedekah.' },
+    { term: 'Tadarruj', category: 'general', definition: 'Prinsip bertahap dalam meninggalkan keharaman saat kondisi sulit/darurat, namun tetap berprogres menuju yang halal.' },
+    { term: 'Bara\'ah', category: 'general', definition: 'Berlepas diri sepenuhnya dari transaksi haram seketika itu juga.' },
+    { term: 'Wara\'', category: 'general', definition: 'Sikap kehati-hatian tingkat tinggi, meninggalkan hal yang halal karena takut terjerumus pada yang haram (Syubhat).' },
+    { term: 'Akad', category: 'general', definition: 'Ikatan antara ijab (serah) dan qabul (terima) yang membenarkan adanya pemindahan kepemilikan atau manfaat.' },
+    { term: 'Ju\'alah', category: 'general', definition: 'Akad sayembara atau komisi berbasis hasil. Contoh: Afiliator yang mendapat komisi jika barang terjual.' },
 ];
 
 export const HEDE_FAQ = [
     {
-        question: "Apa itu Klinik Finansial?",
-        answer: "Klinik Finansial adalah alat bantu diagnosa mandiri (self-assessment) untuk mendeteksi potensi pelanggaran syariah dalam aktivitas ekonomi Anda, mulai dari pekerjaan, investasi, hingga kebiasaan transaksi digital."
+        question: "Apa tujuan diagnosa ini?",
+        answer: "Diagnosa Klinik Finansial bertujuan membantu Anda mendeteksi 'titik bocor' keberkahan dalam harta. Apakah dari pekerjaan, utang piutang, atau kebiasaan digital yang mungkin mengandung Riba, Gharar, atau Maysir tanpa disadari."
     },
     {
-        question: "Apa itu fitur 'Tathhir'?",
-        answer: "Tathhir adalah kalkulator untuk menghitung berapa nominal harta non-halal (seperti bunga bank) yang harus dikeluarkan (dibuang) dari total kekayaan Anda agar sisa harta menjadi suci. Harta ini disalurkan ke fasilitas umum tanpa niat sedekah."
+        question: "Apakah data saya aman?",
+        answer: "100% Aman. NIZAMY menggunakan arsitektur 'Local-First'. Semua jawaban dan hasil diagnosa disimpan secara terenkripsi di dalam HP Anda sendiri. Tidak ada data yang dikirim ke server kami."
     },
     {
-        question: "Apakah hasil diagnosa ini adalah Fatwa?",
-        answer: "Bukan. Hasil diagnosa adalah indikator awal berdasarkan kaidah umum Fiqh Muamalah (Jumhur Ulama). Untuk kasus spesifik dan keputusan hukum final, Anda tetap disarankan berkonsultasi langsung (Talaqqi) dengan Ustadz atau Ahli Fiqh Muamalah."
-    },
-    {
-        question: "Apakah data keuangan saya aman?",
-        answer: "Sangat aman. NIZAMY menggunakan prinsip 'Local-First'. Semua jawaban dan data diagnosa Anda HANYA tersimpan di browser HP Anda. Kami tidak mengirim data tersebut ke server manapun. Aib atau kondisi keuangan Anda adalah privasi mutlak Anda."
-    },
-    {
-        question: "Bagaimana jika hasilnya 'Kritis' atau banyak Riba?",
-        answer: "Jangan panik dan jangan putus asa dari rahmat Allah. Klinik Finansial dilengkapi dengan roadmap 'Hijrah Bertahap' (Tadarruj). Jika kondisi ekonomi belum memungkinkan untuk berhenti total seketika, Islam memberikan kelonggaran (Rukhshah) untuk menyelesaikannya secara bertahap sambil bertaubat."
+        question: "Apakah hasil skor ini adalah vonis hukum/fatwa?",
+        answer: "Bukan. Skor ini adalah indikator teknis berdasarkan algoritma diagnosa mandiri (self-assessment). Hasil 'Kritis' atau 'Syubhat' adalah peringatan dini (early warning) agar Anda berkonsultasi lebih lanjut dengan Ustadz atau Ahli Fiqh Muamalah untuk mendapatkan fatwa spesifik atas kasus Anda."
     },
     {
         question: "Apa rujukan Fiqh yang digunakan?",
-        answer: "Logika diagnosa disusun berdasarkan kaidah-kaidah yang disepakati (Ijma') dan Fatwa DSN-MUI terkait Riba, Gharar, dan Maysir, serta pandangan kontemporer tentang uang elektronik dan cashback."
+        answer: "Aplikasi ini merujuk pada kaidah Fiqh Muamalah Maliyah yang disepakati (Jumhur Ulama) dan Fatwa DSN-MUI yang relevan dengan konteks Indonesia, dengan pendekatan Mazhab Syafi'i pada umumnya namun tetap mengakomodir pendapat kuat lainnya (seperti dalam zakat fitrah dengan uang)."
+    },
+    {
+        question: "Skor saya 'Kritis', apa yang harus saya lakukan?",
+        answer: "Jangan panik dan jangan putus asa. Allah Maha Pengampun. \n1. Niatkan Taubat Nasuha.\n2. Cek tab 'Roadmap' untuk melihat langkah prioritas.\n3. Jika terkait utang Riba, fokus pelunasan pokok secepatnya.\n4. Gunakan fitur 'Tathhir' untuk menghitung dana yang perlu dibersihkan."
+    },
+    {
+        question: "Apa itu Dana Tathhir dan kemana menyalurkannya?",
+        answer: "Dana Tathhir adalah harta non-halal (seperti bunga bank) yang wajib dikeluarkan agar sisa harta kita menjadi suci. Dana ini BUKAN sedekah dan tidak mendapat pahala sedekah. Salurkan untuk fasilitas umum (jalan, jembatan, WC umum) atau fakir miskin yang sangat membutuhkan."
+    },
+    {
+        question: "Apakah menjadi Afiliator itu halal?",
+        answer: "Hukum asalnya Halal (Mubah) dengan akad Ju'alah/Simsarah. Namun bisa menjadi Haram jika Anda mempromosikan barang haram, melakukan 'Fake Review' (Tadlis), atau berbohong tentang kualitas produk."
     }
 ];
 
 export const QUESTIONS_DB: Question[] = [
-  // --- 1. JOB (PEKERJAAN) ---
+  // --- 1. SUMBER PENGHASILAN (JOB) ---
   {
     id: 'job_role',
     category: 'job',
-    text: "Apa status/peran utama pekerjaan Anda saat ini?",
+    text: "Bismillah. Mari kita mulai dengan mengenali pintu rezeki Anda. Profesi mana yang paling menggambarkan keseharian Anda?",
+    helperText: "Setiap profesi memiliki risiko syariah yang unik. Kami membedakan kategori agar pertanyaan lebih relevan dengan fiqh profesi Anda.",
     options: [
-      { value: 'not_working', label: "Tidak Bekerja / Pelajar / Mahasiswa", riskWeight: 0, violationType: 'none' },
-      { value: 'manual_labor', label: "Pekerja Fisik / Tukang / Petani / Sektor Informal", riskWeight: 0, violationType: 'none' },
-      { value: 'white_collar', label: "Karyawan Kantor Sektor Riil / PNS / Profesional", riskWeight: 0, violationType: 'none' },
-      { value: 'freelancer', label: "Freelancer / Digital Nomad / Bisnis Sendiri", riskWeight: 0, violationType: 'none' },
-      { value: 'fin_industry', label: "Karyawan Bank / Leasing / Asuransi Konvensional", riskWeight: 90, violationType: 'riba' },
-      { value: 'haram_industry', label: "Industri Non-Halal (Bar/Alkohol/Judi)", riskWeight: 100, violationType: 'zulm' },
+      { value: 'office', label: "Karyawan Kantor / PNS / Guru / Nakes (Gaji Tetap)", riskWeight: 0, violationType: 'none' },
+      { value: 'religious', label: "Ustadz / Da'i / Guru Ngaji / Pengelola Yayasan", riskWeight: 0, violationType: 'none' },
+      { value: 'digital', label: "Freelancer / Content Creator / Afiliator / Bisnis Online", riskWeight: 0, violationType: 'none' },
+      { value: 'field', label: "Tukang / Driver / Pedagang / Petani / Teknisi (Fisik/Lapangan)", riskWeight: 0, violationType: 'none' },
+      { value: 'dependent', label: "Pelajar / Mahasiswa / Ibu Rumah Tangga (Belum Bekerja)", riskWeight: 0, violationType: 'none' },
+      { value: 'finance_bank', label: "Pegawai Bank Konvensional / Leasing / Asuransi", riskWeight: 95, violationType: 'riba' },
+      { value: 'haram_job', label: "Industri Hiburan Malam / Bar / Judi", riskWeight: 100, violationType: 'zulm' },
     ]
   },
+  
+  // BRANCH 1: KARYAWAN (Employee - Ijarah)
   {
     id: 'job_contract',
     category: 'job',
-    text: "Bagaimana skema pendapatan atau akad kerja Anda?",
+    text: "Terkait akad kerja, bagaimana kejelasan sistem gaji dan tugas Anda?",
+    helperText: "Dalam akad Ijarah (Sewa Jasa), upah dan tugas harus jelas (Ma'lum). Ketidakjelasan yang ekstrem adalah Gharar yang menzalimi pekerja.",
     dependency: {
         id: 'job_role',
-        type: 'exclude',
-        values: ['not_working', 'manual_labor']
+        type: 'include',
+        values: ['office', 'finance_bank', 'haram_job']
     },
     options: [
-      { value: 'clear', label: "Gaji/Fee/Upah nominalnya jelas & terukur (Akad Ijarah/Ju'alah)", riskWeight: 0, violationType: 'none' },
-      { value: 'target_based', label: "Pendapatan tidak pasti, dominan target/komisi/bagi hasil", riskWeight: 30, violationType: 'gharar' },
-      { value: 'grey_area', label: "Lingkup kerja sering berubah drastis tanpa kesepakatan ulang", riskWeight: 40, violationType: 'zulm' },
-    ]
-  },
-  {
-    id: 'job_risywah',
-    category: 'job',
-    text: "Dalam profesi Anda, apakah wajar menerima 'uang pelicin' atau fee di luar kontrak untuk melancarkan urusan?",
-    dependency: {
-        id: 'job_role',
-        type: 'exclude',
-        values: ['not_working', 'manual_labor', 'haram_industry']
-    },
-    options: [
-        { value: 'clean', label: "Tidak, sangat ketat & bersih (Zero Tolerance)", riskWeight: 0, violationType: 'none' },
-        { value: 'gifts', label: "Hanya menerima hadiah makanan kecil dari klien (Gratifikasi)", riskWeight: 40, violationType: 'gharar' },
-        { value: 'kickback', label: "Ya, ada fee/komisi 'bawah meja' (Suap/Risywah)", riskWeight: 100, violationType: 'zulm' }
-    ]
-  },
-  {
-    id: 'job_software',
-    category: 'job',
-    text: "Apakah perangkat lunak (Software/OS) yang Anda gunakan untuk bekerja 100% orisinal?",
-    dependency: {
-        id: 'job_role',
-        type: 'exclude',
-        values: ['not_working', 'manual_labor']
-    },
-    options: [
-        { value: 'original', label: "Ya, semua Original / Berbayar / Open Source", riskWeight: 0, violationType: 'none' },
-        { value: 'office_provided', label: "Disediakan kantor (Asumsi Original)", riskWeight: 0, violationType: 'none' },
-        { value: 'mixed', label: "Campur, ada yang bajakan (Crack) karena mahal", riskWeight: 50, violationType: 'zulm' },
-        { value: 'pirated', label: "Dominan bajakan/Crack untuk mencari nafkah", riskWeight: 80, violationType: 'zulm' }
+      { value: 'clear', label: "Jelas & Transparan. Gaji pokok & tugas disepakati di awal.", riskWeight: 0, violationType: 'none' },
+      { value: 'target_based', label: "Samar. Gaji sangat bergantung target yang tidak pasti (Gharar).", riskWeight: 30, violationType: 'gharar' },
+      { value: 'exploitation', label: "Zalim. Sering kerja lembur tanpa bayaran/hak yang jelas.", riskWeight: 50, violationType: 'zulm' },
     ]
   },
 
-  // --- 2. BUSINESS (BISNIS) ---
+  // BRANCH 2: FREELANCER DIGITAL & PEKERJA LAPANGAN (Self-Employed - Ju'alah/Jual Beli)
   {
-    id: 'biz_source',
-    category: 'business',
-    text: "Apakah Anda menjalankan bisnis? Jika ya, dari mana modal utamanya?",
-    options: [
-      { value: 'no_business', label: "Tidak memiliki bisnis", riskWeight: 0, violationType: 'none' },
-      { value: 'bootstrapping', label: "Modal Sendiri / Investor (Syirkah/Mudharabah)", riskWeight: 0, violationType: 'none' },
-      { value: 'bank_syariah', label: "Pembiayaan Bank Syariah (Murabahah/Musyarakah)", riskWeight: 10, violationType: 'none' },
-      { value: 'bank_conv', label: "Kredit Usaha Bank Konvensional (Bunga/Riba)", riskWeight: 90, violationType: 'riba' },
-    ]
-  },
-  {
-    id: 'biz_mlm',
-    category: 'business',
-    text: "Jika Anda mengikuti bisnis kemitraan/MLM, dari mana bonus terbesar berasal?",
+    id: 'biz_agreement',
+    category: 'job',
+    text: "Saat menerima proyek atau pesanan, bagaimana kesepakatan harga dengan klien/pelanggan?",
+    helperText: "Akad Jasa (Ju'alah) wajib menyepakati spesifikasi & harga di awal. 'Harga teman' yang speknya tidak jelas sering memicu sengketa.",
     dependency: {
-        id: 'biz_source',
-        type: 'exclude',
-        values: ['no_business']
+        id: 'job_role',
+        type: 'include',
+        values: ['digital', 'field']
     },
     options: [
-        { value: 'not_applicable', label: "Tidak ikut MLM", riskWeight: 0, violationType: 'none' },
-        { value: 'product_sales', label: "Murni dari penjualan produk ritel kepada konsumen", riskWeight: 0, violationType: 'none' },
-        { value: 'recruitment', label: "Dominan dari merekrut member baru (Money Game)", riskWeight: 95, violationType: 'maysir' }
+      { value: 'clear_invoice', label: "Jelas. Ada kesepakatan harga & spek pekerjaan di awal.", riskWeight: 0, violationType: 'none' },
+      { value: 'palugada', label: "Serabutan / 'Gampang bisa diatur' belakangan (Rawan sengketa).", riskWeight: 40, violationType: 'gharar' },
+      { value: 'unpaid', label: "Sering tidak dibayar lunas atau klien lari.", riskWeight: 20, violationType: 'zulm' }, 
+    ]
+  },
+
+  // BRANCH 3: KHUSUS USTADZ / DA'I / PENGELOLA YAYASAN (Amanah & Ghulul)
+  {
+    id: 'job_dakwah_ethics',
+    category: 'job',
+    text: "Terkait Adab & Muamalah dalam aktivitas Dakwah/Sosial, bagaimana pengelolaan dana atau upah (Bisyarah)?",
+    helperText: "Upah mengajar itu boleh (Jumhur). Namun hati-hati dengan 'Ghulul' (menggunakan dana donasi umat/yayasan untuk kepentingan pribadi tanpa hak).",
+    dependency: {
+        id: 'job_role',
+        type: 'include',
+        values: ['religious']
+    },
+    options: [
+        { value: 'professional', label: "Profesional. Gaji/Honor jelas dari Yayasan/Sekolah.", riskWeight: 0, violationType: 'none' },
+        { value: 'ikhlas', label: "Infaq / Seikhlasnya. Menerima apa adanya tanpa meminta.", riskWeight: 0, violationType: 'none' },
+        { value: 'high_tariff', label: "Pasang Tarif Ketat. Dakwah menjadi sulit bagi yang miskin.", riskWeight: 20, violationType: 'none' }, // Low Risk but ethical warning
+        { value: 'ghulul', label: "Dana Campur. Kadang terpakai dana donasi umat untuk pribadi.", riskWeight: 95, violationType: 'zulm' }
+    ]
+  },
+
+  // BRANCH 4: KHUSUS PEKERJA LAPANGAN (INTEGRITAS)
+  {
+    id: 'field_integrity',
+    category: 'job',
+    text: "Dalam bekerja (misal: membangun rumah, servis, atau berdagang), bagaimana kejujuran Anda terhadap bahan/takaran?",
+    helperText: "Mengurangi takaran (Tatfif) atau mengganti bahan bangunan dengan kualitas rendah tanpa izin klien adalah dosa besar dan bentuk kecurangan (Ghulul/Tadlis).",
+    dependency: {
+        id: 'job_role',
+        type: 'include',
+        values: ['field']
+    },
+    options: [
+        { value: 'honest', label: "Amanah. Sesuai takaran/spek yang dijanjikan.", riskWeight: 0, violationType: 'none' },
+        { value: 'mark_up', label: "Mark-up harga bahan diam-diam (mengambil kembalian belanja).", riskWeight: 50, violationType: 'zulm' },
+        { value: 'downgrade', label: "Kadang mengurangi kualitas/takaran demi untung lebih.", riskWeight: 80, violationType: 'zulm' }
+    ]
+  },
+
+  // BRANCH 5: KHUSUS PEKERJA DIGITAL, KANTOR, PELAJAR & USTADZ (SOFTWARE)
+  {
+    id: 'job_tools',
+    category: 'job',
+    text: "Terkait software di laptop/komputer untuk kerja, kuliah, atau menyusun materi dakwah, bagaimana status lisensinya?",
+    helperText: "Memakai software bajakan (Crack) termasuk Ghasab (Memakai hak orang tanpa izin). Penuntut ilmu & pengemban dakwah seyogyanya paling wara' dalam hal ini.",
+    dependency: {
+        id: 'job_role',
+        type: 'include',
+        values: ['office', 'digital', 'dependent', 'religious']
+    },
+    options: [
+        { value: 'original', label: "Insya Allah Original / Gratisan Resmi / Disediakan Kampus.", riskWeight: 0, violationType: 'none' },
+        { value: 'mixed', label: "Campur. Ada aplikasi mahal yang terpaksa pakai Crack/Mod.", riskWeight: 40, violationType: 'zulm' },
+        { value: 'pirated', label: "Dominan Bajakan. Belum mampu beli lisensi resmi.", riskWeight: 70, violationType: 'zulm' }
+    ]
+  },
+
+  // BRANCH 6: KHUSUS AFILIATOR / CONTENT CREATOR
+  {
+    id: 'job_affiliate',
+    category: 'job',
+    text: "Jika Anda mencari rezeki sebagai Afiliator (TikTok/Shopee) atau Reviewer, bagaimana cara Anda promosi?",
+    helperText: "Akad Afiliasi (Ju'alah/Simsarah) itu Halal. Tapi menjadi Haram jika melakukan Tadlis (Penipuan) seperti Fake Review atau mempromosikan barang haram.",
+    dependency: {
+        id: 'job_role',
+        type: 'include',
+        values: ['digital', 'dependent']
+    },
+    options: [
+        { value: 'not_affiliate', label: "Saya bukan Afiliator / Tidak promosi produk.", riskWeight: 0, violationType: 'none' },
+        { value: 'honest_review', label: "Jujur. Saya hanya review barang yang sudah dicoba & halal.", riskWeight: 0, violationType: 'none' },
+        { value: 'blind_share', label: "Asal Share Link. Saya tidak tahu kualitas barang, yang penting komisi.", riskWeight: 30, violationType: 'gharar' },
+        { value: 'fake_review', label: "Fake Review (Bohong) atau Promosi barang KW/Haram.", riskWeight: 90, violationType: 'zulm' }
+    ]
+  },
+
+  // COMMON JOB QUESTION (RISYWAH) - Exclude Religious to maintain 'Muruah' and simplicity
+  {
+    id: 'job_risywah',
+    category: 'job',
+    text: "Bagaimana budaya 'hadiah' atau 'tips pelicin' di lingkungan kerja Anda?",
+    helperText: "Hati-hati dengan Risywah (Suap). Hadiah yang diberikan karena jabatan/kuasa untuk melancarkan urusan yang tidak semestinya adalah haram.",
+    dependency: {
+        id: 'job_role',
+        type: 'exclude',
+        values: ['dependent', 'religious']
+    },
+    options: [
+        { value: 'clean', label: "Bersih. Kami menolak gratifikasi/suap.", riskWeight: 0, violationType: 'none' },
+        { value: 'grey_gifts', label: "Kadang menerima parsel/tips pelicin dari klien.", riskWeight: 30, violationType: 'gharar' },
+        { value: 'kickback', label: "Ada 'Fee Bawah Meja' wajib untuk meloloskan proyek.", riskWeight: 100, violationType: 'zulm' }
+    ]
+  },
+
+  // --- 2. MODEL BISNIS (BUSINESS) ---
+  {
+    id: 'biz_capital',
+    category: 'business',
+    text: "Jika Anda memiliki usaha sampingan, dari mana sumber modal utamanya?",
+    helperText: "Modal yang bercampur Riba akan mempengaruhi kehalalan hasil usaha. Islam menganjurkan Syirkah (Kerja sama) atau Mudharabah.",
+    options: [
+      { value: 'no_biz', label: "Saya tidak memiliki bisnis sampingan.", riskWeight: 0, violationType: 'none' },
+      { value: 'halal_cap', label: "Modal Sendiri / Keluarga / Investor (Bagi Hasil).", riskWeight: 0, violationType: 'none' },
+      { value: 'bank_syariah', label: "Pembiayaan Bank Syariah (Murabahah/Musyarakah).", riskWeight: 10, violationType: 'none' },
+      { value: 'bank_conv', label: "Pinjaman Bank Konvensional / Rentenir (Bunga).", riskWeight: 90, violationType: 'riba' },
     ]
   },
   {
     id: 'biz_dropship',
     category: 'business',
-    text: "Jika Anda berjualan online (Dropship/Reseller), bagaimana metodenya?",
+    text: "Bagi pegiat Online Shop / Dropship, apakah Anda memiliki izin/akad dengan supplier?",
+    helperText: "Nabi SAW melarang 'Menjual barang yang belum dimiliki', KECUALI Anda sudah jadi agen/wakil resmi (Wakalah) dari pemilik barang.",
     dependency: {
-        id: 'biz_source',
+        id: 'biz_capital',
         type: 'exclude',
-        values: ['no_business']
+        values: ['no_biz']
     },
     options: [
-      { value: 'not_applicable', label: "Tidak berjualan online / Punya stok sendiri", riskWeight: 0, violationType: 'none' },
-      { value: 'wakalah', label: "Dropship resmi (Ada izin/akad wakalah dari supplier)", riskWeight: 0, violationType: 'none' },
-      { value: 'wild_dropship', label: "Jual barang orang tanpa izin & tanpa stok (Jual sebelum memiliki)", riskWeight: 80, violationType: 'gharar' }, 
+      { value: 'stock_own', label: "Saya punya stok barang sendiri (Jual Beli Biasa).", riskWeight: 0, violationType: 'none' },
+      { value: 'wakalah', label: "Saya dropshipper/agen resmi (Ada akad izin jual).", riskWeight: 0, violationType: 'none' },
+      { value: 'wild', label: "Hanya comot foto & jual barang orang tanpa izin (Spekulasi).", riskWeight: 80, violationType: 'gharar' }, 
     ]
   },
 
-  // --- 3. FINANCE (KEUANGAN) ---
+  // --- 3. KEUANGAN (FINANCE) ---
   {
-    id: 'fin_lifestyle',
+    id: 'fin_debt',
     category: 'finance',
-    text: "Bagaimana pola pengeluaran bulanan dibandingkan pendapatan Anda?",
+    text: "Mari cek kewajiban kita. Apakah saat ini ada cicilan utang berbunga?",
+    helperText: "Riba (Bunga) adalah dosa besar yang diperangi Allah. Niatkan untuk segera lunas agar hidup tenang.",
     options: [
-        { value: 'saving', label: "Hemat & Rutin Investasi (Surplus)", riskWeight: 0, violationType: 'none' },
-        { value: 'enough', label: "Pas-pasan / Cukup untuk kebutuhan (Zero Budgeting)", riskWeight: 0, violationType: 'none' },
-        { value: 'deficit_needs', label: "Defisit/Kurang karena menanggung beban keluarga/darurat (Bukan boros)", riskWeight: 0, violationType: 'none' },
-        { value: 'lifestyle_waste', label: "Defisit demi gaya hidup/gengsi (Israf/Tabdzir)", riskWeight: 40, violationType: 'zulm' },
-        { value: 'debt_consumptive', label: "Berutang untuk hal konsumtif/keinginan sekunder", riskWeight: 70, violationType: 'zulm' }
-    ]
-  },
-  {
-    id: 'fin_loan',
-    category: 'finance',
-    text: "Apakah Anda memiliki cicilan/utang berjalan?",
-    options: [
-      { value: 'none', label: "Tidak Ada / Sudah Lunas", riskWeight: 0, violationType: 'none' },
-      { value: 'soft_loan', label: "Utang Lunak ke Kerabat (Qardh/Tanpa Bunga)", riskWeight: 0, violationType: 'none' },
-      { value: 'kpr_syariah', label: "KPR/Cicilan Syariah Resmi (Murabahah)", riskWeight: 5, violationType: 'none' },
-      { value: 'kpr_conv', label: "KPR/Leasing Konvensional (Bunga)", riskWeight: 95, violationType: 'riba' },
-      { value: 'pinjol', label: "Pinjaman Online / Rentenir (Bunga Tinggi)", riskWeight: 100, violationType: 'riba' },
+      { value: 'debt_free', label: "Alhamdulillah Bebas Utang Riba.", riskWeight: 0, violationType: 'none' },
+      { value: 'soft_loan', label: "Ada utang ke kerabat/kantor tanpa bunga (Qardh).", riskWeight: 0, violationType: 'none' },
+      { value: 'kpr_syariah', label: "Cicilan ke Bank Syariah (Akad Jual Beli/Sewa).", riskWeight: 5, violationType: 'none' },
+      { value: 'kpr_conv', label: "KPR / Leasing / Kartu Kredit Konvensional (Bunga).", riskWeight: 95, violationType: 'riba' },
+      { value: 'pinjol', label: "Terjerat Pinjol / Rentenir.", riskWeight: 100, violationType: 'riba' },
     ]
   },
   {
     id: 'fin_invest',
     category: 'finance',
-    text: "Di mana instrumen investasi utama Anda?",
+    text: "Di mana Anda biasa 'menumbuhkan' uang (Investasi)?",
+    helperText: "Pastikan instrumen investasi bebas dari Riba (Bunga), Gharar (Ketidakjelasan), dan Maysir (Judi).",
     options: [
-      { value: 'none', label: "Tidak berinvestasi / Tunai saja", riskWeight: 0, violationType: 'none' },
-      { value: 'gold', label: "Emas Fisik / Properti / Tanah", riskWeight: 0, violationType: 'none' },
-      { value: 'stocks_syariah', label: "Saham Syariah / Sukuk / Reksadana Syariah", riskWeight: 0, violationType: 'none' },
-      { value: 'deposito', label: "Deposito Bank Konvensional (Bunga)", riskWeight: 80, violationType: 'riba' },
-      { value: 'crypto_future', label: "Crypto Futures/Leverage (Judi)", riskWeight: 95, violationType: 'maysir' },
-    ]
-  },
-  {
-    id: 'fin_trading_gold',
-    category: 'finance',
-    text: "Jika Anda trading Emas/Valas secara online, apakah ada serah terima fisik (taqabudh)?",
-    dependency: {
-        id: 'fin_invest',
-        type: 'exclude',
-        values: ['none', 'deposito']
-    },
-    options: [
-        { value: 'not_applicable', label: "Tidak trading emas/valas", riskWeight: 0, violationType: 'none' },
-        { value: 'physical', label: "Ya, emas bisa dicetak/diambil fisik sewaktu-waktu", riskWeight: 0, violationType: 'none' },
-        { value: 'speculative', label: "Tidak, hanya angka di aplikasi untuk cari selisih harga (Paper Gold)", riskWeight: 85, violationType: 'riba' }
+      { value: 'none', label: "Hanya menabung biasa / Tunai.", riskWeight: 0, violationType: 'none' },
+      { value: 'real_asset', label: "Emas Fisik, Properti, Tanah, Hewan Ternak.", riskWeight: 0, violationType: 'none' },
+      { value: 'sharia_paper', label: "Saham Syariah, Sukuk, Reksadana Syariah.", riskWeight: 0, violationType: 'none' },
+      { value: 'deposito', label: "Deposito Bank Konvensional (Bunga Pasti).", riskWeight: 80, violationType: 'riba' },
+      { value: 'crypto_spot', label: "Crypto Spot (Jual Beli Aset Digital Murni).", riskWeight: 20, violationType: 'gharar' },
+      { value: 'futures', label: "Trading Futures / Crypto Leverage / Binary Option (Judi).", riskWeight: 95, violationType: 'maysir' },
     ]
   },
   {
     id: 'fin_insurance',
     category: 'finance',
-    text: "Apa jenis asuransi (jiwa/kesehatan/kendaraan) yang Anda gunakan?",
+    text: "Bagaimana proteksi asuransi yang Anda gunakan saat ini?",
+    helperText: "Asuransi konvensional mengandung unsur Gharar (Ketidakjelasan dana) dan Maysir (Judi/Untung-untungan). Asuransi Syariah menggunakan akad Tabarru' (Tolong menolong). BPJS Kesehatan dinilai maslahat oleh ulama.",
     options: [
-        { value: 'none_bpjs', label: "Tidak Punya / BPJS Kesehatan (Gotong Royong)", riskWeight: 0, violationType: 'none' },
-        { value: 'takaful', label: "Asuransi Syariah (Takaful/Tabarru')", riskWeight: 0, violationType: 'none' },
-        { value: 'conv_insurance', label: "Asuransi Konvensional Swasta", riskWeight: 85, violationType: 'maysir' },
+        { value: 'none_bpjs', label: "BPJS Kesehatan / Tidak Ada (Tawakkal).", riskWeight: 0, violationType: 'none' },
+        { value: 'sharia_ins', label: "Asuransi Syariah (Takaful).", riskWeight: 0, violationType: 'none' },
+        { value: 'conv_ins', label: "Asuransi Swasta Konvensional (Kesehatan/Jiwa).", riskWeight: 70, violationType: 'gharar' },
+        { value: 'unit_link', label: "Asuransi Unit Link (Campuran Investasi & Proteksi).", riskWeight: 80, violationType: 'gharar' }
     ]
   },
   {
     id: 'fin_zakat',
     category: 'finance',
-    text: "Bagaimana status penunaian Zakat Maal (Harta) Anda?",
+    text: "Bagaimana status penunaian Zakat Maal (Harta Simpanan/Investasi) Anda saat ini?",
+    helperText: "Zakat Maal wajib jika harta mencapai Nisab (setara 85g Emas) dan Haul (1 tahun). Harta yang tidak dizakati padahal wajib, akan menjadi 'kotor'.",
     options: [
-        { value: 'routine', label: "Rutin menunaikan saat mencapai Haul & Nisab", riskWeight: 0, violationType: 'none' },
-        { value: 'not_reached', label: "Harta belum mencapai Nisab (Belum wajib)", riskWeight: 0, violationType: 'none' },
-        { value: 'charity_only', label: "Hanya sedekah seikhlasnya, tidak hitung Zakat padahal mampu", riskWeight: 40, violationType: 'zulm' }, 
-        { value: 'never', label: "Tidak pernah menunaikan Zakat Maal", riskWeight: 70, violationType: 'zulm' },
+        { value: 'routine', label: "Tertib. Selalu bayar saat mencapai Nisab & Haul.", riskWeight: 0, violationType: 'none' },
+        { value: 'not_reached', label: "Belum Wajib. Harta saya belum mencapai Nisab.", riskWeight: 0, violationType: 'none' },
+        { value: 'fitrah_only', label: "Wajib tapi lalai. Cuma bayar Zakat Fitrah.", riskWeight: 40, violationType: 'zulm' },
+        { value: 'rare', label: "Tidak Tahu / Tidak pernah menghitung.", riskWeight: 60, violationType: 'zulm' }
     ]
   },
   {
     id: 'fin_inheritance',
     category: 'finance',
-    text: "Apakah ada harta warisan keluarga yang belum dibagi?",
+    text: "Terkait harta peninggalan orang tua (Warisan), bagaimana statusnya saat ini?",
+    helperText: "Menahan pembagian waris secara sengaja padahal ada ahli waris yang membutuhkan adalah bentuk kezaliman (Ghasab). Harta harus segera dibagi sesuai Faraidh.",
     options: [
-      { value: 'no_inheritance', label: "Tidak ada / Sudah dibagi tuntas", riskWeight: 0, violationType: 'none' },
-      { value: 'divided_syariah', label: "Sudah dibagi sesuai Faraidh (Syariat)", riskWeight: 0, violationType: 'none' },
-      { value: 'divided_adat', label: "Dibagi rata/adat (Bukan Faraidh)", riskWeight: 60, violationType: 'zulm' }, 
-      { value: 'undivided_mixed', label: "Belum dibagi, harta masih campur & dipakai bersama (Ghasab)", riskWeight: 70, violationType: 'zulm' } 
+        { value: 'no_inheritance', label: "Aman. Sudah dibagi tuntas / Orang tua masih ada.", riskWeight: 0, violationType: 'none' },
+        { value: 'delayed', label: "Tertunda. Harta utuh tapi belum dibagi (Saling ridho).", riskWeight: 40, violationType: 'zulm' },
+        { value: 'ghasab', label: "Dikuasai sepihak / Dipakai tanpa izin ahli waris lain.", riskWeight: 95, violationType: 'zulm' }
     ]
   },
-
-  // --- 4. DIGITAL TRANSACTIONS ---
+  
+  // --- 4. DIGITAL & LIFESTYLE ---
   {
-    id: 'dig_wallet',
+    id: 'dig_ewallet',
     category: 'digital',
-    text: "Bagaimana Anda menyikapi Promo/Diskon di E-Wallet (Gopay/OVO/ShopeePay)?",
+    text: "Bagaimana kebiasaan Anda menggunakan E-Wallet (Gopay/OVO/ShopeePay)?",
+    helperText: "Saldo di E-Wallet adalah titipan/utang kita ke aplikasi (Wadi'ah/Qardh). Mengambil manfaat (diskon/cashback) atas utang adalah Riba. Solusi: Jangan endapkan saldo.",
     options: [
-      { value: 'no_wallet', label: "Tidak menggunakan E-Wallet", riskWeight: 0, violationType: 'none' },
-      { value: 'pay_pass', label: "Hanya top-up pas mau bayar (Pass-through/Tidak mengendap)", riskWeight: 0, violationType: 'none' },
-      { value: 'keep_balance_no_promo', label: "Menyimpan saldo tapi tidak mengambil promo diskon", riskWeight: 5, violationType: 'none' },
-      { value: 'promo_hunter', label: "Sengaja pakai E-Wallet karena mengejar diskon/cashback", riskWeight: 60, violationType: 'riba' }, 
+      { value: 'pass_through', label: "Top-up hanya pas mau bayar (Pass-through).", riskWeight: 0, violationType: 'none' },
+      { value: 'keep_balance', label: "Simpan saldo, tapi tidak ambil promo diskon.", riskWeight: 5, violationType: 'none' },
+      { value: 'promo_hunter', label: "Sengaja isi saldo/upgrade akun demi diskon & cashback.", riskWeight: 60, violationType: 'riba' }, 
     ]
   },
   {
-    id: 'dig_marketplace',
+    id: 'dig_paylater',
     category: 'digital',
-    text: "Saat belanja online, metode bayar apa yang sering dipakai?",
+    text: "Jujur, apakah Anda sering menggunakan Paylater saat belanja?",
+    helperText: "Fitur 'Beli Sekarang Bayar Nanti' dengan denda keterlambatan adalah bentuk Riba Jahiliyah modern. Hindari jika mampu.",
     options: [
-      { value: 'cod_transfer', label: "COD, Transfer Bank, atau Debit Langsung", riskWeight: 0, violationType: 'none' },
-      { value: 'paylater_active', label: "Paylater (Beli sekarang bayar nanti dengan bunga/biaya)", riskWeight: 95, violationType: 'riba' },
-      { value: 'credit_card', label: "Kartu Kredit Konvensional (Cicilan Berbunga)", riskWeight: 90, violationType: 'riba' },
+      { value: 'no', label: "Tidak, saya bayar tunai/transfer.", riskWeight: 0, violationType: 'none' },
+      { value: 'yes', label: "Ya, sering pakai Paylater / Cicilan berbunga.", riskWeight: 90, violationType: 'riba' },
     ]
   },
   {
     id: 'dig_gacha',
     category: 'digital',
-    text: "Apakah Anda sering membeli item virtual acak (Gacha/Lootbox) atau Mystery Box?",
+    text: "Suka main game? Apakah Anda membeli item 'Gacha' / 'Lootbox'?",
+    helperText: "Membayar uang asli untuk item acak (bisa untung/buntung) adalah unsur Maysir (Perjudian) dalam game.",
     options: [
-        { value: 'no', label: "Tidak pernah", riskWeight: 0, violationType: 'none' },
-        { value: 'direct', label: "Hanya beli item pasti (Direct Purchase)", riskWeight: 0, violationType: 'none' },
-        { value: 'yes', label: "Ya, sering beli gacha demi keberuntungan (Untung-untungan)", riskWeight: 90, violationType: 'maysir' }
+        { value: 'clean_gamer', label: "Tidak main game / Beli item pasti saja.", riskWeight: 0, violationType: 'none' },
+        { value: 'gacha_addict', label: "Ya, sering Gacha buat cari karakter/item langka.", riskWeight: 85, violationType: 'maysir' }
     ]
   },
 
-  // --- 5. PAYMENT SYSTEM ---
+  // --- 5. EMERGENCY CHECK ---
   {
-    id: 'pay_cc',
-    category: 'payment',
-    text: "Apakah Anda menggunakan Kartu Kredit?",
-    options: [
-      { value: 'none', label: "Tidak punya", riskWeight: 0, violationType: 'none' },
-      { value: 'syariah_card', label: "Syariah Card (Akad Ijarah/Kafalah)", riskWeight: 0, violationType: 'none' },
-      { value: 'conv_full_pay', label: "Kartu Kredit Konvensional (Selalu bayar penuh/Full Payment)", riskWeight: 40, violationType: 'zulm' }, 
-      { value: 'conv_revolve', label: "Kartu Kredit Konvensional (Bayar minimum/Revolving dengan Bunga)", riskWeight: 100, violationType: 'riba' },
-    ]
-  },
-
-  // --- 6. EMERGENCY (KEDARURATAN) - Modifier Section ---
-  {
-    id: 'em_savings',
+    id: 'em_fund',
     category: 'emergency',
-    text: "Berapa lama Anda bisa bertahan hidup jika penghasilan berhenti hari ini?",
+    text: "Terakhir, seberapa kuat pertahanan 'Dana Darurat' Anda saat ini?",
+    helperText: "Ini untuk mengukur tingkat 'Dharurat'. Dalam kondisi yang mengancam nyawa/kebutuhan pokok, hukum Islam memberi kelonggaran (Rukhshah) untuk bertahap.",
     options: [
-      { value: 'secure', label: "> 6 Bulan (Aman)", riskWeight: 0, hardshipWeight: 0, violationType: 'none' },
-      { value: 'medium', label: "1 - 3 Bulan", riskWeight: 0, hardshipWeight: 50, violationType: 'none' },
-      { value: 'critical', label: "Kurang dari 1 bulan / Tidak ada tabungan", riskWeight: 0, hardshipWeight: 100, violationType: 'none' },
-    ]
-  },
-  {
-    id: 'em_dependents',
-    category: 'emergency',
-    text: "Siapa yang bergantung pada nafkah Anda?",
-    options: [
-      { value: 'single', label: "Hanya diri sendiri", riskWeight: 0, hardshipWeight: 0, violationType: 'none' },
-      { value: 'family', label: "Istri & Anak", riskWeight: 0, hardshipWeight: 60, violationType: 'none' },
-      { value: 'extended', label: "Keluarga besar", riskWeight: 0, hardshipWeight: 90, violationType: 'none' },
+      { value: 'safe', label: "Aman (> 3 bulan pengeluaran).", riskWeight: 0, hardshipWeight: 0, violationType: 'none' },
+      { value: 'warning', label: "Tipis (Cukup untuk 1 bulan).", riskWeight: 0, hardshipWeight: 50, violationType: 'none' },
+      { value: 'danger', label: "Kritis / Tidak ada tabungan sama sekali.", riskWeight: 0, hardshipWeight: 100, violationType: 'none' },
     ]
   }
 ];

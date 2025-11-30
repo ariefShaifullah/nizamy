@@ -63,7 +63,7 @@ const generateStepsForRisk = (
             if (isGradual) {
                 steps.push({
                     phase: 'mid_term',
-                    action: "Jual aset sekunder (Gadget/Kendaraan/Tas Branded) untuk melunasi pokok utang.",
+                    action: "Jual aset sekunder (Gadget/Kendaraan) untuk melunasi pokok utang.",
                     impact: "Mengurangi beban bunga drastis & mempercepat lunas.",
                     difficulty: 'medium'
                 });
@@ -208,22 +208,19 @@ export const calculateRiskScore = (answers: Record<string, string>): HedeResult 
     const emergencyQCount = QUESTIONS_DB.filter(q => q.category === 'emergency').length;
     hardshipScore = emergencyQCount > 0 ? hardshipScore / emergencyQCount : 0;
 
-    // --- SCORING LOGIC V2 (Constraint-Based) ---
+    // --- SCORING LOGIC V2 (Constraint-Based + Micro Progress) ---
     
-    // 1. Calculate Category Scores (For Radar Chart Only)
-    // We still use average for the visual chart breakdown to show which area is "relatively" better.
     const finalCategoryScores: CategoryScore[] = Object.keys(categoryScores)
         .filter(k => k !== 'emergency')
         .map(key => {
             const cat = key as HedeCategory;
             const data = categoryScores[cat];
             
-            // Logic: Base score 100 minus weighted average risk
+            // Base score: 100 - weighted average risk
             const avgRisk = data.count > 0 ? data.totalWeight / data.count : 0;
             let score = Math.max(0, 100 - avgRisk);
             
-            // Category Constraint: If this category has a critical violation, 
-            // the category score cannot exceed 40 (Red Zone).
+            // Category Constraint: Critical violation caps category score
             if (data.maxRisk >= 80) {
                 score = Math.min(score, 40);
             } else if (data.maxRisk >= 50) {
@@ -243,39 +240,49 @@ export const calculateRiskScore = (answers: Record<string, string>): HedeResult 
             };
         });
 
-    // 2. Calculate Total Score (The MAIN Number)
-    // Formula: 100 - (Average Risk of All Questions)
-    // BUT APPLIED WITH A HARD CEILING based on the worst violation found.
-    
+    // 2. Calculate Total Score
     const totalQuestions = Object.values(categoryScores).reduce((acc, curr) => acc + curr.count, 0);
     const sumAllWeights = Object.values(categoryScores).reduce((acc, curr) => acc + curr.totalWeight, 0);
     
-    let baseScore = 100;
+    // Raw Score (Pure Average)
+    let rawScore = 100;
     if (totalQuestions > 0) {
-        baseScore = Math.max(0, 100 - (sumAllWeights / totalQuestions));
+        rawScore = Math.max(0, 100 - (sumAllWeights / totalQuestions));
     }
 
-    // --- THE FIX: POISON LOGIC (Weakest Link) ---
-    // If you have Riba (Critical), your financial purity cannot be > 40 (Critical).
-    // Even if 90% of your other transactions are halal.
+    // --- POISON LOGIC (Improved) ---
+    // Instead of hard capping at 40/60/80 flat, we allow "Micro Progress" within the bracket.
+    // Example: Hard Riba = Cap 40. But if Raw Score is 90 (meaning everything else is Halal), 
+    // we allow the final score to be up to 49. This rewards the user for being good elsewhere.
+    
     let scoreCap = 100;
+    let poisonFactor = 0; // Penalties
 
-    if (globalMaxRisk >= 80) { // Critical Violation Present (e.g. Riba/Alcohol)
-        scoreCap = 40; // Force Critical Status
-    } else if (globalMaxRisk >= 50) { // High Risk Present (e.g. Dropship Illegal)
-        scoreCap = 60; // Force Warning Status
-    } else if (globalMaxRisk >= 30) { // Medium Risk Present
+    if (globalMaxRisk >= 80) { // Critical (e.g. Riba)
+        scoreCap = 40; 
+        poisonFactor = 0.1; // Allowed 10% of surplus raw score
+    } else if (globalMaxRisk >= 50) { // High
+        scoreCap = 60;
+        poisonFactor = 0.2; // Allowed 20% of surplus raw score
+    } else if (globalMaxRisk >= 30) { // Medium
         scoreCap = 80;
+        poisonFactor = 0.5;
     }
 
-    // Final Score is the LOWER of the Base Score or the Cap.
-    let totalScore = Math.round(Math.min(baseScore, scoreCap));
+    // Calculate final score with micro-progress
+    let totalScore = Math.round(Math.min(rawScore, scoreCap));
+    
+    // Apply Micro-Progress: If raw score > cap, allow a small bump
+    if (rawScore > scoreCap) {
+        const bonus = (rawScore - scoreCap) * poisonFactor;
+        totalScore = Math.round(scoreCap + bonus);
+    }
 
     // Determine Final Risk Level
     let riskLevel: RiskLevel = 'safe';
-    if (totalScore <= 40) riskLevel = 'critical';
-    else if (totalScore <= 60) riskLevel = 'high';
-    else if (totalScore <= 80) riskLevel = 'medium';
+    if (totalScore <= 49) riskLevel = 'critical'; // Adjusted threshold
+    else if (totalScore <= 69) riskLevel = 'high';
+    else if (totalScore <= 85) riskLevel = 'medium';
     else if (totalScore < 95) riskLevel = 'low';
 
     // Roadmap Matrix Logic
@@ -291,7 +298,7 @@ export const calculateRiskScore = (answers: Record<string, string>): HedeResult 
             explanation = "Risiko syariah tinggi dan Anda memiliki kemampuan (qudrah) untuk berhijrah. Disarankan Bara'ah (berlepas diri) secepatnya untuk keberkahan.";
         }
     } else if (riskLevel === 'medium') {
-        approach = 'immediate_exit'; // Syubhat should be left immediately usually
+        approach = 'immediate_exit';
         explanation = "Terdapat transaksi syubhat (meragukan). Sebaiknya ditinggalkan segera untuk menjaga kesucian harta (Wara').";
     }
 

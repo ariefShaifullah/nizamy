@@ -236,12 +236,12 @@ export const SurahSelection: React.FC<SurahSelectionProps> = ({
                                 );
                             })
                         ) : (
-                            <div className="text-center py-20 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
+                            <div className="text-center px-5 py-20 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
                                 <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center text-3xl mb-4 text-slate-300 dark:text-slate-600 shadow-sm">
                                     <FaStar />
                                 </div>
                                 <p className="font-bold text-slate-600 dark:text-slate-300">Belum ada penanda.</p>
-                                <p className="text-xs text-slate-400 mt-1 max-w-xs">Tekan lama pada ayat saat membaca untuk menyimpan ke sini.</p>
+                                <p className="text-xs text-slate-400 mt-1 max-w-xs">Tekan lama pada ayat (atau klik titik tiga) saat membaca untuk menyimpan ke sini.</p>
                             </div>
                         )}
                     </div>

@@ -1,12 +1,12 @@
 
 import React from 'react';
-import type { CalculationResult } from '../../../types.ts';
+import type { CalculationResult, HeirResult } from '../../../types.ts';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Label } from 'recharts';
 import { FIQH_DEFINITIONS } from '../constants.ts';
 import { formatCurrency } from '../../../utils.ts';
 import { exportFaraidhPdf } from '../logic/pdf-export.ts';
-import { InfoTooltip, ResultCard, CustomChartTooltip } from './FaraidhUI.tsx';
-import { FaFilePdf, FaExclamationCircle, FaCalculator } from 'react-icons/fa';
+import { InfoTooltip, CustomChartTooltip } from './FaraidhUI.tsx';
+import { FaFilePdf, FaExclamationCircle, FaCalculator, FaBookOpen, FaLock, FaUser } from 'react-icons/fa';
 
 const COLORS = [
   '#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4',
@@ -15,21 +15,98 @@ const COLORS = [
 
 interface ResultsDisplayProps {
   result: CalculationResult | null;
+  deceasedGender: 'male' | 'female';
 }
 
+const HeirResultCard: React.FC<{ heir: HeirResult }> = React.memo(({ heir }) => {
+    const isBlocked = heir.isBlocked;
+
+    return (
+      <div className={`rounded-2xl transition-all border relative overflow-hidden group ${
+          isBlocked 
+          ? 'bg-slate-50 dark:bg-slate-900/30 opacity-75 border-slate-100 dark:border-slate-800' 
+          : 'bg-white dark:bg-slate-800 shadow-sm border-slate-100 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600'
+      }`}>
+          
+          {/* Header Section */}
+          <div className="p-5 pb-3 flex justify-between items-start">
+              <div className="flex items-start gap-3">
+                  <div className={`mt-1 w-10 h-10 rounded-full flex items-center justify-center text-lg ${
+                      isBlocked 
+                      ? 'bg-slate-200 dark:bg-slate-700 text-slate-400' 
+                      : 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                  }`}>
+                      {isBlocked ? <FaLock size={14} /> : <FaUser size={16} />}
+                  </div>
+                  <div>
+                      <h4 className={`font-bold text-base md:text-lg leading-tight ${isBlocked ? 'text-slate-500' : 'text-slate-800 dark:text-slate-100'}`}>
+                          {heir.name}
+                      </h4>
+                      <div className="flex items-center gap-2 mt-1">
+                          {heir.count > 1 && (
+                              <span className="text-[10px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full border border-slate-200 dark:border-slate-600">
+                                  {heir.count} Orang
+                              </span>
+                          )}
+                          {isBlocked && (
+                              <span className="text-[10px] font-bold bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-2 py-0.5 rounded-full border border-red-100 dark:border-red-900/30">
+                                  MAHJUB
+                              </span>
+                          )}
+                      </div>
+                  </div>
+              </div>
+
+              {!isBlocked && heir.value > 0 && (
+                  <div className="text-right">
+                      <div className="flex flex-col items-end">
+                          <span className="text-xs font-mono font-bold bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-md mb-1">
+                              {heir.finalShare.numerator}/{heir.finalShare.denominator}
+                          </span>
+                          <p className="font-bold text-slate-900 dark:text-white text-lg tracking-tight">
+                              {formatCurrency(heir.value)}
+                          </p>
+                      </div>
+                  </div>
+              )}
+          </div>
+
+          {/* Details & Dalil */}
+          <div className="px-5 pb-5">
+              <div className={`mt-2 p-3 rounded-xl text-sm leading-relaxed ${
+                  isBlocked 
+                  ? 'bg-slate-100/50 dark:bg-slate-800/50 text-slate-500' 
+                  : 'bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-300'
+              }`}>
+                  {heir.reason}
+              </div>
+
+              {/* Dalil Section - Highlighted */}
+              {heir.evidence && (
+                  <div className="mt-3 flex items-start gap-2.5">
+                      <span className={`mt-0.5 ${isBlocked ? 'text-slate-400' : 'text-blue-500 dark:text-blue-400'}`}>
+                          <FaBookOpen size={12} />
+                      </span>
+                      <p className="text-xs text-slate-400 dark:text-slate-500 italic font-medium">
+                          Rujukan: {heir.evidence}
+                      </p>
+                  </div>
+              )}
+          </div>
+      </div>
+    );
+});
+
 export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
-  
   if (!result) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[300px] lg:h-[600px] bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 p-8 text-center transition-colors sticky top-24">
-        <div className="w-24 h-24 bg-slate-50 dark:bg-slate-900 rounded-full flex items-center justify-center mb-6 text-slate-300 dark:text-slate-600 animate-pulse">
-            <div className="w-12 h-12 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <div className="icon-wrapper w-12 h-12 flex items-center justify-center"><FaCalculator size="2.5em"/></div>
-            </div>
+        <div className="w-24 h-24 bg-blue-50 dark:bg-slate-900 rounded-full flex items-center justify-center mb-6 text-blue-200 dark:text-slate-700 animate-pulse">
+            <FaCalculator size="3em"/>
         </div>
-        <h3 className="text-2xl font-bold text-slate-700 dark:text-slate-200">Menunggu Input</h3>
+        <h3 className="text-2xl font-bold text-slate-700 dark:text-slate-200">Hasil Perhitungan</h3>
         <p className="text-slate-500 dark:text-slate-400 mt-2 leading-relaxed text-sm max-w-xs mx-auto">
-            Isi data ahli waris di sebelah kiri, lalu klik tombol <span className="font-semibold text-blue-600 dark:text-blue-400">Hitung Waris</span>.
+            Masukkan data harta dan ahli waris di panel kiri untuk melihat pembagian sesuai Syariat Islam.
         </p>
       </div>
     );
@@ -55,33 +132,38 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
   const hasReceivingHeirs = chartData.length > 0;
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl shadow-blue-100/20 dark:shadow-none border border-slate-100 dark:border-slate-700 relative transition-colors">
-      <div className="p-5 border-b border-slate-100 dark:border-slate-700 bg-linear-to-b from-slate-50 to-white dark:from-slate-800 dark:to-slate-800 flex justify-between items-center rounded-t-3xl">
+    <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl shadow-blue-100/20 dark:shadow-none border border-slate-100 dark:border-slate-700 relative transition-colors overflow-hidden">
+      {/* Header Result */}
+      <div className="p-6 bg-slate-50/80 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-                <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-2 animate-pulse"></span>
-                    Hasil Perhitungan
+                <h3 className="text-xl font-black text-slate-800 dark:text-white flex items-center">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-2.5 animate-pulse"></span>
+                    Ringkasan
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 ml-4">Asal Masalah: {result.aslAlMasalah} &rarr; {result.finalDenominator}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 ml-4 font-mono">
+                    Asal Masalah: <strong className="text-slate-700 dark:text-slate-300">{result.aslAlMasalah}</strong> &rarr; <strong className="text-blue-600 dark:text-blue-400">{result.finalDenominator}</strong>
+                </p>
             </div>
             <button 
                 onClick={() => exportFaraidhPdf(result)} 
-                className="flex items-center px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors shadow-sm"
+                className="flex items-center px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
             >
-                <span className="icon-wrapper w-4 h-4 mr-1.5 text-red-500"><FaFilePdf /></span>
+                <span className="text-red-500 mr-2"><FaFilePdf /></span>
                 Unduh PDF
             </button>
       </div>
       
-      <div className="p-5">
-        <div className="bg-linear-to-r from-blue-600 to-indigo-600 dark:from-blue-700 dark:to-indigo-900 p-6 rounded-2xl text-white shadow-lg shadow-blue-500/20 dark:shadow-none mb-6 relative overflow-hidden">
-            <div className="absolute -right-6 -top-6 bg-white/10 w-24 h-24 rounded-full blur-2xl"></div>
-            <p className="text-blue-100 text-xs font-bold mb-1 uppercase tracking-widest opacity-80">Total Dibagi</p>
-            <p className="text-3xl font-extrabold tracking-tight">{formatCurrency(result.estate)}</p>
+      <div className="p-6">
+        {/* Total Estate Card */}
+        <div className="bg-linear-to-r from-blue-600 to-indigo-600 dark:from-blue-700 dark:to-indigo-900 p-6 rounded-2xl text-white shadow-lg shadow-blue-500/20 dark:shadow-none mb-8 relative overflow-hidden">
+            <div className="absolute -right-6 -top-6 bg-white/10 w-32 h-32 rounded-full blur-3xl"></div>
+            <p className="text-blue-100 text-xs font-bold mb-1 uppercase tracking-widest opacity-80">Total Harta Dibagi</p>
+            <p className="text-3xl sm:text-4xl font-extrabold tracking-tight">{formatCurrency(result.estate)}</p>
         </div>
       
+        {/* Alerts / Notes */}
         {result.notes.length > 0 && (
-            <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-400 dark:border-amber-500 rounded-r-xl space-y-3">
+            <div className="mb-8 p-4 bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-400 dark:border-amber-500 rounded-r-xl space-y-3">
                 {result.notes.map((note, index) => {
                     let term: keyof typeof FIQH_DEFINITIONS | null = null;
                     if (note.includes("'Aul")) term = 'AUL';
@@ -105,27 +187,29 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
             </div>
         )}
 
-        {!hasReceivingHeirs && (
-            <div className="my-8 flex flex-col items-center justify-center text-center p-8 bg-slate-50 dark:bg-slate-900/30 rounded-2xl border-2 border-slate-100 dark:border-slate-700 border-dashed">
-                <div className="w-14 h-14 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center text-slate-300 dark:text-slate-600 mb-3 shadow-sm">
-                    <span className="icon-wrapper w-8 h-8"><FaExclamationCircle /></span>
+        {!hasReceivingHeirs ? (
+            <div className="py-12 flex flex-col items-center justify-center text-center p-8 bg-slate-50 dark:bg-slate-900/30 rounded-2xl border-2 border-slate-100 dark:border-slate-700 border-dashed">
+                <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center text-slate-300 dark:text-slate-600 mb-4 shadow-sm">
+                    <FaExclamationCircle size="1.5em" />
                 </div>
-                <p className="text-sm text-slate-500 dark:text-slate-400 font-bold">Tidak ada ahli waris yang menerima bagian.</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 font-bold max-w-xs">
+                    Berdasarkan input, tidak ada ahli waris yang memenuhi syarat menerima bagian.
+                </p>
             </div>
-        )}
-
-        {hasReceivingHeirs && (
-            <div className="space-y-6">
-                <div className="bg-slate-50 dark:bg-slate-900/30 rounded-2xl p-6 border border-slate-100 dark:border-slate-700/50">
-                    <div className="w-full h-56 relative mb-6">
-                         <ResponsiveContainer width="100%" height="100%">
+        ) : (
+            <div className="space-y-8">
+                
+                {/* Visual Chart Area */}
+                <div className="bg-slate-50 dark:bg-slate-900/30 rounded-3xl p-6 border border-slate-100 dark:border-slate-700/50 flex flex-col items-center animate-fade-in">
+                    <div className="w-full h-64 relative">
+                            <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie
                                     data={chartData}
                                     cx="50%"
                                     cy="50%"
-                                    innerRadius={60}
-                                    outerRadius={80}
+                                    innerRadius={70}
+                                    outerRadius={90}
                                     paddingAngle={4}
                                     dataKey="value"
                                     stroke="none"
@@ -142,8 +226,8 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
                                             const { cx, cy } = viewBox as any;
                                             return (
                                                 <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central">
-                                                    <tspan x={cx} y={cy} fontSize="24" fontWeight="bold" className="fill-slate-800 dark:fill-white">100%</tspan>
-                                                    <tspan x={cx} y={cy + 20} fontSize="12" className="fill-slate-400 dark:fill-slate-500">Harta</tspan>
+                                                    <tspan x={cx} y={cy} fontSize="28" fontWeight="900" className="fill-slate-800 dark:fill-white">100%</tspan>
+                                                    <tspan x={cx} y={cy + 24} fontSize="12" fontWeight="500" className="fill-slate-400 dark:fill-slate-500 uppercase tracking-widest">Alokasi</tspan>
                                                 </text>
                                             );
                                         }}
@@ -154,29 +238,26 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
                         </ResponsiveContainer>
                     </div>
                     
-                    <div className="w-full space-y-3">
+                    <div className="w-full flex flex-wrap justify-center gap-3 mt-4">
                         {chartData.map((entry, index) => (
-                            <div key={index} className="flex justify-between items-center group text-sm">
-                                <div className="flex items-center overflow-hidden">
-                                    <span className="w-3 h-3 rounded-full mr-3 shrink-0" style={{ backgroundColor: entry.name.includes('Baitul Mal') ? '#94a3b8' : COLORS[index % COLORS.length] }}></span>
-                                    <span className="text-slate-600 dark:text-slate-300 font-medium truncate max-w-[140px]">{entry.name}</span>
-                                </div>
-                                <div className="text-right pl-2 shrink-0">
-                                    <span className="font-bold text-slate-900 dark:text-white">{entry.value.toFixed(1)}%</span>
-                                </div>
+                            <div key={index} className="flex items-center text-xs font-medium bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full shadow-sm border border-slate-100 dark:border-slate-700">
+                                <span className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: entry.name.includes('Baitul Mal') ? '#94a3b8' : COLORS[index % COLORS.length] }}></span>
+                                <span className="text-slate-600 dark:text-slate-300 max-w-[120px] truncate">{entry.name}</span>
+                                <span className="ml-1.5 font-bold text-slate-800 dark:text-white">{entry.value.toFixed(1)}%</span>
                             </div>
                         ))}
                     </div>
                 </div>
 
+                {/* Cards List */}
                 <div>
-                    <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4 flex items-center">
-                        <div className="icon-wrapper w-4 h-4 mr-2 text-slate-400"><FaCalculator/></div>
-                        Rincian Pembagian
+                    <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4 flex items-center uppercase tracking-widest border-b border-slate-100 dark:border-slate-700 pb-2">
+                        <div className="mr-2 text-slate-400" ><FaBookOpen /></div>
+                        Rincian & Dalil
                     </h4>
-                    <div className="result-card-wrapper space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                    <div className="space-y-4 max-h-[600px] overflow-y-auto pr-1 custom-scrollbar">
                          {result.heirResults.map((heir, idx) => (
-                            <ResultCard key={idx} heir={heir} />
+                            <HeirResultCard key={idx} heir={heir} />
                         ))}
                     </div>
                 </div>

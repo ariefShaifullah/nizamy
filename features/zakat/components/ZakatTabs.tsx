@@ -5,7 +5,8 @@ import { ZakatInputField } from './ZakatInputField.tsx';
 import { NisabStatus } from './NisabStatus.tsx';
 import { formatCurrency } from '../../../utils.ts';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { FaCheck, FaSave, FaFilePdf, FaHistory, FaArrowRight, FaListAlt } from 'react-icons/fa';
+import { FaCheck, FaSave, FaFilePdf, FaHistory, FaArrowRight, FaReceipt, FaCopy } from 'react-icons/fa';
+import { useToast } from '../../../components/ui/Toast.tsx';
 
 interface ZakatTabLayoutProps {
     title: string;
@@ -266,6 +267,7 @@ interface SummaryProps {
 const SUMMARY_COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#6366f1'];
 
 export const SummaryView: React.FC<SummaryProps> = ({ result, state, history, onSaveHistory, onDownloadPDF, onClearHistory, onLoadHistory }) => {
+    const { showToast } = useToast();
     if (!result) return null;
 
     const chartData = [
@@ -278,12 +280,25 @@ export const SummaryView: React.FC<SummaryProps> = ({ result, state, history, on
 
     const hasChartData = chartData.length > 0;
 
+    const copyTotalToClipboard = () => {
+        // Extract raw number for ease of payment
+        if (result.totalZakat > 0) {
+            navigator.clipboard.writeText(result.totalZakat.toString()).then(() => {
+                showToast("Nominal disalin! Siap ditempel di m-Banking.", "success");
+            });
+        }
+    };
+
     return (
-        <div className="space-y-6 animate-fade-in pb-20 md:pb-12">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-slate-100 dark:border-slate-700">
+        <div className="space-y-8 animate-fade-in pb-20 md:pb-12">
+            
+            {/* Header Actions */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h2 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-white">Ringkasan & Kwitansi</h2>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Dibuat pada: {new Date(result.timestamp).toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' })}</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+                        Dibuat pada: {new Date(result.timestamp).toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' })}
+                    </p>
                 </div>
                 <div className="flex gap-3 w-full sm:w-auto">
                     <button onClick={onSaveHistory} className="flex-1 sm:flex-none justify-center bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 px-4 py-2.5 rounded-xl text-sm font-bold flex items-center shadow-sm transition-colors">
@@ -297,123 +312,164 @@ export const SummaryView: React.FC<SummaryProps> = ({ result, state, history, on
                 </div>
             </div>
             
-            <div className="bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm print:shadow-none print:border-black">
-                <div className="border-b-2 border-emerald-500 pb-4 mb-6 flex justify-between items-center">
-                    <div>
-                        <h3 className="text-2xl md:text-3xl font-extrabold text-emerald-800 dark:text-emerald-400 tracking-tight">NIZAMY</h3>
-                        <p className="text-emerald-600 dark:text-emerald-500 font-medium text-xs md:text-sm tracking-wide uppercase">Kalkulator Zakat Mandiri</p>
+            {/* Digital Receipt Card */}
+            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-0 overflow-hidden shadow-xl shadow-slate-200/50 dark:shadow-none transition-all duration-300">
+                 
+                 {/* Receipt Header */}
+                 <div className="bg-emerald-600 p-6 md:p-8 text-white flex justify-between items-start relative overflow-hidden">
+                    {/* Decorative Elements */}
+                    <div className="absolute top-0 right-0 p-4 opacity-10 transform rotate-12 scale-150 pointer-events-none">
+                        <span className="text-9xl"><FaReceipt /></span>
                     </div>
-                    <div className="text-right hidden sm:block">
-                         <p className="text-xs text-slate-400">No. Ref</p>
-                         <p className="text-sm font-mono text-slate-600 dark:text-slate-300">{Date.now().toString().slice(-8)}</p>
+                    <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                    <div className="relative z-10">
+                        <p className="text-emerald-200 text-xs font-bold uppercase tracking-widest mb-1">Hasil Perhitungan</p>
+                        <h3 className="text-3xl font-black tracking-tight drop-shadow-md">Kwitansi Zakat</h3>
                     </div>
-                </div>
+                    <div className="text-right relative z-10 hidden sm:block">
+                        <div className="bg-emerald-700/50 p-2 px-3 rounded-lg backdrop-blur-sm border border-emerald-500/30">
+                            <p className="text-[10px] text-emerald-100 uppercase font-bold tracking-wider mb-0.5">Total Kewajiban</p>
+                            <p className="text-xl font-bold font-mono">{result.formattedTotal}</p>
+                        </div>
+                    </div>
+                 </div>
 
-                <div className="flex flex-col lg:flex-row gap-8">
-                    <div className="flex-1 space-y-4">
-                        {result.items.length === 0 && (
-                            <div className="text-center text-slate-500 dark:text-slate-400 py-8 italic bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-dashed border-slate-200 dark:border-slate-700">
-                                Belum ada data zakat yang dimasukkan.
-                            </div>
-                        )}
-
-                        {result.items.map(item => (
-                            <div key={item.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-3 border-b border-slate-100 dark:border-slate-700 last:border-0 gap-2">
-                                <div className="flex-1 pr-4">
-                                    <h4 className="font-bold text-slate-700 dark:text-slate-200">{item.label}</h4>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">{item.note}</p>
-                                    {!item.isNisabReached && item.id !== 'fitrah' && (
-                                        <span className="inline-block mt-1 px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 text-[10px] uppercase rounded font-bold tracking-wide">
-                                            Tidak Wajib (Belum Nisab)
-                                        </span>
-                                    )}
+                 {/* Receipt Body */}
+                 <div className="p-6 md:p-8">
+                    <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+                        {/* Left: Detail List */}
+                        <div className="flex-1 space-y-5">
+                            {result.items.length === 0 && (
+                                <div className="text-center text-slate-500 dark:text-slate-400 py-12 italic bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
+                                    Belum ada data zakat yang dimasukkan.
                                 </div>
-                                <div className="text-left sm:text-right w-full sm:w-auto bg-slate-50 dark:bg-slate-700/30 sm:bg-transparent p-2 sm:p-0 rounded-lg">
-                                    <p className={`font-mono font-bold text-lg ${item.zakatAmount > 0 || item.formattedValue ? 'text-slate-800 dark:text-white' : 'text-slate-300 dark:text-slate-600'}`}>
-                                        {item.formattedValue ? item.formattedValue : formatCurrency(item.zakatAmount)}
-                                    </p>
-                                    {item.rate > 0 && (
-                                        <p className="text-xs text-slate-400 dark:text-slate-500">Rate: {(item.rate * 100).toFixed(1)}%</p>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                            )}
 
-                    {hasChartData && (
-                        <div data-html2canvas-ignore="true" className="w-full lg:w-72 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-100 dark:border-slate-800">
-                            <h5 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-4">Komposisi Zakat</h5>
-                            <div className="w-full h-48 relative">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie
-                                            data={chartData}
-                                            cx="50%"
-                                            cy="50%"
-                                            innerRadius={40}
-                                            outerRadius={60}
-                                            paddingAngle={5}
-                                            dataKey="value"
-                                            stroke="none"
-                                        >
-                                            {chartData.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={SUMMARY_COLORS[index % SUMMARY_COLORS.length]} />
-                                            ))}
-                                        </Pie>
-                                        <Tooltip 
-                                            formatter={(value: number) => formatCurrency(value)}
-                                            contentStyle={{ backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: '8px', fontSize: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-                                        />
-                                    </PieChart>
-                                </ResponsiveContainer>
-                            </div>
-                            <div className="w-full text-xs space-y-1 mt-2">
-                                {chartData.map((entry, index) => (
-                                    <div key={index} className="flex justify-between items-center">
-                                        <div className="flex items-center">
-                                            <span className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: SUMMARY_COLORS[index % SUMMARY_COLORS.length] }}></span>
-                                            <span className="text-slate-600 dark:text-slate-300 truncate max-w-[100px]">{entry.name}</span>
-                                        </div>
-                                        <span className="font-medium text-slate-800 dark:text-slate-200">{((entry.value / chartData.reduce((a, b) => a + b.value, 0)) * 100).toFixed(0)}%</span>
+                            {result.items.map(item => (
+                                <div key={item.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-3 border-b border-slate-100 dark:border-slate-700 last:border-0 gap-2 group">
+                                    <div className="flex-1 pr-4">
+                                        <h4 className="font-bold text-slate-700 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{item.label}</h4>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">{item.note}</p>
                                     </div>
-                                ))}
+                                    <div className="text-left sm:text-right w-full sm:w-auto">
+                                        <p className={`font-mono font-bold text-lg ${item.zakatAmount > 0 || item.formattedValue ? 'text-slate-800 dark:text-white' : 'text-slate-300 dark:text-slate-600'}`}>
+                                            {item.formattedValue ? item.formattedValue : formatCurrency(item.zakatAmount)}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))}
+                            
+                            <div className="sm:hidden mt-6 pt-6 border-t-2 border-slate-800 dark:border-slate-200 flex justify-between items-center">
+                                <div>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-1">Total Zakat</p>
+                                    <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{result.formattedTotal}</p>
+                                </div>
+                                {result.totalZakat > 0 && (
+                                    <button 
+                                        onClick={copyTotalToClipboard} 
+                                        className="p-3 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-xl active:scale-90 transition-transform"
+                                        title="Salin Nominal"
+                                    >
+                                        <FaCopy />
+                                    </button>
+                                )}
+                            </div>
+                            
+                            {/* Desktop Copy Button Area */}
+                            <div className="hidden sm:flex justify-end mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
+                                {result.totalZakat > 0 && (
+                                    <button 
+                                        onClick={copyTotalToClipboard} 
+                                        className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800"
+                                    >
+                                        <FaCopy /> Salin Nominal
+                                    </button>
+                                )}
                             </div>
                         </div>
-                    )}
-                </div>
 
-                <div className="mt-8 pt-6 border-t-2 border-slate-800 dark:border-slate-200">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                        <span className="text-lg font-bold text-slate-800 dark:text-white">TOTAL ZAKAT</span>
-                        <span className="text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 text-right">{result.formattedTotal}</span>
+                        {/* Right: Chart */}
+                        {hasChartData && (
+                            <div className="w-full lg:w-72 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-6 border border-slate-100 dark:border-slate-800 shrink-0">
+                                <h5 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-6">Komposisi Zakat</h5>
+                                <div className="w-full h-48 relative">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie
+                                                data={chartData}
+                                                cx="50%"
+                                                cy="50%"
+                                                innerRadius={50}
+                                                outerRadius={70}
+                                                paddingAngle={5}
+                                                dataKey="value"
+                                                stroke="none"
+                                            >
+                                                {chartData.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={SUMMARY_COLORS[index % SUMMARY_COLORS.length]} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip 
+                                                formatter={(value: number) => formatCurrency(value)}
+                                                contentStyle={{ backgroundColor: 'rgba(255,255,255,0.95)', borderRadius: '12px', fontSize: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', color: '#1e293b', fontWeight: 'bold' }}
+                                            />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                    {/* Center Text in Donut */}
+                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none flex-col">
+                                        <span className="text-xs font-bold text-slate-400">Total</span>
+                                        <span className="text-sm font-black text-slate-700 dark:text-slate-300">{chartData.length} Jenis</span>
+                                    </div>
+                                </div>
+                                <div className="w-full text-xs space-y-2 mt-4">
+                                    {chartData.map((entry, index) => (
+                                        <div key={index} className="flex justify-between items-center">
+                                            <div className="flex items-center">
+                                                <span className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: SUMMARY_COLORS[index % SUMMARY_COLORS.length] }}></span>
+                                                <span className="text-slate-600 dark:text-slate-300 font-medium truncate max-w-[100px]">{entry.name}</span>
+                                            </div>
+                                            <span className="font-bold text-slate-800 dark:text-slate-200">{((entry.value / chartData.reduce((a, b) => a + b.value, 0)) * 100).toFixed(0)}%</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
-                    <p className="text-left sm:text-right text-xs text-slate-500 dark:text-slate-400 mt-2 italic leading-relaxed">
-                        "Ambillah zakat dari sebagian harta mereka, dengan zakat itu kamu membersihkan dan mensucikan mereka..." (At-Taubah: 103)
+                 </div>
+                 
+                 {/* Footer Quote */}
+                 <div className="bg-slate-50 dark:bg-slate-900/80 px-6 py-4 border-t border-slate-100 dark:border-slate-800 text-center">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 italic">
+                        "Ambillah zakat dari sebagian harta mereka, dengan zakat itu kamu membersihkan dan mensucikan mereka..." (QS. At-Taubah: 103)
                     </p>
-                </div>
+                 </div>
             </div>
 
+            {/* History Section */}
             {history.length > 0 && (
-                <div className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-700">
-                    <div className="flex justify-between items-center mb-4">
+                <div className="mt-16 pt-8 border-t border-slate-200 dark:border-slate-700">
+                    <div className="flex justify-between items-center mb-6">
                         <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300 flex items-center">
-                            <span className="icon-wrapper w-5 h-5 mr-2 text-slate-400"><FaHistory /></span>
+                            <span className="bg-slate-100 dark:bg-slate-800 p-2 rounded-lg mr-3 text-slate-500"><FaHistory /></span>
                             Riwayat Tersimpan
                         </h3>
-                        <button onClick={onClearHistory} className="text-xs text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium hover:underline">Hapus Semua</button>
+                        <button onClick={onClearHistory} className="text-xs text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium hover:underline bg-red-50 dark:bg-red-900/10 px-3 py-1.5 rounded-lg transition-colors">
+                            Hapus Semua
+                        </button>
                     </div>
                     <div className="grid gap-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                         {history.map(entry => (
-                            <div key={entry.id} className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 flex justify-between items-center hover:bg-white dark:hover:bg-slate-700/50 hover:shadow-md transition-all group">
+                            <div key={entry.id} className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 flex justify-between items-center hover:border-emerald-200 dark:hover:border-emerald-800 hover:shadow-md transition-all group">
                                 <div>
-                                    <p className="font-bold text-emerald-700 dark:text-emerald-400">{entry.result.formattedTotal}</p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{entry.timestamp}</p>
+                                    <p className="font-bold text-emerald-700 dark:text-emerald-400 text-lg">{entry.result.formattedTotal}</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{entry.timestamp}</p>
                                 </div>
                                 <button 
                                     onClick={() => onLoadHistory(entry)} 
-                                    className="text-sm text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-300 font-medium bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-1.5 rounded-lg group-hover:border-emerald-200 dark:group-hover:border-emerald-500 transition-colors shadow-sm"
+                                    className="text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white px-4 py-2 rounded-lg transition-colors shadow-sm"
                                 >
-                                    Muat
+                                    Muat Kembali
                                 </button>
                             </div>
                         ))}

@@ -69,8 +69,9 @@ export const determineAshabah = (
           results.grandfather!.reason = (femaleDescendantExists ? "Mendapat 1/6 + sisa (Ashabah)" : "Ashabah, mengambil seluruh sisa harta") + " karena tidak ada keturunan laki-laki.";
           results.grandfather!.evidence = LEGAL_BASIS.HADITH_NEAREST_MALE;
       } else if (fullSisterExists && femaleDescendantExists && !fullBrotherExists) {
+          // Ashabah ma'al Ghairi
           ashabahHeirs.push({ heir: HeirEnum.FullSister, ratio: present.fullSister });
-          results.fullSister!.reason = "Ashabah ma'al Ghairi, mengambil sisa harta bersama keturunan perempuan.";
+          results.fullSister!.reason = "Mengambil sisa harta setelah bagian keturunan perempuan (Ashabah ma'al Ghairi).";
           results.fullSister!.evidence = LEGAL_BASIS.HADITH_NEAREST_MALE;
       } else if (fullBrotherExists) {
           ashabahHeirs.push({ heir: HeirEnum.FullBrother, ratio: 2 * present.fullBrother });
@@ -84,8 +85,9 @@ export const determineAshabah = (
               results.fullSister.evidence = QURAN_REFS.AN_NISA_176;
           }
       } else if (paternalSisterExists && femaleDescendantExists && !fullSisterExists && !paternalBrotherExists) {
+          // Ashabah ma'al Ghairi
           ashabahHeirs.push({ heir: HeirEnum.PaternalSister, ratio: present.paternalSister });
-          results.paternalSister!.reason = "Ashabah ma'al Ghairi, mengambil sisa harta bersama keturunan perempuan.";
+          results.paternalSister!.reason = "Mengambil sisa harta setelah bagian keturunan perempuan (Ashabah ma'al Ghairi).";
           results.paternalSister!.evidence = LEGAL_BASIS.HADITH_NEAREST_MALE;
       } else if (paternalBrotherExists) {
           ashabahHeirs.push({ heir: HeirEnum.PaternalBrother, ratio: 2 * present.paternalBrother });

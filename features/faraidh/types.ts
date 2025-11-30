@@ -57,4 +57,5 @@ export interface HistoryEntry {
   estate: number;
   heirs: HeirInputState;
   result: CalculationResult;
+  deceasedGender?: 'male' | 'female'; // Optional for backward compatibility
 }

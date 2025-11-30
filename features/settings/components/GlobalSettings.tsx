@@ -154,7 +154,7 @@ export const GlobalSettings: React.FC<GlobalSettingsProps> = ({ isOpen, onClose 
                     </div>
                     
                     <div className="text-center text-[10px] text-slate-400 dark:text-slate-500">
-                        <p>NIZAMY Version 1.9.0</p>
+                        <p>NIZAMY Version 1.9.1</p>
                         <p>Storage Usage: {((JSON.stringify(localStorage).length / 1024)).toFixed(2)} KB</p>
                     </div>
                 </div>

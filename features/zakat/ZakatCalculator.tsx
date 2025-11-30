@@ -11,7 +11,7 @@ import { useLocalStorage } from '../../hooks/useLocalStorage.ts';
 import { useToast } from '../../components/ui/Toast.tsx';
 import { useConfirm } from '../../components/ui/ConfirmContext.tsx';
 import { useDebounce } from '../../hooks/useDebounce.ts';
-import { FaRedo, FaTags, FaReceipt } from 'react-icons/fa';
+import { FaRedo, FaTags, FaReceipt, FaCog } from 'react-icons/fa';
 import { 
     FitrahView, 
     MaalView, 
@@ -23,8 +23,8 @@ import {
 } from './components/ZakatTabs.tsx';
 
 const INITIAL_SETTINGS: ZakatSettings = {
-    goldPrice: 2200000,
-    silverPrice: 25000,
+    goldPrice: 2400000, // Updated 2025 Estimate
+    silverPrice: 26000,
     ricePrice: 15000,
     riceKgPerPerson: 2.5,
     currency: 'IDR'
@@ -155,7 +155,7 @@ const ZakatCalculator: React.FC = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto animate-fade-in pb-0 lg:pb-12 relative">
+        <div className="max-w-7xl mx-auto animate-fade-in pb-32 lg:pb-12 relative">
              <div className="hidden lg:block text-center mb-8">
                 <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-emerald-900 dark:text-emerald-400 sm:text-5xl drop-shadow-sm">
                     Kalkulator Zakat
@@ -165,46 +165,52 @@ const ZakatCalculator: React.FC = () => {
                 </p>
             </div>
 
-            <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl shadow-lg shadow-emerald-100/20 dark:shadow-none border border-white/50 dark:border-slate-700/50 p-4 mb-6 flex flex-col md:flex-row justify-between items-center gap-4 mt-4 lg:mt-0">
-                <div className="flex flex-wrap justify-center md:justify-start gap-2 md:gap-6 text-sm w-full md:w-auto">
-                    <div className="flex items-center bg-emerald-50/80 dark:bg-emerald-900/30 px-3 py-2 rounded-lg border border-emerald-100 dark:border-emerald-800">
-                        <span className="text-slate-500 dark:text-slate-400 mr-2 text-xs md:text-sm">Emas/g:</span>
-                        <span className="font-bold text-emerald-700 dark:text-emerald-400 text-xs md:text-sm">{formatCurrency(settings.goldPrice)}</span>
+            {/* DASHBOARD TICKER */}
+            <div className="bg-slate-900 text-white rounded-2xl shadow-lg p-4 mb-6 flex flex-col md:flex-row justify-between items-center gap-4 relative overflow-hidden mt-4 lg:mt-0">
+                <div className="absolute inset-0 bg-linear-to-r from-emerald-900 to-slate-900 opacity-50"></div>
+                <div className="relative z-10 flex flex-wrap justify-center md:justify-start gap-4 md:gap-8 w-full md:w-auto">
+                    <div className="flex flex-col">
+                        <span className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Harga Emas (per gram)</span>
+                        <span className="text-xl font-mono font-bold text-yellow-400">{formatCurrency(settings.goldPrice)}</span>
                     </div>
-                    <div className="flex items-center bg-emerald-50/80 dark:bg-emerald-900/30 px-3 py-2 rounded-lg border border-emerald-100 dark:border-emerald-800">
-                        <span className="text-slate-500 dark:text-slate-400 mr-2 text-xs md:text-sm">Beras/kg:</span>
-                        <span className="font-bold text-emerald-700 dark:text-emerald-400 text-xs md:text-sm">{formatCurrency(settings.ricePrice)}</span>
+                    <div className="w-px h-10 bg-slate-700 hidden md:block"></div>
+                    <div className="flex flex-col">
+                        <span className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Harga Beras (per kg)</span>
+                        <span className="text-xl font-mono font-bold text-white">{formatCurrency(settings.ricePrice)}</span>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2 w-full md:w-auto justify-center md:justify-end">
-                    <button onClick={handleReset} className="text-xs md:text-sm font-medium px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors border border-slate-200 dark:border-slate-600 flex items-center gap-2">
+                <div className="relative z-10 flex items-center gap-2 w-full md:w-auto justify-center md:justify-end">
+                    <button onClick={handleReset} className="text-xs font-bold px-4 py-2 rounded-lg bg-slate-800 hover:bg-red-900/50 text-slate-300 hover:text-white transition-colors border border-slate-700 flex items-center gap-2">
                         <span className="icon-wrapper w-3 h-3"><FaRedo /></span> Reset
                     </button>
                     <button 
                         onClick={() => setShowSettings(!showSettings)} 
-                        className={`text-xs md:text-sm font-medium px-4 py-2 rounded-lg border transition-colors flex items-center shadow-sm ${showSettings ? 'bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+                        className={`text-xs font-bold px-4 py-2 rounded-lg border transition-colors flex items-center shadow-sm ${showSettings ? 'bg-emerald-600 text-white border-emerald-500' : 'bg-slate-800 text-emerald-400 border-slate-700 hover:bg-slate-700'}`}
                     >
-                        <span className="icon-wrapper w-4 h-4 mr-1.5"><FaTags /></span>
-                        Ubah Harga
+                        <span className="icon-wrapper w-3 h-3 mr-2"><FaCog /></span>
+                        Atur Harga
                     </button>
                 </div>
             </div>
 
             {showSettings && (
-                <div className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-md rounded-xl border border-emerald-100 dark:border-emerald-800 p-6 mb-8 animate-fade-in-down shadow-inner">
-                    <h3 className="font-bold text-emerald-800 dark:text-emerald-400 mb-4 flex items-center">
-                        <span className="bg-emerald-200 dark:bg-emerald-800 text-emerald-700 dark:text-emerald-200 w-6 h-6 rounded-full flex items-center justify-center text-xs mr-2">⚙️</span>
-                        Asumsi Harga Pasar
-                    </h3>
+                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 mb-8 animate-fade-in-down shadow-xl relative z-20">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="font-bold text-slate-800 dark:text-white flex items-center">
+                            <span className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 w-8 h-8 rounded-lg flex items-center justify-center text-sm mr-3"><FaTags /></span>
+                            Asumsi Harga Pasar (Nisab)
+                        </h3>
+                        <button onClick={() => setShowSettings(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs font-bold uppercase">Tutup</button>
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {[
-                            { label: "Harga Emas / Gram", key: "goldPrice" as keyof ZakatSettings, hint: "Acuan: Antam" },
-                            { label: "Harga Perak / Gram", key: "silverPrice" as keyof ZakatSettings, hint: "" },
-                            { label: "Harga Beras / Kg", key: "ricePrice" as keyof ZakatSettings, hint: "Beras kualitas sedang/baik" }
+                            { label: "Harga Emas / Gram", key: "goldPrice" as keyof ZakatSettings, hint: "Acuan Nisab Maal (85g)" },
+                            { label: "Harga Perak / Gram", key: "silverPrice" as keyof ZakatSettings, hint: "Acuan Nisab Perak (595g)" },
+                            { label: "Harga Beras / Kg", key: "ricePrice" as keyof ZakatSettings, hint: "Acuan Zakat Fitrah & Pertanian" }
                         ].map((field) => (
                             <div key={field.key}>
-                                <label className="block text-sm text-slate-600 dark:text-slate-300 mb-1 font-medium">{field.label}</label>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wide">{field.label}</label>
                                 <div className="relative">
                                     <span className="absolute left-3 top-2.5 text-slate-400 text-sm font-bold">Rp</span>
                                     <input 
@@ -212,10 +218,10 @@ const ZakatCalculator: React.FC = () => {
                                         inputMode="numeric"
                                         value={settings[field.key] === 0 ? '' : formatNumber(settings[field.key] as number)} 
                                         onChange={(e) => handleSettingChange(field.key, parseInt(e.target.value.replace(/\D/g, '') || '0', 10))} 
-                                        className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm py-2.5 pl-10 pr-3 focus:ring-emerald-500 focus:border-emerald-500 font-medium" 
+                                        className="w-full bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl py-2.5 pl-10 pr-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 font-bold" 
                                     />
                                 </div>
-                                {field.hint && <p className="text-xs text-slate-400 mt-1">{field.hint}</p>}
+                                {field.hint && <p className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-1 font-medium">{field.hint}</p>}
                             </div>
                         ))}
                     </div>
@@ -230,13 +236,13 @@ const ZakatCalculator: React.FC = () => {
                                 <button
                                     key={tab.id}
                                     onClick={() => handleSwitchTab(tab.id)}
-                                    className={`whitespace-nowrap px-4 py-2.5 text-sm font-bold rounded-xl transition-all flex items-center shrink-0 border ${
+                                    className={`whitespace-nowrap px-4 py-3 text-sm font-bold rounded-xl transition-all flex items-center shrink-0 border ${
                                         activeTab === tab.id 
                                         ? 'bg-emerald-600 text-white shadow-md shadow-emerald-200/50 dark:shadow-none border-emerald-600 lg:translate-x-2' 
                                         : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border-transparent hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:text-emerald-700 dark:hover:text-emerald-400'
                                     }`}
                                 >
-                                    <span className="mr-2">{tab.icon}</span>
+                                    <span className="mr-3 text-lg">{tab.icon}</span>
                                     {tab.label}
                                 </button>
                             ))}
@@ -247,7 +253,7 @@ const ZakatCalculator: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="flex-1 w-full min-w-0 bg-white/70 dark:bg-slate-800/60 backdrop-blur-xl rounded-4xl shadow-xl shadow-emerald-100/20 dark:shadow-none border border-white/50 dark:border-slate-700/50 md:min-h-[500px] p-5 md:p-8 relative">
+                <div className="flex-1 w-full min-w-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-[2.5rem] shadow-xl shadow-emerald-100/20 dark:shadow-none border border-white/50 dark:border-slate-700/50 md:min-h-[500px] p-6 md:p-8 relative">
                     {activeTab === 'fitrah' && <FitrahView state={state} settings={settings} onChange={handleInputChange} onNext={goToSummary} />}
                     {activeTab === 'maal' && <MaalView state={state} settings={settings} onChange={handleInputChange} onNext={goToSummary} />}
                     {activeTab === 'gold' && <GoldSilverView state={state} settings={settings} onChange={handleInputChange} onNext={goToSummary} />}
@@ -276,14 +282,21 @@ const ZakatCalculator: React.FC = () => {
                 />
             </div>
 
+            {/* Mobile Sticky Action Bar */}
             {activeTab !== 'summary' && (
-                <div className="lg:hidden fixed bottom-[calc(2rem+env(safe-area-inset-bottom))] left-0 right-0 z-50 px-6 pointer-events-none flex justify-center">
+                <div 
+                  className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/55 dark:bg-slate-900/55 border-t border-slate-200 dark:border-slate-800 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.05)]"
+                  style={{
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)'
+                  }}
+                >
                     <button
                         onClick={goToSummary}
-                        className="pointer-events-auto w-full max-w-sm flex items-center justify-center bg-emerald-600/90 backdrop-blur-xl text-white font-bold py-4 px-6 rounded-full hover:bg-emerald-700 active:scale-95 transition-all shadow-2xl shadow-emerald-900/20 border border-white/10"
+                        className="w-full flex items-center justify-center bg-emerald-600 text-white font-bold py-3.5 px-6 rounded-2xl hover:bg-emerald-700 active:scale-95 transition-all shadow-lg shadow-emerald-600/20"
                     >
                         <span className="icon-wrapper w-5 h-5 mr-2.5"><FaReceipt /></span>
-                        <span className="text-base tracking-wide">Lihat Hasil</span>
+                        <span className="text-base tracking-wide uppercase">Lihat Hasil</span>
                     </button>
                 </div>
             )}

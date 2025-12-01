@@ -387,7 +387,13 @@ const HedeApp: React.FC = () => {
                 </div>
             </div>
 
-            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 px-2 z-50 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+            <div 
+              className="md:hidden fixed bottom-0 left-0 right-0 bg-white/55 dark:bg-slate-900/55 border-t border-slate-200 dark:border-slate-800 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 px-2 z-50 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.05)]"
+              style={{
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)'
+              }}
+            >
                 {mainNavTabs.map(tab => (
                     <button key={tab.id} onClick={() => tab.id === 'kamus' ? setIsDictOpen(true) : switchTab(tab.id as HedeTab)} className={`flex-1 flex flex-col items-center p-2 rounded-xl transition-all duration-300 ${activeTab === tab.id ? "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 font-bold transform -translate-y-1" : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 font-medium"}`}>
                         <span className="icon-wrapper w-5 h-5 mb-1 text-lg">{tab.icon}</span><span className="text-[10px] uppercase tracking-wide">{tab.label}</span>

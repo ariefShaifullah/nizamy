@@ -273,7 +273,7 @@ export const Home: React.FC = () => {
              <p className="font-arabic text-3xl text-slate-600 dark:text-slate-400 leading-loose drop-shadow-sm group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">فَاسْتَبِقُوا الْخَيْرَاتِ</p>
              <p className="text-sm text-slate-500 dark:text-slate-500 italic">"Berlomba-lombalah dalam kebaikan"</p>
              <div className="text-[10px] text-slate-400 dark:text-slate-600 pt-4 font-mono">
-                NIZAMY v1.9.1 &copy; {new Date().getFullYear()}
+                NIZAMY v1.9.2 &copy; {new Date().getFullYear()}
              </div>
           </div>
       </div>

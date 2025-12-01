@@ -8,7 +8,7 @@ const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/vite.svg'
+  '/images/android-chrome-192x192.png'
 ];
 
 // Install SW

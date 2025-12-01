@@ -235,7 +235,7 @@ export const HafalanSettingsModal: React.FC<SettingsModalProps> = ({
       const granted = await notificationService.requestPermission();
       if (granted) {
         setNotifEnabled(true);
-        notificationService.sendReminder(0); // Test notification to confirm
+        notificationService.sendTestNotification(); // Send explicit feedback
       } else {
         // Handle dismissal or new denial
         setNotifEnabled(false);
@@ -320,20 +320,25 @@ export const HafalanSettingsModal: React.FC<SettingsModalProps> = ({
           </select>
         </div>
 
-        {/* NOTIFICATION TOGGLE */}
+        {/* NOTIFICATION TOGGLE - OPTIMIZED FOR MOBILE */}
         {notificationService.isSupported() && (
-            <div className="bg-slate-50 dark:bg-slate-700/30 p-4 rounded-xl border border-slate-100 dark:border-slate-700 flex justify-between items-center">
-                <div>
+            <div className="bg-slate-50 dark:bg-slate-700/30 p-4 rounded-xl border border-slate-100 dark:border-slate-700 flex justify-between items-center gap-4">
+                <div className="flex-1">
                     <h4 className="font-bold text-slate-800 dark:text-white text-sm">Notifikasi & Badge</h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-snug">
                         Tampilkan tanda titik merah di ikon aplikasi & pengingat harian.
                     </p>
                 </div>
                 <button 
                     onClick={handleToggleNotif}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${notifEnabled ? 'bg-indigo-600' : 'bg-slate-200 dark:bg-slate-600'}`}
+                    className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${notifEnabled ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-600'}`}
+                    role="switch"
+                    aria-checked={notifEnabled}
                 >
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                    <span className="sr-only">Aktifkan notifikasi</span>
+                    <span 
+                        className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${notifEnabled ? 'translate-x-6' : 'translate-x-1'}`} 
+                    />
                 </button>
             </div>
         )}

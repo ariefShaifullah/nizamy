@@ -24,11 +24,12 @@ const calculateFitrah = (state: ZakatState, settings: ZakatSettings): ZakatBreak
     nisabThreshold: 0, 
     isNisabReached: state.fitrahPeople > 0,
     rate: 0, 
-    zakatAmount: totalMoney, 
+    zakatAmount: isRice ? 0 : totalMoney, 
+    zakatRice: isRice ? totalKg : 0,
     formattedValue: isRice ? `${totalKg} Kg Beras` : undefined,
     note: isRice 
-      ? `${state.fitrahPeople} orang x ${settings.riceKgPerPerson} Kg`
-      : `${state.fitrahPeople} orang x ${settings.riceKgPerPerson}kg x ${new Intl.NumberFormat('id-ID').format(settings.ricePrice)}/kg`
+      ? `${state.fitrahPeople} jiwa x ${settings.riceKgPerPerson} Kg`
+      : `${state.fitrahPeople} jiwa x ${settings.riceKgPerPerson}kg x ${new Intl.NumberFormat('id-ID').format(settings.ricePrice)}`
   };
 };
 
@@ -49,7 +50,7 @@ const calculateMaal = (state: ZakatState, settings: ZakatSettings): ZakatBreakdo
     isNisabReached: isReached,
     rate: MAL_RATE,
     zakatAmount: isReached ? netAssets * MAL_RATE : 0,
-    note: `Total Harta Bersih: ${new Intl.NumberFormat('id-ID').format(netAssets)}. Nisab (85g Emas): ${new Intl.NumberFormat('id-ID').format(nisabValue)}.`
+    note: `Harta Bersih: ${new Intl.NumberFormat('id-ID').format(netAssets)}. Nisab (85g Emas): ${new Intl.NumberFormat('id-ID').format(nisabValue)}.`
   };
 };
 
@@ -125,7 +126,7 @@ const calculateBusiness = (state: ZakatState, settings: ZakatSettings): ZakatBre
     isNisabReached: isReached,
     rate: MAL_RATE,
     zakatAmount: isReached ? netBusinessValue * MAL_RATE : 0,
-    note: `Aset Lancar Bersih: ${new Intl.NumberFormat('id-ID').format(netBusinessValue)}.`
+    note: `Aset Lancar Bersih: ${new Intl.NumberFormat('id-ID').format(netBusinessValue)}. Nisab mengikuti Emas.`
   };
 };
 
@@ -145,7 +146,7 @@ const calculateAgriculture = (state: ZakatState, settings: ZakatSettings): Zakat
     isNisabReached: isReached,
     rate: rate,
     zakatAmount: isReached ? state.agriHarvest * rate : 0,
-    note: `Metode: ${state.agriMethod === 'natural' ? 'Alami/Hujan (10%)' : 'Irigasi/Biaya (5%)'}. Nisab setara 524kg beras.`
+    note: `Metode: ${state.agriMethod === 'natural' ? 'Tadah Hujan (10%)' : 'Irigasi (5%)'}. Nisab setara 524kg beras.`
   };
 };
 
@@ -206,7 +207,8 @@ const calculateLivestock = (state: ZakatState, settings: ZakatSettings): ZakatBr
           nisabThreshold: 0, // Complex threshold
           isNisabReached: isReached,
           rate: 0,
-          zakatAmount: 0, // Paid in animals, not money calculation here
+          zakatAmount: 0, 
+          zakatAnimal: formatted,
           formattedValue: formatted,
           note: `Metode Klasik (Saimah). Total: ${sheep} Kambing, ${cow} Sapi.`
       };
@@ -226,40 +228,47 @@ export const calculateTotalZakat = (state: ZakatState, settings: ZakatSettings):
 
   // Filter Items to show
   const items = allItems.filter(item => {
+      // Fitrah always show if people > 0
       if (item.id === 'fitrah') return state.fitrahPeople > 0;
+      // Others show if value input > 0
       return item.inputValue > 0;
   });
 
   let totalMoney = 0;
-  const extraItems: string[] = [];
+  let totalRice = 0;
+  const totalAnimals: string[] = [];
 
   items.forEach(item => {
-      // Separate non-money payments
-      if (item.id === 'fitrah' && state.fitrahMethod === 'rice' && item.formattedValue) {
-          extraItems.push(item.formattedValue);
-      } else if (item.id === 'livestock' && state.livestockType === 'classic' && item.formattedValue) {
-          extraItems.push(item.formattedValue);
-      } else {
-          totalMoney += item.zakatAmount;
-      }
+      totalMoney += item.zakatAmount;
+      if (item.zakatRice) totalRice += item.zakatRice;
+      if (item.zakatAnimal) totalAnimals.push(item.zakatAnimal);
   });
 
-  // Construct Formatted Total String
-  const moneyString = new Intl.NumberFormat('id-ID', { 
-      style: 'currency', 
-      currency: 'IDR', 
-      minimumFractionDigits: 0 
-  }).format(totalMoney);
-
-  let formattedTotal = moneyString;
-  if (extraItems.length > 0) {
-      formattedTotal = `${totalMoney > 0 ? moneyString + ' + ' : ''}${extraItems.join(' + ')}`;
-  } else if (totalMoney === 0 && extraItems.length === 0) {
-      formattedTotal = "Rp 0";
+  // Construct Formatted Total String (Backward Compatibility)
+  const parts: string[] = [];
+  
+  if (totalMoney > 0) {
+      parts.push(new Intl.NumberFormat('id-ID', { 
+          style: 'currency', 
+          currency: 'IDR', 
+          minimumFractionDigits: 0 
+      }).format(totalMoney));
+  }
+  
+  if (totalRice > 0) {
+      parts.push(`${totalRice} Kg Beras`);
+  }
+  
+  if (totalAnimals.length > 0) {
+      parts.push(totalAnimals.join(' + '));
   }
 
+  const formattedTotal = parts.length > 0 ? parts.join(' + ') : "Rp 0";
+
   return {
-    totalZakat: totalMoney, 
+    totalMoney,
+    totalRice,
+    totalAnimals,
     formattedTotal,
     items,
     timestamp: new Date().toISOString()

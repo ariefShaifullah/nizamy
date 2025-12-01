@@ -237,7 +237,7 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
             )}
           </div>
 
-          <div className="flex-none p-4 md:p-8 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 z-20 shadow-[0_-4px_20px_rgba(0,0,0,0.02)] pb-safe">
+          <div className="flex-none px-4 pt-4 pb-6 md:p-8 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 z-20 shadow-[0_-4px_20px_rgba(0,0,0,0.02)] pb-safe">
              {error || isLoadingText ? (
                  <button
                     disabled
@@ -251,12 +251,12 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
                   audioService.playClick();
                   onCompletePractice();
                 }}
-                className="w-full py-4 bg-teal-600 text-white font-bold rounded-2xl hover:bg-teal-700 shadow-lg shadow-teal-200 dark:shadow-none active:scale-95 transition-all text-lg"
+                className="w-full py-4 bg-teal-600 text-white font-bold rounded-2xl hover:bg-teal-700 shadow-lg shadow-teal-200 dark:shadow-none active:scale-95 transition-all text-lg mb-2 md:mb-0"
               >
                 Selesai Membaca
               </button>
             ) : (
-              <div className="grid grid-cols-2 gap-4 md:gap-8 max-w-2xl mx-auto">
+              <div className="grid grid-cols-2 gap-4 md:gap-8 max-w-2xl mx-auto mb-2 md:mb-0">
                 <button
                   onClick={() => onSubmitReview("fail")}
                   className="flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:border-orange-200 dark:hover:border-orange-800 hover:text-orange-700 dark:hover:text-orange-400 active:scale-95 transition-all duration-200 group h-24 md:h-32 shadow-sm"

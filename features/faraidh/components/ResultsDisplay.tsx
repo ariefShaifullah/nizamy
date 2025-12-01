@@ -8,9 +8,20 @@ import { exportFaraidhPdf } from '../logic/pdf-export.ts';
 import { InfoTooltip, CustomChartTooltip } from './FaraidhUI.tsx';
 import { FaFilePdf, FaExclamationCircle, FaCalculator, FaBookOpen, FaLock, FaUser } from 'react-icons/fa';
 
+// WCAG Compliant Palette (High Contrast)
 const COLORS = [
-  '#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4',
-  '#f43f5e', '#84cc16', '#6366f1', '#d946ef', '#eab308', '#14b8a6',
+  '#059669', // Emerald 600
+  '#2563eb', // Blue 600
+  '#d97706', // Amber 600
+  '#7c3aed', // Violet 600
+  '#db2777', // Pink 600
+  '#0891b2', // Cyan 600
+  '#e11d48', // Rose 600
+  '#65a30d', // Lime 600
+  '#4f46e5', // Indigo 600
+  '#c026d3', // Fuchsia 600
+  '#ca8a04', // Yellow 600
+  '#0d9488', // Teal 600
 ];
 
 interface ResultsDisplayProps {
@@ -225,7 +236,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
                                     {chartData.map((entry, index) => (
                                         <Cell 
                                             key={`cell-${index}`} 
-                                            fill={entry.name.includes('Baitul Mal') ? '#94a3b8' : COLORS[index % COLORS.length]} 
+                                            fill={entry.name.includes('Baitul Mal') ? '#64748b' : COLORS[index % COLORS.length]} 
                                         />
                                     ))}
                                     <Label 
@@ -249,7 +260,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
                     <div className="w-full flex flex-wrap justify-center gap-3 mt-4">
                         {chartData.map((entry, index) => (
                             <div key={index} className="flex items-center text-xs font-medium bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full shadow-sm border border-slate-100 dark:border-slate-700">
-                                <span className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: entry.name.includes('Baitul Mal') ? '#94a3b8' : COLORS[index % COLORS.length] }}></span>
+                                <span className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: entry.name.includes('Baitul Mal') ? '#64748b' : COLORS[index % COLORS.length] }}></span>
                                 <span className="text-slate-600 dark:text-slate-300 max-w-[120px] truncate">{entry.name}</span>
                                 <span className="ml-1.5 font-bold text-slate-800 dark:text-white">{entry.value.toFixed(1)}%</span>
                             </div>

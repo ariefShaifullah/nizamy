@@ -51,14 +51,18 @@ export interface ZakatBreakdownItem {
   nisabThreshold: number;
   isNisabReached: boolean;
   rate: number;
-  zakatAmount: number;
-  formattedValue?: string; // Optional override for display (e.g., "10 Kg Beras")
+  zakatAmount: number; // In Money
+  zakatRice?: number; // In Kg (For Fitrah)
+  zakatAnimal?: string; // String description (For Livestock Classic)
+  formattedValue?: string; // Optional override for display
   note?: string;
 }
 
 export interface ZakatResult {
-  totalZakat: number; // Numeric representation (useful for generic logic)
-  formattedTotal: string; // Display string (e.g. "Rp 1.000.000 + 10 Kg Beras")
+  totalMoney: number;
+  totalRice: number;
+  totalAnimals: string[];
+  formattedTotal: string; // Deprecated but kept for backward compat in history
   items: ZakatBreakdownItem[];
   timestamp: string;
 }

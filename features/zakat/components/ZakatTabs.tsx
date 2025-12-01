@@ -282,8 +282,8 @@ export const SummaryView: React.FC<SummaryProps> = ({ result, state, history, on
 
     const copyTotalToClipboard = () => {
         // Extract raw number for ease of payment
-        if (result.totalZakat > 0) {
-            navigator.clipboard.writeText(result.totalZakat.toString()).then(() => {
+        if (result.totalMoney > 0) {
+            navigator.clipboard.writeText(result.totalMoney.toString()).then(() => {
                 showToast("Nominal disalin! Siap ditempel di m-Banking.", "success");
             });
         }
@@ -365,10 +365,10 @@ export const SummaryView: React.FC<SummaryProps> = ({ result, state, history, on
                                     <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-1">Total Zakat</p>
                                     <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{result.formattedTotal}</p>
                                 </div>
-                                {result.totalZakat > 0 && (
+                                {result.totalMoney > 0 && (
                                     <button 
                                         onClick={copyTotalToClipboard} 
-                                        className="p-3 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-xl active:scale-90 transition-transform"
+                                        className="p-3 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-xl active:scale-95 transition-transform"
                                         title="Salin Nominal"
                                     >
                                         <FaCopy />
@@ -378,7 +378,7 @@ export const SummaryView: React.FC<SummaryProps> = ({ result, state, history, on
                             
                             {/* Desktop Copy Button Area */}
                             <div className="hidden sm:flex justify-end mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
-                                {result.totalZakat > 0 && (
+                                {result.totalMoney > 0 && (
                                     <button 
                                         onClick={copyTotalToClipboard} 
                                         className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800"

@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+
+import React, { useEffect, useState, useMemo } from 'react';
 import type { KamusData, QuranAyah, BookmarkCategory } from '../../../types.ts';
 import type { TajwidRule } from '../logic/tajwid.helper.ts';
 import { analyzeTajwid, getMakhrajDetails } from '../logic/tajwid.helper.ts';
@@ -67,24 +68,35 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
         }, 300); 
     };
 
+    // --- MEMOIZATION START ---
+    const { tajwidRules, makhrajList } = useMemo(() => {
+        if (!data) return { tajwidRules: [], makhrajList: [] };
+
+        const isAyah = data.type === 'ayah';
+        const arabicText = (data.data as any).text_uthmani;
+
+        const rules = isAyah 
+            ? analyzeTajwid(arabicText, undefined, undefined, true)
+            : analyzeTajwid(
+                arabicText, 
+                data.nextWordText, 
+                (data.data as any).location,
+                data.isEndAyah 
+              );
+
+        const makhraj = !isAyah
+            ? getMakhrajDetails(arabicText)
+            : [];
+
+        return { tajwidRules: rules, makhrajList: makhraj };
+    }, [data]);
+    // --- MEMOIZATION END ---
+
     if (!data) return null;
 
     const isAyah = data.type === 'ayah';
     const title = isAyah ? `Opsi Ayat (${data.reference})` : 'Detail Kata & Tajwid';
     const arabicText = (data.data as any).text_uthmani;
-
-    const tajwidRules = isAyah 
-        ? analyzeTajwid(arabicText, undefined, undefined, true)
-        : analyzeTajwid(
-            arabicText, 
-            data.nextWordText, 
-            (data.data as any).location,
-            data.isEndAyah 
-          );
-
-    const makhrajList = !isAyah
-        ? getMakhrajDetails(arabicText)
-        : [];
 
     const copyToClipboard = async (text: string, label: string) => {
         if (!text) return;
@@ -103,7 +115,8 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
     const handleCopyText = () => copyToClipboard(arabicText, 'Teks Arab');
     const handleCopyTranslation = () => {
         if (!isAyah) return;
-        const trans = (data.data as any).translations?.[0]?.text?.replace(/<[^>]*>?/gm, '');
+        // Text is already cleaned by service
+        const trans = (data.data as any).translations?.[0]?.text;
         const ref = data.reference;
         const fullText = `${trans} (${ref})`;
         copyToClipboard(fullText, 'Terjemahan');
@@ -189,6 +202,7 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
                         </span>
                         Putar Audio {isAyah ? 'Ayat' : 'Kata'}
                     </button>
+
                     <div className="grid grid-cols-2 gap-3">
                         <button onClick={handleCopyText} className="flex items-center justify-center gap-2 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-700 dark:text-slate-300 font-semibold text-sm hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors">
                             <FaCopy size={16} />
@@ -199,6 +213,7 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
                             Terakhir Dibaca
                         </button>
                     </div>
+                    
                     {isAyah && (
                         <div className="space-y-3">
                             <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
@@ -207,7 +222,7 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                 {CATEGORY_BUTTONS.map(btn => {
                                     const isActive = data.bookmark?.category === btn.category;
-                                    
+                                      
                                     // Define color classes based on category
                                     const getActiveClasses = () => {
                                         switch(btn.category) {
@@ -258,7 +273,6 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
                         </div>
                     )}
 
-
                     {isAyah ? (
                         <div className="space-y-3">
                             <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-2">
@@ -266,7 +280,8 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
                             </h4>
                             <div className="p-5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
                                 <p className="text-slate-700 dark:text-slate-300 leading-loose text-base text-justify font-serif">
-                                    {(data.data as any).translations?.[0]?.text?.replace(/<[^>]*>?/gm, '')}
+                                    {/* Data is already cleaned in service */}
+                                    {(data.data as any).translations?.[0]?.text}
                                 </p>
                             </div>
                              <button onClick={handleCopyTranslation} className="w-full flex items-center justify-center gap-2 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-700 dark:text-slate-300 font-semibold text-xs hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors">

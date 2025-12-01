@@ -32,6 +32,15 @@ const constructWbwUrl = (location: string): string | null => {
     return `${AUDIO_CDN}/wbw/${surah}_${ayah}_${word}.mp3`;
 };
 
+// Helper to clean HTML tags and specifically remove footnotes contents (numbers)
+const cleanTranslationText = (text: string): string => {
+    if (!text) return '';
+    return text
+        .replace(/<sup[^>]*>.*?<\/sup>/gi, '') // Remove <sup> tags AND their content (the numbers)
+        .replace(/<[^>]*>?/gm, '') // Remove any other remaining HTML tags
+        .trim();
+};
+
 // Robust fetch with retry logic
 async function fetchWithRetry(url: string, options: RequestInit = {}, retries = 2, backoff = 1000): Promise<Response> {
     try {
@@ -186,13 +195,19 @@ export const fetchVersesWithWords = async (
                     };
                 });
 
+                // Clean translations here
+                const cleanedTranslations = ayah.translations?.map(t => ({
+                    ...t,
+                    text: cleanTranslationText(t.text)
+                }));
+
                 return { 
                     id: ayah.id,
                     verse_key: ayah.verse_key,
                     verse_number: ayah.verse_number,
                     text_uthmani: ayah.text_uthmani,
                     words: processedWords,
-                    translations: ayah.translations
+                    translations: cleanedTranslations
                 };
             });
 

@@ -97,8 +97,8 @@ export const notificationService = {
 
       const options: ExtendedNotificationOptions = {
           body: "Alhamdulillah, notifikasi NIZAMY sudah aktif. Kami akan mengingatkan jadwal murajaah kamu.",
-          icon: '/images/logo_nizamy.png',
-          badge: '/images/logo_nizamy.png',
+          icon: '/images/logo_nizamy.png?v=2',
+          badge: '/images/logo_nizamy.png?v=2',
           tag: 'nizamy-test',
           renotify: true
       };
@@ -138,8 +138,8 @@ export const notificationService = {
     
     const options: ExtendedNotificationOptions = {
       body: body,
-      icon: '/images/logo_nizamy.png',
-      badge: '/images/logo_nizamy.png', 
+      icon: '/images/logo_nizamy.png?v=2',
+      badge: '/images/logo_nizamy.png?v=2', 
       tag: 'nizamy-reminder',
       renotify: true,
       requireInteraction: true,

@@ -1,7 +1,9 @@
+
 import React, { useCallback, useMemo } from 'react';
 import type { QuranAyah, QuranWord, LastReadState, Bookmark, BookmarkCategory } from '../../../types.ts';
 import { useLongPress } from '../../../hooks/useLongPress.ts';
 import { FaEllipsisH, FaPlay, FaBookmark, FaStar } from 'react-icons/fa';
+import { analyzeTajwid } from '../logic/tajwid.helper.ts';
 
 interface AyahRendererProps {
     ayah: QuranAyah;
@@ -57,6 +59,26 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
     const bookmarkForAyah = useMemo(() => 
         bookmarks.find(b => b.surahId === parseInt(ayah.verse_key.split(':')[0]) && b.ayahNumber === ayah.verse_number),
     [bookmarks, ayah.verse_key, ayah.verse_number]);
+
+    // OPTIMIZATION: Memoize Tajwid Rules calculation
+    // This prevents expensive Regex re-running when playing audio or toggling UI states that don't change text
+    const processedWords = useMemo(() => {
+        return ayah.words.map((word, index) => {
+            // Only analyze tajwid for actual words
+            if (word.char_type_name !== 'word') return { word, rules: [] };
+            
+            const nextWord = index < ayah.words.length - 1 ? ayah.words[index + 1] : null;
+            const isEndAyah = index === ayah.words.length - 1;
+            
+            const rules = analyzeTajwid(
+                word.text_uthmani, 
+                nextWord?.text_uthmani, 
+                word.location, 
+                isEndAyah
+            );
+            return { word, rules };
+        });
+    }, [ayah.words]);
 
     return (
         <div 
@@ -125,10 +147,11 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
                         WebkitFontFeatureSettings: '"cv01" 1, "cv02" 1, "ss01" 1'
                     }}
                 >
-                    {ayah.words.map((word, index) => (
+                    {processedWords.map((item, index) => (
                         <WordItem 
-                            key={`${ayah.id}-${word.id}-${index}`} 
-                            word={word} 
+                            key={`${ayah.id}-${item.word.id}-${index}`} 
+                            word={item.word} 
+                            tajwidRules={item.rules}
                             parentAyah={ayah}
                             isActive={activeWordIndex === index}
                             wordMode={wordMode}
@@ -163,7 +186,7 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
                     {...(!wordMode ? ayahGestures : {})}
                 >
                     <p className="text-slate-600 dark:text-slate-400 text-[15px] md:text-[17px] leading-8 font-sans border-l-2 border-slate-200 dark:border-slate-800 pl-4">
-                        {ayah.translations?.[0]?.text?.replace(/<[^>]*>?/gm, '')}
+                        {ayah.translations?.[0]?.text}
                     </p>
                 </div>
             )}
@@ -201,13 +224,14 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
 
 const WordItem: React.FC<{ 
     word: QuranWord; 
+    tajwidRules: any[];
     parentAyah: QuranAyah; 
     isActive: boolean; 
     wordMode: boolean;
     fontSize: number;
     onTap: (word: QuranWord) => void; 
     onLongPress: (word: QuranWord, parentAyah: QuranAyah) => void;
-}> = React.memo(({ word, parentAyah, isActive, wordMode, fontSize, onTap, onLongPress }) => {
+}> = React.memo(({ word, tajwidRules, parentAyah, isActive, wordMode, fontSize, onTap, onLongPress }) => {
     
     const handleTap = useCallback(() => {
         onTap(word);
@@ -250,6 +274,21 @@ const WordItem: React.FC<{
         );
     }
 
+    // Tajwid Color Application
+    const renderColoredText = () => {
+        if (!wordMode || tajwidRules.length === 0) return word.text_uthmani;
+
+        const chars = word.text_uthmani.split('');
+        return chars.map((char, i) => {
+            // Find rule that applies to this index
+            const rule = tajwidRules.find(r => r.indexes.includes(i));
+            if (rule) {
+                return <span key={i} className={`${rule.color}`}>{char}</span>;
+            }
+            return <span key={i}>{char}</span>;
+        });
+    };
+
     return (
         <span
             {...(wordMode ? wordGestures : {})}
@@ -267,7 +306,7 @@ const WordItem: React.FC<{
             `}
             style={{ fontFamily: '"Amiri", serif' }}
         >
-            {word.text_uthmani}
+            {renderColoredText()}
         </span>
     );
 }, (prev, next) => {

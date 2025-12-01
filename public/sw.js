@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'nizamy-cache-v2';
+const CACHE_NAME = 'nizamy-cache-v3';
 const QURAN_CACHE = 'nizamy-quran-data-v1';
 const AUDIO_CACHE = 'nizamy-audio-cache-v1';
 const ASSET_CACHE = 'nizamy-external-assets-v1';
@@ -8,7 +8,7 @@ const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/images/android-chrome-512x512.png?v=2'
+  '/images/android-chrome-512x512.png?v=3'
 ];
 
 // Install SW

@@ -54,7 +54,7 @@ const getDynamicHadith = () => {
     
     if (hour >= 4 && hour < 10) category = 'morning';
     else if (hour >= 10 && hour < 15) category = 'day';
-    else if (hour >= 15 && hour < 18) category = 'afternoon';
+    else if (hour >= 15 && hour < 20) category = 'afternoon';
     
     const list = HADITH_DB[category];
     // Pick random daily based on date to keep it somewhat stable per session

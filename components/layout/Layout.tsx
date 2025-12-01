@@ -38,8 +38,8 @@ export const Header: React.FC = () => {
     const logoBgClass = titleColor.replace(/text-/g, 'bg-');
     
     const logoStyle = {
-        maskImage: 'url("/images/logo_nizamy.png?v=3")',
-        WebkitMaskImage: 'url("/images/logo_nizamy.png?v=3")',
+        maskImage: 'url("/images/logo_nizamy.png?v=4")',
+        WebkitMaskImage: 'url("/images/logo_nizamy.png?v=4")',
         maskSize: 'contain',
         WebkitMaskSize: 'contain',
         maskRepeat: 'no-repeat',

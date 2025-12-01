@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 // @ts-ignore
 import { useNavigate } from 'react-router-dom';
@@ -20,21 +21,27 @@ import {
 } from "react-icons/fa";
 
 // --- UTILS ---
+
 const getGregorianDate = () => {
     return new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 };
 
 // --- DYNAMIC HADITH DATA ---
 const HADITH_DB = {
+    late_night: [
+        { text: "Rabb kita turun ke langit dunia pada sepertiga malam yang akhir dan berfirman: 'Siapa yang berdoa kepada-Ku, maka Aku akan mengabulkannya.'", narrator: "HR. Bukhari & Muslim" },
+        { text: "Sebaik-baik shalat setelah shalat fardhu adalah shalat malam (Tahajjud).", narrator: "HR. Muslim" },
+        { text: "Dua rakaat fajar (qobliyah subuh) lebih baik daripada dunia dan seisinya.", narrator: "HR. Muslim" }
+    ],
     morning: [
         { text: "Berpagi-pagilah dalam mencari rezeki, karena sesungguhnya berpagi-pagi itu adalah keberkahan.", narrator: "HR. Ath-Thabrani" },
         { text: "Ya Allah, berkahilah umatku di waktu paginya.", narrator: "HR. Abu Daud" },
-        { text: "Barangsiapa mengerjakan shalat Dhuha, niscaya akan dicukupi kebutuhannya di akhir siang.", narrator: "HR. Tirmidzi" }
+        { text: "Wahai anak Adam, janganlah engkau tinggalkan empat raka’at di awal siang (Dhuha). Maka Aku akan mencukupimu di akhir siang.", narrator: "HR. Tirmidzi" }
     ],
     day: [
         { text: "Sebaik-baik manusia adalah yang paling bermanfaat bagi manusia lainnya.", narrator: "HR. Ahmad" },
         { text: "Tangan di atas (memberi) lebih baik daripada tangan di bawah (meminta).", narrator: "HR. Bukhari" },
-        { text: "Sesungguhnya Allah suka apabila seseorang dari kamu melakukan pekerjaan, ia menekuninya.", narrator: "HR. Al-Baihaqi" }
+        { text: "Sesungguhnya Allah suka apabila seseorang dari kamu melakukan pekerjaan, ia menekuninya (Itqan).", narrator: "HR. Al-Baihaqi" }
     ],
     afternoon: [
         { text: "Barangsiapa yang tidak menyayangi, maka tidak akan disayangi.", narrator: "HR. Al-Bukhari" },
@@ -42,8 +49,8 @@ const HADITH_DB = {
         { text: "Bertaqwalah kepada Allah di mana saja engkau berada.", narrator: "HR. Tirmidzi" }
     ],
     night: [
-        { text: "Dirikanlah shalat malam, karena itu adalah kebiasaan orang-orang saleh sebelum kamu.", narrator: "HR. Tirmidzi" },
-        { text: "Dua rakaat fajar (qobliyah subuh) lebih baik daripada dunia dan seisinya.", narrator: "HR. Muslim" },
+        { text: "Barangsiapa membaca dua ayat terakhir dari surat Al-Baqarah pada malam hari, maka itu mencukupinya (melindunginya).", narrator: "HR. Bukhari & Muslim" },
+        { text: "Dirikanlah shalat malam, karena itu adalah kebiasaan orang-orang saleh sebelum kamu dan penghapus dosa.", narrator: "HR. Tirmidzi" },
         { text: "Cukuplah Allah sebagai Penolong kami, dan Allah adalah sebaik-baik Pelindung.", narrator: "HR. Bukhari" }
     ]
 };
@@ -52,9 +59,11 @@ const getDynamicHadith = () => {
     const hour = new Date().getHours();
     let category: keyof typeof HADITH_DB = 'night';
     
-    if (hour >= 4 && hour < 10) category = 'morning';
+    if (hour >= 0 && hour < 4) category = 'late_night'; // 00:00 - 04:00 (Qiyamul Lail)
+    else if (hour >= 4 && hour < 10) category = 'morning';
     else if (hour >= 10 && hour < 15) category = 'day';
-    else if (hour >= 15 && hour < 20) category = 'afternoon';
+    else if (hour >= 15 && hour < 18) category = 'afternoon';
+    // else 18-00 remains 'night'
     
     const list = HADITH_DB[category];
     // Pick random daily based on date to keep it somewhat stable per session
@@ -134,6 +143,7 @@ const HeaderSection = () => {
                 <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
                     {getGregorianDate()}
                 </span>
+                <span className="w-1 h-1 rounded-full bg-slate-400"></span>
             </div>
             
             <div className="relative z-10 pr-4">
@@ -158,10 +168,10 @@ const QuranCard = ({ lastRead, onClick }: { lastRead: {name: string, ayah: numbe
     const nameLength = lastRead?.name.length || 0;
     let titleClass = "text-2xl"; // Default for short names (e.g. Yasin, Nuh)
     
-    if (nameLength > 15) {
+    if (nameLength > 14) {
         titleClass = "text-base"; // For very long names (e.g. Al-Mutaffifin)
     } else if (nameLength > 8) {
-        titleClass = "text-xl"; // For medium names (e.g. Al-Baqarah)
+        titleClass = "text-l"; // For medium names (e.g. Al-Baqarah)
     }
 
     return (

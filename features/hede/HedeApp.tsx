@@ -39,7 +39,7 @@ const HedeLandingScreen: React.FC<{
         <div className="bg-white dark:bg-slate-800/50 rounded-[2.5rem] p-8 md:p-12 text-center shadow-sm border border-slate-100 dark:border-slate-800 relative overflow-hidden group">
             <div className="relative z-10 flex flex-col items-center">
                 <div className="w-24 h-24 bg-linear-to-br from-indigo-50 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-3xl flex items-center justify-center text-purple-600 dark:text-purple-400 mb-6 shadow-md border border-white dark:border-slate-700">
-                    <div className="icon-wrapper w-12 h-12 flex items-center justify-center text-5xl drop-shadow-sm"><FaShieldAlt /></div>
+                    <div className="icon-wrapper w-12 h-12 flex items-center justify-center text-5xl drop-shadow-sm"><FaStethoscope /></div>
                 </div>
                 <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-slate-900 dark:text-white mb-2">Klinik Finansial</h1>
                 <p className="font-bold text-purple-600 dark:text-purple-400 text-sm md:text-base uppercase tracking-widest mb-4">Cek Kesehatan Finansial

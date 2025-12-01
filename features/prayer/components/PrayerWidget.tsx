@@ -1,16 +1,13 @@
-
-import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import type { PrayerData } from '../../../types.ts';
 import { getCoordinates, fetchPrayerTimes, fetchCityName, getNextPrayer, formatTimeLeft, savePrayerCache, getCachedPrayerData } from '../logic/prayer.service.ts';
-import { FaMapMarkerAlt } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaClock } from 'react-icons/fa';
 
 export const PrayerWidget: React.FC = () => {
     const [prayerData, setPrayerData] = useState<PrayerData | null>(null);
     const [loading, setLoading] = useState(true);
     const [locationName, setLocationName] = useState("Memuat lokasi...");
     
-    // Optimized State: Only update 'timeLeft' every second.
-    // 'targetDate' and 'nextPrayerName' are calculated only when needed.
     const [targetDate, setTargetDate] = useState<Date | null>(null);
     const [nextPrayerName, setNextPrayerName] = useState<string | null>(null);
     const [timeLeft, setTimeLeft] = useState<string>("00:00:00");
@@ -22,14 +19,11 @@ export const PrayerWidget: React.FC = () => {
             try {
                 const coords = await getCoordinates();
                 const accurateCity = await fetchCityName(coords.latitude, coords.longitude);
-                // Only update if the new name is more specific
                 if (accurateCity && accurateCity !== "Lokasi Anda" && accurateCity !== "Lokasi Terdeteksi") {
                     setLocationName(accurateCity);
                     savePrayerCache(currentData, accurateCity);
                 }
-            } catch {
-                // Silently fail, user already has prayer times.
-            }
+            } catch { }
         };
         
         if (!forceRefresh) {
@@ -38,8 +32,6 @@ export const PrayerWidget: React.FC = () => {
                 setPrayerData(cached.data);
                 setLocationName(cached.city);
                 setLoading(false);
-                
-                // Progressive Enhancement: if location is generic, try to get a better one
                 if (cached.city === "Lokasi Anda" || cached.city === "Lokasi Terdeteksi" || cached.city === "Jakarta Pusat") {
                     updateLocationInBackground(cached.data);
                 }
@@ -62,7 +54,6 @@ export const PrayerWidget: React.FC = () => {
                  setLocationName("Gagal memuat jadwal");
             }
         } catch (error) {
-            // Fallback to default if geolocation fails
             const data = await fetchPrayerTimes(-6.1702, 106.8314);
             if (data) {
                 setPrayerData(data);
@@ -76,7 +67,6 @@ export const PrayerWidget: React.FC = () => {
         }
     }, []);
 
-    // Initial Load
     useEffect(() => {
         loadData();
         const handleRefresh = () => loadData(true);
@@ -84,8 +74,6 @@ export const PrayerWidget: React.FC = () => {
         return () => window.removeEventListener('nizamy-refresh-prayer', handleRefresh);
     }, [loadData]);
 
-    // OPTIMIZATION 1: Calculate Target ONCE when prayerData changes
-    // Instead of calculating "Which prayer is next?" every second, we do it once here.
     useEffect(() => {
         if (!prayerData) return;
 
@@ -97,20 +85,16 @@ export const PrayerWidget: React.FC = () => {
         const target = new Date();
         target.setHours(h, m, 0, 0);
         
-        // Handle overflow to next day logic from service
         if (next.isTomorrow) {
             target.setDate(target.getDate() + 1);
         }
-        // Correction if target is in the past (safety check)
         else if (target.getTime() < now.getTime()) {
-             // This shouldn't happen with correct getNextPrayer logic, but as fallback:
              target.setDate(target.getDate() + 1); 
         }
 
         setTargetDate(target);
     }, [prayerData]);
 
-    // OPTIMIZATION 2: The Interval only does simple math (O(1))
     useEffect(() => {
         if (!targetDate) return;
 
@@ -119,16 +103,14 @@ export const PrayerWidget: React.FC = () => {
             const diff = targetDate.getTime() - now;
 
             if (diff <= 0) {
-                // Time passed! Trigger a soft reload to find next prayer
                 setTimeLeft("00:00:00");
-                // Re-run logic to find NEXT prayer (e.g. from Maghrib to Isya)
                 loadData(false); 
             } else {
                 setTimeLeft(formatTimeLeft(diff));
             }
         };
 
-        tick(); // Run immediately
+        tick();
         const timerId = setInterval(tick, 1000);
 
         return () => clearInterval(timerId);
@@ -143,52 +125,56 @@ export const PrayerWidget: React.FC = () => {
     ];
 
     if (loading && !prayerData) return (
-        <div className="w-full h-40 bg-white dark:bg-slate-800 rounded-3xl animate-pulse shadow-xl flex items-center justify-center text-slate-300 border border-slate-100 dark:border-slate-700">
-            <span className="sr-only">Memuat Jadwal...</span>
-        </div>
+        <div className="w-full h-24 bg-white dark:bg-slate-800 rounded-3xl animate-pulse shadow-sm border border-slate-100 dark:border-slate-700"></div>
     );
 
     if (!prayerData) return null;
 
     return (
-        <div className="relative w-full bg-white dark:bg-slate-800 rounded-3xl shadow-[0_20px_40px_-12px_rgba(0,0,0,0.1)] dark:shadow-black/50 border border-slate-100 dark:border-slate-700 overflow-hidden transform transition-transform hover:scale-[1.01] duration-500 will-change-transform">
-            <div className="p-6 md:p-8">
-                {/* Top Row: Location & Hijri */}
-                <div className="flex justify-between items-center mb-6 text-xs md:text-sm font-medium text-slate-400">
-                    <div className="flex items-center gap-1.5">
-                        <span className="text-teal-500 icon-wrapper w-4 h-4"><FaMapMarkerAlt /></span>
-                        <span className="truncate max-w-[150px]">{locationName}</span>
+        <div className="relative w-full bg-white dark:bg-slate-800 rounded-3xl shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] border border-slate-100 dark:border-slate-700 overflow-hidden">
+            {/* Compact Padding */}
+            <div className="px-5 py-4">
+                
+                {/* Header: Location & Hijri - Single Line */}
+                <div className="flex justify-between items-center mb-3">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400">
+                        <div  className="text-indigo-500" ><FaMapMarkerAlt/></div>
+                        <span className="truncate max-w-[120px]">{locationName}</span>
                     </div>
-                    <span className="font-arabic text-slate-500 dark:text-slate-300">
+                    <div className="text-[10px] font-medium text-slate-400 bg-slate-100 dark:bg-slate-700/50 px-2 py-0.5 rounded-full">
                         {prayerData.date.hijri.day} {prayerData.date.hijri.month.en} {prayerData.date.hijri.year}
-                    </span>
+                    </div>
                 </div>
 
-                {/* Middle Row: Countdown */}
-                <div className="text-center mb-8">
-                    <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-1 font-bold">Menuju {nextPrayerName}</p>
-                    {/* Added tabular-nums to prevent layout jitter during countdown */}
-                    <h2 className="text-5xl md:text-6xl font-black tracking-tight font-mono tabular-nums text-transparent bg-clip-text bg-linear-to-r from-teal-600 to-indigo-600 dark:from-teal-400 dark:to-indigo-400">
-                        {timeLeft}
-                    </h2>
+                {/* Hero: Countdown & Next Prayer */}
+                <div className="flex items-center justify-between mb-4">
+                    <div>
+                        <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-0.5">
+                            Menuju {nextPrayerName}
+                        </p>
+                        <h2 className="text-3xl md:text-4xl font-black tracking-tight font-mono tabular-nums text-slate-800 dark:text-white">
+                            {timeLeft}
+                        </h2>
+                    </div>
+                    <div className="w-10 h-10 bg-indigo-50 dark:bg-indigo-900/30 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400 animate-pulse">
+                        <FaClock />
+                    </div>
                 </div>
 
-                {/* Bottom Row: Grid Times */}
-                <div className="grid grid-cols-5 gap-1 md:gap-4 border-t border-slate-50 dark:border-slate-700/50 pt-6">
+                {/* Footer: Compact Prayer Grid */}
+                <div className="grid grid-cols-5 gap-1 border-t border-slate-100 dark:border-slate-700 pt-3">
                     {PRAYER_LIST.map((p) => {
                         const time = prayerData.timings[p.key as keyof typeof prayerData.timings];
                         const isActive = nextPrayerName === p.label;
                         
                         return (
-                            <div key={p.key} className="flex flex-col items-center group cursor-default">
-                                <span className={`text-[10px] font-bold uppercase mb-1 transition-colors ${isActive ? 'text-teal-600 dark:text-teal-400' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`}>
+                            <div key={p.key} className={`flex flex-col items-center justify-center p-1 rounded-lg transition-colors ${isActive ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}`}>
+                                <span className={`text-[9px] font-bold uppercase mb-0.5 ${isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`}>
                                     {p.label}
                                 </span>
-                                <span className={`text-xs md:text-sm font-bold transition-all tabular-nums ${isActive ? 'text-slate-900 dark:text-white scale-110' : 'text-slate-600 dark:text-slate-400'}`}>
+                                <span className={`text-xs font-bold ${isActive ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-400'}`}>
                                     {time}
                                 </span>
-                                {/* Status Indicator Dot */}
-                                <div className={`w-1 h-1 rounded-full mt-1 transition-colors duration-300 ${isActive ? 'bg-teal-500' : 'bg-transparent'}`}></div>
                             </div>
                         );
                     })}

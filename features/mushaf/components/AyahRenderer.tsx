@@ -52,7 +52,14 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
         onLongPressAyah(ayah);
     };
 
-    const lineHeight = fontSize > 40 ? 2.8 : 2.5; 
+    // --- Dynamic Line Height Calculation ---
+    // Improved logic: larger font needs proportionally less line height to look cohesive
+    const lineHeight = useMemo(() => {
+        if (fontSize <= 28) return 2.2;
+        if (fontSize <= 36) return 2.4;
+        if (fontSize <= 48) return 2.6;
+        return 2.8; // Max spacing for readability on huge text
+    }, [fontSize]);
 
     const isLastRead = lastRead?.surahId === parseInt(ayah.verse_key.split(':')[0]) && lastRead?.ayahNumber === ayah.verse_number;
     
@@ -61,10 +68,8 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
     [bookmarks, ayah.verse_key, ayah.verse_number]);
 
     // OPTIMIZATION: Memoize Tajwid Rules calculation
-    // This prevents expensive Regex re-running when playing audio or toggling UI states that don't change text
     const processedWords = useMemo(() => {
         return ayah.words.map((word, index) => {
-            // Only analyze tajwid for actual words
             if (word.char_type_name !== 'word') return { word, rules: [] };
             
             const nextWord = index < ayah.words.length - 1 ? ayah.words[index + 1] : null;
@@ -274,13 +279,11 @@ const WordItem: React.FC<{
         );
     }
 
-    // Tajwid Color Application
     const renderColoredText = () => {
         if (!wordMode || tajwidRules.length === 0) return word.text_uthmani;
 
         const chars = word.text_uthmani.split('');
         return chars.map((char, i) => {
-            // Find rule that applies to this index
             const rule = tajwidRules.find(r => r.indexes.includes(i));
             if (rule) {
                 return <span key={i} className={`${rule.color}`}>{char}</span>;
@@ -296,11 +299,11 @@ const WordItem: React.FC<{
             className={`
                 inline-block rounded-lg transition-all duration-200 select-none cursor-pointer
                 relative
-                ${wordMode ? 'py-2 my-1' : 'py-0 my-0'} 
+                ${wordMode ? 'py-1 my-0.5' : 'py-0 my-0'} 
                 ${isActive 
-                    ? 'text-teal-700 dark:text-teal-300 bg-teal-100/80 dark:bg-teal-900/50 shadow-sm px-2 mx-1' 
+                    ? 'bg-teal-100 dark:bg-teal-900/80 text-teal-900 dark:text-white shadow-sm px-2 mx-1 scale-105 font-bold border border-teal-200 dark:border-teal-700' 
                     : wordMode
-                        ? 'hover:text-teal-600 dark:hover:text-teal-400 active:scale-95 px-2 mx-0.5 hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-md' 
+                        ? 'hover:text-teal-600 dark:hover:text-teal-400 active:scale-95 px-1 mx-0.5 hover:bg-slate-100 dark:hover:bg-slate-800/50' 
                         : 'text-slate-800 dark:text-slate-100 px-0.5 mx-0.5'
                 }
             `}

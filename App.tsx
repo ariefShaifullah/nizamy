@@ -1,4 +1,3 @@
-
 import React, { useEffect, Suspense, useMemo } from 'react';
 // @ts-ignore
 import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
@@ -9,6 +8,7 @@ import { usePWA } from './hooks/usePWA.ts';
 import { usePageMetadata } from './hooks/usePageMetadata.ts';
 import { OfflineBanner } from './components/ui/OfflineBanner.tsx';
 import { useHafalanReminder } from './hooks/useHafalanReminder.ts';
+import { migrateFromLocalStorage } from './services/db.service.ts';
 
 // Lazy Load Components (Feature-Based)
 const FaraidhCalculator = React.lazy(() => import('./features/faraidh/FaraidhCalculator.tsx'));
@@ -27,7 +27,7 @@ const PageLoader = () => (
       
       {/* Logo in the center */}
       <img
-        src="/images/logo_nizamy.png?v=4"
+        src="/images/logo_nizamy.png?v=6"
         alt="NIZAMY Logo"
         className="w-12 h-12 object-contain animate-pulse"
       />
@@ -47,6 +47,15 @@ const AppContent = () => {
   
   // Initialize Hafalan Reminder System
   useHafalanReminder();
+
+  // Global Data Migration (Legacy LS -> IndexedDB)
+  useEffect(() => {
+    // Jalankan migrasi di background saat app start agar data history lama 
+    // pindah ke storage baru dan terbaca oleh sistem Backup/Restore.
+    migrateFromLocalStorage().catch(err => 
+      console.error("Data migration failed:", err)
+    );
+  }, []);
 
   // Network Status Monitoring
   useEffect(() => {

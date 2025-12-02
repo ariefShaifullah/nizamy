@@ -1,3 +1,4 @@
+
 import { get, set, del, keys, clear } from 'idb-keyval';
 
 /**
@@ -5,11 +6,11 @@ import { get, set, del, keys, clear } from 'idb-keyval';
  * Wrapper around idb-keyval to handle typed storage and migration from localStorage.
  */
 
-const MIGRATION_FLAG_KEY = 'nizamy_migration_v1_complete';
+const MIGRATION_FLAG_KEY = 'nizamy_migration_v2_complete';
 
 /**
- * Migrates data starting with 'nizamy_' from localStorage to IndexedDB.
- * This runs once.
+ * Migrates heavy data from localStorage to IndexedDB.
+ * This runs once per version upgrade.
  */
 export const migrateFromLocalStorage = async () => {
     const isMigrated = localStorage.getItem(MIGRATION_FLAG_KEY);
@@ -17,26 +18,43 @@ export const migrateFromLocalStorage = async () => {
 
     console.log("Starting migration to IndexedDB...");
     
-    const keysToMigrate: string[] = [];
+    // List of keys that MUST be moved to IndexedDB for performance
+    const keysToMigratePrefix = ['nizamy_hafalan_'];
+    const exactKeysToMigrate = [
+        'faraidhHistory', 
+        'zakatHistory', 
+        'hede_history', 
+        'hede_last_result'
+    ];
     
-    // Identify keys
+    const allKeysInLS: string[] = [];
     for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        // FIXED: Only migrate Hafalan data (heavy JSON). 
-        // Keep faraidhHistory and zakatHistory in LS for synchronous UI access.
-        if (key && key.startsWith('nizamy_hafalan_')) {
-            keysToMigrate.push(key);
-        }
+        const k = localStorage.key(i);
+        if (k) allKeysInLS.push(k);
     }
 
+    // Filter keys
+    const migrationTargets = allKeysInLS.filter(key => 
+        keysToMigratePrefix.some(prefix => key.startsWith(prefix)) ||
+        exactKeysToMigrate.includes(key)
+    );
+
     // Migrate keys
-    for (const key of keysToMigrate) {
+    for (const key of migrationTargets) {
         try {
             const value = localStorage.getItem(key);
             if (value) {
-                const parsed = JSON.parse(value);
+                // Try parse JSON, if fails keep as string (though app expects JSON usually)
+                let parsed;
+                try {
+                    parsed = JSON.parse(value);
+                } catch {
+                    parsed = value;
+                }
+                
                 await set(key, parsed);
-                localStorage.removeItem(key); // Clean up
+                localStorage.removeItem(key); // Clean up from LS to free up main thread quota
+                console.log(`Migrated: ${key}`);
             }
         } catch (e) {
             console.error(`Failed to migrate key: ${key}`, e);

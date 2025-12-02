@@ -7,6 +7,7 @@ import { TathhirCalculator } from './components/TathhirCalculator.tsx';
 import { HedeAnalyzing } from './components/report/HedeAnalyzing.tsx';
 import type { HedeResult, HedeHistoryEntry, ViolationType, HedeTab } from '../../types.ts';
 import { useLocalStorage } from '../../hooks/useLocalStorage.ts';
+import { useIndexedDB } from '../../hooks/useIndexedDB.ts';
 import { 
     FaShieldAlt, 
     FaHistory, 
@@ -129,12 +130,13 @@ const HedeApp: React.FC = () => {
     const { showToast } = useToast();
     const { confirm } = useConfirm();
     
-    // Data Persistence
-    const [result, setResult] = useLocalStorage<HedeResult | null>('hede_last_result', null);
-    const [history, setHistory] = useLocalStorage<HedeHistoryEntry[]>('hede_history', []);
+    // OPTIMIZED: Data Persistence using IndexedDB for heavy objects
+    const [result, setResult] = useIndexedDB<HedeResult | null>('hede_last_result', null);
+    const [history, setHistory] = useIndexedDB<HedeHistoryEntry[]>('hede_history', []);
     
     // LIFTED STATE: Roadmap Progress
     // Shared between Report (for projection) and History (for trends)
+    // Keep in LocalStorage as it's a simple array of strings and accessed synchronously by UI often
     const [completedSteps, setCompletedSteps] = useLocalStorage<string[]>('hede_roadmap_progress', []);
 
     // View State

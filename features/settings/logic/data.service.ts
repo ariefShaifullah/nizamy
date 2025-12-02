@@ -1,3 +1,4 @@
+
 import { dbGet, dbKeys, dbSet, dbClear } from "../../../services/db.service.ts";
 
 /**
@@ -5,40 +6,37 @@ import { dbGet, dbKeys, dbSet, dbClear } from "../../../services/db.service.ts";
  * Supports both LocalStorage and IndexedDB.
  */
 
-const APP_KEYS = [
-    // --- CORE DATA (History & Heavy Data) ---
+// Keys that are definitely in IndexedDB (Heavy Data)
+const IDB_KEYS = [
     'faraidhHistory',
     'zakatHistory',
-    'nizamy_hafalan_users',
-    'hede_last_result',
     'hede_history',
-    
-    // --- APP STATES (Work in Progress) ---
-    'zakatState', // Save current input values in Zakat Calculator
-    
-    // --- SETTINGS & PREFERENCES ---
+    'hede_last_result',
+    'nizamy_hafalan_users'
+    // dynamic keys 'nizamy_hafalan_data_*' are handled by logic
+];
+
+// Keys that might be in LocalStorage (Preferences/Light state)
+const LS_KEYS = [
+    'zakatState', 
     'zakatSettings',
     'vite-ui-theme',
     'preferredQori',
-    
-    // --- MUSHAF DIGITAL ---
     'mushaf_lastRead',
     'mushaf_fontSize',
     'mushaf_showTranslation',
     'mushaf_wordMode',
     'nizamy_mushaf_tutorial_seen',
-    
-    // --- GLOBAL FLAGS ---
     'nizamy_notifications_enabled',
-    'nizamy_hafalan_tutorial_seen'
+    'nizamy_hafalan_tutorial_seen',
+    'hede_roadmap_progress'
 ];
 
 export const exportData = async (): Promise<void> => {
     const data: Record<string, any> = {};
     
-    // 1. Collect LocalStorage Keys (Synchronous)
-    // Some settings might still be in LS or migrated to IDB depending on key
-    APP_KEYS.forEach(key => {
+    // 1. Collect LocalStorage Keys
+    LS_KEYS.forEach(key => {
         const value = localStorage.getItem(key);
         if (value) {
             try {
@@ -52,12 +50,13 @@ export const exportData = async (): Promise<void> => {
     // 2. Collect IndexedDB Keys (Asynchronous)
     const allDbKeys = await dbKeys();
     for (const key of allDbKeys) {
-        // Only backup nizamy related keys from IDB
-        // 'nizamy_' prefix covers dynamic hafalan data (nizamy_hafalan_data_USERID)
-        if (typeof key === 'string' && (APP_KEYS.includes(key) || key.startsWith('nizamy_'))) {
-            const value = await dbGet(key);
-            if (value) {
-                data[key] = value;
+        if (typeof key === 'string') {
+            // Check if it's one of our known IDB keys OR a dynamic hafalan key
+            if (IDB_KEYS.includes(key) || key.startsWith('nizamy_')) {
+                const value = await dbGet(key);
+                if (value) {
+                    data[key] = value;
+                }
             }
         }
     }
@@ -92,12 +91,15 @@ export const importData = async (file: File): Promise<{ success: boolean; messag
                 for (const key of Object.keys(data)) {
                     const value = data[key];
                     
-                    // FIXED: Only Hafalan data goes to IDB. 
-                    // Faraidh & Zakat History must stay in LocalStorage because their UI components use synchronous useLocalStorage hook.
-                    if (key.startsWith('nizamy_hafalan_')) {
+                    // Logic to determine destination (IDB vs LocalStorage)
+                    const isHeavyData = 
+                        key.startsWith('nizamy_hafalan_') || 
+                        IDB_KEYS.includes(key);
+
+                    if (isHeavyData) {
                         await dbSet(key, value);
                     } else {
-                        // Preferences, HEDE, Faraidh, Zakat go to LocalStorage
+                        // Preferences, Light State go to LocalStorage
                         if (typeof value === 'object') {
                             localStorage.setItem(key, JSON.stringify(value));
                         } else {
@@ -119,6 +121,4 @@ export const importData = async (file: File): Promise<{ success: boolean; messag
 export const clearAllData = async () => {
     localStorage.clear();
     await dbClear();
-    // Optional: Restore theme preference immediately to prevent flash
-    // localStorage.setItem('vite-ui-theme', 'system'); 
 };

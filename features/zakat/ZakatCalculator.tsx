@@ -8,6 +8,7 @@ import { ZAKAT_FAQ } from './constants.ts';
 import { exportZakatPdf } from './logic/pdf-export.ts';
 import { zakatReducer, initialZakatState } from './logic/zakatReducer.ts';
 import { useLocalStorage } from '../../hooks/useLocalStorage.ts';
+import { useIndexedDB } from '../../hooks/useIndexedDB.ts';
 import { useToast } from '../../components/ui/Toast.tsx';
 import { useConfirm } from '../../components/ui/ConfirmContext.tsx';
 import { useDebounce } from '../../hooks/useDebounce.ts';
@@ -23,8 +24,8 @@ import {
 } from './components/ZakatTabs.tsx';
 
 const INITIAL_SETTINGS: ZakatSettings = {
-    goldPrice: 2400000, // Updated 2025 Estimate
-    silverPrice: 26000,
+    goldPrice: 1500000, // Updated 2025 Estimate
+    silverPrice: 18000,
     ricePrice: 15000,
     riceKgPerPerson: 2.5,
     currency: 'IDR'
@@ -45,8 +46,11 @@ const ZakatCalculator: React.FC = () => {
     const { confirm } = useConfirm();
     const [activeTab, setActiveTab] = useState('fitrah');
     
+    // Settings remain in LocalStorage (lightweight)
     const [settings, setSettings] = useLocalStorage<ZakatSettings>('zakatSettings', INITIAL_SETTINGS);
-    const [history, setHistory] = useLocalStorage<ZakatHistoryEntry[]>('zakatHistory', []);
+    
+    // History moved to IndexedDB (heavy)
+    const [history, setHistory] = useIndexedDB<ZakatHistoryEntry[]>('zakatHistory', []);
     
     const initZakatState = () => {
         if (typeof window !== 'undefined') {
@@ -284,13 +288,7 @@ const ZakatCalculator: React.FC = () => {
 
             {/* Mobile Sticky Action Bar */}
             {activeTab !== 'summary' && (
-                <div 
-                  className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/55 dark:bg-slate-900/55 border-t border-slate-200 dark:border-slate-800 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.05)]"
-                  style={{
-                    backdropFilter: 'blur(16px)',
-                    WebkitBackdropFilter: 'blur(16px)'
-                  }}
-                >
+                <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
                     <button
                         onClick={goToSummary}
                         className="w-full flex items-center justify-center bg-emerald-600 text-white font-bold py-3.5 px-6 rounded-2xl hover:bg-emerald-700 active:scale-95 transition-all shadow-lg shadow-emerald-600/20"

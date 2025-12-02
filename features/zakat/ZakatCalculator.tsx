@@ -12,6 +12,7 @@ import { useIndexedDB } from '../../hooks/useIndexedDB.ts';
 import { useToast } from '../../components/ui/Toast.tsx';
 import { useConfirm } from '../../components/ui/ConfirmContext.tsx';
 import { useDebounce } from '../../hooks/useDebounce.ts';
+import { useRouter } from '../../hooks/useRouter.ts'; // Import router
 import { FaRedo, FaTags, FaReceipt, FaCog } from 'react-icons/fa';
 import { 
     FitrahView, 
@@ -24,8 +25,8 @@ import {
 } from './components/ZakatTabs.tsx';
 
 const INITIAL_SETTINGS: ZakatSettings = {
-    goldPrice: 1500000, // Updated 2025 Estimate
-    silverPrice: 18000,
+    goldPrice: 2400000, 
+    silverPrice: 25000,
     ricePrice: 15000,
     riceKgPerPerson: 2.5,
     currency: 'IDR'
@@ -44,12 +45,10 @@ const TABS = [
 const ZakatCalculator: React.FC = () => {
     const { showToast } = useToast();
     const { confirm } = useConfirm();
+    const { searchParams } = useRouter(); 
+    
     const [activeTab, setActiveTab] = useState('fitrah');
-    
-    // Settings remain in LocalStorage (lightweight)
     const [settings, setSettings] = useLocalStorage<ZakatSettings>('zakatSettings', INITIAL_SETTINGS);
-    
-    // History moved to IndexedDB (heavy)
     const [history, setHistory] = useIndexedDB<ZakatHistoryEntry[]>('zakatHistory', []);
     
     const initZakatState = () => {
@@ -73,6 +72,66 @@ const ZakatCalculator: React.FC = () => {
     useEffect(() => {
         localStorage.setItem('zakatState', JSON.stringify(debouncedState));
     }, [debouncedState]);
+
+    // --- HANDLE VOICE COMMAND PARAMS ---
+    useEffect(() => {
+        const action = searchParams.get('action');
+        const amountStr = searchParams.get('amount');
+        const type = searchParams.get('type');
+        const targetTab = searchParams.get('tab');
+
+        // MODE 1: NAVIGATION ONLY (e.g. "Buka Zakat Pertanian")
+        if (targetTab && !action) {
+            // Validate tab exists
+            if (TABS.some(t => t.id === targetTab)) {
+                setActiveTab(targetTab);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            return;
+        }
+
+        // MODE 2: CALCULATION (e.g. "Hitung Zakat Emas 100 gram")
+        if (action === 'calculate' && amountStr) {
+            const amount = parseFloat(amountStr);
+            
+            if (!isNaN(amount) && amount > 0) {
+                // 1. Reset state to ensure clean calculation
+                dispatch({ type: 'RESET' });
+                
+                // 2. Map 'type' to specific input field
+                let targetKey: keyof ZakatState = 'cash'; // Default to Maal/Cash
+                
+                switch (type) {
+                    case 'gold':
+                        targetKey = 'goldWeight';
+                        break;
+                    case 'business':
+                        targetKey = 'bizAssets';
+                        break;
+                    case 'agri':
+                        targetKey = 'agriHarvest';
+                        break;
+                    case 'livestock':
+                        targetKey = 'livestockValue';
+                        break;
+                    case 'fitrah':
+                        targetKey = 'fitrahPeople'; // Logic usually sends small number here
+                        break;
+                    default:
+                        targetKey = 'cash'; // 'maal' falls here
+                }
+
+                // 3. Update Value
+                dispatch({ type: 'SET_VALUE', payload: { key: targetKey, value: amount } });
+                
+                // 4. DIRECTLY Jump to Summary (Result) - No Flicker
+                setActiveTab('summary');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                
+                showToast('Hasil perhitungan ditampilkan.', 'success');
+            }
+        }
+    }, [searchParams]);
 
     const handleInputChange = (key: keyof ZakatState, value: any) => {
         dispatch({ type: 'SET_VALUE', payload: { key, value } });

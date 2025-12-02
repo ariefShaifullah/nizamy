@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { type VirtuosoHandle } from 'react-virtuoso';
 import { SURAH_DATA } from '../../constants.ts';
@@ -68,6 +69,74 @@ const MushafApp: React.FC = () => {
             setIsHelpOpen(true);
         }
     }, [selectedSurahId]);
+
+    // --- CHECK FOR VOICE COMMAND JUMP (Initialization & Real-time) ---
+    const checkVoiceCommand = useCallback(() => {
+        const jumpTarget = localStorage.getItem('mushaf_jump_surah');
+        const jumpAyah = localStorage.getItem('mushaf_jump_ayah');
+
+        if (jumpTarget) {
+            const surahId = parseInt(jumpTarget, 10);
+            if (!isNaN(surahId) && surahId >= 1 && surahId <= 114) {
+                // If same surah, just jump to ayah if needed
+                if (surahId === selectedSurahId) {
+                    if (jumpAyah) {
+                        const ayahId = parseInt(jumpAyah, 10);
+                        if (!isNaN(ayahId)) {
+                            // Immediate internal jump
+                            setPendingJumpAyah(ayahId);
+                            // Trigger logic to scroll immediately as surah is already loaded
+                            handleInternalJump(ayahId);
+                        }
+                        localStorage.removeItem('mushaf_jump_ayah');
+                    }
+                } else {
+                    // Different surah, full reload
+                    setSelectedSurahId(surahId);
+                    if (jumpAyah) {
+                        const ayahId = parseInt(jumpAyah, 10);
+                        if (!isNaN(ayahId)) {
+                            setPendingJumpAyah(ayahId);
+                        }
+                        localStorage.removeItem('mushaf_jump_ayah');
+                    }
+                }
+                
+                // Clear triggers
+                localStorage.removeItem('mushaf_jump_surah');
+            }
+        }
+    }, [selectedSurahId]);
+
+    // Helper for internal jump (when surah is already active)
+    const handleInternalJump = async (targetAyah: number) => {
+        showToast(`Melompat ke ayat ${targetAyah}...`, 'info');
+        try {
+            await loadUntilAyah(targetAyah);
+            requestAnimationFrame(() => {
+                virtuosoRef.current?.scrollToIndex({ 
+                    index: targetAyah - 1, 
+                    align: 'start', 
+                    behavior: 'smooth' 
+                });
+            });
+        } catch (err) {
+            showToast("Gagal memuat posisi.", "error");
+        }
+    };
+
+    // 1. Check on Mount
+    useEffect(() => {
+        checkVoiceCommand();
+    }, []);
+
+    // 2. Check on Custom Event (Real-time Voice Trigger)
+    useEffect(() => {
+        const handleVoiceEvent = () => checkVoiceCommand();
+        window.addEventListener('nizamy-voice-command', handleVoiceEvent);
+        return () => window.removeEventListener('nizamy-voice-command', handleVoiceEvent);
+    }, [checkVoiceCommand]);
+
 
     // Handle Wake Lock based on Reading State
     useEffect(() => {
@@ -214,6 +283,9 @@ const MushafApp: React.FC = () => {
     useEffect(() => {
         if (selectedSurahId) {
             const initReader = async () => {
+                // If we are switching surahs, we need to load page 1 first
+                // If pendingJumpAyah is set, loadUntilAyah will be called inside
+                
                 await loadVerses(1, true);
                 setVisibleRange({ startIndex: 0, endIndex: 0 });
                 setJumpAyahInput(""); 
@@ -233,7 +305,7 @@ const MushafApp: React.FC = () => {
                                     behavior: 'auto' 
                                 });
                                 setPendingJumpAyah(null);
-                            }, 100);
+                            }, 500); // Slight delay for rendering
                         });
                     } catch (err) {
                         console.error(err);

@@ -1,15 +1,21 @@
+
 import React, { useState } from 'react';
 // @ts-ignore
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext.tsx';
 import { GlobalSettings } from '../../features/settings/components/GlobalSettings.tsx';
 import { LegalModal, type LegalType } from '../../features/settings/components/LegalModal.tsx';
-import { FaBars, FaSun, FaMoon, FaCog, FaArrowLeft, FaShieldAlt, FaFileContract } from 'react-icons/fa';
+import { VoiceAssistant } from '../ui/VoiceAssistant.tsx'; // Import UI Overlay
+import { useNizamyVoice } from '../../hooks/useNizamyVoice.ts'; // Import Logic Hook
+import { FaBars, FaSun, FaMoon, FaCog, FaArrowLeft, FaShieldAlt, FaFileContract, FaMicrophone } from 'react-icons/fa';
 
 export const Header: React.FC = () => {
     // Consume simpler API from Context
     const { toggleTheme, isDark } = useTheme(); 
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    
+    // Voice Assistant Logic Integration
+    const { isListening, transcript, feedback, startListening, stopListening, isSupported } = useNizamyVoice();
     
     const location = useLocation();
     const navigate = useNavigate();
@@ -38,8 +44,8 @@ export const Header: React.FC = () => {
     const logoBgClass = titleColor.replace(/text-/g, 'bg-');
     
     const logoStyle = {
-        maskImage: 'url("/images/logo_nizamy.png?v=4")',
-        WebkitMaskImage: 'url("/images/logo_nizamy.png?v=4")',
+        maskImage: 'url("/images/logo_nizamy.png?v=5")',
+        WebkitMaskImage: 'url("/images/logo_nizamy.png?v=5")',
         maskSize: 'contain',
         WebkitMaskSize: 'contain',
         maskRepeat: 'no-repeat',
@@ -56,11 +62,11 @@ export const Header: React.FC = () => {
 
     return (
       <>
-      <header className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl shadow-sm fixed top-0 left-0 right-0 z-50 border-b border-white/20 dark:border-slate-700/50 transition-all duration-300 pt-[env(safe-area-inset-top)]">
+      <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-sm fixed top-0 left-0 right-0 z-50 border-b border-white/20 dark:border-slate-700/50 transition-all duration-300 pt-[env(safe-area-inset-top)]">
         <div className="container mx-auto px-4 py-3 md:py-4 flex justify-between items-center">
-          <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity group focus:outline-none">
+          <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity group focus:outline-none min-w-0">
              
-             <div className="md:hidden">
+             <div className="md:hidden shrink-0">
                 {isHome ? (
                     <div 
                         className={`w-10 h-10 transition-all duration-500 drop-shadow-sm ${logoBgClass}`}
@@ -78,22 +84,33 @@ export const Header: React.FC = () => {
                 style={logoStyle}
              />
 
-            <div className="text-left">
-                <p className={`text-lg md:text-2xl font-extrabold tracking-tight leading-none ${titleColor} drop-shadow-sm`}>NIZAMY</p>
+            <div className="text-left min-w-0">
+                <p className={`text-lg md:text-2xl font-extrabold tracking-tight leading-none ${titleColor} drop-shadow-sm truncate`}>NIZAMY</p>
                 {!isHome && (
-                    <p className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-medium mt-0.5 truncate max-w-[150px] md:max-w-none animate-fade-in">
+                    <p className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-medium mt-0.5 truncate max-w-[120px] md:max-w-none animate-fade-in">
                         {subtitle}
                     </p>
                 )}
             </div>
           </Link>
           
-          <div className="flex items-center gap-2 md:gap-3">
+          <div className="flex items-center gap-1.5 md:gap-3 shrink-0">
+              {/* Voice Trigger */}
+              {isSupported && (
+                  <button 
+                      onClick={startListening}
+                      className="p-2 md:p-2.5 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 border border-indigo-200 dark:border-indigo-800 transition-all shadow-sm icon-wrapper w-10 h-10 flex items-center justify-center active:scale-95"
+                      aria-label="Voice Assistant"
+                  >
+                      <FaMicrophone />
+                  </button>
+              )}
+
+              {/* Theme Toggle - Restored for Mobile */}
               <button 
                   onClick={handleToggle}
-                  className="p-2 md:p-2.5 rounded-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-md text-slate-600 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700 hover:text-indigo-500 dark:hover:text-yellow-400 border border-white/20 dark:border-slate-700 transition-all shadow-sm icon-wrapper w-10 h-10 flex items-center justify-center active:scale-95 group"
+                  className="flex p-2 md:p-2.5 rounded-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-md text-slate-600 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700 hover:text-indigo-500 dark:hover:text-yellow-400 border border-white/20 dark:border-slate-700 transition-all shadow-sm items-center justify-center active:scale-95 w-10 h-10"
                   aria-label={isDark ? "Ubah ke Mode Terang" : "Ubah ke Mode Gelap"}
-                  title={isDark ? "Mode Terang" : "Mode Gelap"}
               >
                   {isDark ? (
                       <div className="text-yellow-400 animate-fade-in"><FaSun  /></div>
@@ -109,20 +126,18 @@ export const Header: React.FC = () => {
               >
                   <FaCog />
               </button>
-
-              {!isHome && (
-                 <button 
-                    onClick={() => navigate('/')} 
-                    className="hidden md:flex items-center text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-white/50 dark:bg-slate-800/50 backdrop-blur-md hover:bg-white/80 dark:hover:bg-slate-700 px-3 py-2 md:px-4 md:py-2 rounded-full transition-all active:scale-95 border border-white/20 dark:border-slate-700 shadow-sm"
-                 >
-                    <span className="icon-wrapper w-4 h-4 mr-1.5"><FaBars /></span>
-                    <span>Menu</span>
-                 </button>
-              )}
           </div>
         </div>
       </header>
       
+      {/* Global Voice Overlay Rendered Here */}
+      <VoiceAssistant 
+          isListening={isListening} 
+          transcript={transcript} 
+          feedback={feedback} 
+          onStop={stopListening} 
+      />
+
       {isSettingsOpen && <GlobalSettings isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />}
       </>
     );

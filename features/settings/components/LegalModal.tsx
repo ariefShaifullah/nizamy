@@ -37,12 +37,6 @@ const SectionTitle: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     <h4 className="text-lg font-bold text-slate-900 dark:text-white mt-6 mb-2">{children}</h4>
 );
 
-const ListItem: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-    <li className="mb-2">
-        <span className="font-semibold text-slate-800 dark:text-slate-200">{title}</span> {children}
-    </li>
-);
-
 const TermsContent = () => (
     <div className="space-y-3">
         <p className="text-xs text-slate-500">Terakhir Diperbarui: November 2025</p>
@@ -70,6 +64,9 @@ const TermsContent = () => (
             </li>
             <li>
                 <strong>Al-Quran & Hafalan:</strong> Teks ayat diambil dari API publik. Jika menemukan kesalahan penulisan, mohon merujuk pada Mushaf Utsmani cetak. Fitur audio streaming menggunakan kuota data internet Anda.
+            </li>
+            <li>
+                <strong>Perintah Suara (Voice Command):</strong> Fitur ini menggunakan teknologi pengenalan suara (Web Speech API). Kami tidak bertanggung jawab atas kesalahan interpretasi suara oleh sistem (misal: salah dengar nominal). Pengguna wajib memverifikasi ulang data yang terisi otomatis sebelum melakukan perhitungan.
             </li>
         </ul>
 
@@ -105,20 +102,28 @@ const PrivacyContent = () => (
             <li>Jawaban diagnosa ekonomi.</li>
         </ul>
 
-        <SectionTitle>2. Pengumpulan Data Teknis</SectionTitle>
+        <SectionTitle>2. Pengumpulan Data Teknis & Izin</SectionTitle>
         <p>Kami hanya mengakses data teknis yang diperlukan untuk fungsi aplikasi:</p>
         <ul className="list-disc pl-5 space-y-1">
             <li><strong>Lokasi (GPS):</strong> Hanya diminta sesaat untuk menghitung jadwal sholat akurat. Koordinat tidak dikirim ke server kami.</li>
+            <li><strong>Mikrofon:</strong> Hanya diakses saat Anda mengaktifkan fitur Voice Command. Audio diproses langsung oleh <em>browser engine</em> dan tidak kami rekam atau simpan di server NIZAMY.</li>
             <li><strong>IP Address:</strong> Mungkin tercatat secara otomatis oleh penyedia layanan pihak ketiga (seperti CDN Audio Quran) saat Anda memutar audio streaming.</li>
         </ul>
 
-        <SectionTitle>3. Keamanan & Kehilangan Data</SectionTitle>
+        <SectionTitle>3. Layanan Pihak Ketiga</SectionTitle>
+        <p>Aplikasi ini menggunakan layanan pihak ketiga tertentu. Data yang Anda berikan mungkin diproses sesuai kebijakan privasi mereka:</p>
+        <ul className="list-disc pl-5 space-y-1">
+            <li><strong>Web Speech API (Google/Apple/Browser Vendor):</strong> Saat menggunakan Voice Command, data suara Anda mungkin dikirim ke server penyedia browser untuk diubah menjadi teks (Speech-to-Text).</li>
+            <li><strong>Aladhan & Quran.com API:</strong> Untuk data jadwal sholat dan teks ayat.</li>
+        </ul>
+
+        <SectionTitle>4. Keamanan & Kehilangan Data</SectionTitle>
         <ul className="list-disc pl-5 space-y-2">
             <li><strong>Kontrol Penuh:</strong> Karena data ada di HP Anda, keamanan bergantung pada akses fisik ke perangkat Anda (gunakan PIN/Fingerprint).</li>
             <li><strong>Risiko Hapus Data:</strong> Menghapus <em>cache</em> browser atau meng-uninstall aplikasi akan <strong>menghapus seluruh data secara permanen</strong>.</li>
             <li><strong>Solusi Backup:</strong> Gunakan fitur "Backup & Restore" di menu Pengaturan untuk menyimpan data Anda ke file aman secara berkala.</li>
         </ul>
-        <SectionTitle>4. Kontak</SectionTitle>
+        <SectionTitle>5. Kontak</SectionTitle>
         <p>
           Jika ada pertanyaan, silakan hubungi kami melalui email:{" "}
           <strong>aryan@nizamy.com</strong>.

@@ -1,16 +1,17 @@
 
-import React, { useState, useReducer, useCallback, useTransition } from 'react';
+import React, { useState, useReducer, useCallback, useTransition, useEffect } from 'react';
 import { HeirsForm } from './components/HeirsForm.tsx';
 import { ResultsDisplay } from './components/ResultsDisplay.tsx';
 import { HistoryPanel } from './components/HistoryPanel.tsx';
 import { FAQ } from '../../components/ui/FAQ.tsx';
 import { calculateFaraidh } from './logic/faraidh.service.ts';
-import type { CalculationResult, HistoryEntry } from '../../types.ts';
+import type { CalculationResult, HistoryEntry, Heir } from '../../types.ts';
 import { initialHeirsState, FARAIDH_FAQ } from './constants.ts';
 import { heirsReducer } from './logic/heirsReducer.ts';
 import { useIndexedDB } from '../../hooks/useIndexedDB.ts';
 import { useToast } from '../../components/ui/Toast.tsx';
 import { useConfirm } from '../../components/ui/ConfirmContext.tsx';
+import { useRouter } from '../../hooks/useRouter.ts'; // Import router
 import { FaPen, FaChartPie, FaHistory } from 'react-icons/fa';
 
 type FaraidhTab = 'input' | 'result' | 'history';
@@ -18,15 +19,65 @@ type FaraidhTab = 'input' | 'result' | 'history';
 const FaraidhCalculator: React.FC = () => {
   const { showToast } = useToast();
   const { confirm } = useConfirm();
+  const { searchParams } = useRouter(); // Use params
+
   const [heirs, dispatch] = useReducer(heirsReducer, initialHeirsState);
   const [estate, setEstate] = useState<string>('100000000');
-  const [deceasedGender, setDeceasedGender] = useState<'male' | 'female'>('male');
+  const [deceasedGender, setDeceasedGender] = useState<'male' | 'female'>('male'); // Lifted State
+  
   const [result, setResult] = useState<CalculationResult | null>(null);
   const [isPending, startTransition] = useTransition();
   
-  // OPTIMIZED: Use IndexedDB for history to prevent main thread blocking
   const [history, setHistory] = useIndexedDB<HistoryEntry[]>('faraidhHistory', []);
   const [activeTab, setActiveTab] = useState<FaraidhTab>('input');
+
+  // --- HANDLE VOICE COMMAND ---
+  useEffect(() => {
+      const estateParam = searchParams.get('estate');
+      const heirsParam = searchParams.get('heirs');
+      
+      let hasUpdates = false;
+
+      if (estateParam) {
+          const val = parseInt(estateParam, 10);
+          if (!isNaN(val) && val > 0) {
+              setEstate(String(val));
+              hasUpdates = true;
+          }
+      }
+
+      if (heirsParam) {
+          // Format: "son:2,wife:1"
+          // Reset existing before applying new
+          if (!hasUpdates) dispatch({ type: 'RESET' }); // Only reset if we didn't just reset for estate above? Actually safer to always reset if voice command triggers.
+          else dispatch({ type: 'RESET' }); // Ensure clean slate
+
+          const pairs = heirsParam.split(',');
+          let heirsLoadedCount = 0;
+
+          pairs.forEach(pair => {
+              const [key, valStr] = pair.split(':');
+              const val = parseInt(valStr, 10);
+              if (key && !isNaN(val)) {
+                  dispatch({ type: 'SET_COUNT', payload: { heir: key as Heir, count: val } });
+                  heirsLoadedCount++;
+                  
+                  // Auto-set deceased gender context if possible
+                  if (key === 'husband') setDeceasedGender('female');
+                  if (key === 'wife') setDeceasedGender('male');
+              }
+          });
+          
+          if (heirsLoadedCount > 0) hasUpdates = true;
+      } else if (estateParam) {
+          // If only estate provided, still reset heirs to avoid confusion with previous manual input
+          dispatch({ type: 'RESET' });
+      }
+
+      if (hasUpdates) {
+          showToast(`Data dimuat dari perintah suara.`, 'info');
+      }
+  }, [searchParams, showToast]);
 
   const handleCalculate = useCallback(() => {
     const estateValue = parseFloat(estate);
@@ -35,7 +86,6 @@ const FaraidhCalculator: React.FC = () => {
       return;
     }
 
-    // Use startTransition to keep the UI responsive during calculation and state updates
     startTransition(() => {
         try {
             const calculationResult = calculateFaraidh(heirs, estateValue);
@@ -69,8 +119,7 @@ const FaraidhCalculator: React.FC = () => {
     setEstate(String(entry.estate));
     dispatch({ type: 'LOAD_STATE', payload: entry.heirs });
     setResult(entry.result);
-    // Note: History doesn't strictly store gender in current schema, defaulting to male or inferring could be an enhancement.
-    // Ideally we update HistoryEntry type, but for now we keep it simple or infer from presence of Husband/Wife.
+    
     if (entry.heirs.husband > 0) setDeceasedGender('female');
     else if (entry.heirs.wife > 0) setDeceasedGender('male');
     

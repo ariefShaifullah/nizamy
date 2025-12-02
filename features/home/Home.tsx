@@ -11,7 +11,6 @@ import {
   FaHandsHelping,
   FaQuran,
   FaBrain,
-  FaArrowRight,
   FaDownload,
   FaStethoscope,
   FaTimes,
@@ -123,7 +122,7 @@ const BackgroundDecor = () => (
         <div className="absolute bottom-[10%] left-[-10%] w-[300px] h-[300px] bg-emerald-300/20 dark:bg-emerald-900/10 rounded-full blur-[80px]"></div>
         
         {/* Noise Texture for that "Premium" feel */}
-        <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]" 
+        <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.03]" 
              style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}>
         </div>
     </div>
@@ -143,7 +142,6 @@ const HeaderSection = () => {
                 <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
                     {getGregorianDate()}
                 </span>
-                <span className="w-1 h-1 rounded-full bg-slate-400"></span>
             </div>
             
             <div className="relative z-10 pr-4">
@@ -299,7 +297,7 @@ const InstallBanner: React.FC<{ onInstall: () => void; onClose: () => void }> = 
                     <FaDownload />
                 </div>
                 <div className="flex flex-col">
-                    <span className="text-sm font-bold">Pasang Aplikasi</span>
+                    <span className="text-sm font-bold">Install Nizamy</span>
                     <span className="text-[10px] opacity-70">Akses offline lebih cepat</span>
                 </div>
             </div>

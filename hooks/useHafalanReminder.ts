@@ -1,3 +1,4 @@
+
 import { useEffect, useRef } from 'react';
 import { checkAndSendHafalanReminder } from '../services/hafalan-reminder.service.ts';
 
@@ -5,20 +6,17 @@ import { checkAndSendHafalanReminder } from '../services/hafalan-reminder.servic
  * Hook untuk mengelola hafalan reminder dengan optimasi performa
  * - Mendaftarkan periodic sync untuk background notifications (PWA)
  * - Check hanya saat visibility change (lebih hemat battery)
- * - Throttle untuk mencegah spam check
  */
 export const useHafalanReminder = () => {
   const lastCheckTime = useRef<number>(0);
   const checkIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    // Listen untuk message dari Service Worker
+    // 1. Listen untuk message dari Service Worker (jika notif diklik/dikirim dari BG)
     const handleSWMessage = (event: MessageEvent) => {
       if (event.data && event.data.type === 'REMINDER_SENT') {
-        // Sync last notification date dari SW
         const date = event.data.date;
         localStorage.setItem('nizamy_last_notif_date', date);
-        console.debug('📩 Synced reminder date from SW:', date);
       }
     };
 
@@ -26,54 +24,59 @@ export const useHafalanReminder = () => {
       navigator.serviceWorker.addEventListener('message', handleSWMessage);
     }
 
-    // Initial check dengan delay untuk tidak mengganggu app load
+    // 2. Initial check saat app dibuka
     const initialCheckTimer = setTimeout(() => {
       performCheck();
-    }, 3000); // 3 detik setelah app load
+    }, 3000); 
 
-    // Register Periodic Background Sync (if supported)
+    // 3. Register Periodic Background Sync (CRITICAL UNTUK BACKGROUND NOTIF)
     const registerPeriodicSync = async () => {
       if ('serviceWorker' in navigator) {
         try {
           const registration = await navigator.serviceWorker.ready;
           
-          // @ts-ignore - periodicSync is not yet in TypeScript types
+          // @ts-ignore - periodicSync types belum standar di TS
           if (registration.periodicSync) {
-            // @ts-ignore
-            await registration.periodicSync.register('hafalan-reminder-sync', {
-              minInterval: 24 * 60 * 60 * 1000, // 24 hours
+            // Minta izin status dulu
+            const status = await navigator.permissions.query({
+              // @ts-ignore
+              name: 'periodic-background-sync',
             });
-            console.debug('✅ Periodic sync registered');
+
+            if (status.state === 'granted') {
+                // @ts-ignore
+                await registration.periodicSync.register('hafalan-reminder-sync', {
+                  minInterval: 12 * 60 * 60 * 1000, // Minimal 12 jam sekali (kebijakan browser)
+                });
+                console.debug('✅ Periodic sync registered');
+            }
           }
         } catch (error) {
-          console.debug('⚠️ Periodic sync not available:', error);
+          // Fitur ini mungkin tidak didukung di semua browser (terutama iOS/Firefox)
+          console.debug('⚠️ Periodic sync setup failed:', error);
         }
       }
     };
 
     registerPeriodicSync();
 
-    // Optimized: Check saat user kembali ke tab (visibility change)
-    // Lebih hemat daripada interval terus menerus
+    // 4. Check saat user kembali ke tab (Foreground Check)
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         performCheck();
       }
     };
 
-    // Optimized: Check saat user kembali online
     const handleOnline = () => {
       performCheck();
     };
 
-    // Helper function dengan throttle
     const performCheck = () => {
       const now = Date.now();
       const hourInMs = 60 * 60 * 1000;
       
-      // Throttle: hanya check jika sudah lewat 1 jam sejak check terakhir
+      // Throttle: hanya check jika sudah lewat 1 jam sejak check terakhir di sesi ini
       if (now - lastCheckTime.current < hourInMs) {
-        console.debug('⏭️ Skipping check (throttled)');
         return;
       }
 
@@ -84,34 +87,19 @@ export const useHafalanReminder = () => {
       });
     };
 
-    // Event listeners (lebih efisien daripada setInterval)
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('online', handleOnline);
 
-    // Fallback: Check maksimal 2x sehari (jam 9 pagi dan jam 6 sore)
-    // Hanya jika app tetap terbuka lama
-    const setupSmartInterval = () => {
-      // Clear existing interval
-      if (checkIntervalRef.current) {
-        clearInterval(checkIntervalRef.current);
-      }
-
-      const checkSmartTiming = () => {
+    // 5. Fallback Interval (Jika app dibiarkan terbuka seharian)
+    const checkSmartTiming = () => {
         const hour = new Date().getHours();
-        
-        // Check hanya di jam-jam strategis: 8-10 pagi atau 17-19 sore
+        // Check di jam strategis (Pagi/Sore)
         if ((hour >= 8 && hour <= 10) || (hour >= 17 && hour <= 19)) {
           performCheck();
         }
-      };
-
-      // Check setiap 2 jam (lebih hemat dari setiap 1 jam)
-      checkIntervalRef.current = setInterval(checkSmartTiming, 2 * 60 * 60 * 1000);
     };
+    checkIntervalRef.current = setInterval(checkSmartTiming, 2 * 60 * 60 * 1000);
 
-    setupSmartInterval();
-
-    // Cleanup
     return () => {
       clearTimeout(initialCheckTimer);
       document.removeEventListener('visibilitychange', handleVisibilityChange);

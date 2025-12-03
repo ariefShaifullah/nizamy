@@ -8,11 +8,12 @@ const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/images/android-chrome-512x512.png?v=6'
 ];
 
 // Install SW
 self.addEventListener('install', (event) => {
-  self.skipWaiting(); // Force new SW to activate immediately
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(urlsToCache);
@@ -20,7 +21,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Activate SW & Clean old caches
+// Activate SW
 self.addEventListener('activate', (event) => {
   const cacheWhitelist = [CACHE_NAME, QURAN_CACHE, AUDIO_CACHE, ASSET_CACHE];
   event.waitUntil(
@@ -32,21 +33,86 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
-    }).then(() => self.clients.claim()) // Take control of all clients immediately
+    }).then(() => self.clients.claim())
   );
+});
+
+// --- BACKGROUND SYNC LOGIC (MANUAL IDB) ---
+// Kita harus menggunakan raw IDB karena sw.js ini tidak di-bundle dengan library eksternal
+const checkHafalanInBackground = async () => {
+    try {
+        const dbReq = indexedDB.open('keyval-store');
+        
+        dbReq.onsuccess = (e) => {
+            const db = e.target.result;
+            const transaction = db.transaction(['keyval'], 'readonly');
+            const store = transaction.objectStore('keyval');
+            
+            // 1. Get Users List
+            const usersReq = store.get('nizamy_hafalan_users');
+            
+            usersReq.onsuccess = () => {
+                const users = usersReq.result;
+                if (!users || !Array.isArray(users) || users.length === 0) return;
+
+                // 2. Check each user data
+                let totalDue = 0;
+                let checkedCount = 0;
+
+                users.forEach(user => {
+                    const userDataReq = store.get(`nizamy_hafalan_data_${user.id}`);
+                    userDataReq.onsuccess = () => {
+                        const userData = userDataReq.result;
+                        if (userData && userData.items) {
+                            const today = new Date().toISOString().split('T')[0];
+                            const due = userData.items.filter(item => item.nextReviewDate <= today).length;
+                            totalDue += due;
+                        }
+                        
+                        checkedCount++;
+                        // If all checked and we have due items
+                        if (checkedCount === users.length && totalDue > 0) {
+                            showBackgroundNotification(totalDue);
+                        }
+                    };
+                });
+            };
+        };
+    } catch (err) {
+        console.log('Background sync error:', err);
+    }
+};
+
+const showBackgroundNotification = (count) => {
+    const title = 'Waktunya Murajaah! 📖';
+    const options = {
+        body: `Ada ${count} hafalan yang perlu diulang hari ini agar tidak lupa. Semangat!`,
+        icon: '/images/logo_nizamy.png?v=6',
+        badge: '/images/logo_nizamy.png?v=6',
+        tag: 'nizamy-reminder',
+        renotify: true,
+        requireInteraction: true,
+        data: { url: '/' }
+    };
+    self.registration.showNotification(title, options);
+};
+
+// Handle Periodic Sync Event
+self.addEventListener('periodicsync', (event) => {
+    if (event.tag === 'hafalan-reminder-sync') {
+        event.waitUntil(checkHafalanInBackground());
+    }
 });
 
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // 1. API Al-Quran (Text): Cache First (Statis & Berat)
-  // Optimization: Once fetched, we assume verse text doesn't change.
+  // 1. API Al-Quran (Text): Cache First
   if (url.hostname.includes('api.alquran.cloud')) {
     event.respondWith(
       caches.open(QURAN_CACHE).then((cache) => {
         return cache.match(event.request).then((response) => {
           return response || fetch(event.request).then((networkResponse) => {
-            // Cache valid responses only
             if (networkResponse.ok) {
               cache.put(event.request, networkResponse.clone());
             }
@@ -58,7 +124,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 2. Audio Files: Cache First (Performance)
+  // 2. Audio Files: Cache First
   if (url.hostname.includes('everyayah.com')) {
      event.respondWith(
         caches.open(AUDIO_CACHE).then((cache) => {
@@ -75,8 +141,7 @@ self.addEventListener('fetch', (event) => {
      return;
   }
 
-  // 3. External UI Assets (Fonts, Icons): Stale-While-Revalidate
-  // Allows offline usage of fonts and icons
+  // 3. External UI Assets
   if (url.hostname.includes('fonts.googleapis.com') || 
       url.hostname.includes('fonts.gstatic.com') || 
       url.hostname.includes('cdn-icons-png.flaticon.com')) {
@@ -89,7 +154,6 @@ self.addEventListener('fetch', (event) => {
               }
               return networkResponse;
             }).catch(err => console.log("External asset fetch failed (offline)", err));
-            
             return cachedResponse || fetchPromise;
           });
         })
@@ -97,8 +161,7 @@ self.addEventListener('fetch', (event) => {
       return;
   }
 
-  // 4. Navigation (HTML): Network First (Check for App Updates)
-  // This ensures users get the latest version deployed
+  // 4. Navigation (HTML): Network First
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
@@ -110,16 +173,11 @@ self.addEventListener('fetch', (event) => {
   }
 
   // 5. Assets (JS/CSS/Images): Stale-While-Revalidate
-  // Serve fast from cache, but update in background for next visit
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       const fetchPromise = fetch(event.request).then((networkResponse) => {
         if (networkResponse.ok) {
-            // IMPORTANT: Clone response immediately before opening cache
-            // Opening cache is async, and by the time it resolves, the original response body 
-            // might be consumed by the browser if we don't clone it synchronously here.
             const responseToCache = networkResponse.clone();
-            
             caches.open(CACHE_NAME).then((cache) => {
                 cache.put(event.request, responseToCache);
             });
@@ -133,22 +191,18 @@ self.addEventListener('fetch', (event) => {
 
 // Handle Notification Clicks
 self.addEventListener('notificationclick', function(event) {
-  event.notification.close(); // Close the notification
-
-  // Focus on existing window or open a new one
+  event.notification.close();
   event.waitUntil(
-    clients.matchAll({
-      type: 'window',
-      includeUncontrolled: true
-    }).then(function(clientList) {
-      // If a window is already open, focus it
-      for (var i = 0; i < clientList.length; i++) {
-        var client = clientList[i];
-        if (client.url === '/' && 'focus' in client) {
-          return client.focus();
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
+      if (clientList.length > 0) {
+        let client = clientList[0];
+        for (let i = 0; i < clientList.length; i++) {
+          if (clientList[i].focused) {
+            client = clientList[i];
+          }
         }
+        return client.focus();
       }
-      // Otherwise open a new window
       if (clients.openWindow) {
         return clients.openWindow('/');
       }

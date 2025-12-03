@@ -276,12 +276,12 @@ const UtilityCard = ({ title, icon, color, onClick, desc }: { title: string, des
     return (
         <button 
             onClick={onClick}
-            className={`flex flex-col p-4 rounded-3xl border transition-all duration-300 active:scale-95 group h-full justify-center gap-3 ${styles[color]}`}
+            className={`flex flex-col p-4 rounded-3xl border transition-all duration-300 active:scale-95 group h-full justify-between ${styles[color]}`}
         >
-            <div className="w-full flex justify-between items-start">
+            <div className="w-full flex justify-start items-start">
                 <span className="text-2xl">{icon}</span>
             </div>
-            <div className="text-left">
+            <div className="text-left mt-auto">
                 <h4 className="font-bold text-sm md:text-base dark:text-white leading-tight">{title}</h4>
                 <p className="text-[10px] md:text-xs opacity-70 mt-1 font-medium dark:text-slate-300">{desc}</p>
             </div>

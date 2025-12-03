@@ -1,6 +1,5 @@
 
 import React, { useEffect, Suspense, useMemo } from 'react';
-// @ts-ignore
 import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { Home } from './features/home/Home.tsx';
 import { Header, Footer } from './components/layout/Layout.tsx';

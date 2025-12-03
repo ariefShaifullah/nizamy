@@ -1,7 +1,13 @@
-import { IWindow } from '../types.ts';
+
+import { 
+  IWindow, 
+  ISpeechRecognition, 
+  SpeechRecognitionEvent, 
+  SpeechRecognitionErrorEvent 
+} from '../types.ts';
 
 class VoiceService {
-  private recognition: any = null;
+  private recognition: ISpeechRecognition | null = null;
   private isSupported: boolean = false;
   
   // Flag: Apakah stop dilakukan manual oleh user (tombol X) atau sistem?
@@ -17,8 +23,8 @@ class VoiceService {
   private onEndCallback: (() => void) | null = null;
   
   // Timers
-  private restartTimer: any = null; // Untuk auto-restart jika error
-  private silenceTimer: any = null; // Untuk mendeteksi kapan user selesai bicara
+  private restartTimer: ReturnType<typeof setTimeout> | null = null; // Untuk auto-restart jika error
+  private silenceTimer: ReturnType<typeof setTimeout> | null = null; // Untuk mendeteksi kapan user selesai bicara
   
   // Konstanta Waktu Hening (2 Detik)
   // Jika tidak ada suara selama 2 detik, anggap selesai bicara.
@@ -50,18 +56,21 @@ class VoiceService {
       this.resetSilenceTimer();
     };
 
-    this.recognition.onresult = (event: any) => {
+    this.recognition.onresult = (event: Event) => {
+      // Cast event ke tipe yang benar
+      const speechEvent = event as SpeechRecognitionEvent;
+      
       // User sedang bicara, reset timer hening
       this.resetSilenceTimer();
 
       let interimTranscript = '';
       let finalTranscript = '';
 
-      for (let i = event.resultIndex; i < event.results.length; ++i) {
-        if (event.results[i].isFinal) {
-          finalTranscript += event.results[i][0].transcript;
+      for (let i = speechEvent.resultIndex; i < speechEvent.results.length; ++i) {
+        if (speechEvent.results[i].isFinal) {
+          finalTranscript += speechEvent.results[i][0].transcript;
         } else {
-          interimTranscript += event.results[i][0].transcript;
+          interimTranscript += speechEvent.results[i][0].transcript;
         }
       }
 
@@ -84,15 +93,19 @@ class VoiceService {
     };
 
     this.recognition.onerror = (event: any) => {
+      // Note: 'any' digunakan di sini karena ErrorEvent browser sedikit berbeda antar vendor
+      // tapi kita cast ke SpeechRecognitionErrorEvent untuk akses properti .error
+      const errorEvent = event as SpeechRecognitionErrorEvent;
+      
       if (this.silenceTimer) clearTimeout(this.silenceTimer);
 
-      if (event.error === 'no-speech' || event.error === 'network') {
+      if (errorEvent.error === 'no-speech' || errorEvent.error === 'network') {
           return; 
       }
-      if (event.error === 'aborted') return;
+      if (errorEvent.error === 'aborted') return;
       
-      console.warn("Speech API Error:", event.error);
-      if (this.onErrorCallback) this.onErrorCallback(event.error);
+      console.warn("Speech API Error:", errorEvent.error);
+      if (this.onErrorCallback) this.onErrorCallback(errorEvent.error);
     };
 
     this.recognition.onend = () => {
@@ -102,7 +115,6 @@ class VoiceService {
       // Jika sesi mati (karena silence timer kita atau native), 
       // tapi belum kirim hasil final, paksa kirim hasil interim terakhir.
       if (!this.manualStop && !this.hasSentFinal && this.lastInterimTranscript && this.onResultCallback) {
-          // console.debug("Force Finalizing Result:", this.lastInterimTranscript);
           this.onResultCallback(this.lastInterimTranscript, true);
           this.lastInterimTranscript = ''; 
           this.hasSentFinal = true; 
@@ -132,9 +144,7 @@ class VoiceService {
       if (this.silenceTimer) clearTimeout(this.silenceTimer);
       
       this.silenceTimer = setTimeout(() => {
-          // console.debug("Silence detected. Stopping recognition to force process.");
           // Panggil stop() secara manual. Ini akan memicu 'onend'.
-          // Di 'onend', kita punya logika untuk mengubah interim menjadi final.
           if (this.recognition) {
               try {
                   this.recognition.stop(); 
@@ -152,7 +162,7 @@ class VoiceService {
     onError: (error: string) => void,
     onEnd: () => void
   ) {
-    if (!this.isSupported) return;
+    if (!this.isSupported || !this.recognition) return;
     
     this.manualStop = false;
     this.hasSentFinal = false;
@@ -168,7 +178,7 @@ class VoiceService {
 
     setTimeout(() => {
         try {
-          this.recognition.start();
+          this.recognition?.start();
         } catch(e) {
            console.debug("Start overlap ignored");
         }

@@ -97,6 +97,60 @@
   background-color: rgba(71, 85, 105, 0.8);
 }
 
+/* Z-Index Registry - Centralized z-index management */
+/* Use these CSS custom properties to maintain consistent layering */
+:root {
+  /* Background layers (negative values) */
+  --z-background: -10;
+  
+  /* Content layers (0-9) */
+  --z-base: 0;
+  --z-raised: 1;
+  --z-card: 10;
+  
+  /* Interactive elements (10-49) */
+  --z-dropdown: 20;
+  --z-tooltip: 30;
+  --z-popover: 40;
+  
+  /* Navigation & sticky elements (50-99) */
+  --z-sticky: 50;
+  --z-header: 60;
+  --z-navigation: 70;
+  
+  /* Overlays & modals (100-999) */
+  --z-overlay: 100;
+  --z-modal: 200;
+  --z-drawer: 300;
+  --z-toast: 400;
+  
+  /* Critical system UI (1000+) */
+  --z-notification: 1000;
+  --z-loading: 1100;
+  --z-error: 1200;
+  --z-debug: 9999;
+}
+
+/* Z-Index Utility Classes */
+.z-background { z-index: var(--z-background); }
+.z-base { z-index: var(--z-base); }
+.z-raised { z-index: var(--z-raised); }
+.z-card { z-index: var(--z-card); }
+.z-dropdown { z-index: var(--z-dropdown); }
+.z-tooltip { z-index: var(--z-tooltip); }
+.z-popover { z-index: var(--z-popover); }
+.z-sticky { z-index: var(--z-sticky); }
+.z-header { z-index: var(--z-header); }
+.z-navigation { z-index: var(--z-navigation); }
+.z-overlay { z-index: var(--z-overlay); }
+.z-modal { z-index: var(--z-modal); }
+.z-drawer { z-index: var(--z-drawer); }
+.z-toast { z-index: var(--z-toast); }
+.z-notification { z-index: var(--z-notification); }
+.z-loading { z-index: var(--z-loading); }
+.z-error { z-index: var(--z-error); }
+.z-debug { z-index: var(--z-debug); }
+
 /* Safe Area padding for mobile devices with notches/home bars */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 20px);

@@ -196,7 +196,7 @@ export const HedeReport: React.FC<HedeReportProps> = ({
     ];
 
     const TabNavigation = () => (
-        <div id="hede-tab-navigation" className="p-1.5 bg-slate-100 dark:bg-slate-900 rounded-2xl gap-1 sticky top-[calc(env(safe-area-inset-top)+4.5rem)] md:top-24 z-30 flex">
+        <div id="hede-tab-navigation" className="p-1.5 bg-slate-100 dark:bg-slate-900 rounded-2xl gap-1 sticky top-[calc(env(safe-area-inset-top)+4.5rem)] md:top-24 z-navigation flex">
             {TABS.map(tab => (
                 <button
                     key={tab.id}
@@ -238,7 +238,7 @@ export const HedeReport: React.FC<HedeReportProps> = ({
                         <section className="bg-slate-900 text-white rounded-4xl p-8 md:p-10 relative overflow-hidden shadow-2xl shadow-indigo-900/30">
                             <div className="absolute inset-0 bg-linear-to-br from-indigo-900 via-purple-900 to-slate-900 opacity-90"></div>
                             <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
-                            <div className="relative z-10 flex flex-col lg:flex-row items-start gap-8">
+                            <div className="relative z-raised flex flex-col lg:flex-row items-start gap-8">
                                 <div className="bg-white/10 p-5 rounded-2xl backdrop-blur-md border border-white/10 shadow-inner shrink-0">
                                     <span className="icon-wrapper w-12 h-12 text-4xl flex items-center justify-center text-indigo-200"><FaBalanceScale /></span>
                                 </div>
@@ -327,7 +327,7 @@ export const HedeReport: React.FC<HedeReportProps> = ({
             </div>
 
             <div className="mt-8 p-6 bg-amber-50 dark:bg-amber-900/20 rounded-3xl border border-amber-100 dark:border-amber-800 text-center relative overflow-hidden">
-                <div className="flex flex-col items-center justify-center gap-3 relative z-10">
+                <div className="flex flex-col items-center justify-center gap-3 relative z-raised">
                     <div className="text-amber-500 dark:text-amber-400 text-2xl"><span className="icon-wrapper w-8 h-8 flex items-center justify-center"><FaExclamationCircle /></span></div>
                     <p className="text-xs text-amber-900 dark:text-amber-100 leading-relaxed max-w-2xl mx-auto font-medium">
                         <strong className="block text-amber-800 dark:text-amber-200 mb-1 uppercase tracking-widest text-[10px]">Disclaimer Penting</strong>

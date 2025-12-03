@@ -4,7 +4,7 @@ import { audioService } from "../../services/audio.service.ts";
 import { UserSelection } from "./components/UserSelection.tsx";
 import { CreateUser } from "./components/CreateUser.tsx";
 import { Dashboard } from "./components/Dashboard.tsx";
-import { AddItem } from "./hooks/AddItem.tsx";
+import { AddItem } from "./components/AddItem.tsx";
 import { ReviewSession } from "./components/ReviewSession.tsx";
 import { useToast } from "../../components/ui/Toast.tsx";
 import type { HafalanSkillLevel } from "../../types.ts";

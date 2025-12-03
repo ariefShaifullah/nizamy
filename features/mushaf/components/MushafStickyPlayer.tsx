@@ -26,7 +26,7 @@ export const MushafStickyPlayer: React.FC<MushafStickyPlayerProps> = ({
     onClose
 }) => {
     return (
-        <div className="fixed bottom-4 left-4 right-4 z-50 animate-fade-in-up">
+        <div className="fixed bottom-4 left-4 right-4 z-sticky animate-fade-in-up">
             {/* Glassmorphism Dock Container */}
             <div className="bg-slate-900/90 dark:bg-black/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-3 md:p-4 max-w-3xl mx-auto relative overflow-hidden ring-1 ring-white/10">
                 

@@ -167,7 +167,7 @@ export const HedeOnboarding: React.FC<HedeOnboardingProps> = ({ onClose, setActi
     };
 
     return (
-        <div className="fixed inset-0 z-1000" onContextMenu={e => e.preventDefault()}>
+        <div className="fixed inset-0 z-loading" onContextMenu={e => e.preventDefault()}>
             {/* Four-part overlay for spotlight effect with blur */}
             {['top', 'bottom', 'left', 'right'].map(side => (
                 <div
@@ -196,7 +196,7 @@ export const HedeOnboarding: React.FC<HedeOnboardingProps> = ({ onClose, setActi
             <div 
                 ref={modalRef}
                 style={modalStyle}
-                className="absolute p-5 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-72 transition-all duration-300 z-1002 opacity-0 scale-95"
+                className="absolute p-5 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-72 transition-all duration-300 z-loading opacity-0 scale-95"
                 onClick={e => e.stopPropagation()}
             >
                 <div className="absolute w-4 h-4 bg-white dark:bg-slate-800 transform rotate-45" style={{ left: 'var(--arrow-left)', top: 'var(--arrow-top)', bottom: 'var(--arrow-bottom)' }}></div>

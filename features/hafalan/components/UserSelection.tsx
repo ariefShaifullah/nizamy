@@ -79,7 +79,7 @@ export const UserSelection: React.FC<UserSelectionProps> = ({ users, onSelect, o
               
                <button
                 onClick={(e) => handleDelete(e, user)}
-                className="md:hidden absolute top-1/2 -translate-y-1/2 right-2 p-3 text-slate-300 dark:text-slate-600 hover:text-red-500 active:text-red-600 z-10 active:scale-95 transition-transform"
+                className="md:hidden absolute top-1/2 -translate-y-1/2 right-2 p-3 text-slate-300 dark:text-slate-600 hover:text-red-500 active:text-red-600 z-raised active:scale-95 transition-transform"
               >
                  <span className="icon-wrapper w-5 h-5"><FaTrash /></span>
               </button>

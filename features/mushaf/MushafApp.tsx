@@ -465,14 +465,14 @@ const MushafApp: React.FC = () => {
 
     return (
         <div className="fixed inset-0 z-60 bg-white dark:bg-slate-950 flex flex-col animate-fade-in select-none">
-            <div className="fixed left-0 top-[calc(4rem+env(safe-area-inset-top))] bottom-0 w-1 z-20 bg-slate-100 dark:bg-slate-800/50 pointer-events-none">
+            <div className="fixed left-0 top-[calc(4rem+env(safe-area-inset-top))] bottom-0 w-1 z-dropdown bg-slate-100 dark:bg-slate-800/50 pointer-events-none">
                 <div 
                     className="relative w-full bg-teal-500 transition-all duration-500 ease-out rounded-b-full opacity-80"
                     style={{ height: `${progressPercent}%` }}
                 ></div>
             </div>
 
-            <div className="sticky top-0 z-30 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800 pt-[env(safe-area-inset-top)]">
+            <div className="sticky top-0 z-navigation bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800 pt-[env(safe-area-inset-top)]">
                 <div className="flex justify-between items-center px-4 py-3 max-w-3xl mx-auto w-full">
                     <button 
                         onClick={() => { stopAudio(); setSelectedSurahId(null); setPendingJumpAyah(null); }}

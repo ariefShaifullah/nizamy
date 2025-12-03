@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 // @ts-ignore
 import { useNavigate } from 'react-router-dom';
@@ -122,13 +121,33 @@ export const useNizamyVoice = () => {
     if (lowerText.includes('zakat')) {
         const numberVal = parseIndonesianNumber(lowerText);
         
-        // Determine Type
-        let type = 'maal'; // Default
-        if (lowerText.includes('emas') || lowerText.includes('logam')) type = 'gold';
-        else if (lowerText.includes('fitrah') || lowerText.includes('beras')) type = 'fitrah';
-        else if (lowerText.includes('dagang') || lowerText.includes('niaga') || lowerText.includes('bisnis')) type = 'business';
-        else if (lowerText.includes('tani') || lowerText.includes('panen') || lowerText.includes('pertanian')) type = 'agri';
-        else if (lowerText.includes('ternak') || lowerText.includes('sapi') || lowerText.includes('kambing')) type = 'livestock';
+        // Determine Type with Explicit Keyword Matching
+        let type = 'maal'; // Default fallback
+
+        // Priority 1: Fitrah (Specific)
+        if (lowerText.includes('fitrah') || lowerText.includes('beras') || lowerText.includes('jiwa')) {
+            type = 'fitrah';
+        }
+        // Priority 2: Gold/Silver
+        else if (lowerText.includes('emas') || lowerText.includes('logam') || lowerText.includes('perak') || lowerText.includes('perhiasan')) {
+            type = 'gold';
+        }
+        // Priority 3: Business/Trade
+        else if (lowerText.includes('dagang') || lowerText.includes('niaga') || lowerText.includes('bisnis') || lowerText.includes('toko') || lowerText.includes('warung') || lowerText.includes('jualan')) {
+            type = 'business';
+        }
+        // Priority 4: Agriculture
+        else if (lowerText.includes('tani') || lowerText.includes('panen') || lowerText.includes('pertanian') || lowerText.includes('sawah') || lowerText.includes('kebun') || lowerText.includes('ladang')) {
+            type = 'agri';
+        }
+        // Priority 5: Livestock
+        else if (lowerText.includes('ternak') || lowerText.includes('sapi') || lowerText.includes('kambing') || lowerText.includes('domba') || lowerText.includes('kerbau')) {
+            type = 'livestock';
+        }
+        // Priority 6: Maal (Explicit & Synonyms)
+        else if (lowerText.includes('mal') || lowerText.includes('maal') || lowerText.includes('harta') || lowerText.includes('uang') || lowerText.includes('tabungan') || lowerText.includes('simpanan') || lowerText.includes('deposito')) {
+            type = 'maal';
+        }
 
         if (numberVal && lowerText.includes('hitung')) {
             // Calculation Intent

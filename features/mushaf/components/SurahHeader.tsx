@@ -23,7 +23,7 @@ export const SurahHeader: React.FC<SurahHeaderProps> = React.memo(({ surah }) =>
             {/* Ambient Orbs */}
             <div className="absolute top-[-50%] right-[-20%] w-96 h-96 bg-teal-500/20 rounded-full blur-[80px]"></div>
 
-            <div className="relative z-10 flex flex-col items-center">
+            <div className="relative z-raised flex flex-col items-center">
                 {/* Surah Badge (Rub el Hizb Style using FaCertificate) */}
                 <div className="w-16 h-16 mb-4 relative flex items-center justify-center text-emerald-400">
                     <div className="w-full h-full drop-shadow-lg">

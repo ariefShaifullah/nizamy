@@ -93,10 +93,10 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
 
   return (
     <div className="animate-fade-in">
-      <div className="fixed inset-0 z-100 bg-slate-50 dark:bg-slate-950 flex flex-col h-dvh md:static md:h-auto md:bg-transparent md:z-auto md:block md:inset-auto">
+      <div className="fixed inset-0 z-overlay bg-slate-50 dark:bg-slate-950 flex flex-col h-dvh md:static md:h-auto md:bg-transparent md:z-auto md:block md:inset-auto">
         <div className="w-full h-full flex flex-col md:max-w-5xl md:mx-auto md:bg-white md:dark:bg-slate-900 md:rounded-[2.5rem] md:shadow-2xl md:shadow-slate-200/70 md:dark:shadow-none md:border md:border-slate-100 md:dark:border-slate-800 md:overflow-hidden md:relative md:min-h-[600px] md:h-[85vh]">
           
-          <div className="flex-none bg-white dark:bg-slate-900 z-20 relative shadow-sm border-b border-slate-100 dark:border-slate-800 pt-[env(safe-area-inset-top)]">
+          <div className="flex-none bg-white dark:bg-slate-900 z-dropdown relative shadow-sm border-b border-slate-100 dark:border-slate-800 pt-[env(safe-area-inset-top)]">
             <div className="flex justify-between items-center py-3 px-4 md:py-4 md:px-8 border-b border-slate-50 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <div
@@ -237,7 +237,7 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
             )}
           </div>
 
-          <div className="flex-none px-4 pt-4 pb-6 md:p-8 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 z-20 shadow-[0_-4px_20px_rgba(0,0,0,0.02)] pb-safe">
+          <div className="flex-none px-4 pt-4 pb-6 md:p-8 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 z-dropdown shadow-[0_-4px_20px_rgba(0,0,0,0.02)] pb-safe">
              {error || isLoadingText ? (
                  <button
                     disabled

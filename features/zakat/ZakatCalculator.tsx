@@ -231,7 +231,7 @@ const ZakatCalculator: React.FC = () => {
             {/* DASHBOARD TICKER */}
             <div className="bg-slate-900 text-white rounded-2xl shadow-lg p-4 mb-6 flex flex-col md:flex-row justify-between items-center gap-4 relative overflow-hidden mt-4 lg:mt-0">
                 <div className="absolute inset-0 bg-linear-to-r from-emerald-900 to-slate-900 opacity-50"></div>
-                <div className="relative z-10 flex flex-wrap justify-center md:justify-start gap-4 md:gap-8 w-full md:w-auto">
+                <div className="relative z-raised flex flex-wrap justify-center md:justify-start gap-4 md:gap-8 w-full md:w-auto">
                     <div className="flex flex-col">
                         <span className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Harga Emas (per gram)</span>
                         <span className="text-xl font-mono font-bold text-yellow-400">{formatCurrency(settings.goldPrice)}</span>
@@ -243,7 +243,7 @@ const ZakatCalculator: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="relative z-10 flex items-center gap-2 w-full md:w-auto justify-center md:justify-end">
+                <div className="relative z-raised flex items-center gap-2 w-full md:w-auto justify-center md:justify-end">
                     <button onClick={handleReset} className="text-xs font-bold px-4 py-2 rounded-lg bg-slate-800 hover:bg-red-900/50 text-slate-300 hover:text-white transition-colors border border-slate-700 flex items-center gap-2">
                         <span className="icon-wrapper w-3 h-3"><FaRedo /></span> Reset
                     </button>
@@ -258,7 +258,7 @@ const ZakatCalculator: React.FC = () => {
             </div>
 
             {showSettings && (
-                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 mb-8 animate-fade-in-down shadow-xl relative z-20">
+                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 mb-8 animate-fade-in-down shadow-xl relative z-dropdown">
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="font-bold text-slate-800 dark:text-white flex items-center">
                             <span className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 w-8 h-8 rounded-lg flex items-center justify-center text-sm mr-3"><FaTags /></span>
@@ -292,7 +292,7 @@ const ZakatCalculator: React.FC = () => {
             )}
 
             <div className="flex flex-col lg:flex-row gap-6 md:gap-8 items-start">
-                <div className="w-full lg:w-64 shrink-0 sticky top-[74px] lg:top-24 z-30 py-2 lg:py-0 mb-2 lg:mb-0">
+                <div className="w-full lg:w-64 shrink-0 sticky top-[74px] lg:top-24 z-navigation py-2 lg:py-0 mb-2 lg:mb-0">
                     <div className="relative bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-white/20 dark:border-slate-700 rounded-2xl shadow-lg lg:bg-transparent lg:border-0 lg:shadow-none lg:rounded-none lg:backdrop-blur-none overflow-hidden lg:overflow-visible">
                         <div ref={navRef} className="flex lg:flex-col overflow-x-auto lg:overflow-visible space-x-2 lg:space-x-0 lg:space-y-2 hide-scrollbar p-2 lg:p-0" aria-label="Tabs">
                             {TABS.map(tab => (
@@ -347,7 +347,7 @@ const ZakatCalculator: React.FC = () => {
 
             {/* Mobile Sticky Action Bar */}
             {activeTab !== 'summary' && (
-                <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+                <div className="lg:hidden fixed bottom-0 left-0 right-0 z-navigation bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
                     <button
                         onClick={goToSummary}
                         className="w-full flex items-center justify-center bg-emerald-600 text-white font-bold py-3.5 px-6 rounded-2xl hover:bg-emerald-700 active:scale-95 transition-all shadow-lg shadow-emerald-600/20"

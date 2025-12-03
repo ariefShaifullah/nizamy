@@ -95,7 +95,7 @@ const AppContent = () => {
       
       {/* PWA Update Banner */}
       {needRefresh && (
-        <div className="bg-slate-900 text-white px-4 py-3 shadow-lg relative z-50 animate-fade-in-down flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-3 text-center sm:text-left top-20 left-0 right-0">
+        <div className="bg-slate-900 text-white px-4 py-3 shadow-lg relative z-notification animate-fade-in-down flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-3 text-center sm:text-left top-20 left-0 right-0">
             <p className="text-sm font-medium">
                 ✨ Versi baru aplikasi tersedia! Update untuk fitur terbaru.
             </p>

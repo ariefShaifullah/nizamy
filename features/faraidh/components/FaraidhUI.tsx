@@ -9,7 +9,7 @@ import { FaInfoCircle, FaTimes } from 'react-icons/fa';
 export const CustomChartTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="p-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md shadow-lg text-sm z-50">
+      <div className="p-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md shadow-lg text-sm z-tooltip">
         <p className="font-bold text-slate-800 dark:text-slate-200">{`${payload[0].name}`}</p>
         <p className="text-slate-600 dark:text-slate-300">{`Bagian: ${payload[0].value.toFixed(2)}%`}</p>
         <p className="text-primary-600 dark:text-primary-400 font-semibold">{`${formatCurrency(payload[0].payload.finalValue)}`}</p>
@@ -45,7 +45,7 @@ export const InfoTooltip: React.FC<{ term: keyof typeof FIQH_DEFINITIONS }> = ({
       
       {isOpen && createPortal(
         <div 
-          className="fixed inset-0 z-9999 flex items-center justify-center p-4 animate-fade-in"
+          className="fixed inset-0 z-modal flex items-center justify-center p-4 animate-fade-in"
           role="dialog"
           aria-modal="true"
         >

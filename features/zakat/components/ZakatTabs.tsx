@@ -323,11 +323,11 @@ export const SummaryView: React.FC<SummaryProps> = ({ result, state, history, on
                     </div>
                     <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
 
-                    <div className="relative z-10">
+                    <div className="relative z-raised">
                         <p className="text-emerald-200 text-xs font-bold uppercase tracking-widest mb-1">Hasil Perhitungan</p>
                         <h3 className="text-3xl font-black tracking-tight drop-shadow-md">Kwitansi Zakat</h3>
                     </div>
-                    <div className="text-right relative z-10 hidden sm:block">
+                    <div className="text-right relative z-raised hidden sm:block">
                         <div className="bg-emerald-700/50 p-2 px-3 rounded-lg backdrop-blur-sm border border-emerald-500/30">
                             <p className="text-[10px] text-emerald-100 uppercase font-bold tracking-wider mb-0.5">Total Kewajiban</p>
                             <p className="text-xl font-bold font-mono">{result.formattedTotal}</p>

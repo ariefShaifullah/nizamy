@@ -155,14 +155,14 @@ export const HeirsForm: React.FC<HeirsFormProps> = React.memo(({ heirs, dispatch
 
                 <button
                     onClick={() => handleGenderChange('male')}
-                    className={`flex-1 relative z-10 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-colors duration-300 ${deceasedGender === 'male' ? 'text-blue-600 dark:text-blue-300' : 'text-slate-500 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                    className={`flex-1 relative z-raised flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-colors duration-300 ${deceasedGender === 'male' ? 'text-blue-600 dark:text-blue-300' : 'text-slate-500 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
                 >
                     <span className="text-lg"><FaMars /></span>
                     Laki-laki
                 </button>
                 <button
                     onClick={() => handleGenderChange('female')}
-                    className={`flex-1 relative z-10 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-colors duration-300 ${deceasedGender === 'female' ? 'text-pink-600 dark:text-pink-300' : 'text-slate-500 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                    className={`flex-1 relative z-raised flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-colors duration-300 ${deceasedGender === 'female' ? 'text-pink-600 dark:text-pink-300' : 'text-slate-500 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
                 >
                     <span className="text-lg"><FaVenus /></span>
                     Perempuan
@@ -274,7 +274,7 @@ export const HeirsForm: React.FC<HeirsFormProps> = React.memo(({ heirs, dispatch
       </div>
       
       {/* 5. Mobile Fixed Action - Positioned higher to avoid collision with Bottom Nav */}
-      <div className="lg:hidden fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-0 right-0 z-30 px-6 pointer-events-none flex justify-center pb-2">
+      <div className="lg:hidden fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-0 right-0 z-navigation px-6 pointer-events-none flex justify-center pb-2">
           <button
             onClick={() => {
                 audioService.playSuccess();

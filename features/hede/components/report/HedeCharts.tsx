@@ -17,7 +17,7 @@ interface HedeChartsProps {
 const CustomRadarTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
         return (
-            <div className="bg-white dark:bg-slate-800 p-4 border border-slate-100 dark:border-slate-700 rounded-2xl shadow-xl text-sm z-50">
+            <div className="bg-white dark:bg-slate-800 p-4 border border-slate-100 dark:border-slate-700 rounded-2xl shadow-xl text-sm z-tooltip">
                 <p className="font-bold text-slate-800 dark:text-white mb-2 text-center border-b border-slate-100 dark:border-slate-700 pb-2">{payload[0].payload.fullSubject}</p>
                 <div className="flex items-center justify-between gap-4">
                     <span className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase">Skor Keamanan</span>
@@ -126,7 +126,7 @@ export const HedeCharts = forwardRef<HTMLDivElement, HedeChartsProps>(({ result,
 
                 {/* B. Radar Chart */}
                 <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-xl shadow-indigo-100/50 dark:shadow-none border border-slate-100 dark:border-slate-700 p-6 md:p-8 relative overflow-hidden">
-                    <div className="flex justify-between items-center mb-4 relative z-10">
+                    <div className="flex justify-between items-center mb-4 relative z-raised">
                         <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest flex items-center gap-2">
                             <span className="w-2 h-6 bg-indigo-500 rounded-full"></span>
                             Peta Diagnosa {isResolved ? '(Proyeksi)' : ''}

@@ -38,7 +38,7 @@ const HedeLandingScreen: React.FC<{
 }> = ({ onStartAudit, onViewFaq }) => {
     return (
         <div className="bg-white dark:bg-slate-800/50 rounded-[2.5rem] p-8 md:p-12 text-center shadow-sm border border-slate-100 dark:border-slate-800 relative overflow-hidden group">
-            <div className="relative z-10 flex flex-col items-center">
+            <div className="relative z-raised flex flex-col items-center">
                 <div className="w-24 h-24 bg-linear-to-br from-indigo-50 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-3xl flex items-center justify-center text-purple-600 dark:text-purple-400 mb-6 shadow-md border border-white dark:border-slate-700">
                     <div className="icon-wrapper w-12 h-12 flex items-center justify-center text-5xl drop-shadow-sm"><FaStethoscope /></div>
                 </div>
@@ -73,7 +73,7 @@ const HedeLandingScreen: React.FC<{
 // --- SUB-COMPONENT: Pre-Wizard Onboarding Screen ---
 const PreWizardScreen: React.FC<{ onStart: () => void; onCancel: () => void }> = ({ onStart, onCancel }) => {
   return (
-    <div className="fixed inset-0 z-100 bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4 animate-fade-in">
+    <div className="fixed inset-0 z-overlay bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4 animate-fade-in">
       <div className="max-w-md w-full bg-white dark:bg-slate-800 rounded-3xl shadow-2xl p-6 sm:p-8 text-center border border-slate-100 dark:border-slate-700">
         <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-2 sm:mb-3">Bismillah, Mari Periksa Kesehatan Ekonomi Kita.</h2>
         <p className="text-slate-500 dark:text-slate-400 mb-6 sm:mb-8 text-sm sm:text-base">Ini adalah alat introspeksi, bukan penghakiman.</p>
@@ -277,7 +277,7 @@ const HedeApp: React.FC = () => {
     
     if (wizardState === 'wizard') {
         return (
-            <div className="fixed inset-0 z-100 bg-slate-50 dark:bg-slate-950 overflow-y-auto animate-fade-in custom-scrollbar">
+            <div className="fixed inset-0 z-overlay bg-slate-50 dark:bg-slate-950 overflow-y-auto animate-fade-in custom-scrollbar">
                 <HedeWizard onComplete={handleWizardComplete} onCancel={handleCancelWizard} />
             </div>
         );
@@ -363,13 +363,13 @@ const HedeApp: React.FC = () => {
                     <div className="sticky top-24 space-y-6">
                         <div className="bg-linear-to-br from-indigo-600 to-purple-700 rounded-3xl p-6 text-white shadow-lg relative overflow-hidden group">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10 group-hover:bg-white/20 transition-colors"></div>
-                            <div className="relative z-10">
+                            <div className="relative z-raised">
                                 <div className="flex items-center gap-3 mb-3"><div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm"><FaLightbulb /></div><h3 className="font-bold text-lg">Tahukah Anda?</h3></div>
                                 <p className="text-sm opacity-90 leading-relaxed font-medium">Mengeluarkan harta haram (Tathhir) itu <strong>bukan sedekah</strong>, melainkan membuang kotoran agar sisa harta menjadi suci & berkah.</p>
                             </div>
                         </div>
                         <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col max-h-[calc(100vh-350px)]">
-                            <div className="p-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 backdrop-blur-sm sticky top-0 z-10">
+                            <div className="p-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 backdrop-blur-sm sticky top-0 z-sticky">
                                 <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-2"><span className="text-indigo-500"><FaBookOpen /></span>Kamus Muamalah</h3>
                                 <div className="relative">
                                     <span className="absolute left-3 top-2.5 text-slate-400 text-xs"><FaSearch /></span>
@@ -390,7 +390,7 @@ const HedeApp: React.FC = () => {
             </div>
 
             <div 
-              className="md:hidden fixed bottom-0 left-0 right-0 bg-white/55 dark:bg-slate-900/55 border-t border-slate-200 dark:border-slate-800 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 px-2 z-50 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.05)]"
+              className="md:hidden fixed bottom-0 left-0 right-0 bg-white/55 dark:bg-slate-900/55 border-t border-slate-200 dark:border-slate-800 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 px-2 z-navigation flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.05)]"
               style={{
                 backdropFilter: 'blur(16px)',
                 WebkitBackdropFilter: 'blur(16px)'

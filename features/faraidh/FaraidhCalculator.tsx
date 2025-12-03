@@ -205,7 +205,7 @@ const FaraidhCalculator: React.FC = () => {
             />
         </div>
 
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-3 px-4 z-50 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-3 px-4 z-navigation flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
              <button 
                 onClick={() => switchTab('input')}
                 className={`flex flex-col items-center p-2 rounded-2xl transition-all flex-1 ${

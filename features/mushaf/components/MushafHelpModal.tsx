@@ -56,7 +56,7 @@ export const MushafHelpModal: React.FC<MushafHelpModalProps> = ({ onClose }) => 
 
             <button
                 onClick={onClose}
-                className="absolute top-3 right-3 text-white/60 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10 icon-wrapper w-8 h-8 flex items-center justify-center z-10"
+                className="absolute top-3 right-3 text-white/60 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10 icon-wrapper w-8 h-8 flex items-center justify-center z-raised"
                 aria-label="Tutup Tutorial"
             >
                 <FaTimes />
@@ -67,7 +67,7 @@ export const MushafHelpModal: React.FC<MushafHelpModalProps> = ({ onClose }) => 
                     {current.icon}
                 </div>
             </div>
-            <h3 className="text-xl font-bold text-white drop-shadow-sm relative z-10">{current.title}</h3>
+            <h3 className="text-xl font-bold text-white drop-shadow-sm relative z-raised">{current.title}</h3>
         </div>
 
         <div className="p-6">

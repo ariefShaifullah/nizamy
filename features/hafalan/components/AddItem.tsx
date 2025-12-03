@@ -474,7 +474,7 @@ export const AddItem: React.FC<AddItemProps> = ({
         <div className="fixed inset-0 z-60 bg-slate-900/50 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-4 animate-fade-in">
             <div className="bg-white dark:bg-slate-800 w-full md:max-w-md h-[85vh] md:h-[600px] rounded-t-3xl md:rounded-3xl flex flex-col shadow-2xl overflow-hidden animate-fade-in-up border border-slate-200 dark:border-slate-700">
                 
-                <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 z-10 flex items-center justify-between">
+                <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 z-sticky flex items-center justify-between">
                     <h3 className="font-bold text-lg text-slate-800 dark:text-white ml-2">Pilih Surat</h3>
                     <button 
                         onClick={() => setIsSelectorOpen(false)}

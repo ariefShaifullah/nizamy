@@ -115,7 +115,7 @@ const useHomeData = () => {
 // --- COMPONENTS ---
 
 const BackgroundDecor = () => (
-    <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none bg-[#f8fafc] dark:bg-slate-950 transition-colors duration-500">
+    <div className="fixed inset-0 z-background overflow-hidden pointer-events-none bg-[#f8fafc] dark:bg-slate-950 transition-colors duration-500">
         <div className="absolute top-0 inset-x-0 h-64 bg-linear-to-b from-indigo-50/80 to-transparent dark:from-indigo-950/20"></div>
         {/* Abstract Blobs */}
         <div className="absolute top-[-10%] right-[-5%] w-[400px] h-[400px] bg-purple-300/20 dark:bg-purple-900/10 rounded-full blur-[100px] animate-pulse"></div>
@@ -144,7 +144,7 @@ const HeaderSection = () => {
                 </span>
             </div>
             
-            <div className="relative z-10 pr-4">
+            <div className="relative z-raised pr-4">
                 <p className="text-xl md:text-2xl font-serif italic text-slate-800 dark:text-slate-200 leading-relaxed drop-shadow-sm">
                     "{hadith.text}"
                 </p>
@@ -186,7 +186,7 @@ const QuranCard = ({ lastRead, onClick }: { lastRead: {name: string, ayah: numbe
             </div>
 
             {/* Content */}
-            <div className="relative z-10 p-5 flex flex-col justify-between h-full text-white">
+            <div className="relative z-raised p-5 flex flex-col justify-between h-full text-white">
                 <div className="flex justify-between items-start">
                     <div className="p-2 bg-white/20 backdrop-blur-md rounded-xl border border-white/20 text-lg">
                         <FaQuran />
@@ -231,7 +231,7 @@ const HafalanCard = ({ stats, onClick }: { stats: {level: number, streak: number
             <FaBrain size={120} />
         </div>
 
-        <div className="relative z-10 p-5 flex flex-col justify-between h-full text-white">
+        <div className="relative z-raised p-5 flex flex-col justify-between h-full text-white">
             <div className="flex justify-between items-start">
                 <div className="p-2 bg-white/20 backdrop-blur-md rounded-xl border border-white/20 text-lg">
                     <FaBrain />
@@ -290,7 +290,7 @@ const UtilityCard = ({ title, icon, color, onClick, desc }: { title: string, des
 };
 
 const InstallBanner: React.FC<{ onInstall: () => void; onClose: () => void }> = ({ onInstall, onClose }) => (
-    <div className="fixed bottom-4 left-4 right-4 z-50 animate-fade-in-up">
+    <div className="fixed bottom-4 left-4 right-4 z-sticky animate-fade-in-up">
         <div className="bg-slate-900/95 dark:bg-white/95 backdrop-blur-xl text-white dark:text-slate-900 p-4 rounded-3xl shadow-2xl flex items-center justify-between gap-4 border border-white/10 ring-1 ring-black/5">
             <div className="flex items-center gap-4 pl-1">
                 <div className="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30">

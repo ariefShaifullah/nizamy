@@ -37,7 +37,7 @@ export const NisabStatus: React.FC<NisabStatusProps> = ({ value, nisab, label, u
                 )}
             </div>
 
-            <div className="relative z-10">
+            <div className="relative z-card">
                 <div className="flex justify-between items-end mb-4">
                     <div>
                         <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Status Nisab</p>
@@ -64,7 +64,7 @@ export const NisabStatus: React.FC<NisabStatusProps> = ({ value, nisab, label, u
                 {/* Enhanced Progress Bar */}
                 <div className="relative w-full h-4 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden mb-4 border border-slate-300 dark:border-slate-600">
                     {/* Threshold Marker Line */}
-                    <div className="absolute top-0 bottom-0 w-0.5 bg-slate-400/50 z-20" style={{ left: '100%' }}></div>
+                    <div className="absolute top-0 bottom-0 w-0.5 bg-slate-400/50 z-dropdown" style={{ left: '100%' }}></div>
                     
                     <div 
                         className={`h-full rounded-full transition-all duration-1000 ease-out relative overflow-hidden ${

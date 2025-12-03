@@ -79,7 +79,7 @@ const StatsHeader: React.FC<{ profile: any; gamification: any; itemCount: number
         <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none hidden md:block">
           <svg className="w-64 h-64 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
         </div>
-        <div className="relative z-10 w-full md:w-2/3">
+        <div className="relative z-raised w-full md:w-2/3">
           <div className="flex justify-between items-start">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2 tracking-tight">Ahlan, {profile.name}!</h1>
@@ -99,7 +99,7 @@ const StatsHeader: React.FC<{ profile: any; gamification: any; itemCount: number
             </div>
           </div>
         </div>
-        <div className="relative z-10 flex gap-3 w-full md:w-auto">
+        <div className="relative z-raised flex gap-3 w-full md:w-auto">
           <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl p-3 flex-1 md:flex-none text-center min-w-[90px]">
             <span className="block text-2xl font-bold">{gamification.currentStreak}</span>
             <span className="text-indigo-200 text-[10px] font-bold uppercase tracking-wider">Streak</span>
@@ -264,7 +264,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       <div className="md:grid md:grid-cols-3 gap-6">
         {/* LEFT COLUMN (Schedule & List) */}
         <div className={`md:col-span-2 bg-white dark:bg-slate-800 md:rounded-3xl shadow-sm md:shadow-lg border-y md:border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col min-h-[500px] ${activeTab === "profile" || activeTab === "guide" ? "hidden md:flex" : "flex"}`}>
-          <div className="hidden md:flex border-b border-slate-100 dark:border-slate-700 p-2 bg-slate-50/50 dark:bg-slate-800/50 sticky top-0 z-20 backdrop-blur-md">
+          <div className="hidden md:flex border-b border-slate-100 dark:border-slate-700 p-2 bg-slate-50/50 dark:bg-slate-800/50 sticky top-0 z-dropdown backdrop-blur-md">
             <button onClick={() => { audioService.playClick(); setActiveTab("schedule"); }} className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${desktopContentTab === "schedule" ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-sm ring-1 ring-slate-200 dark:ring-slate-600" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"}`}>
               📅 Jadwal Murajaah {dueItems.length > 0 && <span className="ml-1 bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-200 px-1.5 py-0.5 rounded-full text-[10px]">{dueItems.length}</span>}
             </button>
@@ -361,7 +361,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       </button>
 
       <div 
-        className="md:hidden fixed bottom-0 left-0 right-0 bg-white/55 dark:bg-slate-900/55 border-t border-slate-200 dark:border-slate-800 pb-[calc(env(safe-area-inset-bottom))] pt-2 px-2 z-50 flex justify-between items-center"
+        className="md:hidden fixed bottom-0 left-0 right-0 bg-white/55 dark:bg-slate-900/55 border-t border-slate-200 dark:border-slate-800 pb-[calc(env(safe-area-inset-bottom))] pt-2 px-2 z-navigation flex justify-between items-center"
         style={{
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)'

@@ -42,7 +42,7 @@
       if (!isListening) return null;
 
       return (
-          <div className="fixed inset-0 z-100 flex flex-col items-center justify-center bg-slate-950/60 backdrop-blur-xl animate-fade-in text-center" onClick={onStop}>
+          <div className="fixed inset-0 z-overlay flex flex-col items-center justify-center bg-slate-950/60 backdrop-blur-xl animate-fade-in text-center" onClick={onStop}>
               <div className="w-full max-w-md px-6 flex flex-col items-center" onClick={(e) => e.stopPropagation()}>
                   
                   {/* Fluid Orb Animation */}

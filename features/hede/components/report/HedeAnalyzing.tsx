@@ -20,7 +20,7 @@ export const HedeAnalyzing: React.FC = () => {
     }, []);
 
     return (
-        <div className="fixed inset-0 z-100 bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 text-center animate-fade-in">
+        <div className="fixed inset-0 z-overlay bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 text-center animate-fade-in">
             <div className="relative w-24 h-24 mb-8">
                 <div className="absolute inset-0 border-4 border-slate-200 dark:border-slate-800 rounded-full"></div>
                 <div className="absolute inset-0 border-4 border-purple-500 rounded-full border-t-transparent animate-spin"></div>

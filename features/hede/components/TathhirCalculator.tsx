@@ -33,7 +33,7 @@ export const TathhirCalculator: React.FC = () => {
                 <div className="absolute top-0 right-0 p-4 opacity-10">
                     <FaBroom size={100} />
                 </div>
-                <div className="relative z-10">
+                <div className="relative z-raised">
                     <h2 className="text-xl md:text-2xl font-bold flex items-center gap-3">
                         <span className="bg-white/20 p-2 rounded-lg"><FaBroom size={20} /></span>
                         Kalkulator Tathhir

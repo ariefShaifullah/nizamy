@@ -14,14 +14,125 @@ const QUICK_LINKS = [
     { number: 67, label: 'Al-Mulk', icon: '🛡️', gradient: 'from-sky-100 to-cyan-100 dark:from-sky-900/40 dark:to-cyan-900/40', text: 'text-sky-800 dark:text-sky-200' },
 ];
 
-// Data Dummy Nama Arab (Idealnya ada di constants.ts atau API)
+// Database Nama Arab Lengkap (114 Surat)
 const getArabicName = (name: string) => {
     const map: Record<string, string> = {
-        "Al-Fatihah": "الفاتحة", "Al-Baqarah": "البقرة", "Ali 'Imran": "آل عمران", "An-Nisa'": "النساء",
-        "Al-Ma'idah": "المائدة", "Al-Kahf": "الكهف", "Ya-Sin": "يس", "Ar-Rahman": "الرحمن",
-        "Al-Waqi'ah": "الواقعة", "Al-Mulk": "الملك", "Al-Ikhlas": "الإخلاص", "Al-Falaq": "الفلق", "An-Nas": "الناس"
+        "Al-Fatihah": "الفاتحة",
+        "Al-Baqarah": "البقرة",
+        "Ali 'Imran": "آل عمران",
+        "An-Nisa'": "النساء",
+        "Al-Ma'idah": "المائدة",
+        "Al-An'am": "الأنعام",
+        "Al-A'raf": "الأعراف",
+        "Al-Anfal": "الأنفال",
+        "At-Taubah": "التوبة",
+        "Yunus": "يونس",
+        "Hud": "هود",
+        "Yusuf": "يوسف",
+        "Ar-Ra'd": "الرعد",
+        "Ibrahim": "إبراهيم",
+        "Al-Hijr": "الحجر",
+        "An-Nahl": "النحل",
+        "Al-Isra'": "الإسراء",
+        "Al-Kahf": "الكهف",
+        "Maryam": "مريم",
+        "Ta-Ha": "طه",
+        "Al-Anbiya'": "الأنبياء",
+        "Al-Hajj": "الحج",
+        "Al-Mu'minun": "المؤمنون",
+        "An-Nur": "النور",
+        "Al-Furqan": "الفرقان",
+        "Asy-Syu'ara'": "الشعراء",
+        "An-Naml": "النمل",
+        "Al-Qasas": "القصص",
+        "Al-Ankabut": "العنكبوت",
+        "Ar-Rum": "الروم",
+        "Luqman": "لقمان",
+        "As-Sajdah": "السجدة",
+        "Al-Ahzab": "الأحزاب",
+        "Saba'": "سبأ",
+        "Fatir": "فاطر",
+        "Ya-Sin": "يس",
+        "As-Saffat": "الصافات",
+        "Sad": "ص",
+        "Az-Zumar": "الزمر",
+        "Ghafir": "غافر",
+        "Fussilat": "فصلت",
+        "Asy-Syura": "الشورى",
+        "Az-Zukhruf": "الزخرف",
+        "Ad-Dukhan": "الدخان",
+        "Al-Jatsiyah": "الجاثية",
+        "Al-Ahqaf": "الأحقاف",
+        "Muhammad": "محمد",
+        "Al-Fath": "الفتح",
+        "Al-Hujurat": "الحجرات",
+        "Qaf": "ق",
+        "Adz-Dzariyat": "الذاريات",
+        "At-Tur": "الطور",
+        "An-Najm": "النجم",
+        "Al-Qamar": "القمر",
+        "Ar-Rahman": "الرحمن",
+        "Al-Waqi'ah": "الواقعة",
+        "Al-Hadid": "الحديد",
+        "Al-Mujadilah": "المجادلة",
+        "Al-Hasyr": "الحشر",
+        "Al-Mumtahanah": "الممتحنة",
+        "As-Saff": "الصف",
+        "Al-Jumu'ah": "الجمعة",
+        "Al-Munafiqun": "المنافقون",
+        "At-Taghabun": "التغابن",
+        "At-Talaq": "الطلاق",
+        "At-Tahrim": "التحريم",
+        "Al-Mulk": "الملك",
+        "Al-Qalam": "القلم",
+        "Al-Haqqah": "الحاقة",
+        "Al-Ma'arij": "المعارج",
+        "Nuh": "نوح",
+        "Al-Jin": "الجن",
+        "Al-Muzzammil": "المزمل",
+        "Al-Muddatsir": "المدثر",
+        "Al-Qiyamah": "القيامة",
+        "Al-Insan": "الإنسان",
+        "Al-Mursalat": "المرسلات",
+        "An-Naba'": "النبأ",
+        "An-Nazi'at": "النازعات",
+        "'Abasa": "عبس",
+        "At-Takwir": "التكوير",
+        "Al-Infitar": "الإنفطار",
+        "Al-Mutaffifin": "المطففين",
+        "Al-Inshiqaq": "الإنشقاق",
+        "Al-Buruj": "البروج",
+        "At-Tariq": "الطارق",
+        "Al-A'la": "الأعلى",
+        "Al-Ghashiyah": "الغاشية",
+        "Al-Fajr": "الفجر",
+        "Al-Balad": "البلد",
+        "Asy-Syams": "الشمس",
+        "Al-Lail": "الليل",
+        "Ad-Duha": "الضحى",
+        "Al-Insyirah": "الشرح",
+        "At-Tin": "التين",
+        "Al-'Alaq": "العلق",
+        "Al-Qadr": "القدر",
+        "Al-Bayyinah": "البينة",
+        "Az-Zalzalah": "الزلزلة",
+        "Al-'Adiyat": "العاديات",
+        "Al-Qari'ah": "القارعة",
+        "At-Takatsur": "التكاثر",
+        "Al-'Asr": "العصر",
+        "Al-Humazah": "الهمزة",
+        "Al-Fil": "الفيل",
+        "Quraisy": "قريش",
+        "Al-Ma'un": "الماعون",
+        "Al-Kautsar": "الكوثر",
+        "Al-Kafirun": "الكافرون",
+        "An-Nasr": "النصر",
+        "Al-Lahab": "المسد",
+        "Al-Ikhlas": "الإخلاص",
+        "Al-Falaq": "الفلق",
+        "An-Nas": "الناس"
     };
-    return map[name] || "سورة";
+    return map[name] || name;
 };
 
 interface SurahSelectionProps {
@@ -82,7 +193,7 @@ export const SurahSelection: React.FC<SurahSelectionProps> = ({
                         </div>
                         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
-                        <div className="relative z-10">
+                        <div className="relative z-raised">
                             <div className="flex items-center gap-2 text-teal-100 text-xs font-bold uppercase tracking-widest mb-3 bg-white/10 w-fit px-3 py-1 rounded-full backdrop-blur-sm border border-white/10">
                                 <FaBookmark /> Terakhir Dibaca
                             </div>
@@ -100,7 +211,7 @@ export const SurahSelection: React.FC<SurahSelectionProps> = ({
                 )}
 
                 {/* Search Bar */}
-                <div className="relative group z-20">
+                <div className="relative group z-dropdown">
                     <div className="absolute inset-0 bg-teal-500/5 rounded-2xl blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div className="relative">
                         <span className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-teal-500 transition-colors">
@@ -174,7 +285,7 @@ export const SurahSelection: React.FC<SurahSelectionProps> = ({
                                     <div className="absolute inset-0 opacity-20 group-hover:opacity-100 transition-opacity drop-shadow-sm">
                                         <FaCertificate size="100%" />
                                     </div>
-                                    <span className="absolute text-xs font-bold font-sans text-teal-700 dark:text-teal-300 group-hover:text-white dark:group-hover:text-slate-900 transition-colors z-10">{surah.number}</span>
+                                    <span className="absolute text-xs font-bold font-sans text-teal-700 dark:text-teal-300 group-hover:text-white dark:group-hover:text-slate-900 transition-colors z-raised">{surah.number}</span>
                                 </div>
                                 
                                 <div className="flex-1 min-w-0">

@@ -132,7 +132,7 @@ export const HedeWizard: React.FC<HedeWizardProps> = ({ onComplete, onCancel }) 
     return (
         <div ref={containerRef} className="w-full max-w-2xl mx-auto min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 transition-colors duration-500 overflow-x-hidden">
             {/* 1. Header & Progress */}
-            <header className="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-800/60 pt-[env(safe-area-inset-top)] transition-all">
+            <header className="sticky top-0 z-navigation bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-800/60 pt-[env(safe-area-inset-top)] transition-all">
                 <div className="relative h-16 flex items-center px-4 justify-between">
                     <button 
                         onClick={handleBack}
@@ -212,7 +212,7 @@ export const HedeWizard: React.FC<HedeWizardProps> = ({ onComplete, onCancel }) 
                                     onClick={() => handleSelect(opt.value)}
                                     className={`w-full text-left p-5 md:p-6 rounded-2xl border-2 transition-all duration-200 group relative active:scale-[0.98] outline-none focus:ring-4 focus:ring-indigo-500/20 flex items-center gap-5
                                         ${isSelected 
-                                            ? 'bg-indigo-600 border-indigo-600 shadow-xl shadow-indigo-200 dark:shadow-none z-10' 
+                                            ? 'bg-indigo-600 border-indigo-600 shadow-xl shadow-indigo-200 dark:shadow-none z-raised' 
                                             : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow-lg dark:hover:bg-slate-700/50'
                                         }
                                     `}

@@ -82,7 +82,7 @@ const RoadmapItem: React.FC<{
             <div className="hidden md:block w-5/12"></div>
 
             {/* Center Timeline Node */}
-            <div className={`absolute left-6 md:left-1/2 transform -translate-x-1/2 w-8 h-8 rounded-full border-4 shadow-md z-10 flex items-center justify-center transition-all duration-500 ${isCompleted ? 'bg-emerald-500 border-emerald-200 dark:border-emerald-900 scale-110' : 'bg-white dark:bg-slate-800 border-white dark:border-slate-900'}`}>
+            <div className={`absolute left-6 md:left-1/2 transform -translate-x-1/2 w-8 h-8 rounded-full border-4 shadow-md z-raised flex items-center justify-center transition-all duration-500 ${isCompleted ? 'bg-emerald-500 border-emerald-200 dark:border-emerald-900 scale-110' : 'bg-white dark:bg-slate-800 border-white dark:border-slate-900'}`}>
                 {isCompleted ? (
                     <div className="text-white text-xs animate-fade-in"><FaCheckCircle /></div>
                 ) : (
@@ -92,7 +92,7 @@ const RoadmapItem: React.FC<{
 
             <div className="w-full pl-16 md:pl-0 md:w-5/12 relative">
                 
-                <div className={`hidden md:block absolute top-6 w-3 h-3 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 transform rotate-45 z-20 
+                <div className={`hidden md:block absolute top-6 w-3 h-3 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 transform rotate-45 z-dropdown 
                     ${isEven 
                         ? '-right-[7px] border-t border-r'
                         : '-left-[7px] border-b border-l'
@@ -181,7 +181,7 @@ export const HedeRoadmap: React.FC<HedeRoadmapProps> = ({ roadmap, onInternalAct
                 </div>
             )}
 
-            <div className="relative z-10">
+            <div className="relative z-raised">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
                     <div className="flex items-center gap-4">
                         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-lg transition-all duration-500 ${isAllDone ? 'bg-emerald-500 text-white shadow-emerald-200 scale-110 rotate-12' : 'bg-linear-to-br from-indigo-500 to-purple-600 text-white shadow-indigo-200 dark:shadow-none'}`}>
@@ -237,7 +237,7 @@ export const HedeRoadmap: React.FC<HedeRoadmapProps> = ({ roadmap, onInternalAct
                         {/* Final Badge */}
                         <div className="relative flex justify-center mt-8">
                             <div className={`
-                                px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest border transition-all duration-500 z-10 flex items-center gap-2
+                                px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest border transition-all duration-500 z-raised flex items-center gap-2
                                 ${isAllDone 
                                     ? 'bg-emerald-600 text-white border-emerald-500 shadow-xl shadow-emerald-200/50 scale-110' 
                                     : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'

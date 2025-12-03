@@ -1,3 +1,4 @@
+
 import { IWindow } from '../types.ts';
 
 class VoiceService {
@@ -81,9 +82,15 @@ class VoiceService {
       if (this.manualStop) {
           if (this.onEndCallback) this.onEndCallback();
       } else {
+          // Clear previous timer just in case
+          if (this.restartTimer) clearTimeout(this.restartTimer);
+          
           this.restartTimer = setTimeout(() => {
               try {
-                  this.recognition.start();
+                  // Check flag again before starting inside timeout to be safe
+                  if (!this.manualStop && this.recognition) {
+                      this.recognition.start();
+                  }
               } catch (e) {
                   // Ignore 'already started' errors
               }
@@ -126,11 +133,18 @@ class VoiceService {
 
   public stop() {
     this.manualStop = true; // Set flag agar tidak auto-restart
-    if (this.restartTimer) clearTimeout(this.restartTimer);
+    
+    // CRITICAL FIX: Clear timer immediately to prevent zombie restart
+    if (this.restartTimer) {
+        clearTimeout(this.restartTimer);
+        this.restartTimer = null;
+    }
     
     if (this.recognition) {
       try {
           this.recognition.stop();
+          // Force abort if stop takes too long or fails to trigger onend immediately
+          // but usually stop() triggers onend.
       } catch(e) {} 
     }
   }

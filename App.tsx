@@ -28,7 +28,7 @@ const PageLoader = () => (
       
       {/* Logo in the center */}
       <img
-        src="/images/logo_nizamy.png?v=5"
+        src="/images/logo_nizamy.png?v=6"
         alt="NIZAMY Logo"
         className="w-12 h-12 object-contain animate-pulse"
       />

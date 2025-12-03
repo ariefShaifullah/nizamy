@@ -1,15 +1,12 @@
 
-    import type { HedeResult, HedeCategory } from '../../../types.ts';
+    import type { HedeResult } from '../../../types.ts';
     import { CATEGORY_LABELS, VIOLATION_LABELS, RISK_CONFIG } from '../constants.ts';
-    import { formatDate } from '../../../utils.ts';
-    import { generatePdfFromHtml, pdfStyles as styles } from '../../../services/pdf.service.ts';
+    import { generatePdfFromHtml, generateReportLayout, pdfStyles as styles } from '../../../services/pdf.service.ts';
 
     /**
      * HEDE Report Builder
      */
     export const exportHedePdf = async (result: HedeResult) => {
-        const dateStr = formatDate(new Date().toISOString(), { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
         // Use Centralized Config for Hex Colors
         const getScoreColor = (score: number) => {
             if (score > 80) return RISK_CONFIG.safe.hex; 
@@ -18,7 +15,6 @@
         };
 
         const getRiskColor = (level: string) => {
-            // Safe casting as we know level matches RiskLevel keys
             return RISK_CONFIG[level as keyof typeof RISK_CONFIG]?.hex || '#3b82f6';
         };
 
@@ -63,59 +59,49 @@
             </div>
         `).join('');
 
-        const html = `
-            <div style="padding: 40px; font-family: sans-serif;">
-                <div style="${styles.header}; border-bottom-color: #7e22ce;">
-                    <div>
-                        <h1 style="${styles.title}; color: #581c87;">Laporan Audit Syariah</h1>
-                        <p style="${styles.subtitle}">HEDE (Halal Economic Diagnostic Engine)</p>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="font-size: 12px; color: #64748b;">Tanggal</div>
-                        <div style="font-weight: 700; color: #0f172a;">${dateStr}</div>
-                    </div>
+        const contentHtml = `
+            <!-- Score Box -->
+            <div style="${styles.totalBox}; background-color: #faf5ff; border-color: #e9d5ff; text-align: center;">
+                <div style="font-size: 12px; color: #7e22ce; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Skor Kepatuhan Total</div>
+                <div style="font-size: 48px; font-weight: 800; color: ${getScoreColor(result.totalScore)}; margin: 10px 0;">
+                    ${result.totalScore}
                 </div>
-
-                <!-- Score Box -->
-                <div style="${styles.totalBox}; background-color: #faf5ff; border-color: #e9d5ff; text-align: center;">
-                    <div style="font-size: 12px; color: #7e22ce; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Skor Kepatuhan Total</div>
-                    <div style="font-size: 48px; font-weight: 800; color: ${getScoreColor(result.totalScore)}; margin: 10px 0;">
-                        ${result.totalScore}
-                    </div>
-                    <div style="font-size: 14px; font-weight: 600; color: #581c87;">
-                        Status: ${result.totalScore > 80 ? 'Halal Thayyib' : result.totalScore > 50 ? 'Syubhat (Meragukan)' : 'Kritis (Haram)'}
-                    </div>
-                </div>
-
-                <!-- Fiqh Context -->
-                <div style="margin-top: 30px; padding: 15px; border-radius: 8px; background-color: #f1f5f9; border-left: 4px solid #475569;">
-                    <h4 style="margin: 0 0 5px 0; font-size: 14px; color: #1e293b;">Metode Fiqh: ${result.fiqhContext.approach === 'gradual_exit' ? 'Tadarruj (Bertahap)' : 'Bara\'ah (Langsung)'}</h4>
-                    <p style="margin: 0; font-size: 12px; color: #475569;">${result.fiqhContext.explanation}</p>
-                </div>
-
-                <div style="display: flex; gap: 30px; margin-top: 30px;">
-                    <!-- Left: Breakdown -->
-                    <div style="flex: 1;">
-                        <h3 style="${styles.sectionTitle}">Skor Per Kategori</h3>
-                        <table style="${styles.table}">
-                            <tbody>${categoryRows}</tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Risks -->
-                <h3 style="${styles.sectionTitle}">Identifikasi Risiko</h3>
-                ${risksHtml.length > 0 ? risksHtml : '<p style="font-size:12px; color:#64748b;">Tidak ada risiko signifikan terdeteksi.</p>'}
-
-                <!-- Roadmap -->
-                <h3 style="${styles.sectionTitle}">Roadmap Hijrah</h3>
-                ${roadmapHtml.length > 0 ? roadmapHtml : '<p style="font-size:12px; color:#64748b;">Pertahankan kondisi saat ini.</p>'}
-
-                <div style="${styles.footer}">
-                    Hasil audit ini bersifat indikatif berdasarkan input pengguna. Konsultasikan kasus kompleks dengan Asatidz ahli Muamalah.
+                <div style="font-size: 14px; font-weight: 600; color: #581c87;">
+                    Status: ${result.totalScore > 80 ? 'Halal Thayyib' : result.totalScore > 50 ? 'Syubhat (Meragukan)' : 'Kritis (Haram)'}
                 </div>
             </div>
+
+            <!-- Fiqh Context -->
+            <div style="margin-top: 30px; padding: 15px; border-radius: 8px; background-color: #f1f5f9; border-left: 4px solid #475569;">
+                <h4 style="margin: 0 0 5px 0; font-size: 14px; color: #1e293b;">Metode Fiqh: ${result.fiqhContext.approach === 'gradual_exit' ? 'Tadarruj (Bertahap)' : 'Bara\'ah (Langsung)'}</h4>
+                <p style="margin: 0; font-size: 12px; color: #475569;">${result.fiqhContext.explanation}</p>
+            </div>
+
+            <div style="display: flex; gap: 30px; margin-top: 30px;">
+                <!-- Left: Breakdown -->
+                <div style="flex: 1;">
+                    <h3 style="${styles.sectionTitle}">Skor Per Kategori</h3>
+                    <table style="${styles.table}">
+                        <tbody>${categoryRows}</tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Risks -->
+            <h3 style="${styles.sectionTitle}">Identifikasi Risiko</h3>
+            ${risksHtml.length > 0 ? risksHtml : '<p style="font-size:12px; color:#64748b;">Tidak ada risiko signifikan terdeteksi.</p>'}
+
+            <!-- Roadmap -->
+            <h3 style="${styles.sectionTitle}">Roadmap Hijrah</h3>
+            ${roadmapHtml.length > 0 ? roadmapHtml : '<p style="font-size:12px; color:#64748b;">Pertahankan kondisi saat ini.</p>'}
         `;
 
-        await generatePdfFromHtml(html, `HEDE_Audit_${new Date().toISOString().split('T')[0]}.pdf`);
+        const fullHtml = generateReportLayout({
+            title: 'Laporan Audit Syariah',
+            subtitle: 'HEDE (Halal Economic Diagnostic Engine)',
+            themeColor: '#7e22ce', // Purple
+            refId: `HEDE-${Date.now().toString().slice(-6)}`
+        }, contentHtml);
+
+        await generatePdfFromHtml(fullHtml, `HEDE_Audit_${new Date().toISOString().split('T')[0]}.pdf`);
     };

@@ -10,35 +10,31 @@ class VoiceService {
   private recognition: ISpeechRecognition | null = null;
   private isSupported: boolean = false;
   
-  // Flag: Apakah stop dilakukan manual oleh user (tombol X) atau sistem?
-  private manualStop: boolean = false; 
-  
-  // State untuk menangani iOS Quirk (Final result missing)
-  private lastInterimTranscript: string = '';
-  private hasSentFinal: boolean = false;
+  // State Internal
+  private finalTranscript: string = '';
+  private interimTranscript: string = '';
   
   // Callbacks
   private onResultCallback: ((text: string, isFinal: boolean) => void) | null = null;
   private onErrorCallback: ((error: string) => void) | null = null;
   private onEndCallback: (() => void) | null = null;
-  
+  private onStateChangeCallback: ((state: 'listening' | 'processing' | 'idle') => void) | null = null;
+
   // Timers
-  private restartTimer: ReturnType<typeof setTimeout> | null = null; // Untuk auto-restart jika error
-  private silenceTimer: ReturnType<typeof setTimeout> | null = null; // Untuk mendeteksi kapan user selesai bicara
-  
-  // Konstanta Waktu Hening (2 Detik)
-  // Jika tidak ada suara selama 2 detik, anggap selesai bicara.
-  private readonly SILENCE_DURATION = 2000; 
+  private silenceTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly SPEECH_TIMEOUT_MS = 8000; // 8 detik hening = stop
 
   constructor() {
     if (typeof window !== 'undefined') {
       const win = window as unknown as IWindow;
+      // Gunakan prefix webkit untuk Safari/Chrome lama
       const SpeechRecognition = win.SpeechRecognition || win.webkitSpeechRecognition;
       
       if (SpeechRecognition) {
         this.recognition = new SpeechRecognition();
         this.recognition.lang = 'id-ID';
-        this.recognition.continuous = false; // False agar lebih akurat per command
+        // Continuous false agar browser auto-stop saat mendeteksi akhir kalimat (lebih reliable di mobile)
+        this.recognition.continuous = false; 
         this.recognition.interimResults = true; 
         this.recognition.maxAlternatives = 1;
         this.isSupported = true;
@@ -51,55 +47,51 @@ class VoiceService {
     if (!this.recognition) return;
 
     this.recognition.onstart = () => {
-      if (this.restartTimer) clearTimeout(this.restartTimer);
-      // Mulai timer hening saat mic nyala
+      // Set safety timeout jika user diam saja
       this.resetSilenceTimer();
+      if (this.onStateChangeCallback) this.onStateChangeCallback('listening');
     };
 
     this.recognition.onresult = (event: Event) => {
-      // Cast event ke tipe yang benar
       const speechEvent = event as SpeechRecognitionEvent;
       
-      // User sedang bicara, reset timer hening
+      // Reset timer setiap ada suara masuk
       this.resetSilenceTimer();
 
-      let interimTranscript = '';
-      let finalTranscript = '';
+      this.interimTranscript = '';
+      let newFinal = '';
 
+      // Loop hasil recognition
       for (let i = speechEvent.resultIndex; i < speechEvent.results.length; ++i) {
         if (speechEvent.results[i].isFinal) {
-          finalTranscript += speechEvent.results[i][0].transcript;
+          newFinal += speechEvent.results[i][0].transcript;
         } else {
-          interimTranscript += speechEvent.results[i][0].transcript;
+          this.interimTranscript += speechEvent.results[i][0].transcript;
         }
       }
 
-      // Update state tracking
-      if (finalTranscript) {
-          this.hasSentFinal = true;
-          this.lastInterimTranscript = ''; 
-          if (this.silenceTimer) clearTimeout(this.silenceTimer); // Clear timer jika sudah final native
-      } else {
-          this.lastInterimTranscript = interimTranscript;
+      if (newFinal) {
+        this.finalTranscript += newFinal;
+        // Jika sudah final, browser biasanya akan stop sendiri (continuous=false),
+        // tapi kita bisa force stop untuk memastikan UI responsif.
+        this.stop(); 
       }
 
+      // Kirim update ke UI (Real-time transcript)
       if (this.onResultCallback) {
-        if (finalTranscript) {
-          this.onResultCallback(finalTranscript, true);
-        } else if (interimTranscript) {
-          this.onResultCallback(interimTranscript, false);
-        }
+        const displayText = this.finalTranscript + this.interimTranscript;
+        this.onResultCallback(displayText, !!newFinal);
       }
     };
 
     this.recognition.onerror = (event: any) => {
-      // Note: 'any' digunakan di sini karena ErrorEvent browser sedikit berbeda antar vendor
-      // tapi kita cast ke SpeechRecognitionErrorEvent untuk akses properti .error
       const errorEvent = event as SpeechRecognitionErrorEvent;
       
       if (this.silenceTimer) clearTimeout(this.silenceTimer);
 
-      if (errorEvent.error === 'no-speech' || errorEvent.error === 'network') {
+      // Ignore benign errors
+      if (errorEvent.error === 'no-speech') {
+          // No speech bukan error fatal, biarkan onEnd handle
           return; 
       }
       if (errorEvent.error === 'aborted') return;
@@ -111,46 +103,27 @@ class VoiceService {
     this.recognition.onend = () => {
       if (this.silenceTimer) clearTimeout(this.silenceTimer);
 
-      // --- IOS & SILENCE FALLBACK LOGIC ---
-      // Jika sesi mati (karena silence timer kita atau native), 
-      // tapi belum kirim hasil final, paksa kirim hasil interim terakhir.
-      if (!this.manualStop && !this.hasSentFinal && this.lastInterimTranscript && this.onResultCallback) {
-          this.onResultCallback(this.lastInterimTranscript, true);
-          this.lastInterimTranscript = ''; 
-          this.hasSentFinal = true; 
-          
-          if (this.onEndCallback) this.onEndCallback();
-          return; 
+      // --- SAFARI CRITICAL FIX ---
+      // Safari sering close session tanpa flag isFinal: true.
+      // Kita cek, jika ada interim transcript yang tersisa, anggap itu final.
+      const effectiveTranscript = (this.finalTranscript || this.interimTranscript).trim();
+
+      // Jika ada teks tersisa saat sesi berakhir, kirim sebagai final!
+      if (effectiveTranscript.length > 0 && this.onResultCallback) {
+          this.onResultCallback(effectiveTranscript, true);
       }
 
-      if (this.manualStop) {
-          if (this.onEndCallback) this.onEndCallback();
-      } else {
-          // Auto restart mechanism (Phoenix Protocol)
-          if (this.restartTimer) clearTimeout(this.restartTimer);
-          this.restartTimer = setTimeout(() => {
-              try {
-                  if (!this.manualStop && this.recognition) {
-                      this.recognition.start();
-                  }
-              } catch (e) {}
-          }, 100);
-      }
+      if (this.onEndCallback) this.onEndCallback();
+      if (this.onStateChangeCallback) this.onStateChangeCallback('idle');
     };
   }
 
-  // Helper untuk reset timer hening
   private resetSilenceTimer() {
       if (this.silenceTimer) clearTimeout(this.silenceTimer);
-      
       this.silenceTimer = setTimeout(() => {
-          // Panggil stop() secara manual. Ini akan memicu 'onend'.
-          if (this.recognition) {
-              try {
-                  this.recognition.stop(); 
-              } catch(e) {}
-          }
-      }, this.SILENCE_DURATION);
+          // Jika hening terlalu lama, stop.
+          this.stop(); 
+      }, this.SPEECH_TIMEOUT_MS);
   }
 
   public checkSupport(): boolean {
@@ -160,58 +133,44 @@ class VoiceService {
   public start(
     onResult: (text: string, isFinal: boolean) => void,
     onError: (error: string) => void,
-    onEnd: () => void
+    onEnd: () => void,
+    onStateChange?: (state: 'listening' | 'processing' | 'idle') => void
   ) {
-    if (!this.isSupported || !this.recognition) return;
+    if (!this.isSupported || !this.recognition) {
+        onError('not-supported');
+        return;
+    }
     
-    this.manualStop = false;
-    this.hasSentFinal = false;
-    this.lastInterimTranscript = '';
+    // Reset Internal State
+    this.finalTranscript = '';
+    this.interimTranscript = '';
     
     this.onResultCallback = onResult;
     this.onErrorCallback = onError;
     this.onEndCallback = onEnd;
+    this.onStateChangeCallback = onStateChange || null;
 
     try {
-        this.recognition.abort();
-    } catch(e) {}
+        // Penting untuk iOS: Batalkan speech synthesis (suara robot) sebelum mendengar
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 
-    setTimeout(() => {
-        try {
-          this.recognition?.start();
-        } catch(e) {
-           console.debug("Start overlap ignored");
-        }
-    }, 50);
+        // Abort sesi sebelumnya jika ada (mencegah error 'already started')
+        try { this.recognition.abort(); } catch(e) {}
+        
+        // Synchronous start (Wajib direct call stack untuk iOS Safari)
+        this.recognition.start();
+    } catch(e) {
+       console.error("Speech start error:", e);
+       onError('start-failed');
+    }
   }
 
   public stop() {
-    this.manualStop = true; 
-    
-    if (this.restartTimer) {
-        clearTimeout(this.restartTimer);
-        this.restartTimer = null;
-    }
-    
-    if (this.silenceTimer) {
-        clearTimeout(this.silenceTimer);
-        this.silenceTimer = null;
-    }
-    
+    if (this.silenceTimer) clearTimeout(this.silenceTimer);
     if (this.recognition) {
       try {
           this.recognition.stop();
       } catch(e) {} 
-    }
-  }
-
-  public speak(text: string) {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'id-ID';
-      utterance.rate = 1.0;
-      window.speechSynthesis.speak(utterance);
     }
   }
 }

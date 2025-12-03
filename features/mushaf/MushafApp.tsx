@@ -14,6 +14,8 @@ import { useLocalStorage } from '../../hooks/useLocalStorage.ts';
 import { useMushafAudio } from './hooks/useMushafAudio.ts';
 import { useMushafData } from './hooks/useMushafData.ts';
 import { useWakeLock } from '../../hooks/useWakeLock.ts';
+import { useRouter } from '../../hooks/useRouter.ts';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate directly for manual navigation
 import { FaArrowLeft, FaHashtag, FaQuestionCircle, FaCog, FaBookmark } from 'react-icons/fa';
 
 // Sub-components
@@ -23,6 +25,8 @@ import { MushafStickyPlayer } from './components/MushafStickyPlayer.tsx';
 
 const MushafApp: React.FC = () => {
     const { showToast } = useToast();
+    const { searchParams } = useRouter();
+    const navigate = useNavigate();
     
     // Local Storage
     const [lastRead, setLastRead] = useLocalStorage<LastReadState | null>("mushaf_lastRead", null);
@@ -70,73 +74,65 @@ const MushafApp: React.FC = () => {
         }
     }, [selectedSurahId]);
 
-    // --- CHECK FOR VOICE COMMAND JUMP (Initialization & Real-time) ---
-    const checkVoiceCommand = useCallback(() => {
-        const jumpTarget = localStorage.getItem('mushaf_jump_surah');
-        const jumpAyah = localStorage.getItem('mushaf_jump_ayah');
+    // --- DEEP LINK / QUERY PARAM HANDLING ---
+    useEffect(() => {
+        const surahParam = searchParams.get('surah');
+        const ayahParam = searchParams.get('ayah');
 
-        if (jumpTarget) {
-            const surahId = parseInt(jumpTarget, 10);
+        if (surahParam) {
+            const surahId = parseInt(surahParam, 10);
             if (!isNaN(surahId) && surahId >= 1 && surahId <= 114) {
                 // If same surah, just jump to ayah if needed
                 if (surahId === selectedSurahId) {
-                    if (jumpAyah) {
-                        const ayahId = parseInt(jumpAyah, 10);
+                    if (ayahParam) {
+                        const ayahId = parseInt(ayahParam, 10);
                         if (!isNaN(ayahId)) {
-                            // Immediate internal jump
-                            setPendingJumpAyah(ayahId);
-                            // Trigger logic to scroll immediately as surah is already loaded
-                            handleInternalJump(ayahId);
+                            // If surah already loaded and verses exist, trigger jump directly
+                            // Otherwise set pending (though this case is rare if id matches)
+                            if (verses.length > 0) {
+                                handleInternalJump(ayahId);
+                            } else {
+                                setPendingJumpAyah(ayahId);
+                            }
                         }
-                        localStorage.removeItem('mushaf_jump_ayah');
                     }
                 } else {
                     // Different surah, full reload
-                    setSelectedSurahId(surahId);
-                    if (jumpAyah) {
-                        const ayahId = parseInt(jumpAyah, 10);
+                    // Set pending jump FIRST before changing ID to ensure initReader sees it
+                    if (ayahParam) {
+                        const ayahId = parseInt(ayahParam, 10);
                         if (!isNaN(ayahId)) {
                             setPendingJumpAyah(ayahId);
                         }
-                        localStorage.removeItem('mushaf_jump_ayah');
                     }
+                    setSelectedSurahId(surahId);
                 }
-                
-                // Clear triggers
-                localStorage.removeItem('mushaf_jump_surah');
             }
         }
-    }, [selectedSurahId]);
+    }, [searchParams]);
 
     // Helper for internal jump (when surah is already active)
     const handleInternalJump = async (targetAyah: number) => {
+        setIsJumping(true);
         showToast(`Melompat ke ayat ${targetAyah}...`, 'info');
         try {
             await loadUntilAyah(targetAyah);
-            requestAnimationFrame(() => {
-                virtuosoRef.current?.scrollToIndex({ 
-                    index: targetAyah - 1, 
-                    align: 'start', 
-                    behavior: 'smooth' 
+            // Small delay to ensure render updates before scrolling
+            setTimeout(() => {
+                requestAnimationFrame(() => {
+                    virtuosoRef.current?.scrollToIndex({ 
+                        index: targetAyah - 1, 
+                        align: 'start', 
+                        behavior: 'smooth' 
+                    });
                 });
-            });
+            }, 100);
         } catch (err) {
             showToast("Gagal memuat posisi.", "error");
+        } finally {
+            setIsJumping(false);
         }
     };
-
-    // 1. Check on Mount
-    useEffect(() => {
-        checkVoiceCommand();
-    }, []);
-
-    // 2. Check on Custom Event (Real-time Voice Trigger)
-    useEffect(() => {
-        const handleVoiceEvent = () => checkVoiceCommand();
-        window.addEventListener('nizamy-voice-command', handleVoiceEvent);
-        return () => window.removeEventListener('nizamy-voice-command', handleVoiceEvent);
-    }, [checkVoiceCommand]);
-
 
     // Handle Wake Lock based on Reading State
     useEffect(() => {
@@ -276,6 +272,8 @@ const MushafApp: React.FC = () => {
     const jumpTo = (surahId: number, ayahNumber: number) => {
         setPendingJumpAyah(ayahNumber);
         setSelectedSurahId(surahId);
+        // Force URL update to reflect jump
+        navigate(`/mushaf?surah=${surahId}&ayah=${ayahNumber}`, { replace: true });
     };
 
 
@@ -283,39 +281,22 @@ const MushafApp: React.FC = () => {
     useEffect(() => {
         if (selectedSurahId) {
             const initReader = async () => {
-                // If we are switching surahs, we need to load page 1 first
-                // If pendingJumpAyah is set, loadUntilAyah will be called inside
-                
+                // IMPORTANT: Always load initial verses first to establish state
                 await loadVerses(1, true);
-                setVisibleRange({ startIndex: 0, endIndex: 0 });
-                setJumpAyahInput(""); 
-
+                
                 if (pendingJumpAyah) {
-                    showToast(`Melompat ke ayat ${pendingJumpAyah}...`, 'info');
-                    try {
-                        if (pendingJumpAyah > 10) {
-                            await loadUntilAyah(pendingJumpAyah);
-                        }
-                        
-                        requestAnimationFrame(() => {
-                            setTimeout(() => {
-                                virtuosoRef.current?.scrollToIndex({ 
-                                    index: pendingJumpAyah - 1, 
-                                    align: 'start', 
-                                    behavior: 'auto' 
-                                });
-                                setPendingJumpAyah(null);
-                            }, 500); // Slight delay for rendering
-                        });
-                    } catch (err) {
-                        console.error(err);
-                        showToast("Gagal memuat posisi.", "error");
-                    }
+                    // If we have a pending jump (from Voice or URL), execute it immediately after initial load
+                    await handleInternalJump(pendingJumpAyah);
+                    setPendingJumpAyah(null); // Clear pending
                 } else {
+                    // Normal open (start from top)
+                    setVisibleRange({ startIndex: 0, endIndex: 0 });
                     requestAnimationFrame(() => {
                         virtuosoRef.current?.scrollToIndex({ index: 0, align: 'start' });
                     });
                 }
+                
+                setJumpAyahInput(""); 
             };
 
             initReader();
@@ -336,27 +317,12 @@ const MushafApp: React.FC = () => {
         const surah = SURAH_DATA.find(s => s.number === selectedSurahId);
         
         if (surah && targetAyah > 0 && targetAyah <= surah.verses) {
-            setIsJumping(true);
-            setIsJumpModalOpen(false); 
+            setIsJumpModalOpen(false);
+            setJumpAyahInput("");
             
-            try {
-                await loadUntilAyah(targetAyah);
-                
-                requestAnimationFrame(() => {
-                    virtuosoRef.current?.scrollToIndex({ 
-                        index: targetAyah - 1, 
-                        align: 'start', 
-                        behavior: 'smooth' 
-                    });
-                });
-                
-                setJumpAyahInput("");
-                (document.activeElement as HTMLElement)?.blur();
-            } catch (err) {
-                showToast("Gagal memuat ayat tujuan", "error");
-            } finally {
-                setIsJumping(false);
-            }
+            // Navigate changes URL, which triggers the useEffect -> handleInternalJump logic automatically
+            navigate(`/mushaf?surah=${selectedSurahId}&ayah=${targetAyah}`);
+            
         } else {
             showToast(`Nomor ayat tidak valid (1-${surah?.verses})`, "error");
         }
@@ -451,7 +417,7 @@ const MushafApp: React.FC = () => {
             <SurahSelection 
                 lastRead={lastRead}
                 bookmarks={bookmarks}
-                onSelectSurah={setSelectedSurahId}
+                onSelectSurah={(id) => navigate(`/mushaf?surah=${id}`)}
                 onJumpToLastRead={() => {
                     if(lastRead) jumpTo(lastRead.surahId, lastRead.ayahNumber);
                 }}
@@ -464,7 +430,16 @@ const MushafApp: React.FC = () => {
     const activePlayingAyah = playingAyahId ? verses.find(v => v.id === playingAyahId) : null;
 
     return (
-        <div className="fixed inset-0 z-60 bg-white dark:bg-slate-950 flex flex-col animate-fade-in select-none">
+        <div className="fixed inset-0 z-header bg-white dark:bg-slate-950 flex flex-col animate-fade-in select-none">
+            {isJumping && (
+                <div className="fixed inset-0 z-loading flex items-center justify-center bg-black/20 backdrop-blur-[1px] pointer-events-none">
+                    <div className="bg-white dark:bg-slate-800 px-6 py-4 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-100 dark:border-slate-700 animate-fade-in-up">
+                        <div className="w-5 h-5 border-2 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+                        <p className="font-bold text-slate-700 dark:text-white text-sm">Melompat ke ayat...</p>
+                    </div>
+                </div>
+            )}
+
             <div className="fixed left-0 top-[calc(4rem+env(safe-area-inset-top))] bottom-0 w-1 z-dropdown bg-slate-100 dark:bg-slate-800/50 pointer-events-none">
                 <div 
                     className="relative w-full bg-teal-500 transition-all duration-500 ease-out rounded-b-full opacity-80"
@@ -472,10 +447,10 @@ const MushafApp: React.FC = () => {
                 ></div>
             </div>
 
-            <div className="sticky top-0 z-navigation bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800 pt-[env(safe-area-inset-top)]">
+            <div className="sticky top-0 z-tooltip bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800 pt-[env(safe-area-inset-top)]">
                 <div className="flex justify-between items-center px-4 py-3 max-w-3xl mx-auto w-full">
                     <button 
-                        onClick={() => { stopAudio(); setSelectedSurahId(null); setPendingJumpAyah(null); }}
+                        onClick={() => { stopAudio(); setSelectedSurahId(null); setPendingJumpAyah(null); navigate('/mushaf'); }}
                         className="flex items-center gap-3 group p-1 pr-4 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all"
                     >
                         <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-white dark:group-hover:bg-slate-700 group-hover:shadow-sm transition-all icon-wrapper w-8 h-8 flex items-center justify-center">

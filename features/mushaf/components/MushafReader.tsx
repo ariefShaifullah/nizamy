@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Virtuoso, type VirtuosoHandle, type ListRange } from 'react-virtuoso';
 import { AyahRenderer } from './AyahRenderer.tsx';
@@ -93,9 +94,15 @@ export const MushafReader: React.FC<MushafReaderProps> = ({
                     className="pb-32 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:none]"
                     components={{
                         Header: () => surah ? <SurahHeader surah={surah} /> : null,
-                        Footer: () => !hasMore && !loading && (
-                            <div className="py-20 text-center">
-                                <p className="text-emerald-600/50 dark:text-emerald-400/50 font-arabic text-xl">صدق الله العظيم</p>
+                        Footer: () => (
+                            <div className="py-10 text-center">
+                                {loading ? (
+                                    <div className="flex justify-center p-4">
+                                        <div className="w-6 h-6 border-2 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+                                    </div>
+                                ) : !hasMore ? (
+                                    <p className="text-emerald-600/50 dark:text-emerald-400/50 font-arabic text-xl">صدق الله العظيم</p>
+                                ) : null}
                             </div>
                         )
                     }}

@@ -7,7 +7,7 @@ import { GlobalSettings } from '../../features/settings/components/GlobalSetting
 import { LegalModal, type LegalType } from '../../features/settings/components/LegalModal.tsx';
 import { VoiceAssistant } from '../ui/VoiceAssistant.tsx'; // Import UI Overlay
 import { useNizamyVoice } from '../../hooks/useNizamyVoice.ts'; // Import Logic Hook
-import { FaBars, FaSun, FaMoon, FaCog, FaArrowLeft, FaShieldAlt, FaFileContract, FaMicrophone } from 'react-icons/fa';
+import { FaSun, FaMoon, FaCog, FaArrowLeft, FaShieldAlt, FaFileContract, FaMicrophone } from 'react-icons/fa';
 
 export const Header: React.FC = () => {
     // Consume simpler API from Context
@@ -15,7 +15,7 @@ export const Header: React.FC = () => {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     
     // Voice Assistant Logic Integration
-    const { isListening, transcript, feedback, startListening, stopListening, isSupported } = useNizamyVoice();
+    const { isListening, status, transcript, feedback, startListening, stopListening, isSupported } = useNizamyVoice();
     
     const location = useLocation();
     const navigate = useNavigate();
@@ -133,9 +133,11 @@ export const Header: React.FC = () => {
       {/* Global Voice Overlay Rendered Here */}
       <VoiceAssistant 
           isListening={isListening} 
+          status={status}
           transcript={transcript} 
           feedback={feedback} 
           onStop={stopListening} 
+          onRestart={startListening}
       />
 
       {isSettingsOpen && <GlobalSettings isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />}

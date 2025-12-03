@@ -292,7 +292,7 @@ const ZakatCalculator: React.FC = () => {
             )}
 
             <div className="flex flex-col lg:flex-row gap-6 md:gap-8 items-start">
-                <div className="w-full lg:w-64 shrink-0 sticky top-[74px] lg:top-24 z-navigation py-2 lg:py-0 mb-2 lg:mb-0">
+                <div className="w-full lg:w-64 shrink-0 top-[74px] lg:top-24 z-raised py-2 lg:py-0 mb-2 lg:mb-0">
                     <div className="relative bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-white/20 dark:border-slate-700 rounded-2xl shadow-lg lg:bg-transparent lg:border-0 lg:shadow-none lg:rounded-none lg:backdrop-blur-none overflow-hidden lg:overflow-visible">
                         <div ref={navRef} className="flex lg:flex-col overflow-x-auto lg:overflow-visible space-x-2 lg:space-x-0 lg:space-y-2 hide-scrollbar p-2 lg:p-0" aria-label="Tabs">
                             {TABS.map(tab => (

@@ -1,3 +1,4 @@
+
 import { useState, useRef, useCallback } from 'react';
 import { fetchVersesWithWords } from '../logic/mushaf.service.ts';
 import type { QuranAyah } from '../../../types.ts';
@@ -66,14 +67,14 @@ export const useMushafData = (selectedSurahId: number | null) => {
         loadVerses(page, false);
     }, [loadVerses, page]);
 
-    // New Function: Load data up to specific ayah efficiently
+    // NEW: Concurrent Batching Strategy
+    // Loads pages in chunks of 4 parallel requests to speed up deep jumps
     const loadUntilAyah = useCallback(async (targetAyah: number) => {
         if (!selectedSurahId || loading) return;
 
         const currentMaxAyah = verses.length > 0 ? verses[verses.length - 1].verse_number : 0;
         
-        // Assumption: We append data. If targetAyah is less than the last loaded ayah, 
-        // we assume it's already loaded (simplification for Infinite Scroll).
+        // If target is already loaded
         if (targetAyah <= currentMaxAyah) return; 
 
         const targetPage = Math.ceil(targetAyah / PER_PAGE);
@@ -83,41 +84,67 @@ export const useMushafData = (selectedSurahId: number | null) => {
 
         setLoading(true);
         
-        // Cancel any pending single page loads to avoid race conditions
+        // Cancel pending single loads
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
         }
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
         
         try {
-            // Create array of pages to fetch: e.g. Page 2, 3, 4, 5
-            // Fetching in parallel is much faster than sequential for jumps
             const pagesToFetch = [];
             for (let p = currentPage + 1; p <= targetPage; p++) {
                 pagesToFetch.push(p);
             }
 
-            const promises = pagesToFetch.map(p => fetchVersesWithWords(selectedSurahId, p, PER_PAGE));
-            const results = await Promise.all(promises);
+            // OPTIMIZATION: Concurrent Batching
+            // Fetch 4 pages at a time. Much faster than sequential, safe for API rate limits.
+            const CHUNK_SIZE = 4;
+            
+            for (let i = 0; i < pagesToFetch.length; i += CHUNK_SIZE) {
+                if (controller.signal.aborted) break;
 
-            // Combine all new verses in order
-            const newVerses = results.flatMap(r => r.verses);
-            
-            setVerses(prev => [...prev, ...newVerses]);
-            setPage(targetPage);
-            
-            // Update hasMore based on the last result
-            if (results.length > 0) {
-                const lastResult = results[results.length - 1];
-                if (lastResult.meta.next_page === null) {
-                    setHasMore(false);
+                const chunk = pagesToFetch.slice(i, i + CHUNK_SIZE);
+                
+                // Fetch chunk in parallel
+                const chunkResults = await Promise.all(
+                    chunk.map(p => fetchVersesWithWords(selectedSurahId, p, PER_PAGE, controller.signal))
+                );
+
+                const accumulatedChunkVerses: QuranAyah[] = [];
+                let hitEnd = false;
+
+                // Flatten results (Promise.all preserves order)
+                for (const result of chunkResults) {
+                    accumulatedChunkVerses.push(...result.verses);
+                    if (result.meta.next_page === null) {
+                        hitEnd = true;
+                    }
+                }
+
+                if (!controller.signal.aborted) {
+                    // Update state incrementally so UI grows and doesn't feel stuck
+                    setVerses(prev => [...prev, ...accumulatedChunkVerses]);
+                    
+                    // Update page tracking to the last page of this chunk
+                    setPage(chunk[chunk.length - 1]);
+                    
+                    if (hitEnd) {
+                        setHasMore(false);
+                        break; 
+                    }
                 }
             }
 
         } catch (err: any) {
-            console.error("Jump load failed", err);
-            setError("Gagal memuat ayat untuk loncat.");
+            if (err.name !== 'AbortError') {
+                console.error("Jump load failed", err);
+                setError("Gagal memuat ayat untuk loncat.");
+            }
         } finally {
-            setLoading(false);
+            if (!controller.signal.aborted) {
+                setLoading(false);
+            }
         }
     }, [selectedSurahId, loading, verses, page]);
 

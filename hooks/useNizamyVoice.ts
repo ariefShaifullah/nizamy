@@ -1,311 +1,319 @@
-import { useState, useCallback } from 'react';
+
+import { useState, useCallback, useRef } from 'react';
 // @ts-ignore
 import { useNavigate } from 'react-router-dom';
 import { voiceService } from '../services/voice.service.ts';
-import { useToast } from '../components/ui/Toast.tsx';
 import { SURAH_DATA } from '../constants.ts';
 import { audioService } from '../services/audio.service.ts';
 
-// Aliases for specific verses
-const AYAH_ALIASES: Record<string, { surah: number, ayah: number, name: string }> = {
-    'kursi': { surah: 2, ayah: 255, name: 'Ayat Kursi' },
-    'seribu dinar': { surah: 65, ayah: 2, name: 'Ayat Seribu Dinar' },
-    'sapu jagat': { surah: 2, ayah: 201, name: 'Doa Sapu Jagat' }
+// --- UTILS: FUZZY MATCHING & PARSING (Tidak berubah) ---
+const levenshteinDistance = (a: string, b: string): number => {
+    const matrix = [];
+    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+    for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+            if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                matrix[i][j] = matrix[i - 1][j - 1];
+            } else {
+                matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, Math.min(matrix[i][j - 1] + 1, matrix[i - 1][j] + 1));
+            }
+        }
+    }
+    return matrix[b.length][a.length];
 };
 
-// Helper to convert spoken Indonesian numbers to integers
-const parseIndonesianNumber = (text: string): number | null => {
-    const clean = text.toLowerCase().replace(/rp|rupiah|uang|harta|nilai|sebesar|nomor|ke/g, '').trim();
-    
-    // Multipliers
-    const multipliers = {
-        'juta': 1000000,
-        'milyar': 1000000000,
-        'miliar': 1000000000,
-        'triliun': 1000000000000,
-        'ribu': 1000
-    };
+const normalizeText = (text: string): string => {
+    return text.toLowerCase()
+        .replace(/['`’]/g, '')
+        .replace(/[^a-z0-9]/g, '')
+        .replace(/aa/g, 'a').replace(/ii/g, 'i').replace(/uu/g, 'u')
+        .replace(/sh|sy|th|ts/g, 's').replace(/dz|zh|z/g, 'z')
+        .replace(/dh/g, 'd').replace(/kh/g, 'h').replace(/q/g, 'k').replace(/f/g, 'p')
+        .trim();
+};
 
-    // Check for explicit matches like "100 juta"
+const SPECIAL_ALIASES: Record<string, number> = {
+    'kursi': 2, 'seribu dinar': 65, 'sapu jagat': 2,
+    'duha': 93, 'dhuha': 93, 'adduha': 93, 'wadduha': 93,
+    'yasin': 36, 'yasiin': 36, 'alkahfi': 18, 'kahfi': 18,
+    'amma': 78, 'annaba': 78, 'naba': 78, 'qulhu': 112, 'ikhlas': 112,
+    'fatihah': 1, 'alfatihah': 1, 'ummul kitab': 1, 'mudasir': 74,
+    'mulk': 67, 'almulk': 67, 'tabarak': 67, 'waqiah': 56, 'alwaqiah': 56,
+    'rahman': 55, 'arrahman': 55, 'syura': 42, 'asysyura': 42, 'syuara': 26
+};
+
+const SURAH_SEARCH_INDEX = SURAH_DATA.map(surah => {
+    const rawName = normalizeText(surah.name);
+    return { surah, tokens: [rawName, rawName.replace(/^(al|as|at|an|ad|ar|az|ash|aw|ay)/, ''), normalizeText(surah.arti)] };
+});
+
+const parseIndonesianNumber = (text: string): number | null => {
+    let clean = text.toLowerCase().replace(/rp|rupiah|uang|harta|nilai|sebesar|nomor|ke|juz/g, '').trim();
+    const multipliers: Record<string, number> = { 'triliun': 1000000000000, 'milyar': 1000000000, 'miliar': 1000000000, 'juta': 1000000, 'ribu': 1000, 'ratus': 100 };
+    
     for (const [key, val] of Object.entries(multipliers)) {
         if (clean.includes(key)) {
             const parts = clean.split(key);
-            const numPart = parts[0].trim().match(/[\d,.]+/); 
-            if (numPart) {
-                const numberStr = numPart[0].replace(',', '.');
-                return parseFloat(numberStr) * val;
+            const prefix = parts[0].trim();
+            const digitMatch = prefix.match(/[\d\.,]+/);
+            if (digitMatch) {
+                const num = parseFloat(digitMatch[0].replace(',', '.'));
+                if (!isNaN(num)) return num * val;
             }
-            if (parts[0].includes('satu') || parts[0].includes('se')) return 1 * val;
-            if (parts[0].includes('setengah')) return 0.5 * val;
+            let base = 1;
+            if (prefix.includes('setengah')) return 0.5 * val;
+            const wordToNum: Record<string, number> = { 'satu': 1, 'se': 1, 'dua': 2, 'tiga': 3, 'empat': 4, 'lima': 5, 'enam': 6, 'tujuh': 7, 'delapan': 8, 'sembilan': 9, 'sepuluh': 10 };
+            for (const [word, wordVal] of Object.entries(wordToNum)) {
+                if (prefix.includes(word)) {
+                    base = wordVal;
+                    if (prefix.includes('ratus') && key !== 'ratus') base = base * 100;
+                    break;
+                }
+            }
+            return base * val;
         }
     }
-
-    // Fallback: try raw number parsing "100000" or "255"
-    const rawMatch = clean.replace(/\./g,'').match(/[\d]+/);
+    const rawMatch = clean.replace(/\./g, '').match(/\d+/);
     if (rawMatch) return parseInt(rawMatch[0], 10);
-
-    const basicWords: Record<string, number> = {
-        'satu': 1, 'dua': 2, 'tiga': 3, 'empat': 4, 'lima': 5,
-        'enam': 6, 'tujuh': 7, 'delapan': 8, 'sembilan': 9, 'sepuluh': 10
-    };
-    for (const [word, val] of Object.entries(basicWords)) {
-        if (clean === word) return val;
-    }
-
     return null;
 };
 
-// Helper to parse heirs configuration from text
 const parseHeirs = (text: string): string => {
     const lower = text.toLowerCase();
-    
     const heirMappings = [
-        { keys: ['suami'], id: 'husband' },
-        { keys: ['istri', 'bini'], id: 'wife' },
-        { keys: ['anak laki', 'putra', 'cowok'], id: 'son' }, 
-        { keys: ['anak perempuan', 'putri', 'cewek'], id: 'daughter' },
-        { keys: ['ayah', 'bapak'], id: 'father' },
-        { keys: ['ibu', 'mamah', 'mama', 'bunda'], id: 'mother' },
-        { keys: ['saudara laki', 'abang', 'kakak laki', 'adik laki'], id: 'fullBrother' },
-        { keys: ['saudara perempuan', 'kakak perempuan', 'adik perempuan'], id: 'fullSister' },
-        { keys: ['kakek'], id: 'grandfather' },
-        { keys: ['nenek'], id: 'paternalGrandmother' },
-        { keys: ['cucu laki'], id: 'grandson' },
-        { keys: ['cucu perempuan'], id: 'granddaughter' }
+        { keys: ['suami'], id: 'husband' }, { keys: ['istri', 'bini'], id: 'wife' },
+        { keys: ['anak laki', 'putra', 'cowok'], id: 'son' }, { keys: ['anak perempuan', 'putri', 'cewek'], id: 'daughter' },
+        { keys: ['ayah', 'bapak'], id: 'father' }, { keys: ['ibu', 'mamah', 'mama', 'bunda'], id: 'mother' },
+        { keys: ['saudara laki', 'abang', 'kakak laki'], id: 'fullBrother' }, { keys: ['saudara perempuan', 'kakak perempuan'], id: 'fullSister' },
+        { keys: ['kakek'], id: 'grandfather' }, { keys: ['nenek'], id: 'paternalGrandmother' },
+        { keys: ['cucu laki'], id: 'grandson' }, { keys: ['cucu perempuan'], id: 'granddaughter' }
     ];
-
-    const wordNumbers: Record<string, number> = {
-        'satu': 1, 'seorang': 1, 'dua': 2, 'tiga': 3, 'empat': 4 
-    };
-
     const result: string[] = [];
-    let processedText = lower; 
-    
     heirMappings.forEach(map => {
-        const matchedKey = map.keys.find(k => processedText.includes(k));
+        const matchedKey = map.keys.find(k => lower.includes(k));
         if (matchedKey) {
-            let count = 1; 
-            const regexDigitPost = new RegExp(`${matchedKey}\\s*(\\d+)`);
-            const regexDigitPre = new RegExp(`(\\d+)\\s*${matchedKey}`);
-            const mPost = processedText.match(regexDigitPost);
-            const mPre = processedText.match(regexDigitPre);
-
-            if (mPost) count = parseInt(mPost[1]);
-            else if (mPre) count = parseInt(mPre[1]);
-            else {
-                for (const [word, val] of Object.entries(wordNumbers)) {
-                    if (processedText.includes(`${word} ${matchedKey}`) || processedText.includes(`${matchedKey} ${word}`)) {
-                        count = val;
-                        break;
-                    }
-                }
-            }
+            let count = 1;
+            if (lower.includes(`dua ${matchedKey}`)) count = 2;
+            else if (lower.includes(`tiga ${matchedKey}`)) count = 3;
+            else if (lower.includes(`empat ${matchedKey}`)) count = 4;
             result.push(`${map.id}:${count}`);
         }
     });
     return result.join(',');
 };
 
+export type VoiceStatus = 'idle' | 'listening' | 'processing' | 'success' | 'error' | 'standby';
+
 export const useNizamyVoice = () => {
   const navigate = useNavigate();
-  const { showToast } = useToast();
   
-  const [isListening, setIsListening] = useState(false);
+  const [status, setStatus] = useState<VoiceStatus>('idle');
   const [transcript, setTranscript] = useState('');
   const [feedback, setFeedback] = useState<string | null>(null);
+  
+  // Use ref to track processed text preventing dupes
+  const processedTextRef = useRef<string>('');
+
+  const findSurahByFuzzy = (input: string) => {
+      const normalizedInput = normalizeText(input);
+      for (const [alias, number] of Object.entries(SPECIAL_ALIASES)) {
+          if (normalizedInput.includes(normalizeText(alias))) return SURAH_DATA.find(s => s.number === number)!;
+      }
+      let bestMatch = null;
+      let minDistance = Infinity;
+      for (const item of SURAH_SEARCH_INDEX) {
+          for (const token of item.tokens) {
+              if (normalizedInput.includes(token) || token.includes(normalizedInput)) {
+                  if (token.length > 3 || normalizedInput === token) {
+                      const dist = Math.abs(normalizedInput.length - token.length);
+                      if (dist < minDistance) { minDistance = dist; bestMatch = item.surah; }
+                      continue;
+                  }
+              }
+              if (normalizedInput.length > 3) {
+                  const dist = levenshteinDistance(normalizedInput, token);
+                  if (dist <= Math.max(1, Math.floor(token.length * 0.35)) && dist < minDistance) {
+                      minDistance = dist;
+                      bestMatch = item.surah;
+                  }
+              }
+          }
+      }
+      return bestMatch;
+  };
 
   const processCommand = (text: string) => {
-    const lowerText = text.toLowerCase();
+    const lowerText = text.toLowerCase().trim();
+    if (!lowerText || lowerText.length < 2) return null;
+
+    let targetUrl = '';
+    let responseText = '';
+
+    // --- LOGIC PRIORITIES ---
     
-    // --- INTENT 1: ZAKAT (Calculation & Navigation) ---
-    if (lowerText.includes('zakat')) {
-        const numberVal = parseIndonesianNumber(lowerText);
-        
-        // Determine Type with Explicit Keyword Matching
-        let type = 'maal'; // Default fallback
+    // 1. Zakat
+    if (lowerText.includes('zakat') || lowerText.includes('jakat')) {
+        const numVal = parseIndonesianNumber(lowerText);
+        let type = 'maal';
+        if (lowerText.match(/fitrah|beras|jiwa/)) type = 'fitrah';
+        else if (lowerText.match(/emas|logam|perak/)) type = 'gold';
+        else if (lowerText.match(/dagang|niaga|bisnis/)) type = 'business';
+        else if (lowerText.match(/tani|panen|sawah/)) type = 'agri';
+        else if (lowerText.match(/ternak|sapi|kambing/)) type = 'livestock';
 
-        // Priority 1: Fitrah (Specific)
-        if (lowerText.includes('fitrah') || lowerText.includes('beras') || lowerText.includes('jiwa')) {
-            type = 'fitrah';
-        }
-        // Priority 2: Gold/Silver
-        else if (lowerText.includes('emas') || lowerText.includes('logam') || lowerText.includes('perak') || lowerText.includes('perhiasan')) {
-            type = 'gold';
-        }
-        // Priority 3: Business/Trade
-        else if (lowerText.includes('dagang') || lowerText.includes('niaga') || lowerText.includes('bisnis') || lowerText.includes('toko') || lowerText.includes('warung') || lowerText.includes('jualan')) {
-            type = 'business';
-        }
-        // Priority 4: Agriculture
-        else if (lowerText.includes('tani') || lowerText.includes('panen') || lowerText.includes('pertanian') || lowerText.includes('sawah') || lowerText.includes('kebun') || lowerText.includes('ladang')) {
-            type = 'agri';
-        }
-        // Priority 5: Livestock
-        else if (lowerText.includes('ternak') || lowerText.includes('sapi') || lowerText.includes('kambing') || lowerText.includes('domba') || lowerText.includes('kerbau')) {
-            type = 'livestock';
-        }
-        // Priority 6: Maal (Explicit & Synonyms)
-        else if (lowerText.includes('mal') || lowerText.includes('maal') || lowerText.includes('harta') || lowerText.includes('uang') || lowerText.includes('tabungan') || lowerText.includes('simpanan') || lowerText.includes('deposito')) {
-            type = 'maal';
-        }
-
-        if (numberVal && lowerText.includes('hitung')) {
-            // Calculation Intent
-            navigate(`/zakat?action=calculate&type=${type}&amount=${numberVal}`);
-            return `Menghitung Zakat ${type === 'gold' ? 'Emas' : type === 'fitrah' ? 'Fitrah' : 'Maal'}...`;
+        if (numVal && lowerText.includes('hitung')) {
+            targetUrl = `/zakat?action=calculate&type=${type}&amount=${numVal}`;
+            responseText = `Menghitung Zakat ${type === 'gold' ? 'Emas' : type === 'fitrah' ? 'Fitrah' : 'Maal'}...`;
         } else {
-            // Navigation Intent
-            navigate(`/zakat?tab=${type}`);
-            return `Membuka Kalkulator Zakat ${type === 'gold' ? 'Emas' : type === 'fitrah' ? 'Fitrah' : 'Maal'}`;
+            targetUrl = `/zakat?tab=${type}`;
+            responseText = `Membuka Zakat ${type === 'gold' ? 'Emas' : type === 'fitrah' ? 'Fitrah' : 'Maal'}`;
         }
     }
-
-    // --- INTENT 2: WARIS ---
-    if (lowerText.includes('waris') || lowerText.includes('faraidh')) {
-        const numberVal = parseIndonesianNumber(lowerText);
-        let url = '/faraidh';
-        
-        if (lowerText.includes('hitung') && (numberVal || lowerText.includes('istri') || lowerText.includes('suami') || lowerText.includes('anak'))) {
+    // 2. Waris
+    else if (lowerText.includes('waris') || lowerText.includes('faraidh')) {
+        const numVal = parseIndonesianNumber(lowerText);
+        if (lowerText.includes('hitung') || numVal || lowerText.includes('anak')) {
              const params = new URLSearchParams();
-             if (numberVal) params.append('estate', String(numberVal));
-             
-             const heirsString = parseHeirs(lowerText);
-             if (heirsString) params.append('heirs', heirsString);
-             
-             navigate(`${url}?${params.toString()}`);
-             return numberVal ? `Menghitung Waris harta ${numberVal.toLocaleString('id-ID')}` : `Menyiapkan form waris`;
+             if (numVal) params.append('estate', String(numVal));
+             const heirs = parseHeirs(lowerText);
+             if (heirs) params.append('heirs', heirs);
+             targetUrl = `/faraidh?${params.toString()}`;
+             responseText = numVal ? `Menghitung Waris...` : `Menyiapkan form waris`;
         } else {
-             navigate(url);
-             return "Membuka Kalkulator Waris";
+             targetUrl = '/faraidh';
+             responseText = "Membuka Waris";
+        }
+    }
+    // 3. Hafalan
+    else if (lowerText.match(/hafalan|murajaah|hafal|srs/)) { 
+        targetUrl = '/hafalan'; 
+        responseText = "Membuka Hafalan"; 
+    }
+    // 4. HEDE / Financial
+    else if (lowerText.match(/halal|audit|ekonomi|klinik|hede/)) { 
+        targetUrl = '/hede'; 
+        responseText = "Membuka Klinik Finansial"; 
+    }
+    // 5. Beranda
+    else if (lowerText.match(/beranda|home|depan|menu utama/)) { 
+        targetUrl = '/'; 
+        responseText = "Ke Beranda"; 
+    }
+    // 6. Mushaf (Fallback)
+    else {
+        // Try parsing surah
+        let rawQuery = lowerText.replace(/\b(buka|baca|surat|surah|ayat|qs|ke|yang|namanya)\b/g, '').trim();
+        let ayahNumber: number | null = null;
+        const numberMatch = rawQuery.match(/\d+/);
+        if (numberMatch) {
+            ayahNumber = parseInt(numberMatch[0]);
+            rawQuery = rawQuery.replace(numberMatch[0], '').trim();
+        } else if (lowerText.includes('ayat')) {
+            const parts = lowerText.split('ayat');
+            if (parts[1]) ayahNumber = parseIndonesianNumber(parts[1]);
+        }
+
+        const surah = findSurahByFuzzy(rawQuery);
+        if (surah) {
+            if (!ayahNumber) {
+                const aliasKey = normalizeText(rawQuery);
+                if (aliasKey.includes('kursi')) ayahNumber = 255;
+                else if (aliasKey.includes('seribu dinar')) ayahNumber = 2;
+            }
+            targetUrl = `/mushaf?surah=${surah.number}${ayahNumber ? `&ayah=${ayahNumber}` : ''}`;
+            responseText = `Membuka ${surah.name} ${ayahNumber ? `Ayat ${ayahNumber}` : ''}`;
         }
     }
 
-    // --- INTENT 3: MUSHAF NAVIGATION ---
-    if (lowerText.includes('buka') || lowerText.includes('baca') || lowerText.includes('surat') || lowerText.includes('surah') || lowerText.includes('ayat')) {
-        
-        // A. Check for Special Aliases
-        for (const [key, val] of Object.entries(AYAH_ALIASES)) {
-            if (lowerText.includes(key)) {
-                localStorage.setItem('mushaf_jump_surah', String(val.surah));
-                localStorage.setItem('mushaf_jump_ayah', String(val.ayah));
-                
-                navigate('/mushaf');
-                window.dispatchEvent(new Event('nizamy-voice-command'));
-                return `Membuka ${val.name}`;
-            }
-        }
-
-        // B. Standard Surah Extraction (Normalized)
-        const cleanInput = lowerText
-            .replace(/[^a-z0-9]/g, '')
-            .replace(/aa/g, 'a')
-            .replace(/ii/g, 'i')
-            .replace(/uu/g, 'u')
-            .replace(/ee/g, 'e')
-            .replace(/oo/g, 'o');
-
-        const matchedSurahs = SURAH_DATA.filter(s => {
-            const rawName = s.name.toLowerCase();
-            const cleanName = rawName
-                .replace(/[^a-z0-9]/g, '')
-                .replace(/aa/g, 'a')
-                .replace(/ii/g, 'i')
-                .replace(/uu/g, 'u');
-
-            if (cleanInput.includes(cleanName)) return true;
-            if (new RegExp(`\\b(surat|surah)\\s+${s.number}\\b`).test(lowerText)) return true;
-            return false;
-        });
-
-        // Pick best match (longest name usually more specific)
-        const foundSurah = matchedSurahs.sort((a, b) => b.name.length - a.name.length)[0];
-
-        if (foundSurah) {
-            let ayahNumber: number | null = null;
-            const ayatSplit = lowerText.split('ayat');
-            if (ayatSplit.length > 1) {
-                const potentialNumberText = ayatSplit[1].trim(); 
-                ayahNumber = parseIndonesianNumber(potentialNumberText);
-            }
-
-            localStorage.setItem('mushaf_jump_surah', String(foundSurah.number));
-            if (ayahNumber) {
-                localStorage.setItem('mushaf_jump_ayah', String(ayahNumber));
-            }
-
-            navigate('/mushaf');
-            window.dispatchEvent(new Event('nizamy-voice-command'));
-            return `Membuka ${foundSurah.name} ${ayahNumber ? `Ayat ${ayahNumber}` : ''}`;
-        }
+    if (targetUrl && responseText) {
+        return { url: targetUrl, text: responseText };
     }
-
-    // --- INTENT 4: BASIC NAVIGATION ---
-    if (lowerText.includes('hafalan') || lowerText.includes('murajaah')) {
-        navigate('/hafalan');
-        return "Membuka Hafalan Tracker";
-    }
-    if (lowerText.includes('halal') || lowerText.includes('audit') || lowerText.includes('ekonomi') || lowerText.includes('klinik') ||lowerText.includes('cek')) {
-        navigate('/hede');
-        return "Membuka Klinik Finansial";
-    }
-
-    if (lowerText.includes('halo') || lowerText.includes('assalamualaikum')) {
-        return "Wa'alaikumussalam. Coba katakan 'Buka Surat Al Baqarah Ayat 255' atau 'Hitung Waris'.";
-    }
-
     return null;
   };
 
   const startListening = useCallback(() => {
     setFeedback(null);
     setTranscript('');
+    processedTextRef.current = '';
+    setStatus('listening');
     audioService.playClick();
-    setIsListening(true);
 
     voiceService.start(
         (text, isFinal) => {
             setTranscript(text);
+            
             if (isFinal) {
+                // Prevent duplicate processing of the same command
+                if (text === processedTextRef.current) return;
+                processedTextRef.current = text;
+
+                setStatus('processing');
+                
+                // Simulate processing delay for better UX feel
                 setTimeout(() => {
-                    const response = processCommand(text);
-                    if (response) {
-                        setFeedback(response);
+                    const result = processCommand(text);
+                    if (result) {
+                        setStatus('success');
+                        setFeedback(result.text);
                         audioService.playSuccess();
-                        voiceService.speak(response);
-                        showToast(response, 'success');
                         
+                        // DELAY NAVIGATION: Biarkan user membaca feedback "Sukses" sejenak
                         setTimeout(() => {
+                            // Stop service completely before navigation
                             stopListening();
-                        }, 2000);
-                    } else {
-                        setFeedback("Maaf, saya belum paham.");
-                        setTimeout(() => {
-                            setFeedback(null);
-                            setTranscript('');
+                            navigate(result.url);
                         }, 1500);
+                    } else {
+                        setStatus('error');
+                        setFeedback("Maaf, perintah tidak dikenali.");
+                        audioService.playFail();
+                        
+                        // Return to standby so user can try again
+                        setTimeout(() => {
+                            setStatus('standby');
+                            setFeedback(null);
+                        }, 2000);
                     }
                 }, 500);
             }
         },
         (error) => {
+            // Jika not allowed, langsung idle agar tidak freeze UI
             if (error === 'not-allowed' || error === 'service-not-allowed') {
-                setIsListening(false);
-                showToast("Izin mikrofon ditolak.", 'error');
+                setStatus('idle');
+            } else {
+                // Error lain (no speech, network) masuk standby
+                // Check if we are currently 'listening' before changing state to avoid race conditions
+                if (status === 'listening') setStatus('standby');
             }
         },
-        () => { }
+        () => {
+            // On End (Microphone off)
+            // Wait slightly to ensure no pending result is being processed
+            setTimeout(() => {
+                setStatus(prev => {
+                    // Jika sesi mati saat listening (biasanya silence timeout browser), masuk standby
+                    // Tapi jika sudah 'processing' atau 'success', jangan ubah.
+                    if (prev === 'listening' && !processedTextRef.current) return 'standby';
+                    return prev;
+                });
+            }, 300);
+        }
     );
-  }, [navigate, showToast]);
+  }, [navigate, status]);
 
   const stopListening = useCallback(() => {
-    voiceService.stop();
-    setIsListening(false);
+    voiceService.stop(); 
+    setStatus('idle');
     setTranscript('');
     setFeedback(null);
+    processedTextRef.current = '';
   }, []);
 
   return {
-    isListening,
+    isListening: status !== 'idle',
+    status,
     transcript,
     feedback,
     startListening,

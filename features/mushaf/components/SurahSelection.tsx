@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { SURAH_DATA } from '../../../constants.ts';
+import { SURAH_DATA, ARABIC_SURAH_NAMES } from '../../../constants.ts';
 import { FaSearch, FaArrowRight, FaQuran, FaBookmark, FaStar, FaTrash, FaCertificate, FaMosque } from 'react-icons/fa';
 import { useDebounce } from '../../../hooks/useDebounce.ts';
 import type { LastReadState, Bookmark } from '../../../types.ts';
@@ -13,127 +13,6 @@ const QUICK_LINKS = [
     { number: 56, label: 'Al-Waqi\'ah', icon: '💰', gradient: 'from-indigo-100 to-blue-100 dark:from-indigo-900/40 dark:to-blue-900/40', text: 'text-indigo-800 dark:text-indigo-200' },
     { number: 67, label: 'Al-Mulk', icon: '🛡️', gradient: 'from-sky-100 to-cyan-100 dark:from-sky-900/40 dark:to-cyan-900/40', text: 'text-sky-800 dark:text-sky-200' },
 ];
-
-// Database Nama Arab Lengkap (114 Surat)
-const getArabicName = (name: string) => {
-    const map: Record<string, string> = {
-        "Al-Fatihah": "الفاتحة",
-        "Al-Baqarah": "البقرة",
-        "Ali 'Imran": "آل عمران",
-        "An-Nisa'": "النساء",
-        "Al-Ma'idah": "المائدة",
-        "Al-An'am": "الأنعام",
-        "Al-A'raf": "الأعراف",
-        "Al-Anfal": "الأنفال",
-        "At-Taubah": "التوبة",
-        "Yunus": "يونس",
-        "Hud": "هود",
-        "Yusuf": "يوسف",
-        "Ar-Ra'd": "الرعد",
-        "Ibrahim": "إبراهيم",
-        "Al-Hijr": "الحجر",
-        "An-Nahl": "النحل",
-        "Al-Isra'": "الإسراء",
-        "Al-Kahf": "الكهف",
-        "Maryam": "مريم",
-        "Ta-Ha": "طه",
-        "Al-Anbiya'": "الأنبياء",
-        "Al-Hajj": "الحج",
-        "Al-Mu'minun": "المؤمنون",
-        "An-Nur": "النور",
-        "Al-Furqan": "الفرقان",
-        "Asy-Syu'ara'": "الشعراء",
-        "An-Naml": "النمل",
-        "Al-Qasas": "القصص",
-        "Al-Ankabut": "العنكبوت",
-        "Ar-Rum": "الروم",
-        "Luqman": "لقمان",
-        "As-Sajdah": "السجدة",
-        "Al-Ahzab": "الأحزاب",
-        "Saba'": "سبأ",
-        "Fatir": "فاطر",
-        "Ya-Sin": "يس",
-        "As-Saffat": "الصافات",
-        "Sad": "ص",
-        "Az-Zumar": "الزمر",
-        "Ghafir": "غافر",
-        "Fussilat": "فصلت",
-        "Asy-Syura": "الشورى",
-        "Az-Zukhruf": "الزخرف",
-        "Ad-Dukhan": "الدخان",
-        "Al-Jatsiyah": "الجاثية",
-        "Al-Ahqaf": "الأحقاف",
-        "Muhammad": "محمد",
-        "Al-Fath": "الفتح",
-        "Al-Hujurat": "الحجرات",
-        "Qaf": "ق",
-        "Adz-Dzariyat": "الذاريات",
-        "At-Tur": "الطور",
-        "An-Najm": "النجم",
-        "Al-Qamar": "القمر",
-        "Ar-Rahman": "الرحمن",
-        "Al-Waqi'ah": "الواقعة",
-        "Al-Hadid": "الحديد",
-        "Al-Mujadilah": "المجادلة",
-        "Al-Hasyr": "الحشر",
-        "Al-Mumtahanah": "الممتحنة",
-        "As-Saff": "الصف",
-        "Al-Jumu'ah": "الجمعة",
-        "Al-Munafiqun": "المنافقون",
-        "At-Taghabun": "التغابن",
-        "At-Talaq": "الطلاق",
-        "At-Tahrim": "التحريم",
-        "Al-Mulk": "الملك",
-        "Al-Qalam": "القلم",
-        "Al-Haqqah": "الحاقة",
-        "Al-Ma'arij": "المعارج",
-        "Nuh": "نوح",
-        "Al-Jin": "الجن",
-        "Al-Muzzammil": "المزمل",
-        "Al-Muddatsir": "المدثر",
-        "Al-Qiyamah": "القيامة",
-        "Al-Insan": "الإنسان",
-        "Al-Mursalat": "المرسلات",
-        "An-Naba'": "النبأ",
-        "An-Nazi'at": "النازعات",
-        "'Abasa": "عبس",
-        "At-Takwir": "التكوير",
-        "Al-Infitar": "الإنفطار",
-        "Al-Mutaffifin": "المطففين",
-        "Al-Inshiqaq": "الإنشقاق",
-        "Al-Buruj": "البروج",
-        "At-Tariq": "الطارق",
-        "Al-A'la": "الأعلى",
-        "Al-Ghashiyah": "الغاشية",
-        "Al-Fajr": "الفجر",
-        "Al-Balad": "البلد",
-        "Asy-Syams": "الشمس",
-        "Al-Lail": "الليل",
-        "Ad-Duha": "الضحى",
-        "Al-Insyirah": "الشرح",
-        "At-Tin": "التين",
-        "Al-'Alaq": "العلق",
-        "Al-Qadr": "القدر",
-        "Al-Bayyinah": "البينة",
-        "Az-Zalzalah": "الزلزلة",
-        "Al-'Adiyat": "العاديات",
-        "Al-Qari'ah": "القارعة",
-        "At-Takatsur": "التكاثر",
-        "Al-'Asr": "العصر",
-        "Al-Humazah": "الهمزة",
-        "Al-Fil": "الفيل",
-        "Quraisy": "قريش",
-        "Al-Ma'un": "الماعون",
-        "Al-Kautsar": "الكوثر",
-        "Al-Kafirun": "الكافرون",
-        "An-Nasr": "النصر",
-        "Al-Lahab": "المسد",
-        "Al-Ikhlas": "الإخلاص",
-        "Al-Falaq": "الفلق",
-        "An-Nas": "الناس"
-    };
-    return map[name] || name;
-};
 
 interface SurahSelectionProps {
     lastRead: LastReadState | null;
@@ -295,7 +174,7 @@ export const SurahSelection: React.FC<SurahSelectionProps> = ({
                                         </h4>
                                         {/* Arabic Name Placeholder */}
                                         <span className="font-arabic text-xl text-slate-400 dark:text-slate-600 group-hover:text-teal-600/50 dark:group-hover:text-teal-400/50 font-normal">
-                                            {getArabicName(surah.name)}
+                                            {ARABIC_SURAH_NAMES[surah.name] || surah.name}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2 mt-1">

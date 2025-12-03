@@ -122,7 +122,7 @@ const BackgroundDecor = () => (
         <div className="absolute bottom-[10%] left-[-10%] w-[300px] h-[300px] bg-emerald-300/20 dark:bg-emerald-900/10 rounded-full blur-[80px]"></div>
         
         {/* Noise Texture for that "Premium" feel */}
-        <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.03]" 
+        <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]" 
              style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}>
         </div>
     </div>
@@ -276,10 +276,10 @@ const UtilityCard = ({ title, icon, color, onClick, desc }: { title: string, des
     return (
         <button 
             onClick={onClick}
-            className={`flex flex-col p-4 rounded-3xl border transition-all duration-300 active:scale-95 group h-full justify-between ${styles[color]}`}
+            className={`flex flex-col p-4 rounded-3xl border transition-all duration-300 active:scale-95 group h-full justify-center gap-3 ${styles[color]}`}
         >
             <div className="w-full flex justify-between items-start">
-                <span className="text-2xl mb-2">{icon}</span>
+                <span className="text-2xl">{icon}</span>
             </div>
             <div className="text-left">
                 <h4 className="font-bold text-sm md:text-base dark:text-white leading-tight">{title}</h4>
@@ -297,7 +297,7 @@ const InstallBanner: React.FC<{ onInstall: () => void; onClose: () => void }> = 
                     <FaDownload />
                 </div>
                 <div className="flex flex-col">
-                    <span className="text-sm font-bold">Install Nizamy</span>
+                    <span className="text-sm font-bold">Pasang Aplikasi</span>
                     <span className="text-[10px] opacity-70">Akses offline lebih cepat</span>
                 </div>
             </div>
@@ -350,8 +350,8 @@ export const Home: React.FC = () => {
       
       <BackgroundDecor />
 
-      {/* FIX: Added proper top padding to avoid header overlap */}
-      <main className="container mx-auto px-4 md:px-6 pt-24 md:pt-32 max-w-5xl">
+      {/* FIX: Dynamic top padding to handle iPhone safe-areas properly */}
+      <main className="container mx-auto px-4 md:px-6 pt-[calc(7rem+env(safe-area-inset-top))] md:pt-[calc(9rem+env(safe-area-inset-top))] max-w-5xl">
           <HeaderSection />
 
           {/* BENTO GRID SYSTEM */}
@@ -393,7 +393,7 @@ export const Home: React.FC = () => {
                   />
               </div>
 
-          </div>
+          </div>    
 
           {/* FOOTER QUOTE */}
           <div className="mt-12 text-center opacity-60 pb-8 animate-fade-in" style={{ animationDelay: '400ms' }}>

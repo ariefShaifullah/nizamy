@@ -7,6 +7,7 @@ import { useToast } from '../../../components/ui/Toast.tsx';
 import { Modal } from '../../../components/ui/Modal.tsx';
 import html2canvas from 'html2canvas';
 import { calculateDynamicScore } from '../logic/hede.service.ts';
+import { TOOLKIT_ITEMS } from '../constants.ts';
 import { 
     FaDownload, 
     FaRedo, 
@@ -14,20 +15,12 @@ import {
     FaShareAlt,
     FaExclamationCircle,
     FaFileSignature,
-    FaHandshake,
-    FaPray,
     FaChartPie,
     FaListUl,
     FaRoad,
     FaArrowRight,
     FaSpinner,
     FaCopy,
-    FaTimes,
-    FaUsers,
-    FaUserTie,
-    FaFileContract,
-    FaFileInvoiceDollar,
-    FaInfoCircle
 } from 'react-icons/fa';
 
 import { HedeCharts } from './report/HedeCharts.tsx';
@@ -48,17 +41,6 @@ interface HedeReportProps {
 }
 
 type ReportTab = 'summary' | 'details' | 'roadmap';
-
-const TOOLKIT_ITEMS: { type: ContractType; icon: React.ReactNode; title: string; subtitle: string; color: string; }[] = [
-    { type: 'qardh', icon: <FaHandshake />, title: 'Akad Qardh', subtitle: 'Utang (No Riba)', color: 'blue' },
-    { type: 'mudharabah', icon: <FaBalanceScale />, title: 'Akad Mudharabah', subtitle: 'Investasi Bagi Hasil', color: 'emerald' },
-    { type: 'musyarakah', icon: <FaUsers />, title: 'Akad Musyarakah', subtitle: 'Kerja Sama Modal', color: 'teal' },
-    { type: 'wakalah', icon: <FaUserTie />, title: 'Akad Wakalah', subtitle: 'Agen/Dropship', color: 'sky' },
-    { type: 'ijarah', icon: <FaFileContract />, title: 'Akad Ijarah', subtitle: 'Kontrak Jasa/Sewa', color: 'indigo' },
-    { type: 'loan_payoff', icon: <FaFileInvoiceDollar />, title: 'Surat Pelunasan', subtitle: 'Niat Lunas KPR', color: 'rose' },
-    { type: 'tathhir_guide', icon: <FaInfoCircle />, title: 'Panduan Tathhir', subtitle: 'Penyaluran Dana', color: 'amber' },
-    { type: 'taubat', icon: <FaPray />, title: 'Ikrar Bara\'ah', subtitle: 'Niat Taubat', color: 'purple' },
-];
 
 const getToolkitColorClasses = (color: string) => {
     switch (color) {

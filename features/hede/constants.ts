@@ -1,4 +1,17 @@
+
 import type { RiskLevel, Question, HedeCategory, ViolationType, FiqhTerm } from '../../types.ts';
+import type { ContractType } from './logic/contract-templates.ts';
+import { 
+    FaHandshake, 
+    FaBalanceScale, 
+    FaUsers, 
+    FaUserTie, 
+    FaFileContract, 
+    FaFileInvoiceDollar, 
+    FaInfoCircle, 
+    FaPray 
+} from 'react-icons/fa';
+import React from 'react';
 
 // --- CENTRALIZED STYLING CONFIG ---
 export const RISK_CONFIG: Record<RiskLevel, { 
@@ -69,6 +82,17 @@ export const CATEGORY_LABELS: Record<HedeCategory, string> = {
     payment: 'Metode Bayar',
     emergency: 'Kedaruratan'
 };
+
+export const TOOLKIT_ITEMS: { type: ContractType; icon: React.ReactNode; title: string; subtitle: string; color: string; }[] = [
+    { type: 'qardh', icon: React.createElement(FaHandshake), title: 'Akad Qardh', subtitle: 'Utang (No Riba)', color: 'blue' },
+    { type: 'mudharabah', icon: React.createElement(FaBalanceScale), title: 'Akad Mudharabah', subtitle: 'Investasi Bagi Hasil', color: 'emerald' },
+    { type: 'musyarakah', icon: React.createElement(FaUsers), title: 'Akad Musyarakah', subtitle: 'Kerja Sama Modal', color: 'teal' },
+    { type: 'wakalah', icon: React.createElement(FaUserTie), title: 'Akad Wakalah', subtitle: 'Agen/Dropship', color: 'sky' },
+    { type: 'ijarah', icon: React.createElement(FaFileContract), title: 'Akad Ijarah', subtitle: 'Kontrak Jasa/Sewa', color: 'indigo' },
+    { type: 'loan_payoff', icon: React.createElement(FaFileInvoiceDollar), title: 'Surat Pelunasan', subtitle: 'Niat Lunas KPR', color: 'rose' },
+    { type: 'tathhir_guide', icon: React.createElement(FaInfoCircle), title: 'Panduan Tathhir', subtitle: 'Penyaluran Dana', color: 'amber' },
+    { type: 'taubat', icon: React.createElement(FaPray), title: 'Ikrar Bara\'ah', subtitle: 'Niat Taubat', color: 'purple' },
+];
 
 export const FIQH_GLOSSARY: FiqhTerm[] = [
     // --- RIBA ---

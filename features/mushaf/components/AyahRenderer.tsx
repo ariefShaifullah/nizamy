@@ -5,6 +5,12 @@ import { useLongPress } from '../../../hooks/useLongPress.ts';
 import { FaEllipsisH, FaPlay, FaBookmark, FaStar } from 'react-icons/fa';
 import { analyzeTajwid } from '../logic/tajwid.helper.ts';
 
+// --- BROWSER DETECTION ---
+// Safari (WebKit) has a known issue where wrapping individual Arabic letters in <span> 
+// breaks the cursive ligatures (huruf terputus). 
+// To preserve the sanctity of the Quranic text, we disable coloring on Safari.
+const IS_SAFARI = typeof navigator !== 'undefined' && /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
 interface AyahRendererProps {
     ayah: QuranAyah;
     globalIndex: number;
@@ -53,12 +59,15 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
     };
 
     // --- Dynamic Line Height Calculation ---
-    // Improved logic: larger font needs proportionally less line height to look cohesive
+    // Taller line height for smaller fonts to prevent crowding
+    // Tighter line height for very large fonts to keep text cohesive
     const lineHeight = useMemo(() => {
-        if (fontSize <= 28) return 2.2;
-        if (fontSize <= 36) return 2.4;
-        if (fontSize <= 48) return 2.6;
-        return 2.8; // Max spacing for readability on huge text
+        const base = 2.0;
+        const scale = Math.max(0, (fontSize - 24) * 0.02); 
+        // 24px -> 2.0
+        // 40px -> 2.32
+        // 60px -> 2.72
+        return base + scale;
     }, [fontSize]);
 
     const isLastRead = lastRead?.surahId === parseInt(ayah.verse_key.split(':')[0]) && lastRead?.ayahNumber === ayah.verse_number;
@@ -67,7 +76,6 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
         bookmarks.find(b => b.surahId === parseInt(ayah.verse_key.split(':')[0]) && b.ayahNumber === ayah.verse_number),
     [bookmarks, ayah.verse_key, ayah.verse_number]);
 
-    // OPTIMIZATION: Memoize Tajwid Rules calculation
     const processedWords = useMemo(() => {
         return ayah.words.map((word, index) => {
             if (word.char_type_name !== 'word') return { word, rules: [] };
@@ -142,7 +150,7 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
                 {...(!wordMode ? ayahGestures : {})}
             >
                 <div 
-                    className="text-slate-800 dark:text-slate-100 tracking-normal text-justify leading-loose"
+                    className="text-slate-800 dark:text-slate-100 tracking-normal text-justify"
                     style={{ 
                         fontFamily: '"Amiri", "Traditional Arabic", serif',
                         lineHeight: lineHeight,
@@ -280,7 +288,10 @@ const WordItem: React.FC<{
     }
 
     const renderColoredText = () => {
-        if (!wordMode || tajwidRules.length === 0) return word.text_uthmani;
+        // Fix for Safari: Return plain text if Safari or no rules/wordMode
+        if (IS_SAFARI || !wordMode || tajwidRules.length === 0) {
+            return word.text_uthmani;
+        }
 
         const chars = word.text_uthmani.split('');
         return chars.map((char, i) => {
@@ -301,7 +312,7 @@ const WordItem: React.FC<{
                 relative
                 ${wordMode ? 'py-1 my-0.5' : 'py-0 my-0'} 
                 ${isActive 
-                    ? 'bg-teal-100 dark:bg-teal-900/80 text-teal-900 dark:text-white shadow-sm px-2 mx-1 scale-105 font-bold border border-teal-200 dark:border-teal-700' 
+                    ? 'bg-teal-50 dark:bg-teal-900/50 text-teal-800 dark:text-teal-200 px-2 mx-1 shadow-sm ring-1 ring-teal-200 dark:ring-teal-800 rounded-xl' 
                     : wordMode
                         ? 'hover:text-teal-600 dark:hover:text-teal-400 active:scale-95 px-1 mx-0.5 hover:bg-slate-100 dark:hover:bg-slate-800/50' 
                         : 'text-slate-800 dark:text-slate-100 px-0.5 mx-0.5'

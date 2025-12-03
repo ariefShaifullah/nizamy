@@ -15,7 +15,23 @@ interface KamusSheetProps {
     onUpdateBookmark: (ayah: QuranAyah, category: BookmarkCategory | null) => void;
 }
 
+// Browser Detection for Safari Fix
+const IS_SAFARI = typeof navigator !== 'undefined' && /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
 const HighlightedArabicText: React.FC<{ text: string; rules: TajwidRule[]; fontSize?: string }> = ({ text, rules, fontSize = 'text-3xl md:text-4xl lg:text-5xl' }) => {
+    
+    // Fix for Safari: Bypass coloring logic to preserve ligatures
+    if (IS_SAFARI) {
+        return (
+            <p 
+                className={`font-arabic ${fontSize} dir-rtl text-center py-6 px-2 text-slate-800 dark:text-slate-100`}
+                style={{ fontFamily: '"Amiri", serif', lineHeight: '2.8', direction: 'rtl' }}
+            >
+                {text}
+            </p>
+        );
+    }
+
     const chars = text.split('').map((char, index) => {
         const activeRule = rules.find(r => r.indexes && r.indexes.includes(index));
         return {
@@ -124,7 +140,7 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
 
     return (
         <div 
-            className={`fixed inset-0 z-drawer flex items-end justify-center sm:items-center transition-opacity duration-300 ${isClosing ? 'opacity-0' : 'opacity-100'}`}
+            className={`fixed inset-0 z-overlay flex items-end justify-center sm:items-center transition-opacity duration-300 ${isClosing ? 'opacity-0' : 'opacity-100'}`}
             role="dialog"
             aria-modal="true"
         >
@@ -176,7 +192,7 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
                             </div>
                             <HighlightedArabicText text={arabicText} rules={tajwidRules} fontSize={isAyah ? "text-2xl md:text-3xl" : undefined} />
                         </div>
-                        {isAyah && (
+                        {isAyah && !IS_SAFARI && (
                             <p className="text-center text-[10px] text-slate-400 mt-2 italic">
                                 Teks diwarnai otomatis berdasarkan kaidah tajwid.
                             </p>
@@ -310,7 +326,7 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
                                         Beta
                                     </span>
                                 </div>
-                                {tajwidRules.length > 0 ? (
+                                {tajwidRules.length > 0 && !IS_SAFARI ? (
                                     <div className="space-y-3">
                                         {tajwidRules.map((rule, idx) => (
                                             <div key={idx} className={`p-4 rounded-2xl border-l-4 shadow-sm bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 flex gap-4 items-start`}>
@@ -326,7 +342,9 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
                                     </div>
                                 ) : (
                                     <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 text-center">
-                                        <p className="text-slate-500 dark:text-slate-400 text-sm">Tidak ada hukum tajwid khusus yang terdeteksi pada kata ini.</p>
+                                        <p className="text-slate-500 dark:text-slate-400 text-sm">
+                                            {IS_SAFARI ? 'Analisis Tajwid dinonaktifkan di Safari.' : 'Tidak ada hukum tajwid khusus yang terdeteksi pada kata ini.'}
+                                        </p>
                                     </div>
                                 )}
                             </div>

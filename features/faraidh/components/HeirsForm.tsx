@@ -1,35 +1,21 @@
-
 import React, { useState, useMemo } from 'react';
-import type { HeirInputState, Heir } from '../../../types.ts';
+import type { Heir } from '../../../types.ts';
 import { Heir as HeirEnum } from '../../../types.ts';
-import type { FaraidhAction } from '../logic/heirsReducer.ts';
 import { HEIR_LABELS, HEIR_GROUPS } from '../constants.ts';
 import { HeirInput } from './HeirInput.tsx';
 import { formatNumber } from '../../../utils.ts';
 import { FaCoins, FaCalculator, FaSpinner, FaRedo, FaChevronDown, FaUserFriends, FaCheck, FaMars, FaVenus } from 'react-icons/fa';
 import { audioService } from '../../../services/audio.service.ts';
-
-interface HeirsFormProps {
-  heirs: HeirInputState;
-  dispatch: React.Dispatch<FaraidhAction>;
-  estate: string;
-  setEstate: (value: string) => void;
-  deceasedGender: 'male' | 'female';
-  setDeceasedGender: (val: 'male' | 'female') => void;
-  onCalculate: () => void;
-  loading: boolean;
-}
+import { useFaraidh } from '../context/FaraidhContext.tsx';
 
 const HeirGroupAccordion: React.FC<{
     title: string;
     heirKeys: Heir[];
-    heirs: HeirInputState;
-    dispatch: React.Dispatch<FaraidhAction>;
     defaultOpen?: boolean;
-}> = ({ title, heirKeys, heirs, dispatch, defaultOpen = false }) => {
+}> = ({ title, heirKeys, defaultOpen = false }) => {
     const [isOpen, setIsOpen] = useState(defaultOpen);
+    const { heirs } = useFaraidh();
     
-    // Hitung berapa input yang aktif di grup ini
     const activeCount = heirKeys.reduce((acc, key) => acc + (heirs[key] > 0 ? 1 : 0), 0);
 
     const toggle = () => {
@@ -75,8 +61,6 @@ const HeirGroupAccordion: React.FC<{
                         <HeirInput
                             key={heirKey}
                             label={HEIR_LABELS[heirKey as Heir]}
-                            count={heirs[heirKey as Heir]}
-                            dispatch={dispatch}
                             heirKey={heirKey as Heir}
                         />
                     ))}
@@ -86,7 +70,17 @@ const HeirGroupAccordion: React.FC<{
     );
 };
 
-export const HeirsForm: React.FC<HeirsFormProps> = React.memo(({ heirs, dispatch, estate, setEstate, deceasedGender, setDeceasedGender, onCalculate, loading }) => {
+export const HeirsForm: React.FC = React.memo(() => {
+  const { 
+      heirs, 
+      dispatch, 
+      estate, 
+      setEstate, 
+      deceasedGender, 
+      setDeceasedGender, 
+      handleCalculate, 
+      isPending 
+  } = useFaraidh();
   
   const formatInputValue = (value: string): string => {
     if (!value) return '';
@@ -107,9 +101,7 @@ export const HeirsForm: React.FC<HeirsFormProps> = React.memo(({ heirs, dispatch
       audioService.playClick();
       setDeceasedGender(gender);
       
-      // Auto-reset logic:
-      // If Male died -> Reset Husband input to 0 (cannot inherit)
-      // If Female died -> Reset Wife input to 0 (cannot inherit)
+      // Auto-reset logic via Context Dispatch
       if (gender === 'male') {
           if (heirs[HeirEnum.Husband] > 0) {
               dispatch({ type: 'SET_COUNT', payload: { heir: HeirEnum.Husband, count: 0 } });
@@ -123,14 +115,11 @@ export const HeirsForm: React.FC<HeirsFormProps> = React.memo(({ heirs, dispatch
   
   const totalHeirs = (Object.values(heirs) as number[]).reduce((a, b) => a + b, 0);
 
-  // Dynamic Filtering of Heir Groups based on Gender
   const visibleGroups = useMemo(() => {
       return HEIR_GROUPS.map(group => ({
           ...group,
           heirs: group.heirs.filter(heir => {
-              // Hide Husband input if Deceased is Male
               if (deceasedGender === 'male' && heir === HeirEnum.Husband) return false;
-              // Hide Wife input if Deceased is Female
               if (deceasedGender === 'female' && heir === HeirEnum.Wife) return false;
               return true;
           })
@@ -139,16 +128,14 @@ export const HeirsForm: React.FC<HeirsFormProps> = React.memo(({ heirs, dispatch
 
   return (
     <>
-      {/* Added extra bottom padding to main container to prevent content from being hidden behind the fixed button */}
       <div className="flex flex-col gap-6 pb-40 lg:pb-0">
         
-        {/* 1. Deceased Gender Switch (Context Aware) */}
+        {/* 1. Deceased Gender Switch */}
         <div className="bg-white dark:bg-slate-800 rounded-3xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm">
             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-3 ml-1 text-center">
                 Siapa yang Meninggal?
             </label>
             <div className="flex bg-slate-100 dark:bg-slate-900 p-1.5 rounded-2xl relative">
-                {/* Sliding Background */}
                 <div 
                     className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-white dark:bg-slate-700 rounded-xl shadow-sm transition-all duration-300 ease-out border border-slate-200 dark:border-slate-600 ${deceasedGender === 'male' ? 'left-1.5' : 'left-[calc(50%+3px)]'}`}
                 ></div>
@@ -173,13 +160,13 @@ export const HeirsForm: React.FC<HeirsFormProps> = React.memo(({ heirs, dispatch
             </p>
         </div>
 
-        {/* 2. Estate Input (Prominent) */}
+        {/* 2. Estate Input */}
         <div className="relative group rounded-4xl p-1 bg-linear-to-br from-blue-100 via-blue-50 to-white dark:from-blue-900 dark:via-slate-800 dark:to-slate-900 shadow-xl shadow-blue-100/50 dark:shadow-none transition-all duration-500 hover:shadow-2xl hover:shadow-blue-200/50 dark:hover:shadow-none">
             <div className="absolute inset-0 bg-white dark:bg-slate-900 rounded-[1.9rem] m-px"></div>
             
             <div className="relative p-6 md:p-8 flex flex-col justify-center h-full overflow-hidden rounded-[1.9rem]">
-                <div className="absolute top-0 right-0 -mr-8 -mt-8 opacity-[0.03] dark:opacity-[0.05] transition-transform duration-700 group-hover:rotate-12 group-hover:scale-110 pointer-events-none icon-wrapper h-56 w-56 text-blue-600 dark:text-blue-400">
-                    <FaCoins />
+                <div className="absolute top-0 right-0 -mr-8 -mt-8 opacity-[0.03] dark:opacity-[0.05] transition-transform duration-700 group-hover:rotate-12 group-hover:scale-110 pointer-events-none icon-wrapper text-blue-600 dark:text-blue-400">
+                    <FaCoins size={228}/>
                 </div>
 
                 <label htmlFor="estate" className="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-3 ml-1">
@@ -196,7 +183,7 @@ export const HeirsForm: React.FC<HeirsFormProps> = React.memo(({ heirs, dispatch
                         onChange={handleEstateChange}
                         className="w-full bg-transparent border-b-2 border-slate-200 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-400 pl-12 pr-4 py-2 text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white placeholder-slate-300 focus:outline-none transition-colors tracking-tight"
                         placeholder="0"
-                        disabled={loading}
+                        disabled={isPending}
                     />
                 </div>
                 <p className="text-[10px] text-slate-400 mt-2 ml-1 italic">
@@ -205,7 +192,7 @@ export const HeirsForm: React.FC<HeirsFormProps> = React.memo(({ heirs, dispatch
             </div>
         </div>
 
-        {/* 3. Heirs Input (Accordion Style) */}
+        {/* 3. Heirs Input */}
         <div className="space-y-4">
             <div className="flex items-center justify-between px-1 mb-2">
                 <div className="flex items-center gap-2">
@@ -227,8 +214,6 @@ export const HeirsForm: React.FC<HeirsFormProps> = React.memo(({ heirs, dispatch
                         key={group.title}
                         title={group.title}
                         heirKeys={group.heirs}
-                        heirs={heirs}
-                        dispatch={dispatch}
                         defaultOpen={index === 0} 
                     />
                 ))}
@@ -244,7 +229,7 @@ export const HeirsForm: React.FC<HeirsFormProps> = React.memo(({ heirs, dispatch
                         dispatch({type: 'RESET'});
                     }} 
                     className="px-6 py-3.5 rounded-xl font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md flex items-center gap-2"
-                    disabled={loading}
+                    disabled={isPending}
                 >
                     <span className="icon-wrapper w-4 h-4"><FaRedo /></span> Reset
                 </button>
@@ -253,12 +238,12 @@ export const HeirsForm: React.FC<HeirsFormProps> = React.memo(({ heirs, dispatch
             <button
               onClick={() => {
                   audioService.playSuccess();
-                  onCalculate();
+                  handleCalculate();
               }}
-              disabled={loading}
+              disabled={isPending}
               className={`group relative flex items-center justify-center bg-blue-600 text-white font-bold py-3.5 px-10 rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900 transition-all transform hover:-translate-y-1 shadow-xl shadow-blue-500/30 disabled:bg-slate-300 disabled:cursor-not-allowed disabled:shadow-none disabled:transform-none`}
             >
-              {loading ? (
+              {isPending ? (
                   <>
                       <span className="animate-spin -ml-1 mr-3 icon-wrapper w-5 h-5 text-white"><FaSpinner /></span>
                       Memproses...
@@ -273,17 +258,17 @@ export const HeirsForm: React.FC<HeirsFormProps> = React.memo(({ heirs, dispatch
         </div>
       </div>
       
-      {/* 5. Mobile Fixed Action - Positioned higher to avoid collision with Bottom Nav */}
+      {/* 5. Mobile Fixed Action */}
       <div className="lg:hidden fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-0 right-0 z-navigation px-6 pointer-events-none flex justify-center pb-2">
           <button
             onClick={() => {
                 audioService.playSuccess();
-                onCalculate();
+                handleCalculate();
             }}
-            disabled={loading}
+            disabled={isPending}
             className="pointer-events-auto w-full max-w-sm flex items-center justify-center bg-blue-600/95 backdrop-blur-xl text-white font-bold py-4 px-6 rounded-2xl hover:bg-blue-700 active:scale-95 transition-all shadow-2xl shadow-blue-900/30 disabled:bg-slate-500 disabled:cursor-not-allowed border border-white/10 ring-1 ring-black/5"
           >
-            {loading ? (
+            {isPending ? (
                 <span className="animate-spin icon-wrapper w-5 h-5 text-white"><FaSpinner /></span>
             ) : (
                 <>

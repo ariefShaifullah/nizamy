@@ -15,6 +15,7 @@ const STORAGE_KEY_USERS = "nizamy_hafalan_users";
 const STORAGE_PREFIX_DATA = "nizamy_hafalan_data_";
 const OLD_STORAGE_KEY = "hafalanState"; // For migration
 const API_TIMEOUT_MS = 10000; // 10 seconds timeout
+const CACHE_PREFIX_VERSE = "nizamy_quran_verse_"; // Key prefix for IDB
 
 // --- TYPE DEFINITIONS FOR API ---
 interface QuranApiResponse {
@@ -41,8 +42,8 @@ interface QuranApiResponse {
   }[];
 }
 
-// Simple in-memory cache for Quran verses
-const versesCache: Record<string, { text: string; number: number }[]> = {};
+// L1 Cache: In-memory (Fastest, Volatile)
+const versesMemoryCache: Record<string, { text: string; number: number }[]> = {};
 
 // --- HELPER: FETCH WITH TIMEOUT ---
 const fetchWithTimeout = async (resource: string, options: RequestInit = {}) => {
@@ -633,14 +634,24 @@ export const fetchQuranVerses = async (
   end: number
 ): Promise<{ text: string; number: number }[]> => {
   try {
-    // 1. CHECK CACHE FIRST
     const cacheKey = `${surahNo}:${start}-${end}`;
-    if (versesCache[cacheKey]) {
-      return versesCache[cacheKey];
+    
+    // 1. L1 CHECK: Memory Cache (Fastest)
+    if (versesMemoryCache[cacheKey]) {
+      return versesMemoryCache[cacheKey];
     }
 
-    // 2. FETCH IF NOT CACHED WITH TIMEOUT
-    // Optimization: Use offset and limit to fetch only required verses
+    // 2. L2 CHECK: Persistent IndexedDB (Fast)
+    const dbKey = `${CACHE_PREFIX_VERSE}${cacheKey}`;
+    const cachedData = await dbGet<{ text: string; number: number }[]>(dbKey);
+    
+    if (cachedData) {
+        // Hydrate Memory Cache
+        versesMemoryCache[cacheKey] = cachedData;
+        return cachedData;
+    }
+
+    // 3. L3 FETCH: API Network (Slowest)
     const offset = start - 1; // API is 0-based index
     const limit = end - start + 1;
 
@@ -650,28 +661,27 @@ export const fetchQuranVerses = async (
     const data: QuranApiResponse = await response.json();
 
     if (data.code === 200 && data.data && data.data[0] && data.data[0].ayahs) {
-      // Data structure from offset/limit endpoint is still data[0].ayahs
       const ayahs = data.data[0].ayahs;
 
       const result = ayahs.map((a) => {
         let text = a.text;
-        // Fix: Remove Bismillah from Ayah 1 for all Surahs except Al-Fatihah (Surah 1)
-        // An-Naml (27) Ayah 30 also has Bismillah but should be KEPT.
+        // Remove Bismillah if needed (logic identical to original)
         if (surahNo !== 1 && a.numberInSurah === 1) {
-          // Use regex to remove Bismillah from the start of the string only
-          // Matches "Bismillahi... Ar-Rahim" followed by optional spaces
           text = text.replace(/^بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ\s*/, "");
         }
         return { text: text, number: a.numberInSurah };
       });
 
-      // 3. SAVE TO CACHE
-      versesCache[cacheKey] = result;
+      // 4. UPDATE CACHES (L1 & L2)
+      versesMemoryCache[cacheKey] = result;
+      // Fire and forget save to IDB
+      dbSet(dbKey, result).catch(e => console.error("Cache save failed", e));
+
       return result;
     }
     return [];
   } catch (error) {
     console.error("Failed to fetch Quran verses", error);
-    throw error; // Re-throw to let caller handle it
+    throw error;
   }
 };

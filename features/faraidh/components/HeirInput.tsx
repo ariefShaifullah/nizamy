@@ -1,17 +1,18 @@
 import React, { useCallback } from 'react';
 import type { Heir } from '../../../types.ts';
-import type { FaraidhAction } from '../logic/heirsReducer.ts';
 import { FaPlus, FaMinus } from 'react-icons/fa';
 import { audioService } from '../../../services/audio.service.ts';
+import { useFaraidh } from '../context/FaraidhContext.tsx';
 
 interface HeirInputProps {
   label: string;
-  count: number;
-  dispatch: React.Dispatch<FaraidhAction>;
   heirKey: Heir;
 }
 
-export const HeirInput: React.FC<HeirInputProps> = React.memo(({ label, count, dispatch, heirKey }) => {
+export const HeirInput: React.FC<HeirInputProps> = React.memo(({ label, heirKey }) => {
+  const { heirs, dispatch } = useFaraidh();
+  const count = heirs[heirKey];
+
   const onIncrement = useCallback(() => {
     audioService.playClick();
     dispatch({ type: 'INCREMENT', payload: heirKey });
@@ -38,7 +39,7 @@ export const HeirInput: React.FC<HeirInputProps> = React.memo(({ label, count, d
             group flex items-center justify-between py-3 px-3 rounded-xl transition-all duration-300
             ${isActive 
                 ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800' 
-                : 'bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 border border-transparent'
+                : 'bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-transparent'
             }
         `}
     >
@@ -78,7 +79,7 @@ export const HeirInput: React.FC<HeirInputProps> = React.memo(({ label, count, d
                 w-10 text-center font-mono text-base font-bold bg-transparent outline-none
                 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
                 placeholder-slate-300 dark:placeholder-slate-600
-                ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500'}
+                ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200'}
             `}
         />
         

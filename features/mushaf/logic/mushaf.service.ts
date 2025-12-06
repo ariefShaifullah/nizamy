@@ -1,9 +1,11 @@
 
 import type { QuranAyah, SurahInfo, QuranWord } from '../../../types.ts';
 import { SURAH_DATA } from '../../../constants.ts';
+import { dbGet, dbSet } from '../../../services/db.service.ts'; // Import DB Service
 
 const BASE_URL = 'https://api.quran.com/api/v4';
 const AUDIO_CDN = 'https://audio.qurancdn.com'; 
+const MUSHAF_CACHE_PREFIX = 'nizamy_mushaf_cache_'; // Key prefix for IDB
 
 // --- HELPER FUNCTIONS ---
 
@@ -119,17 +121,28 @@ interface FetchResponse {
 }
 
 /**
- * Fetch verses with pagination to prevent browser freeze.
- * Default perPage is 10 to keep the DOM light.
+ * Fetch verses with pagination + IDB Caching.
+ * Strategy: Cache First (IDB) -> Network -> Update Cache
  */
 export const fetchVersesWithWords = async (
     surahId: number, 
     page: number = 1, 
-    perPage: number = 10, // Small chunk size for performance
+    perPage: number = 10, 
     signal?: AbortSignal
 ): Promise<FetchResponse> => {
+    const cacheKey = `${MUSHAF_CACHE_PREFIX}${surahId}_${page}`;
+
     try {
-        // URL Construction
+        // 1. Try Load from IDB first
+        const cachedData = await dbGet<FetchResponse>(cacheKey);
+        
+        // Return cached data immediately if exists (Offline-First)
+        // We can add a background revalidation later if needed, but Quran text rarely changes.
+        if (cachedData) {
+            return cachedData;
+        }
+
+        // 2. If no cache, Fetch from Network
         const url = `${BASE_URL}/verses/by_chapter/${surahId}?language=id&words=true&word_fields=text_uthmani,audio_url,char_type_name,location&translations=33&fields=text_uthmani&per_page=${perPage}&page=${page}`;
         
         const response = await fetchWithRetry(url, { signal });
@@ -139,7 +152,6 @@ export const fetchVersesWithWords = async (
 
         // Process Data
         const processedVerses: QuranAyah[] = json.verses
-            // Robust filtering: Ensure item is object and has critical ID fields
             .filter((ayah) => ayah && typeof ayah === 'object' && ayah.id && ayah.verse_number) 
             .map((ayah) => {
                 let cleanedWords = Array.isArray(ayah.words) ? ayah.words : [];
@@ -147,12 +159,9 @@ export const fetchVersesWithWords = async (
                 // Handle Bismillah Logic (Only affects Verse 1)
                 if (ayah.verse_number === 1 && surahId !== 1 && surahId !== 9) {
                     const bismillahTokens = ['بِسْمِ', 'ٱللَّهِ', 'ٱلرَّحْمَٰنِ', 'ٱلرَّحِيمِ'];
-                    
-                    // Check if the first 4 words match the Bismillah pattern
                     let isBismillahHeader = true;
                     if (cleanedWords.length >= 4) {
                         for(let i=0; i<4; i++) {
-                            // Simple inclusion check for safety
                             if (!cleanedWords[i].text_uthmani.includes(bismillahTokens[i])) {
                                 isBismillahHeader = false;
                                 break;
@@ -161,14 +170,12 @@ export const fetchVersesWithWords = async (
                     } else {
                         isBismillahHeader = false;
                     }
-
-                    // Strip Bismillah only if detected safely
                     if (isBismillahHeader) { 
                         cleanedWords = cleanedWords.slice(4);
                     }
                 }
 
-                // Fix Audio URLs and Map to Internal Type
+                // Fix Audio URLs
                 const processedWords: QuranWord[] = cleanedWords.map((w) => {
                     let finalAudioUrl: string | null = null;
                     if (w.char_type_name === 'word') {
@@ -178,7 +185,6 @@ export const fetchVersesWithWords = async (
                             finalAudioUrl = getCleanAudioUrl(w.audio_url);
                         }
                     }
-                    // Normalize to QuranWord type
                     return {
                         id: w.id,
                         position: w.position,
@@ -195,7 +201,6 @@ export const fetchVersesWithWords = async (
                     };
                 });
 
-                // Clean translations here
                 const cleanedTranslations = ayah.translations?.map(t => ({
                     ...t,
                     text: cleanTranslationText(t.text)
@@ -211,10 +216,15 @@ export const fetchVersesWithWords = async (
                 };
             });
 
-        return {
+        const result: FetchResponse = {
             verses: processedVerses,
             meta: json.pagination || { current_page: page, next_page: null, total_pages: 1, total_count: processedVerses.length }
         };
+
+        // 3. Save to IDB Cache (Async)
+        dbSet(cacheKey, result).catch(e => console.error("Cache save failed", e));
+
+        return result;
 
     } catch (error) {
         if ((error as Error).name === 'AbortError') throw error;

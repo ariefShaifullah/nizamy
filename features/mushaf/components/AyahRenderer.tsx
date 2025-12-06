@@ -76,6 +76,8 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
         bookmarks.find(b => b.surahId === parseInt(ayah.verse_key.split(':')[0]) && b.ayahNumber === ayah.verse_number),
     [bookmarks, ayah.verse_key, ayah.verse_number]);
 
+    // OPTIMIZATION: Memoize words calculation purely on ayah ID. 
+    // This ensures heavy Tajwid logic doesn't re-run when playback state changes.
     const processedWords = useMemo(() => {
         return ayah.words.map((word, index) => {
             if (word.char_type_name !== 'word') return { word, rules: [] };
@@ -91,7 +93,7 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
             );
             return { word, rules };
         });
-    }, [ayah.words]);
+    }, [ayah.id, ayah.words]); // Depend on ID specifically to signal stability
 
     return (
         <div 

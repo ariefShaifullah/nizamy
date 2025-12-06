@@ -20,6 +20,7 @@ const SUGGESTIONS_DB: Record<string, string[]> = {
     '/mushaf': [ "Buka Surat Yasin", "Buka Ayat Kursi", "Buka Al Kahfi ayat 10" ],
     '/hafalan': [ "Buka Hafalan", "Cek progres", "Kembali ke beranda" ],
     '/hede': [ "Mulai diagnosa", "Cek halal haram", "Buka Klinik Finansial" ],
+    '/amal': [ "Buka Amal Yaumi", "Catat ibadah", "Cek progres amal" ],
     'default': [ "Hitung Zakat Emas", "Buka Surat Yasin", "Hitung Waris", "Buka Hafalan" ]
 };
 
@@ -42,6 +43,7 @@ export const VoiceAssistant: React.FC<VoiceAssistantOverlayProps> = ({
         if (path.includes('/mushaf')) return SUGGESTIONS_DB['/mushaf'];
         if (path.includes('/hafalan')) return SUGGESTIONS_DB['/hafalan'];
         if (path.includes('/hede')) return SUGGESTIONS_DB['/hede'];
+        if (path.includes('/amal')) return SUGGESTIONS_DB['/amal'];
         return SUGGESTIONS_DB['default'];
     }, [location.pathname]);
 

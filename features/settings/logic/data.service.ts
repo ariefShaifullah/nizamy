@@ -13,7 +13,7 @@ const IDB_KEYS = [
     'hede_history',
     'hede_last_result',
     'nizamy_hafalan_users'
-    // dynamic keys 'nizamy_hafalan_data_*' are handled by logic
+    // dynamic keys 'nizamy_hafalan_data_*' and 'nizamy_amal_log_*' are handled by logic
 ];
 
 // Keys that might be in LocalStorage (Preferences/Light state)
@@ -51,7 +51,7 @@ export const exportData = async (): Promise<void> => {
     const allDbKeys = await dbKeys();
     for (const key of allDbKeys) {
         if (typeof key === 'string') {
-            // Check if it's one of our known IDB keys OR a dynamic hafalan key
+            // Check if it's one of our known IDB keys OR a dynamic hafalan/amal key
             if (IDB_KEYS.includes(key) || key.startsWith('nizamy_')) {
                 const value = await dbGet(key);
                 if (value) {
@@ -92,8 +92,10 @@ export const importData = async (file: File): Promise<{ success: boolean; messag
                     const value = data[key];
                     
                     // Logic to determine destination (IDB vs LocalStorage)
+                    // CRITICAL: Add amal log prefix here so it restores to IDB properly
                     const isHeavyData = 
                         key.startsWith('nizamy_hafalan_') || 
+                        key.startsWith('nizamy_amal_log_') ||
                         IDB_KEYS.includes(key);
 
                     if (isHeavyData) {

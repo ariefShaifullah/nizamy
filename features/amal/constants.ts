@@ -38,14 +38,14 @@ export const AMAL_FAQ = [
     },
     {
         question: "Apa arti kotak-kotak di bagian konsistensi?",
-        answer: "Itu adalah Jejak Istiqomah Anda. Setiap kotak mewakili satu hari. Semakin hijau warnanya, semakin banyak amal ibadah yang Anda kerjakan pada hari tersebut. Jika warnanya abu-abu, berarti tidak ada catatan amal. Ini membantu Anda melihat seberapa rutin ibadah Anda sepanjang tahun."
+        answer: "Itu adalah Jejak Istiqomah Kamu. Setiap kotak mewakili satu hari. Semakin hijau warnanya, semakin banyak amal ibadah yang Kamu kerjakan pada hari tersebut. Jika warnanya abu-abu, berarti tidak ada catatan amal. Ini membantu Kamu melihat seberapa rutin ibadah Kamu sepanjang tahun."
     },
     {
         question: "Apakah data amal saya aman dan privat?",
-        answer: "Sangat aman. Sesuai prinsip NIZAMY, data amal yaumi Anda hanya disimpan secara lokal di perangkat ini (IndexedDB). Tidak ada data yang dikirim ke server manapun. Ini adalah catatan pribadi antara Anda dan Allah."
+        answer: "Sangat aman. Sesuai prinsip NIZAMY, data amal yaumi Kamu hanya disimpan secara lokal di perangkat ini (IndexedDB). Tidak ada data yang dikirim ke server manapun. Ini adalah catatan pribadi antara Kamu dan Allah."
     },
     {
         question: "Bolehkah saya mengisi untuk hari yang sudah lewat?",
-        answer: "Boleh. Anda bisa menggunakan navigasi tanggal (tombol panah di widget kiri) untuk mundur ke tanggal sebelumnya jika lupa mencatat. Namun, disarankan mencatat setiap malam sebelum tidur sebagai penutup hari."
+        answer: "Boleh. Kamu bisa menggunakan navigasi tanggal (tombol panah di widget kiri) untuk mundur ke tanggal sebelumnya jika lupa mencatat. Namun, disarankan mencatat setiap malam sebelum tidur sebagai penutup hari."
     }
 ];

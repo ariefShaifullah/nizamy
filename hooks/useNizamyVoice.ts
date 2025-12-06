@@ -190,17 +190,22 @@ export const useNizamyVoice = () => {
         targetUrl = '/hafalan'; 
         responseText = "Membuka Hafalan"; 
     }
-    // 4. HEDE / Financial
+    // 4. Amal Yaumi
+    else if (lowerText.match(/amal|yaumi|ibadah|harian|daily/)) { 
+        targetUrl = '/amal'; 
+        responseText = "Membuka Amal Yaumi"; 
+    }
+    // 5. HEDE / Financial
     else if (lowerText.match(/halal|audit|ekonomi|klinik|hede/)) { 
         targetUrl = '/hede'; 
         responseText = "Membuka Klinik Finansial"; 
     }
-    // 5. Beranda
+    // 6. Beranda
     else if (lowerText.match(/beranda|home|depan|menu utama/)) { 
         targetUrl = '/'; 
         responseText = "Ke Beranda"; 
     }
-    // 6. Mushaf (Fallback)
+    // 7. Mushaf (Fallback)
     else {
         // Try parsing surah
         let rawQuery = lowerText.replace(/\b(buka|baca|surat|surah|ayat|qs|ke|yang|namanya)\b/g, '').trim();

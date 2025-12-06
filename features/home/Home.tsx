@@ -16,7 +16,8 @@ import {
   FaTimes,
   FaBookmark,
   FaFire,
-  FaQuoteLeft
+  FaQuoteLeft,
+  FaCheckCircle
 } from "react-icons/fa";
 
 // --- UTILS ---
@@ -123,7 +124,7 @@ const BackgroundDecor = () => (
         
         {/* Noise Texture for that "Premium" feel */}
         <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]" 
-             style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}>
+             style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}>
         </div>
     </div>
 );
@@ -169,7 +170,7 @@ const QuranCard = ({ lastRead, onClick }: { lastRead: {name: string, ayah: numbe
     if (nameLength > 14) {
         titleClass = "text-base"; // For very long names (e.g. Al-Mutaffifin)
     } else if (nameLength > 8) {
-        titleClass = "text-l"; // For medium names (e.g. Al-Baqarah)
+        titleClass = "text-xl"; // For medium names (e.g. Al-Baqarah)
     }
 
     return (
@@ -289,6 +290,37 @@ const UtilityCard = ({ title, icon, color, onClick, desc }: { title: string, des
     );
 };
 
+// NEW AMAL CARD
+const AmalCard = ({ onClick }: { onClick: () => void }) => (
+    <button 
+        onClick={onClick}
+        className="group relative w-full h-40 md:h-48 rounded-4xl overflow-hidden text-left transition-all duration-300 hover:scale-[1.02] active:scale-95 shadow-sm hover:shadow-xl hover:shadow-emerald-500/20 col-span-2 md:col-span-1"
+    >
+        <div className="absolute inset-0 bg-linear-to-br from-emerald-500 to-green-600 dark:from-emerald-600 dark:to-green-900"></div>
+        
+        {/* Pattern */}
+        <div className="absolute -right-5 -bottom-5 text-white/10 transform -rotate-6 group-hover:rotate-0 transition-transform duration-700">
+            <FaCheckCircle size={120} />
+        </div>
+
+        <div className="relative z-raised p-5 flex flex-col justify-between h-full text-white">
+            <div className="flex justify-between items-start">
+                <div className="p-2 bg-white/20 backdrop-blur-md rounded-xl border border-white/20 text-lg">
+                    <FaCheckCircle />
+                </div>
+                <div className="bg-black/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
+                    <span className="text-[10px] font-bold uppercase tracking-wider flex items-center justify-center ">Tracker</span>
+                </div>
+            </div>
+
+            <div>
+                <h3 className="text-xl font-bold leading-tight mb-1">Amal Yaumi</h3>
+                <p className="text-xs text-emerald-100 opacity-90">Catat ibadah harianmu</p>
+            </div>
+        </div>
+    </button>
+);
+
 const InstallBanner: React.FC<{ onInstall: () => void; onClose: () => void }> = ({ onInstall, onClose }) => (
     <div className="fixed bottom-4 left-4 right-4 z-sticky animate-fade-in-up">
         <div className="bg-slate-900/95 dark:bg-white/95 backdrop-blur-xl text-white dark:text-slate-900 p-4 rounded-3xl shadow-2xl flex items-center justify-between gap-4 border border-white/10 ring-1 ring-black/5">
@@ -362,13 +394,20 @@ export const Home: React.FC = () => {
                   <PrayerWidget />
               </div>
 
-              {/* ROW 2: Primary Actions (2 Columns on Mobile) */}
-              <div className="grid grid-cols-2 md:grid-cols-2 gap-4 animate-fade-in-up" style={{ animationDelay: '150ms' }}>
-                  <QuranCard lastRead={lastRead} onClick={() => navigate('/mushaf')} />
-                  <HafalanCard stats={hafalanStats} onClick={() => navigate('/hafalan')} />
+              {/* ROW 2: Primary Actions (Grid Adjustments for 3 Main Cards) */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 animate-fade-in-up" style={{ animationDelay: '150ms' }}>
+                  <div className="col-span-2 md:col-span-1">
+                    <QuranCard lastRead={lastRead} onClick={() => navigate('/mushaf')} />
+                  </div>
+                  <div className="col-span-1 md:col-span-1">
+                    <HafalanCard stats={hafalanStats} onClick={() => navigate('/hafalan')} />
+                  </div>
+                  <div className="col-span-1 md:col-span-1">
+                    <AmalCard onClick={() => navigate('/amal')} />
+                  </div>
               </div>
 
-              {/* ROW 3: Utilities (3 Columns on Mobile & Desktop) */}
+              {/* ROW 3: Utilities */}
               <div className="grid grid-cols-3 gap-3 md:gap-4 animate-fade-in-up" style={{ animationDelay: '250ms' }}>
                   <UtilityCard 
                     title="Zakat"

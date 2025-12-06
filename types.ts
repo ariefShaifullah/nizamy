@@ -5,6 +5,7 @@ export * from './features/hafalan/types.ts';
 export * from './features/prayer/types.ts';
 export * from './features/mushaf/types.ts';
 export * from './features/hede/types.ts';
+export * from './features/amal/types.ts';
 
 // --- WEB SPEECH API TYPES DEFINITIONS ---
 // Mendefinisikan interface standar W3C untuk Speech Recognition

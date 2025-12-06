@@ -1,4 +1,3 @@
-
 import React, { useEffect, Suspense, useMemo } from 'react';
 import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { Home } from './features/home/Home.tsx';
@@ -16,6 +15,7 @@ const ZakatCalculator = React.lazy(() => import('./features/zakat/ZakatCalculato
 const HafalanTracker = React.lazy(() => import('./features/hafalan/HafalanTracker.tsx'));
 const MushafApp = React.lazy(() => import('./features/mushaf/MushafApp.tsx'));
 const HedeApp = React.lazy(() => import('./features/hede/HedeApp.tsx'));
+const AmalYaumiApp = React.lazy(() => import('./features/amal/AmalYaumiApp.tsx'));
 
 // Loading Fallback Component
 const PageLoader = () => (
@@ -50,8 +50,6 @@ const AppContent = () => {
 
   // Global Data Migration (Legacy LS -> IndexedDB)
   useEffect(() => {
-    // Jalankan migrasi di background saat app start agar data history lama 
-    // pindah ke storage baru dan terbaca oleh sistem Backup/Restore.
     migrateFromLocalStorage().catch(err => 
       console.error("Data migration failed:", err)
     );
@@ -79,13 +77,15 @@ const AppContent = () => {
       if (path.includes('/hafalan')) return `${base} selection:bg-indigo-200 selection:text-indigo-900`;
       if (path.includes('/mushaf')) return `${base} selection:bg-teal-200 selection:text-teal-900`;
       if (path.includes('/hede')) return `${base} selection:bg-purple-200 selection:text-purple-900`;
+      if (path.includes('/amal')) return `${base} selection:bg-emerald-200 selection:text-emerald-900`;
       
       return base;
   }, [location.pathname]);
 
+  // Reduced top padding from 8rem to 6rem for better vertical alignment
   const mainPaddingClass = location.pathname === '/' 
     ? 'flex-grow' 
-    : 'container mx-auto px-4 py-4 md:py-8 flex-grow pt-[calc(6rem+env(safe-area-inset-top))] md:pt-[calc(8rem+env(safe-area-inset-top))]';
+    : 'container mx-auto px-4 py-4 md:py-8 flex-grow pt-[calc(6rem+env(safe-area-inset-top))] md:pt-[calc(6rem+env(safe-area-inset-top))]';
 
   return (
     <div className={layoutClass}>
@@ -116,6 +116,7 @@ const AppContent = () => {
             <Route path="/hafalan" element={<HafalanTracker />} />
             <Route path="/mushaf" element={<MushafApp />} />
             <Route path="/hede" element={<HedeApp />} />
+            <Route path="/amal" element={<AmalYaumiApp />} />
             <Route path="*" element={<Home />} /> {/* Fallback */}
           </Routes>
         </Suspense>

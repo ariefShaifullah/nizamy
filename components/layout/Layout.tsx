@@ -7,7 +7,7 @@ import { GlobalSettings } from '../../features/settings/components/GlobalSetting
 import { LegalModal, type LegalType } from '../../features/settings/components/LegalModal.tsx';
 import { VoiceAssistant } from '../ui/VoiceAssistant.tsx'; // Import UI Overlay
 import { useNizamyVoice } from '../../hooks/useNizamyVoice.ts'; // Import Logic Hook
-import { FaSun, FaMoon, FaCog, FaArrowLeft, FaShieldAlt, FaFileContract, FaMicrophone } from 'react-icons/fa';
+import { FaBars, FaSun, FaMoon, FaCog, FaArrowLeft, FaShieldAlt, FaFileContract, FaMicrophone } from 'react-icons/fa';
 
 export const Header: React.FC = () => {
     // Consume simpler API from Context
@@ -39,6 +39,9 @@ export const Header: React.FC = () => {
     } else if (location.pathname.includes('/hede')) {
         titleColor = 'text-purple-600 dark:text-purple-400';
         subtitle = 'Klinik Finansial';
+    } else if (location.pathname.includes('/amal')) {
+        titleColor = 'text-emerald-600 dark:text-emerald-400';
+        subtitle = 'Amal Yaumi Tracker';
     }
 
     const logoBgClass = titleColor.replace(/text-/g, 'bg-');

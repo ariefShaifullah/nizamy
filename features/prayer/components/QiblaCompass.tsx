@@ -121,10 +121,13 @@ export const QiblaCompass: React.FC<QiblaCompassProps> = ({
     }
 
     return (
-        // -mx-4 md:-mx-6 applies negative margins to break out of parent padding
-        <div className="flex flex-col items-center justify-center py-20 w-auto -mx-4 md:-mx-6 relative overflow-visible">
+        // VIEWPORT BREAKOUT STRATEGY:
+        // relative left-1/2 -translate-x-1/2: Centers the div relative to the viewport/body
+        // w-screen: Forces full screen width, ignoring parent padding
+        // overflow-hidden: Ensures shadows clip exactly at screen edges
+        <div className="relative left-1/2 -translate-x-1/2 w-screen overflow-hidden py-24 flex flex-col items-center justify-center">
             
-            {/* Background Glow - Centered but allowed to bleed */}
+            {/* Background Glow */}
             <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[90vw] aspect-square rounded-full blur-[80px] transition-colors duration-1000 pointer-events-none -z-10 ${isAligned ? 'bg-emerald-500/20' : 'bg-indigo-500/10'}`}></div>
 
             {/* Permission Gate */}
@@ -151,7 +154,7 @@ export const QiblaCompass: React.FC<QiblaCompassProps> = ({
                     </div>
 
                     {/* COMPASS COMPONENT */}
-                    {/* Adjusted sizing to be responsive but leave room for shadow */}
+                    {/* Use vw units for responsive sizing that respects screen width */}
                     <div className="relative w-[85vw] max-w-[360px] aspect-square mx-auto">
                         
                         {/* 1. STATIC TARGET LINE (HP Heading) */}

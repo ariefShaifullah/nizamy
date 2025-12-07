@@ -81,6 +81,7 @@ export const generateReportLayout = (metadata: ReportMetadata, contentHtml: stri
 
 /**
  * CORE ENGINE: Generate PDF from a clean HTML string
+ * Supports Smart Pagination via `.pdf-page` class
  */
 export const generatePdfFromHtml = async (htmlContent: string, filename: string) => {
     let container: HTMLElement | null = null;
@@ -105,45 +106,70 @@ export const generatePdfFromHtml = async (htmlContent: string, filename: string)
         // Wait for rendering
         await new Promise(resolve => setTimeout(resolve, 100));
 
-        // 2. Capture
-        const canvas = await html2canvas(container, {
-            scale: 2, // Retina quality
-            backgroundColor: '#ffffff',
-            width: PRINT_WIDTH,
-            windowWidth: PRINT_WIDTH,
-            height: container.scrollHeight,
-            windowHeight: container.scrollHeight,
-            useCORS: true // Important for external images/fonts if any
-        });
+        // 2. CHECK FOR SMART PAGINATION (.pdf-page)
+        const pages = container.querySelectorAll('.pdf-page');
+        
+        if (pages.length > 0) {
+            // -- SMART MODE: RENDER PER PAGE --
+            const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
 
-        // 3. PDF Generation (Auto-Slicing)
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF({
-            orientation: 'p',
-            unit: 'mm',
-            format: 'a4'
-        });
+            for (let i = 0; i < pages.length; i++) {
+                if (i > 0) pdf.addPage();
+                
+                const pageEl = pages[i] as HTMLElement;
+                // Force white background on page element
+                pageEl.style.backgroundColor = '#ffffff';
+                
+                const canvas = await html2canvas(pageEl, {
+                    scale: 2,
+                    backgroundColor: '#ffffff',
+                    width: PRINT_WIDTH,
+                    windowWidth: PRINT_WIDTH,
+                    useCORS: true
+                });
 
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-        const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+                const imgData = canvas.toDataURL('image/png');
+                const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+                
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight);
+            }
+            pdf.save(filename);
 
-        let heightLeft = imgHeight;
-        let position = 0;
+        } else {
+            // -- CLASSIC MODE: SLICE CANVAS --
+            const canvas = await html2canvas(container, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                width: PRINT_WIDTH,
+                windowWidth: PRINT_WIDTH,
+                height: container.scrollHeight,
+                windowHeight: container.scrollHeight,
+                useCORS: true
+            });
 
-        // First Page
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-        heightLeft -= pdfHeight;
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
 
-        // Subsequent Pages
-        while (heightLeft > 0) {
-            position = heightLeft - imgHeight; 
-            pdf.addPage();
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+
+            let heightLeft = imgHeight;
+            let position = 0;
+
             pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
             heightLeft -= pdfHeight;
-        }
 
-        pdf.save(filename);
+            while (heightLeft > 0) {
+                position = heightLeft - imgHeight; 
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+                heightLeft -= pdfHeight;
+            }
+            pdf.save(filename);
+        }
 
     } catch (err) {
         console.error("PDF Gen Error:", err);

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { type VirtuosoHandle } from 'react-virtuoso';
 import { SURAH_DATA } from '../../constants.ts';
@@ -7,14 +8,14 @@ import { KamusSheet } from './components/KamusSheet.tsx';
 import { MushafSettingsModal } from './components/MushafSettingsModal.tsx';
 import { MushafHelpModal } from './components/MushafHelpModal.tsx';
 import { Modal } from '../../components/ui/Modal.tsx'; 
-import type { QuranAyah, KamusData, QuranWord } from '../../types.ts';
+import type { QuranAyah, KamusData, QuranWord, LastReadState, Bookmark, BookmarkCategory } from '../../types.ts';
 import { useToast } from '../../components/ui/Toast.tsx';
+import { useLocalStorage } from '../../hooks/useLocalStorage.ts';
 import { useMushafAudio } from './hooks/useMushafAudio.ts';
 import { useMushafData } from './hooks/useMushafData.ts';
-import { useMushafConfig } from './hooks/useMushafConfig.ts';
 import { useWakeLock } from '../../hooks/useWakeLock.ts';
 import { useRouter } from '../../hooks/useRouter.ts';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate directly for manual navigation
 import { FaArrowLeft, FaHashtag, FaQuestionCircle, FaCog, FaBookmark } from 'react-icons/fa';
 
 // Sub-components
@@ -27,31 +28,34 @@ const MushafApp: React.FC = () => {
     const { searchParams } = useRouter();
     const navigate = useNavigate();
     
-    // Extracted Configuration Logic
-    const { 
-        lastRead, setLastRead, bookmarks, fontSize, setFontSize, 
-        showTranslation, setShowTranslation, wordMode, setWordMode,
-        handleSetLastRead, updateBookmark, removeBookmarkById, findBookmark
-    } = useMushafConfig();
+    // Local Storage
+    const [lastRead, setLastRead] = useLocalStorage<LastReadState | null>("mushaf_lastRead", null);
+    const [bookmarks, setBookmarks] = useLocalStorage<Bookmark[]>("mushaf_bookmarks_v2", []);
+    const [fontSize, setFontSize] = useLocalStorage("mushaf_fontSize", 32);
+    const [showTranslation, setShowTranslation] = useLocalStorage("mushaf_showTranslation", true);
+    const [wordMode, setWordMode] = useLocalStorage("mushaf_wordMode", false);
 
-    // Audio Logic
+    // Audio & Data Hooks
     const nextAyahHandler = useRef<() => void>(() => {});
+    
     const { isPlaying, playingAyahId, playingWordId, progress, playAudio, stopAudio } = useMushafAudio({
         onEnded: () => {
             if (nextAyahHandler.current) nextAyahHandler.current();
         }
     });
 
-    // Navigation & Data
+    // Navigation & State
     const [selectedSurahId, setSelectedSurahId] = useState<number | null>(null);
-    const { verses, loading, error, hasMore, loadVerses, loadNextPage, loadUntilAyah, retry } = useMushafData(selectedSurahId);
     
-    // UI State
+    // Wake Lock Integration
     const { requestLock, releaseLock } = useWakeLock();
+
+    // Jumping State
     const [jumpAyahInput, setJumpAyahInput] = useState("");
     const [isJumping, setIsJumping] = useState(false);
     const [isJumpModalOpen, setIsJumpModalOpen] = useState(false); 
     const [pendingJumpAyah, setPendingJumpAyah] = useState<number | null>(null);
+
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isHelpOpen, setIsHelpOpen] = useState(false); 
     const [visibleRange, setVisibleRange] = useState({ startIndex: 0, endIndex: 0 });
@@ -59,6 +63,8 @@ const MushafApp: React.FC = () => {
 
     const virtuosoRef = useRef<VirtuosoHandle>(null);
     const jumpInputRef = useRef<HTMLInputElement>(null); 
+    
+    const { verses, loading, error, hasMore, loadVerses, loadNextPage, loadUntilAyah, retry } = useMushafData(selectedSurahId);
 
     // Tutorial Check
     useEffect(() => {
@@ -68,7 +74,7 @@ const MushafApp: React.FC = () => {
         }
     }, [selectedSurahId]);
 
-    // Handle Deep Linking (URL Query Params)
+    // --- DEEP LINK / QUERY PARAM HANDLING ---
     useEffect(() => {
         const surahParam = searchParams.get('surah');
         const ayahParam = searchParams.get('ayah');
@@ -76,18 +82,28 @@ const MushafApp: React.FC = () => {
         if (surahParam) {
             const surahId = parseInt(surahParam, 10);
             if (!isNaN(surahId) && surahId >= 1 && surahId <= 114) {
+                // If same surah, just jump to ayah if needed
                 if (surahId === selectedSurahId) {
                     if (ayahParam) {
                         const ayahId = parseInt(ayahParam, 10);
-                        if (!isNaN(ayahId) && verses.length > 0) {
-                            handleInternalJump(ayahId);
-                        } else {
-                            setPendingJumpAyah(ayahId);
+                        if (!isNaN(ayahId)) {
+                            // If surah already loaded and verses exist, trigger jump directly
+                            // Otherwise set pending (though this case is rare if id matches)
+                            if (verses.length > 0) {
+                                handleInternalJump(ayahId);
+                            } else {
+                                setPendingJumpAyah(ayahId);
+                            }
                         }
                     }
                 } else {
+                    // Different surah, full reload
+                    // Set pending jump FIRST before changing ID to ensure initReader sees it
                     if (ayahParam) {
-                        setPendingJumpAyah(parseInt(ayahParam, 10));
+                        const ayahId = parseInt(ayahParam, 10);
+                        if (!isNaN(ayahId)) {
+                            setPendingJumpAyah(ayahId);
+                        }
                     }
                     setSelectedSurahId(surahId);
                 }
@@ -95,15 +111,20 @@ const MushafApp: React.FC = () => {
         }
     }, [searchParams]);
 
-    // Internal Jump Logic
+    // Helper for internal jump (when surah is already active)
     const handleInternalJump = async (targetAyah: number) => {
         setIsJumping(true);
         showToast(`Melompat ke ayat ${targetAyah}...`, 'info');
         try {
             await loadUntilAyah(targetAyah);
+            // Small delay to ensure render updates before scrolling
             setTimeout(() => {
                 requestAnimationFrame(() => {
-                    virtuosoRef.current?.scrollToIndex({ index: targetAyah - 1, align: 'start', behavior: 'smooth' });
+                    virtuosoRef.current?.scrollToIndex({ 
+                        index: targetAyah - 1, 
+                        align: 'start', 
+                        behavior: 'smooth' 
+                    });
                 });
             }, 100);
         } catch (err) {
@@ -113,28 +134,37 @@ const MushafApp: React.FC = () => {
         }
     };
 
-    // Wake Lock
+    // Handle Wake Lock based on Reading State
     useEffect(() => {
         if (selectedSurahId) {
             requestLock();
         } else {
             releaseLock();
         }
+        // Cleanup on unmount
         return () => {
             releaseLock();
         };
     }, [selectedSurahId, requestLock, releaseLock]);
 
-    // Audio Handlers
+    const closeHelp = () => {
+        localStorage.setItem('nizamy_mushaf_tutorial_seen', 'true');
+        setIsHelpOpen(false);
+    };
+
+    // --- AUDIO LOGIC ---
     const playAyahById = useCallback((ayah: QuranAyah) => {
         const url = getAyahAudioUrl(selectedSurahId!, ayah.verse_number);
         playAudio(url, 'ayah', ayah.id);
+        
+        // Auto-scroll to active ayah with offset
         const index = verses.findIndex(v => v.id === ayah.id);
         if (index !== -1 && virtuosoRef.current) {
             virtuosoRef.current.scrollToIndex({ index, align: 'center', behavior: 'smooth' });
         }
     }, [selectedSurahId, verses, playAudio]);
 
+    // Next/Prev Logic
     const handleNextTrack = useCallback(() => {
         if (!playingAyahId || verses.length === 0) return;
         const currentIndex = verses.findIndex(v => v.id === playingAyahId);
@@ -143,6 +173,7 @@ const MushafApp: React.FC = () => {
         } else if (hasMore) {
             showToast("Memuat ayat berikutnya...", "info");
             loadNextPage();
+            // Listener in effect will handle playing next when loaded if we track state
         } else {
             showToast("Akhir surat.", "info");
             stopAudio();
@@ -160,10 +191,13 @@ const MushafApp: React.FC = () => {
     }, [playingAyahId, verses, playAyahById, showToast]);
 
     const togglePlayPause = useCallback(() => {
-        if (isPlaying) stopAudio();
-        else if (playingAyahId) {
-            const ayah = verses.find(v => v.id === playingAyahId);
-            if(ayah) playAyahById(ayah);
+        if (isPlaying) {
+            stopAudio();
+        } else {
+            if (playingAyahId) {
+                const ayah = verses.find(v => v.id === playingAyahId);
+                if(ayah) playAyahById(ayah);
+            }
         }
     }, [isPlaying, playingAyahId, stopAudio, verses, playAyahById]);
 
@@ -171,39 +205,104 @@ const MushafApp: React.FC = () => {
         nextAyahHandler.current = handleNextTrack;
     }, [handleNextTrack]);
 
-    // Auto-save Last Read
+    // --- LAST READ SAVER ---
+    // Auto-save on scroll stop
     useEffect(() => {
         if (!selectedSurahId || verses.length === 0 || loading) return;
+        
         const saveTimeout = setTimeout(() => {
             if (visibleRange.startIndex >= 0 && verses[visibleRange.startIndex]) {
                 const visibleAyahNumber = verses[visibleRange.startIndex].verse_number;
                 if (!lastRead || lastRead.surahId !== selectedSurahId || lastRead.ayahNumber !== visibleAyahNumber) {
-                    setLastRead({ surahId: selectedSurahId, ayahNumber: visibleAyahNumber, timestamp: Date.now() });
+                    setLastRead({
+                        surahId: selectedSurahId,
+                        ayahNumber: visibleAyahNumber,
+                        timestamp: Date.now()
+                    });
                 }
             }
-        }, 2000);
+        }, 2000); // Save 2 seconds after scroll stops
+        
         return () => clearTimeout(saveTimeout);
     }, [visibleRange.startIndex, selectedSurahId, verses, setLastRead, loading, lastRead]);
 
-    // Initialize Reader
+    // --- BOOKMARK LOGIC ---
+    const findBookmark = useCallback((surahId: number, ayahNumber: number): Bookmark | null => {
+        return bookmarks.find(b => b.surahId === surahId && b.ayahNumber === ayahNumber) || null;
+    }, [bookmarks]);
+
+    const updateBookmark = (ayah: QuranAyah, category: BookmarkCategory | null) => {
+        const surahId = selectedSurahId!;
+        const ayahNumber = ayah.verse_number;
+        const bookmarkId = `${surahId}:${ayahNumber}`;
+
+        if (category === null) {
+            // Delete bookmark
+            setBookmarks(prev => prev.filter(b => b.id !== bookmarkId));
+            showToast("Penanda dihapus", "info");
+        } else {
+            // Add or Update bookmark
+            const existingBookmark = findBookmark(surahId, ayahNumber);
+            if (existingBookmark) {
+                // Update category
+                setBookmarks(prev => prev.map(b => b.id === bookmarkId ? { ...b, category } : b));
+                showToast("Kategori penanda diubah", "success");
+            } else {
+                // Add new
+                const newBookmark: Bookmark = {
+                    id: bookmarkId,
+                    surahId,
+                    ayahNumber,
+                    timestamp: Date.now(),
+                    category
+                };
+                setBookmarks(prev => [...prev, newBookmark].sort((a,b) => a.surahId - b.surahId || a.ayahNumber - b.ayahNumber));
+                showToast("Penanda disimpan!", "success");
+            }
+        }
+        setKamusData(null); // Close sheet
+    };
+
+    const removeBookmarkById = (bookmarkId: string) => {
+        setBookmarks(prev => prev.filter(b => b.id !== bookmarkId));
+        showToast("Penanda dihapus", "info");
+    };
+
+    // --- JUMP/NAV LOGIC ---
+    const jumpTo = (surahId: number, ayahNumber: number) => {
+        setPendingJumpAyah(ayahNumber);
+        setSelectedSurahId(surahId);
+        // Force URL update to reflect jump
+        navigate(`/mushaf?surah=${surahId}&ayah=${ayahNumber}`, { replace: true });
+    };
+
+
+    // --- INIT VIEW & HANDLE JUMP ---
     useEffect(() => {
         if (selectedSurahId) {
             const initReader = async () => {
+                // IMPORTANT: Always load initial verses first to establish state
                 await loadVerses(1, true);
+                
                 if (pendingJumpAyah) {
+                    // If we have a pending jump (from Voice or URL), execute it immediately after initial load
                     await handleInternalJump(pendingJumpAyah);
-                    setPendingJumpAyah(null);
+                    setPendingJumpAyah(null); // Clear pending
                 } else {
+                    // Normal open (start from top)
                     setVisibleRange({ startIndex: 0, endIndex: 0 });
-                    requestAnimationFrame(() => virtuosoRef.current?.scrollToIndex({ index: 0, align: 'start' }));
+                    requestAnimationFrame(() => {
+                        virtuosoRef.current?.scrollToIndex({ index: 0, align: 'start' });
+                    });
                 }
+                
                 setJumpAyahInput(""); 
             };
+
             initReader();
         }
     }, [selectedSurahId]);
 
-    // Modal Focus
     useEffect(() => {
         if (isJumpModalOpen && jumpInputRef.current) {
             setTimeout(() => jumpInputRef.current?.focus(), 150);
@@ -213,24 +312,29 @@ const MushafApp: React.FC = () => {
     const handleJumpToAyah = async (e?: React.FormEvent) => {
         if(e) e.preventDefault();
         if (!jumpAyahInput || !selectedSurahId || isJumping) return;
+
         const targetAyah = parseInt(jumpAyahInput, 10);
         const surah = SURAH_DATA.find(s => s.number === selectedSurahId);
         
         if (surah && targetAyah > 0 && targetAyah <= surah.verses) {
             setIsJumpModalOpen(false);
             setJumpAyahInput("");
+            
+            // Navigate changes URL, which triggers the useEffect -> handleInternalJump logic automatically
             navigate(`/mushaf?surah=${selectedSurahId}&ayah=${targetAyah}`);
+            
         } else {
             showToast(`Nomor ayat tidak valid (1-${surah?.verses})`, "error");
         }
     };
 
     const currentSurah = useMemo(() => SURAH_DATA.find(s => s.number === selectedSurahId), [selectedSurahId]);
+    
     const progressPercent = useMemo(() => {
         if (!currentSurah) return 0;
         return Math.min(100, ((visibleRange.endIndex) / currentSurah.verses) * 100);
     }, [currentSurah, visibleRange]);
-    
+
     const currentVisibleAyahNumber = useMemo(() => {
         if (verses.length > 0 && verses[visibleRange.startIndex]) {
             return verses[visibleRange.startIndex].verse_number;
@@ -238,13 +342,35 @@ const MushafApp: React.FC = () => {
         return null;
     }, [visibleRange, verses]);
 
+    // Interaction Handlers
+    const handleTapAyah = useCallback((ayah: QuranAyah) => {
+        if (wordMode) return;
+        if (playingAyahId === ayah.id && isPlaying) {
+            stopAudio();
+        } else {
+            playAyahById(ayah);
+        }
+    }, [wordMode, playingAyahId, isPlaying, stopAudio, playAyahById]);
+
+    const handleTapWord = useCallback((word: QuranWord) => {
+        if (!wordMode || word.char_type_name !== 'word' || !word.audio_url) return;
+        playAudio(word.audio_url, 'word', word.id);
+    }, [wordMode, playAudio]);
+
     const handleLongPressAyah = useCallback((ayah: QuranAyah) => {
         audioService.playClick();
         if (!selectedSurahId) return;
+        
         setKamusData({
             type: 'ayah',
             data: ayah,
-            surahInfo: { id: selectedSurahId, name_complex: currentSurah?.name || '', name_arabic: '', verses_count: 0, revelation_place: '' },
+            surahInfo: {
+                id: selectedSurahId,
+                name_complex: currentSurah?.name || '',
+                name_arabic: '',
+                verses_count: 0,
+                revelation_place: ''
+            },
             reference: `QS ${selectedSurahId}:${ayah.verse_number}`,
             bookmark: findBookmark(selectedSurahId, ayah.verse_number)
         });
@@ -253,29 +379,38 @@ const MushafApp: React.FC = () => {
     const handleLongPressWord = useCallback((word: QuranWord, parentAyah: QuranAyah) => {
         audioService.playClick();
         if (word.char_type_name !== 'word') return;
+        
         let nextWordText = undefined;
         let isEndAyah = false;
+
         if (parentAyah) {
             const wordsList = parentAyah.words.filter(w => w.char_type_name !== 'end');
             const currentIndex = wordsList.findIndex(w => w.id === word.id);
+            
             if (currentIndex !== -1) {
-                if (currentIndex < wordsList.length - 1) nextWordText = wordsList[currentIndex + 1].text_uthmani;
-                if (currentIndex === wordsList.length - 1) isEndAyah = true;
+                if (currentIndex < wordsList.length - 1) {
+                    nextWordText = wordsList[currentIndex + 1].text_uthmani;
+                }
+                if (currentIndex === wordsList.length - 1) {
+                    isEndAyah = true;
+                }
             }
         }
         setKamusData({ type: 'word', data: word, nextWordText, isEndAyah, bookmark: null });
     }, []);
 
-    const handleTapAyah = useCallback((ayah: QuranAyah) => {
-        if (wordMode) return;
-        if (playingAyahId === ayah.id && isPlaying) stopAudio();
-        else playAyahById(ayah);
-    }, [wordMode, playingAyahId, isPlaying, stopAudio, playAyahById]);
+    const handleSetLastRead = (ayah: QuranAyah) => {
+        if (!selectedSurahId) return;
+        const newLastRead: LastReadState = {
+            surahId: selectedSurahId,
+            ayahNumber: ayah.verse_number,
+            timestamp: Date.now()
+        };
+        setLastRead(newLastRead);
+        setKamusData(null); // Close sheet
+        showToast("✨ Posisi terakhir disimpan", "success");
+    };
 
-    const handleTapWord = useCallback((word: QuranWord) => {
-        if (!wordMode || word.char_type_name !== 'word' || !word.audio_url) return;
-        playAudio(word.audio_url, 'word', word.id);
-    }, [wordMode, playAudio]);
 
     if (!selectedSurahId || !currentSurah) {
         return (
@@ -283,8 +418,10 @@ const MushafApp: React.FC = () => {
                 lastRead={lastRead}
                 bookmarks={bookmarks}
                 onSelectSurah={(id) => navigate(`/mushaf?surah=${id}`)}
-                onJumpToLastRead={() => { if(lastRead) navigate(`/mushaf?surah=${lastRead.surahId}&ayah=${lastRead.ayahNumber}`); }}
-                onJumpToBookmark={(surahId, ayahNumber) => navigate(`/mushaf?surah=${surahId}&ayah=${ayahNumber}`)}
+                onJumpToLastRead={() => {
+                    if(lastRead) jumpTo(lastRead.surahId, lastRead.ayahNumber);
+                }}
+                onJumpToBookmark={(surahId, ayahNumber) => jumpTo(surahId, ayahNumber)}
                 onRemoveBookmark={removeBookmarkById}
             />
         );
@@ -304,26 +441,66 @@ const MushafApp: React.FC = () => {
             )}
 
             <div className="fixed left-0 top-[calc(4rem+env(safe-area-inset-top))] bottom-0 w-1 z-dropdown bg-slate-100 dark:bg-slate-800/50 pointer-events-none">
-                <div className="relative w-full bg-teal-500 transition-all duration-500 ease-out rounded-b-full opacity-80" style={{ height: `${progressPercent}%` }}></div>
+                <div 
+                    className="relative w-full bg-teal-500 transition-all duration-500 ease-out rounded-b-full opacity-80"
+                    style={{ height: `${progressPercent}%` }}
+                ></div>
             </div>
 
             <div className="sticky top-0 z-tooltip bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800 pt-[env(safe-area-inset-top)]">
                 <div className="flex justify-between items-center px-4 py-3 max-w-3xl mx-auto w-full">
-                    <button onClick={() => { stopAudio(); setSelectedSurahId(null); setPendingJumpAyah(null); navigate('/mushaf'); }} className="flex items-center gap-3 group p-1 pr-4 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all">
-                        <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-white dark:group-hover:bg-slate-700 group-hover:shadow-sm transition-all icon-wrapper w-8 h-8 flex items-center justify-center"><FaArrowLeft /></div>
+                    <button 
+                        onClick={() => { stopAudio(); setSelectedSurahId(null); setPendingJumpAyah(null); navigate('/mushaf'); }}
+                        className="flex items-center gap-3 group p-1 pr-4 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all"
+                    >
+                        <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-white dark:group-hover:bg-slate-700 group-hover:shadow-sm transition-all icon-wrapper w-8 h-8 flex items-center justify-center">
+                            <FaArrowLeft />
+                        </div>
                         <div>
                             <h1 className="font-bold text-base text-slate-800 dark:text-white leading-none">{currentSurah.name}</h1>
-                            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-1 uppercase tracking-wide">{currentVisibleAyahNumber ? `Ayat ${currentVisibleAyahNumber}` : 'Memuat...'}</p>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-1 uppercase tracking-wide">
+                                {currentVisibleAyahNumber ? `Ayat ${currentVisibleAyahNumber}` : 'Memuat...'}
+                            </p>
                         </div>
                     </button>
 
                     <div className="flex items-center gap-1">
                         {lastRead && lastRead.surahId === selectedSurahId && (
-                           <button onClick={() => { setJumpAyahInput(String(lastRead.ayahNumber)); setTimeout(() => handleJumpToAyah(), 0); }} className="p-2.5 rounded-xl text-teal-500 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 transition-colors" title={`Lompat ke Ayat ${lastRead.ayahNumber}`}><div className="icon-wrapper w-4 h-4"><FaBookmark /></div></button>
+                           <button 
+                                onClick={() => {
+                                    setJumpAyahInput(String(lastRead.ayahNumber));
+                                    setTimeout(() => handleJumpToAyah(), 0);
+                                }}
+                                className="p-2.5 rounded-xl text-teal-500 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 transition-colors"
+                                aria-label="Lompat ke Penanda"
+                                title={`Lompat ke Ayat ${lastRead.ayahNumber}`}
+                           >
+                               <div className="icon-wrapper w-4 h-4"><FaBookmark /></div>
+                           </button>
                         )}
-                        <button onClick={() => setIsJumpModalOpen(true)} className="p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Loncat ke Ayat"><div className="icon-wrapper w-4 h-4"><FaHashtag /></div></button>
-                        <button onClick={() => setIsHelpOpen(true)} className="p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" aria-label="Bantuan"><div className="icon-wrapper w-4 h-4"><FaQuestionCircle /></div></button>
-                        <button onClick={() => setIsSettingsOpen(true)} className="p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><div className="icon-wrapper w-4 h-4"><FaCog /></div></button>
+                        <button 
+                            onClick={() => setIsJumpModalOpen(true)}
+                            className="p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                            aria-label="Loncat ke Ayat"
+                            title="Loncat ke Ayat"
+                        >
+                            <div className="icon-wrapper w-4 h-4"><FaHashtag /></div>
+                        </button>
+
+                        <button
+                            onClick={() => setIsHelpOpen(true)}
+                            className="p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                            aria-label="Bantuan"
+                        >
+                            <div className="icon-wrapper w-4 h-4"><FaQuestionCircle /></div>
+                        </button>
+
+                        <button
+                            onClick={() => setIsSettingsOpen(true)}
+                            className="p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        >
+                            <div className="icon-wrapper w-4 h-4"><FaCog /></div>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -366,20 +543,56 @@ const MushafApp: React.FC = () => {
                 />
             )}
 
-            {isSettingsOpen && <MushafSettingsModal fontSize={fontSize} setFontSize={setFontSize} showTranslation={showTranslation} setShowTranslation={setShowTranslation} wordMode={wordMode} setWordMode={setWordMode} onClose={() => setIsSettingsOpen(false)} />}
-            {isHelpOpen && <MushafHelpModal onClose={() => { localStorage.setItem('nizamy_mushaf_tutorial_seen', 'true'); setIsHelpOpen(false); }} />}
+            {isSettingsOpen && (
+                <MushafSettingsModal 
+                    fontSize={fontSize}
+                    setFontSize={setFontSize}
+                    showTranslation={showTranslation}
+                    setShowTranslation={setShowTranslation}
+                    wordMode={wordMode}
+                    setWordMode={setWordMode}
+                    onClose={() => setIsSettingsOpen(false)}
+                />
+            )}
+
+            {isHelpOpen && (
+                <MushafHelpModal onClose={closeHelp} />
+            )}
 
             {isJumpModalOpen && (
                 <Modal isOpen={true} onClose={() => setIsJumpModalOpen(false)} title="Loncat ke Ayat" maxWidth="max-w-sm">
                     <div className="p-6">
-                        <form onSubmit={handleJumpToAyah} className="space-y-4">
+                        <form onSubmit={(e) => { handleJumpToAyah(e); }} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Masukkan Nomor Ayat (1-{currentSurah.verses})</label>
-                                <input ref={jumpInputRef} type="number" inputMode="numeric" placeholder="Contoh: 25" className="w-full p-4 text-xl font-bold text-center bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-2xl focus:ring-4 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all" value={jumpAyahInput} onChange={(e) => setJumpAyahInput(e.target.value)} disabled={isJumping} />
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                                    Masukkan Nomor Ayat (1-{currentSurah.verses})
+                                </label>
+                                <input 
+                                    ref={jumpInputRef}
+                                    type="number" 
+                                    inputMode="numeric"
+                                    placeholder="Contoh: 25" 
+                                    className="w-full p-4 text-xl font-bold text-center bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-2xl focus:ring-4 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all"
+                                    value={jumpAyahInput}
+                                    onChange={(e) => setJumpAyahInput(e.target.value)}
+                                    disabled={isJumping}
+                                />
                             </div>
                             <div className="flex gap-3">
-                                <button type="button" onClick={() => setIsJumpModalOpen(false)} className="flex-1 py-3 text-slate-600 dark:text-slate-400 font-bold rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Batal</button>
-                                <button type="submit" disabled={isJumping || !jumpAyahInput} className="flex-1 py-3 bg-teal-600 text-white font-bold rounded-xl hover:bg-teal-700 transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed">{isJumping ? 'Memuat...' : 'Pergi'}</button>
+                                <button 
+                                    type="button"
+                                    onClick={() => setIsJumpModalOpen(false)}
+                                    className="flex-1 py-3 text-slate-600 dark:text-slate-400 font-bold rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                >
+                                    Batal
+                                </button>
+                                <button 
+                                    type="submit"
+                                    disabled={isJumping || !jumpAyahInput}
+                                    className="flex-1 py-3 bg-teal-600 text-white font-bold rounded-xl hover:bg-teal-700 transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {isJumping ? 'Memuat...' : 'Pergi'}
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -390,8 +603,8 @@ const MushafApp: React.FC = () => {
                 data={kamusData} 
                 onClose={() => setKamusData(null)} 
                 onPlayAudio={(url) => playAudio(url, kamusData?.type === 'ayah' ? 'ayah' : 'word', kamusData?.data.id || 0)}
-                onSetLastRead={(ayah) => { handleSetLastRead(ayah, selectedSurahId); setKamusData(null); }}
-                onUpdateBookmark={(ayah, category) => { updateBookmark(ayah, selectedSurahId, category); setKamusData(null); }}
+                onSetLastRead={handleSetLastRead}
+                onUpdateBookmark={updateBookmark}
             />
         </div>
     );

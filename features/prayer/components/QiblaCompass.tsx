@@ -1,15 +1,36 @@
 
 import React, { useState, useEffect } from 'react';
 import { calculateQiblaDirection } from '../logic/prayer.service.ts';
-import { FaMobileAlt, FaExclamationTriangle } from 'react-icons/fa';
+import { FaMobileAlt, FaExclamationTriangle, FaCompass } from 'react-icons/fa';
 import { useToast } from '../../../components/ui/Toast.tsx';
 
 interface QiblaCompassProps {
-    latitude: number;
-    longitude: number;
+    latitude: number | null;
+    longitude: number | null;
     hasPermission: boolean;
     onPermissionGranted: () => void;
 }
+
+// Reusable Skeleton Component for Qibla Loading States
+const CompassSkeleton: React.FC<{ text: string }> = ({ text }) => (
+    <div className="relative w-full py-12 flex flex-col items-center justify-center animate-fade-in">
+        <div className="relative w-64 h-64 flex items-center justify-center">
+            {/* Background Pulse */}
+            <div className="absolute inset-0 bg-slate-200/50 dark:bg-slate-700/30 rounded-full animate-ping opacity-20"></div>
+            
+            {/* Spinning Compass Outline */}
+            <div className="absolute inset-0 rounded-full border-4 border-slate-200 dark:border-slate-700 border-dashed animate-[spin_10s_linear_infinite]"></div>
+            
+            {/* Centered Content (Static) */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 z-10">
+                <span className="text-3xl animate-bounce mb-3 opacity-50">🧭</span>
+                <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest animate-pulse leading-relaxed">
+                    {text}
+                </p>
+            </div>
+        </div>
+    </div>
+);
 
 export const QiblaCompass: React.FC<QiblaCompassProps> = ({ 
     latitude, 
@@ -27,16 +48,29 @@ export const QiblaCompass: React.FC<QiblaCompassProps> = ({
     
     const [isSupported, setIsSupported] = useState(true);
     const [needsCalibration, setNeedsCalibration] = useState(false);
+    
+    // UX: Initializing state to prevent flicker
+    const [isInitializing, setIsInitializing] = useState(true);
 
+    // Initial Setup Effect
     useEffect(() => {
+        if (latitude === null || longitude === null) return;
+
+        // 1. Calculate Qibla
         const bearing = calculateQiblaDirection(latitude, longitude);
         setQiblaBearing(bearing);
-    }, [latitude, longitude]);
 
-    useEffect(() => {
+        // 2. Check Desktop vs Mobile
         const isDesktop = !/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         if (isDesktop) setIsSupported(false);
-    }, []);
+
+        // 3. Graceful UX Delay
+        const timer = setTimeout(() => {
+            setIsInitializing(false);
+        }, 800);
+
+        return () => clearTimeout(timer);
+    }, [latitude, longitude]);
 
     // --- MAIN SENSOR LOGIC ---
     const handleOrientation = (event: any) => {
@@ -109,12 +143,22 @@ export const QiblaCompass: React.FC<QiblaCompassProps> = ({
 
     const isAligned = angleDiff < 5; // Threshold 5 degrees
 
-    // --- RENDER HELPERS ---
+    // --- RENDER STATES ---
+
+    // 1. WAITING FOR GPS
+    if (latitude === null || longitude === null) {
+        return <CompassSkeleton text="Mencari Lokasi GPS..." />;
+    }
+
+    // 2. INITIALIZING SENSOR
+    if (isInitializing) {
+        return <CompassSkeleton text="Menyiapkan Sensor..." />;
+    }
     
-    // Fallback UI for Desktop
+    // 3. FALLBACK DESKTOP
     if (!isSupported) {
         return (
-            <div className="flex flex-col items-center justify-center p-8 text-center bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-slate-200 dark:border-slate-700 min-h-[300px]">
+            <div className="flex flex-col items-center justify-center p-8 text-center bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-slate-200 dark:border-slate-700 min-h-[300px] animate-fade-in">
                 <div className="w-20 h-20 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center text-4xl text-slate-400 mb-4">
                     <FaMobileAlt />
                 </div>
@@ -129,20 +173,18 @@ export const QiblaCompass: React.FC<QiblaCompassProps> = ({
         );
     }
 
+    // 4. MAIN COMPASS UI
     return (
-        // BREAKOUT CONTAINER:
-        // w-[calc(100%+2rem)] & -ml-4 compensates for parent px-4 padding
-        // overflow-hidden cuts off the shadow exactly at screen edge (no scroll)
-        // py-24 ensures vertical shadow isn't cut off
-        <div className="relative w-[calc(100%+2rem)] -ml-4 md:w-full md:ml-0 md:static overflow-hidden py-24 md:py-12 flex flex-col items-center justify-center">
+        // BREAKOUT CONTAINER: Reduced padding, handle vertical flow
+        <div className="relative w-[calc(100%+2rem)] -ml-4 md:w-full md:ml-0 md:static overflow-hidden py-8 flex flex-col items-center justify-center animate-fade-in">
             
             {/* Background Glow */}
             <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[80vw] aspect-square rounded-full blur-[60px] transition-colors duration-1000 pointer-events-none -z-10 ${isAligned ? 'bg-emerald-500/20' : 'bg-indigo-500/10'}`}></div>
 
             {/* Permission Gate */}
             {!hasPermission ? (
-                <div className="text-center z-card p-8 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-slate-200 dark:border-slate-700 w-full max-w-sm mx-4">
-                    <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center text-3xl shadow-sm mx-auto mb-4">🧭</div>
+                <div className="text-center z-card p-8 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-slate-200 dark:border-slate-700 w-full max-w-sm mx-4 animate-fade-in-up">
+                    <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center text-3xl shadow-sm mx-auto mb-4 text-indigo-500"><FaCompass /></div>
                     <h3 className="font-bold text-slate-800 dark:text-white mb-2">Aktifkan Kompas</h3>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
                         Izinkan aplikasi mengakses sensor gerak HP untuk menentukan arah Kiblat secara akurat.
@@ -155,21 +197,16 @@ export const QiblaCompass: React.FC<QiblaCompassProps> = ({
                     </button>
                 </div>
             ) : (
-                <div className="relative z-card flex flex-col items-center w-full">
+                <div className="relative z-card flex flex-col items-center w-full animate-fade-in">
                     
-                    {/* Status Bar */}
-                    <div className={`mb-24 px-5 py-2 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-all duration-500 ${isAligned ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 scale-105' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}>
-                        {isAligned ? <span>Tepat Arah Kiblat</span> : <span>Putar HP Anda</span>}
-                    </div>
-
                     {/* COMPASS COMPONENT */}
-                    {/* Width 85vw ensures it fills screen but leaves tiny breathing room, Aspect Square keeps it round */}
-                    <div className="relative w-[85vw] max-w-[360px] aspect-square mx-auto">
+                    {/* Added mt-12 to push it down, giving space for the negative margin Target Line */}
+                    <div className="relative w-[85vw] max-w-[360px] aspect-square mx-auto mt-12">
                         
                         {/* 1. STATIC TARGET LINE (HP Heading) */}
                         <div className="absolute top-0 left-1/2 -translate-x-1/2 -mt-16 z-popover flex flex-col items-center">
                             <div className="w-1.5 h-4 bg-red-500 rounded-full shadow-sm"></div>
-                            <div className="text-red-500 text-[10px] font-bold mt-1 uppercase tracking-wider bg-white/80 dark:bg-slate-900/80 px-2 py-0.5 rounded-full backdrop-blur-sm shadow-sm">Depan HP</div>
+                            <div className="text-red-500 text-[10px] font-bold mt-1 uppercase tracking-wider bg-white/80 dark:bg-slate-900/80 px-2 py-0.5 rounded-full backdrop-blur-sm shadow-sm whitespace-nowrap">Depan HP</div>
                         </div>
 
                         {/* 2. ROTATING DIAL (The Compass Plate) */}
@@ -225,7 +262,7 @@ export const QiblaCompass: React.FC<QiblaCompassProps> = ({
                                 className="absolute top-0 left-0 w-full h-full pointer-events-none"
                                 style={{ transform: `rotate(${qiblaBearing}deg)` }}
                             >
-                                <div className="w-2 h-1/2 bg-linear-to-t from-emerald-500 to-emerald-400 mx-auto rounded-t-full opacity-90 relative shadow-[0_0_15px_rgba(16,185,129,0.5)]">
+                                <div className="w-2 h-1/2 bg-gradient-to-t from-emerald-500 to-emerald-400 mx-auto rounded-t-full opacity-90 relative shadow-[0_0_15px_rgba(16,185,129,0.5)]">
                                     {/* Counter-Rotated Icon */}
                                     <div 
                                         className="absolute -top-4 left-1/2 -translate-x-1/2 w-12 h-12 bg-white dark:bg-slate-900 rounded-full border-[3px] border-emerald-500 flex items-center justify-center shadow-lg z-dropdown"
@@ -246,8 +283,13 @@ export const QiblaCompass: React.FC<QiblaCompassProps> = ({
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-slate-800 dark:bg-white rounded-full z-sticky border-2 border-white dark:border-slate-900 shadow-sm"></div>
                     </div>
 
+                    {/* Status Bar (Moved to Bottom) */}
+                    <div className={`mt-10 px-6 py-3 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-all duration-500 ${isAligned ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 scale-105' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}>
+                        {isAligned ? <span>Tepat Arah Kiblat</span> : <span>Putar HP Anda</span>}
+                    </div>
+
                     {/* Numeric Info */}
-                    <div className="mt-12 text-center">
+                    <div className="mt-6 text-center">
                         <div className="inline-flex items-center gap-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-700">
                             <div>
                                 <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Arah Anda</p>

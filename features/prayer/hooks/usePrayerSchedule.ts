@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { 
     getCoordinates, 
@@ -20,6 +21,11 @@ interface UsePrayerScheduleResult<T> {
     loading: boolean;
     error: string | null;
     refresh: () => void;
+    // Navigation controls
+    currentDate: Date;
+    nextMonth: () => void;
+    prevMonth: () => void;
+    resetToToday: () => void;
 }
 
 export const usePrayerSchedule = <T extends PrayerData | PrayerData[]>(
@@ -32,22 +38,51 @@ export const usePrayerSchedule = <T extends PrayerData | PrayerData[]>(
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
+    
+    // Navigation State
+    const [currentDate, setCurrentDate] = useState(new Date());
 
     const refresh = useCallback(() => {
         setRefreshTrigger(prev => prev + 1);
+    }, []);
+
+    const nextMonth = useCallback(() => {
+        setCurrentDate(prev => {
+            const next = new Date(prev);
+            next.setMonth(prev.getMonth() + 1);
+            return next;
+        });
+    }, []);
+
+    const prevMonth = useCallback(() => {
+        setCurrentDate(prev => {
+            const next = new Date(prev);
+            next.setMonth(prev.getMonth() - 1);
+            return next;
+        });
+    }, []);
+
+    const resetToToday = useCallback(() => {
+        setCurrentDate(new Date());
     }, []);
 
     useEffect(() => {
         let isMounted = true;
 
         const fetchData = async () => {
-            // 1. OPTIMISTIC LOADING (CACHE FIRST STRATEGY)
-            // Ini memastikan UI tampil instan tanpa menunggu GPS
+            const today = new Date(); // Actual today
             
-            const today = new Date();
+            // Check if we are viewing the current actual month/day
+            const isViewingCurrentPeriod = 
+                currentDate.getMonth() === today.getMonth() && 
+                currentDate.getFullYear() === today.getFullYear();
+
             let hasCache = false;
             
-            if (mode === 'daily') {
+            // 1. OPTIMISTIC LOADING (CACHE FIRST STRATEGY)
+            // Only use cache if viewing current period (for daily) or if monthly cache exists
+            
+            if (mode === 'daily' && isViewingCurrentPeriod) {
                 const cached = getCachedPrayerData();
                 if (cached) {
                     if (isMounted) {
@@ -58,8 +93,8 @@ export const usePrayerSchedule = <T extends PrayerData | PrayerData[]>(
                     }
                 }
             } else if (mode === 'monthly') {
-                // Check Monthly Cache
-                const cachedCalendar = getCalendarCache(today.getMonth() + 1, today.getFullYear());
+                // Check Monthly Cache for the SELECTED month
+                const cachedCalendar = getCalendarCache(currentDate.getMonth() + 1, currentDate.getFullYear());
                 if (cachedCalendar && cachedCalendar.length > 0) {
                     if (isMounted) {
                         setData(cachedCalendar as T);
@@ -67,47 +102,58 @@ export const usePrayerSchedule = <T extends PrayerData | PrayerData[]>(
                         hasCache = true;
                         
                         // Try to get cached city name from daily cache to avoid "Memuat lokasi..."
-                        const dailyCache = getCachedPrayerData();
-                        if (dailyCache) setLocationName(dailyCache.city);
+                        // if we don't have it yet
+                        if (locationName === "Memuat lokasi..." || locationName === "Gagal memuat") {
+                             const dailyCache = getCachedPrayerData();
+                             if (dailyCache) setLocationName(dailyCache.city);
+                        }
                     }
                 }
             }
 
-            // Jika cache tidak ditemukan, set loading true (karena kita butuh GPS)
+            // Jika cache tidak ditemukan, set loading true (karena kita butuh GPS/Network)
             if (!hasCache && isMounted) {
                 setLoading(true);
             }
             
             setError(null);
 
-            // 2. NETWORK REFRESH (Background or Foreground)
+            // 2. NETWORK REFRESH
             try {
-                // Get Coordinates (Might take time)
-                let lat, lng;
-                try {
-                    const pos = await getCoordinates();
-                    lat = pos.latitude;
-                    lng = pos.longitude;
-                } catch (gpsError) {
-                    // Fallback to Jakarta if GPS fails
-                    console.warn("GPS failed, using fallback (Jakarta)", gpsError);
-                    if (!hasCache) showToast("GPS tidak aktif. Menggunakan lokasi Jakarta.", "info");
-                    lat = -6.1702;
-                    lng = 106.8314;
+                // Get Coordinates
+                // Use cached coords if available to save battery/time on month switch
+                let lat = coords?.lat;
+                let lng = coords?.lng;
+
+                if (!lat || !lng) {
+                    try {
+                        const pos = await getCoordinates();
+                        lat = pos.latitude;
+                        lng = pos.longitude;
+                    } catch (gpsError) {
+                        console.warn("GPS failed, using fallback (Jakarta)", gpsError);
+                        if (!hasCache && isViewingCurrentPeriod) showToast("GPS tidak aktif. Menggunakan lokasi Jakarta.", "info");
+                        lat = -6.1702;
+                        lng = 106.8314;
+                    }
                 }
 
                 if (!isMounted) return;
                 setCoords({ lat, lng });
 
                 // 3. Parallel Fetch (City Name & Data)
-                const cityPromise = fetchCityName(lat, lng);
+                // Only fetch city if we don't have a good one yet
+                const fetchCity = locationName === "Memuat lokasi..." || locationName === "Gagal memuat";
+                const cityPromise = fetchCity ? fetchCityName(lat, lng) : Promise.resolve(locationName);
                 
                 let dataPromise;
                 
                 if (mode === 'daily') {
+                    // Daily always fetches "today" relative to real time, 
+                    // but if we expanded this to support "selected date daily view", we'd use currentDate
                     dataPromise = fetchPrayerTimes(lat, lng);
                 } else {
-                    dataPromise = fetchPrayerCalendar(lat, lng, today.getMonth() + 1, today.getFullYear());
+                    dataPromise = fetchPrayerCalendar(lat, lng, currentDate.getMonth() + 1, currentDate.getFullYear());
                 }
 
                 const [city, apiData] = await Promise.all([cityPromise, dataPromise]);
@@ -123,17 +169,18 @@ export const usePrayerSchedule = <T extends PrayerData | PrayerData[]>(
                     if (mode === 'daily') {
                         savePrayerCache(apiData as PrayerData, city);
                     } else if (mode === 'monthly' && Array.isArray(apiData)) {
-                        // If fetching monthly, extract TODAY's data and update daily cache
-                        // This ensures Widget is updated when App is opened
-                        const todayStr = today.toISOString().split('T')[0];
-                        const todayData = (apiData as PrayerData[]).find(d => {
-                            const dDate = `${d.date.gregorian.year}-${d.date.gregorian.month.number.toString().padStart(2,'0')}-${d.date.gregorian.day}`;
-                            return dDate === todayStr;
-                        });
+                        // If fetching monthly AND it matches TODAY's month, update daily cache for widget
+                        if (isViewingCurrentPeriod) {
+                            const todayStr = today.toISOString().split('T')[0];
+                            const todayData = (apiData as PrayerData[]).find(d => {
+                                const dDate = `${d.date.gregorian.year}-${d.date.gregorian.month.number.toString().padStart(2,'0')}-${d.date.gregorian.day}`;
+                                return dDate === todayStr;
+                            });
 
-                        if (todayData) {
-                            savePrayerCache(todayData, city);
-                            window.dispatchEvent(new CustomEvent('nizamy-refresh-prayer'));
+                            if (todayData) {
+                                savePrayerCache(todayData, city);
+                                window.dispatchEvent(new CustomEvent('nizamy-refresh-prayer'));
+                            }
                         }
                     }
                 } else {
@@ -156,7 +203,18 @@ export const usePrayerSchedule = <T extends PrayerData | PrayerData[]>(
         fetchData();
 
         return () => { isMounted = false; };
-    }, [mode, refreshTrigger, showToast]);
+    }, [mode, refreshTrigger, showToast, currentDate]); // added currentDate dependency
 
-    return { data, locationName, coords, loading, error, refresh };
+    return { 
+        data, 
+        locationName, 
+        coords, 
+        loading, 
+        error, 
+        refresh,
+        currentDate,
+        nextMonth,
+        prevMonth,
+        resetToToday
+    };
 };

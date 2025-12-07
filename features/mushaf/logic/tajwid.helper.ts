@@ -2,8 +2,6 @@
 /**
  * Advanced Tajwid & Makhraj Analysis Helper
  * Handles Intra-word rules, Inter-word rules, Special Cases, and Letter Articulation Points.
- * 
- * OPTIMIZATION: Implements Global In-Memory Caching to reduce CPU load on recurring words.
  */
 
 export interface TajwidRule {
@@ -21,11 +19,6 @@ export interface MakhrajDetail {
     sifat: string[]; // Characteristics: Jahr, Hams, etc.
     note?: string; // Additional tips
 }
-
-// --- GLOBAL CACHE ---
-// Cache key format: "text|nextText|location|isEnd"
-const TAJWID_CACHE = new Map<string, TajwidRule[]>();
-const MAX_CACHE_SIZE = 5000; // Limit cache to prevent memory bloat over long sessions
 
 // --- REGEX PATTERNS (ARABIC UNICODE) ---
 // Harakat
@@ -54,27 +47,6 @@ const HURUF_QALQALAH = '[قطبجد]';
 const HURUF_MIM = 'م';
 const HURUF_BA = 'ب';
 const HURUF_QAMARIYAH = '[ءأإآؤئبجحخعغفقكموهي]'; 
-
-// Pre-compiled Regex for Performance
-const HARAKAT_PATTERN = '[\u064B-\u065F]*';
-const MAD_THABII_REGEX = new RegExp('(?:\u064E\u0627|\u064E?\u0670|\u0650\u064A\u0652?|\u064F\u0648\u0652?)', 'g');
-const MAD_LAYYIN_REGEX = new RegExp('(?:\u064E[\u0648\u064A]\u0652)', 'g'); // Fatha + Waw/Ya Sukun
-const MAD_WAJIB_REGEX = new RegExp('.[\u0653\u06E4]', 'g');
-const GHUNNAH_REGEX = new RegExp('[نم]\u0651', 'g');
-const QALQALAH_REGEX = new RegExp(`[قطبجد]${SUKUN}`, 'g');
-const ALIF_LAM_SYAMSIAH_REGEX = new RegExp(/^(ٱ?ل)[^ل\u0600-\u06FF]*[ّ]/, 'g');
-const ALIF_LAM_QAMARIYAH_CHECK = new RegExp(`^.{2,3}${HURUF_QAMARIYAH}`);
-const ALIF_LAM_BASE_REGEX = new RegExp(/^(ٱ?ل)/, 'g');
-const LAM_JALALAH_REGEX = new RegExp(/ٱللَّه|لِلَّهِ/, 'g');
-const IKHFA_INTRA_REGEX = new RegExp(/ن(?![َُِّْ])\s*[تثجدذزسشصضطظفقك]/, 'g');
-const IQLAB_INTRA_REGEX = new RegExp(/ن(?![َُِّْ])\s*([ب]|ۢ)/, 'g');
-const IZHAR_INTRA_REGEX = new RegExp(/نْ[ءأإآؤئهعحغخ]/, 'g');
-
-// Ending Patterns
-const ENDING_MARKS = `[${ALIF_KHANJARIAH}${ALIF_MAQSURAH}${WAQAF_MARKS}]*`;
-const ENDING_TANWIN = new RegExp(`[${FATHATAIN}${DAMMATAIN}${KASRATAIN}]${ENDING_MARKS}$`);
-const ENDING_NUN_MATI = new RegExp(`ن[${SUKUN}]?${ENDING_MARKS}$`);
-const ENDING_MIM_MATI = new RegExp(`م[${SUKUN}]?${ENDING_MARKS}$`);
 
 // Special Cases Lookup (Location based: "surah:ayah:wordPosition")
 const SPECIAL_RULES: Record<string, Omit<TajwidRule, 'indexes'>> = {
@@ -301,7 +273,6 @@ const MAKHRAJ_DB: Record<string, Omit<MakhrajDetail, 'letter'>> = {
 };
 
 export const getMakhrajDetails = (text: string): MakhrajDetail[] => {
-    // Basic caching for Makhraj not needed as this is user-initiated click, not render-loop
     const cleanText = text.replace(/[^\u0621-\u064A]/g, ''); // Remove harakat, keep letters only
     const uniqueChars = Array.from(new Set(cleanText.split('')));
     
@@ -333,23 +304,15 @@ export const getMakhrajDetails = (text: string): MakhrajDetail[] => {
  * Order of addition matters! Specific rules first, General rules last.
  */
 export const analyzeTajwid = (text: string, nextText?: string, location?: string, isEndAyah: boolean = false): TajwidRule[] => {
-    const cleanText = text.trim();
-    const nextFirstChar = nextText ? nextText.trim().charAt(0) : ''; 
-    
-    // --- CACHE CHECK ---
-    const cacheKey = `${cleanText}|${nextFirstChar}|${location || ''}|${isEndAyah ? '1' : '0'}`;
-    if (TAJWID_CACHE.has(cacheKey)) {
-        return TAJWID_CACHE.get(cacheKey)!;
-    }
-
     const rules: TajwidRule[] = [];
+    const cleanText = text.trim(); 
+    const nextFirstChar = nextText ? nextText.trim().charAt(0) : ''; 
 
     // Helper to add indices
     const addRule = (name: string, description: string, color: string, regex: RegExp) => {
         const indexes: number[] = [];
         // Global match to find all occurrences in the word
-        // Clone regex to avoid state issues with global flag
-        const globalRegex = new RegExp(regex); 
+        const globalRegex = new RegExp(regex, 'g');
         let match;
         while ((match = globalRegex.exec(cleanText)) !== null) {
             // Add all indices of the match
@@ -374,14 +337,22 @@ export const analyzeTajwid = (text: string, nextText?: string, location?: string
         });
     }
 
+    const HARAKAT = '[\u064B-\u065F]*';
+    const MAD_THABII_PATTERN = '(?:\u064E\u0627|\u064E?\u0670|\u0650\u064A\u0652?|\u064F\u0648\u0652?)';
+    const MAD_LAYYIN_PATTERN = '(?:\u064E[\u0648\u064A]\u0652)'; // Fatha + Waw/Ya Sukun
+    
+    // New: Regex to detect trailing marks that shouldn't break Tanwin/Nun checking
+    // Matches Fathatain/Dhammatain/Kasratain followed by optional Alif/Alif Maqsurah/Waqaf signs at end of string
+    const ENDING_MARKS = `[${ALIF_KHANJARIAH}${ALIF_MAQSURAH}${WAQAF_MARKS}]*`;
+    const ENDING_TANWIN = new RegExp(`[${FATHATAIN}${DAMMATAIN}${KASRATAIN}]${ENDING_MARKS}$`);
+    const ENDING_NUN_MATI = new RegExp(`ن[${SUKUN}]?${ENDING_MARKS}$`);
+    const ENDING_MIM_MATI = new RegExp(`م[${SUKUN}]?${ENDING_MARKS}$`);
+
     // --- 1. PRIORITY 1: MAD (SPECIFIC) ---
     
     // Mad 'Arid Lissukun (End of Ayah)
     if (isEndAyah) {
-        // Construct regex dynamically only for this specific check which is rare (once per ayah)
-        const MAD_THABII_PATTERN = '(?:\u064E\u0627|\u064E?\u0670|\u0650\u064A\u0652?|\u064F\u0648\u0652?)';
-        const MAD_LAYYIN_PATTERN = '(?:\u064E[\u0648\u064A]\u0652)';
-        const regex = new RegExp(`(${MAD_THABII_PATTERN}|${MAD_LAYYIN_PATTERN})[\u0600-\u06FF]${HARAKAT_PATTERN}$`);
+        const regex = new RegExp(`(${MAD_THABII_PATTERN}|${MAD_LAYYIN_PATTERN})[\u0600-\u06FF]${HARAKAT}$`);
         if (regex.test(cleanText)) {
              addRule(
                 "Mad 'Arid Lissukun",
@@ -397,7 +368,7 @@ export const analyzeTajwid = (text: string, nextText?: string, location?: string
         "Mad Wajib/Jaiz",
         "Terdapat tanda layar/alis. Panjangkan 4-5 harakat.",
         "text-purple-600 dark:text-purple-400",
-        MAD_WAJIB_REGEX
+        /.[\u0653\u06E4]/ 
     );
 
     // --- 2. PRIORITY 2: GHUNNAH & QALQALAH ---
@@ -406,72 +377,72 @@ export const analyzeTajwid = (text: string, nextText?: string, location?: string
         "Ghunnah Musyadadah", 
         "Nun/Mim bertasydid. Tahan dengung.", 
         "text-pink-600 dark:text-pink-400", 
-        GHUNNAH_REGEX
+        /[نم]\u0651/
     );
 
     // Qalqalah Sugra (Middle) & Kubra (Detection)
-    addRule("Qalqalah", "Pantulan (Baju Di Toko).", "text-yellow-600 dark:text-yellow-400", QALQALAH_REGEX);
+    addRule("Qalqalah", "Pantulan (Baju Di Toko).", "text-yellow-600 dark:text-yellow-400", new RegExp(`[قطبجد]${SUKUN}`));
 
     // --- 3. PRIORITY 3: INTER-WORD RULES (IDGHAM, IKHFA, ETC) ---
     // Only applies if nextText is available
     
-    if (nextFirstChar) {
-        // Helper to highlight END OF WORD if rule applies
-        const addEndRule = (name: string, desc: string, color: string) => {
-            const lastIndex = cleanText.length - 1;
-            const indexes = [lastIndex];
-            if (cleanText.length > 1) indexes.push(lastIndex - 1);
-            
-            if (!rules.some(r => r.name === name)) {
-                rules.push({ name, description: desc, color, indexes });
-            }
-        };
-
-        if (ENDING_NUN_MATI.test(cleanText) || ENDING_TANWIN.test(cleanText)) {
-            if (new RegExp(HURUF_IDGHAM_BIGUNNAH).test(nextFirstChar)) {
-                addEndRule("Idgham Bigunnah", "Lelehkan bunyi ke huruf depan dengan dengung.", "text-pink-600 dark:text-pink-400");
-            } else if (new RegExp(HURUF_IDGHAM_BILAGUNNAH).test(nextFirstChar)) {
-                addEndRule("Idgham Bilagunnah", "Lelehkan bunyi ke huruf depan TANPA dengung.", "text-slate-500 dark:text-slate-400");
-            } else if (new RegExp(HURUF_IQLAB).test(nextFirstChar)) {
-                addEndRule("Iqlab", "Bunyi Nun/Tanwin berubah menjadi Mim samar.", "text-blue-600 dark:text-blue-400");
-            } else if (new RegExp(HURUF_IKHFA).test(nextFirstChar)) {
-                addEndRule("Ikhfa Haqiqi", "Samarkan bunyi Nun/Tanwin, tahan dengung.", "text-emerald-600 dark:text-emerald-400");
-            } else if (new RegExp(HURUF_HALQI).test(nextFirstChar)) {
-                addEndRule("Izhar Halqi", "Jelaskan bunyi Nun/Tanwin tanpa dengung.", "text-slate-600 dark:text-slate-400");
-            }
+    // Helper to highlight END OF WORD if rule applies
+    const addEndRule = (name: string, desc: string, color: string) => {
+        // Highlight last few chars (approximation of the Tanwin/Nun area)
+        const lastIndex = cleanText.length - 1;
+        const indexes = [lastIndex];
+        if (cleanText.length > 1) indexes.push(lastIndex - 1);
+        if (cleanText.length > 2) indexes.push(lastIndex - 2);
+        
+        if (!rules.some(r => r.name === name)) {
+            rules.push({ name, description: desc, color, indexes });
         }
+    };
 
-        if (ENDING_MIM_MATI.test(cleanText)) {
-            if (new RegExp(HURUF_MIM).test(nextFirstChar)) {
-                addEndRule("Idgham Mimi", "Mim bertemu Mim. Masukkan dengan dengung.", "text-pink-600 dark:text-pink-400");
-            } else if (new RegExp(HURUF_BA).test(nextFirstChar)) {
-                addEndRule("Ikhfa Syafawi", "Mim bertemu Ba. Samarkan di bibir dengan dengung.", "text-emerald-600 dark:text-emerald-400");
-            }
+    if ((ENDING_NUN_MATI.test(cleanText) || ENDING_TANWIN.test(cleanText)) && nextFirstChar) {
+        if (new RegExp(HURUF_IDGHAM_BIGUNNAH).test(nextFirstChar)) {
+            addEndRule("Idgham Bigunnah", "Lelehkan bunyi ke huruf depan dengan dengung.", "text-pink-600 dark:text-pink-400");
+        } else if (new RegExp(HURUF_IDGHAM_BILAGUNNAH).test(nextFirstChar)) {
+            addEndRule("Idgham Bilagunnah", "Lelehkan bunyi ke huruf depan TANPA dengung.", "text-slate-500 dark:text-slate-400");
+        } else if (new RegExp(HURUF_IQLAB).test(nextFirstChar)) {
+            addEndRule("Iqlab", "Bunyi Nun/Tanwin berubah menjadi Mim samar.", "text-blue-600 dark:text-blue-400");
+        } else if (new RegExp(HURUF_IKHFA).test(nextFirstChar)) {
+            addEndRule("Ikhfa Haqiqi", "Samarkan bunyi Nun/Tanwin, tahan dengung.", "text-emerald-600 dark:text-emerald-400");
+        } else if (new RegExp(HURUF_HALQI).test(nextFirstChar)) {
+            addEndRule("Izhar Halqi", "Jelaskan bunyi Nun/Tanwin tanpa dengung.", "text-slate-600 dark:text-slate-400");
+        }
+    }
+
+    if (ENDING_MIM_MATI.test(cleanText) && nextFirstChar) {
+        if (new RegExp(HURUF_MIM).test(nextFirstChar)) {
+            addEndRule("Idgham Mimi", "Mim bertemu Mim. Masukkan dengan dengung.", "text-pink-600 dark:text-pink-400");
+        } else if (new RegExp(HURUF_BA).test(nextFirstChar)) {
+            addEndRule("Ikhfa Syafawi", "Mim bertemu Ba. Samarkan di bibir dengan dengung.", "text-emerald-600 dark:text-emerald-400");
         }
     }
 
     // --- 4. INTRA-WORD NUN MATI ---
-    addRule("Ikhfa Haqiqi", "Samarkan bunyi Nun Mati, tahan dengung.", "text-emerald-600 dark:text-emerald-400", IKHFA_INTRA_REGEX);
-    addRule("Iqlab", "Ganti bunyi Nun menjadi Mim.", "text-blue-600 dark:text-blue-400", IQLAB_INTRA_REGEX);
-    addRule("Izhar Halqi", "Baca Nun Mati dengan jelas.", "text-slate-600 dark:text-slate-400", IZHAR_INTRA_REGEX);
+    addRule("Ikhfa Haqiqi", "Samarkan bunyi Nun Mati, tahan dengung.", "text-emerald-600 dark:text-emerald-400", /ن(?![َُِّْ])\s*[تثجدذزسشصضطظفقك]/);
+    addRule("Iqlab", "Ganti bunyi Nun menjadi Mim.", "text-blue-600 dark:text-blue-400", /ن(?![َُِّْ])\s*([ب]|ۢ)/);
+    addRule("Izhar Halqi", "Baca Nun Mati dengan jelas.", "text-slate-600 dark:text-slate-400", /نْ[ءأإآؤئهعحغخ]/);
 
     // --- 5. ALIF LAM ---
-    addRule("Alif Lam Syamsiah", "Alif Lam lebur ke huruf berikutnya.", "text-orange-600 dark:text-orange-400", ALIF_LAM_SYAMSIAH_REGEX);
-    
-    // Check Alif Lam Qamariyah logic (needs contextual check)
-    if (/^(ٱ?لْ)/.test(cleanText) || (/^(ٱ?ل)/.test(cleanText) && ALIF_LAM_QAMARIYAH_CHECK.test(cleanText))) {
-        addRule("Alif Lam Qamariyah", "Lam mati dibaca jelas.", "text-blue-600 dark:text-blue-400", ALIF_LAM_BASE_REGEX);
+    addRule("Alif Lam Syamsiah", "Alif Lam lebur ke huruf berikutnya.", "text-orange-600 dark:text-orange-400", /^(ٱ?ل)[^ل\u0600-\u06FF]*[ّ]/);
+    if (/^(ٱ?لْ)/.test(cleanText) || (/^(ٱ?ل)/.test(cleanText) && new RegExp(`^.{2,3}${HURUF_QAMARIYAH}`).test(cleanText))) {
+        addRule("Alif Lam Qamariyah", "Lam mati dibaca jelas.", "text-blue-600 dark:text-blue-400", /^(ٱ?ل)/);
     }
 
     // --- 6. LAM JALALAH ---
-    addRule("Lam Jalalah", "Lafaz Allah.", "text-teal-600 dark:text-teal-400", LAM_JALALAH_REGEX);
+    addRule("Lam Jalalah", "Lafaz Allah.", "text-teal-600 dark:text-teal-400", /ٱللَّه|لِلَّهِ/);
 
     // --- 7. MAD LAYYIN ---
+    // Highlight Mad Layyin everywhere, not just mid-sentence.
+    // Pattern: Fatha followed by Waw Sukun or Ya Sukun.
     addRule(
         "Mad Layyin", 
         "Huruf Waw/Ya sukun didahului Fathah. Lembutkan.", 
         "text-yellow-600 dark:text-yellow-400", 
-        MAD_LAYYIN_REGEX
+        new RegExp(MAD_LAYYIN_PATTERN)
     );
 
     // --- 8. MAD THABI'I (GENERAL - LOWEST PRIORITY) ---
@@ -479,14 +450,8 @@ export const analyzeTajwid = (text: string, nextText?: string, location?: string
         "Mad Thabi'i",
         "Panjangkan bacaan 2 harakat.",
         "text-slate-500 dark:text-slate-400", 
-        MAD_THABII_REGEX
+        new RegExp(MAD_THABII_PATTERN)
     );
-
-    // --- SAVE TO CACHE ---
-    if (TAJWID_CACHE.size > MAX_CACHE_SIZE) {
-        TAJWID_CACHE.clear(); // Simple eviction strategy
-    }
-    TAJWID_CACHE.set(cacheKey, rules);
 
     return rules;
 };

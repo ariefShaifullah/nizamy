@@ -1,24 +1,59 @@
 
 import React, { useState } from 'react';
 import { usePrayerSchedule } from './hooks/usePrayerSchedule.ts';
+import { exportPrayerSchedulePdf } from './logic/pdf-export.ts';
 import type { PrayerData } from '../../types.ts';
 import { QiblaCompass } from './components/QiblaCompass.tsx';
 import { PrayerCalendar } from './components/PrayerCalendar.tsx';
-import { FaCompass, FaCalendarAlt, FaMapMarkerAlt, FaSpinner } from 'react-icons/fa';
+import { useToast } from '../../components/ui/Toast.tsx';
+import { 
+    FaCompass, 
+    FaCalendarAlt, 
+    FaMapMarkerAlt, 
+    FaSpinner, 
+    FaChevronLeft, 
+    FaChevronRight, 
+    FaPrint 
+} from 'react-icons/fa';
 
 type Tab = 'calendar' | 'qibla';
 
 const PrayerApp: React.FC = () => {
     const [activeTab, setActiveTab] = useState<Tab>('calendar');
+    const { showToast } = useToast();
     
-    // USE NEW HOOK: Mode 'monthly' (Loads array of data)
-    // Hook automatically syncs 'today' data to Widget cache
-    const { data: calendarData, locationName, coords, loading } = usePrayerSchedule<PrayerData[]>('monthly');
+    // USE NEW HOOK: Mode 'monthly' with Navigation support
+    const { 
+        data: calendarData, 
+        locationName, 
+        coords, 
+        loading, 
+        currentDate, 
+        nextMonth, 
+        prevMonth, 
+        resetToToday 
+    } = usePrayerSchedule<PrayerData[]>('monthly');
     
     // LIFTED STATE: Compass Permission
     const [compassPermission, setCompassPermission] = useState(false);
     
-    const monthLabel = new Date().toLocaleDateString('id-ID', { month: 'short', year: 'numeric' });
+    const monthLabel = currentDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+    const isCurrentMonth = new Date().getMonth() === currentDate.getMonth() && new Date().getFullYear() === currentDate.getFullYear();
+
+    const handleDownloadPdf = async () => {
+        if (!calendarData || calendarData.length === 0) {
+            showToast("Data jadwal belum tersedia.", "error");
+            return;
+        }
+        showToast("Menyiapkan PDF...", "info");
+        try {
+            await exportPrayerSchedulePdf(calendarData, locationName, monthLabel);
+            showToast("Jadwal berhasil diunduh.", "success");
+        } catch (e) {
+            console.error(e);
+            showToast("Gagal membuat PDF.", "error");
+        }
+    };
 
     return (
         <div className="min-h-screen pb-24 max-w-4xl mx-auto animate-fade-in px-4 md:px-6">
@@ -49,7 +84,7 @@ const PrayerApp: React.FC = () => {
                     className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all ${activeTab === 'calendar' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
                 >
                     <span className="icon-wrapper w-4 h-4"><FaCalendarAlt /></span>
-                    <span>{monthLabel}</span>
+                    <span>Jadwal</span>
                 </button>
                 <button 
                     onClick={() => setActiveTab('qibla')}
@@ -63,17 +98,66 @@ const PrayerApp: React.FC = () => {
             {/* Content */}
             <div className="min-h-[400px]">
                 {activeTab === 'calendar' ? (
-                    <PrayerCalendar data={calendarData || []} monthLabel={monthLabel} />
+                    <div className="space-y-6">
+                        {/* Month Navigation Control */}
+                        <div className="flex items-center justify-between bg-white dark:bg-slate-800 p-2 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm">
+                            <button 
+                                onClick={prevMonth}
+                                className="p-3 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl transition-colors text-slate-500 dark:text-slate-400"
+                                aria-label="Bulan Sebelumnya"
+                            >
+                                <FaChevronLeft />
+                            </button>
+                            
+                            <div className="text-center">
+                                <h3 className="text-lg font-bold text-slate-800 dark:text-white">{monthLabel}</h3>
+                                {!isCurrentMonth && (
+                                    <button 
+                                        onClick={resetToToday}
+                                        className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline mt-0.5"
+                                    >
+                                        Kembali ke Hari Ini
+                                    </button>
+                                )}
+                            </div>
+
+                            <button 
+                                onClick={nextMonth}
+                                className="p-3 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl transition-colors text-slate-500 dark:text-slate-400"
+                                aria-label="Bulan Berikutnya"
+                            >
+                                <FaChevronRight />
+                            </button>
+                        </div>
+
+                        {/* Calendar View */}
+                        {loading ? (
+                            <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+                                <div className="animate-spin text-3xl mb-4"><FaSpinner /></div>
+                                <p className="text-sm">Memuat jadwal...</p>
+                            </div>
+                        ) : (
+                            <PrayerCalendar data={calendarData || []} monthLabel={monthLabel} />
+                        )}
+
+                        {/* Print Action */}
+                        <button 
+                            onClick={handleDownloadPdf}
+                            disabled={loading || !calendarData}
+                            className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 dark:shadow-none disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-[0.98]"
+                        >
+                            <span className="icon-wrapper w-5 h-5"><FaPrint /></span>
+                            Unduh PDF Jadwal
+                        </button>
+                    </div>
                 ) : (
                     <div className="animate-fade-in-up">
-                        {coords && (
-                            <QiblaCompass 
-                                latitude={coords.lat} 
-                                longitude={coords.lng}
-                                hasPermission={compassPermission}
-                                onPermissionGranted={() => setCompassPermission(true)}
-                            />
-                        )}
+                        <QiblaCompass 
+                            latitude={coords?.lat ?? null} 
+                            longitude={coords?.lng ?? null}
+                            hasPermission={compassPermission}
+                            onPermissionGranted={() => setCompassPermission(true)}
+                        />
                     </div>
                 )}
             </div>

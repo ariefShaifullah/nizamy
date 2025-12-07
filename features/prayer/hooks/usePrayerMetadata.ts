@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 // @ts-ignore
 import { useLocation } from 'react-router-dom';
-import { useTheme } from '../context/ThemeContext.tsx';
+import { useTheme } from '../../../context/ThemeContext.tsx';
 
 export const usePageMetadata = () => {
   const location = useLocation();

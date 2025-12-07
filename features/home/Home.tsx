@@ -14,9 +14,7 @@ import {
   FaDownload,
   FaStethoscope,
   FaTimes,
-  FaBookmark,
   FaFire,
-  FaQuoteLeft,
   FaCheckCircle
 } from "react-icons/fa";
 
@@ -116,15 +114,16 @@ const useHomeData = () => {
 // --- COMPONENTS ---
 
 const BackgroundDecor = () => (
-    <div className="fixed inset-0 z-background overflow-hidden pointer-events-none bg-[#f8fafc] dark:bg-slate-950 transition-colors duration-500">
-        <div className="absolute top-0 inset-x-0 h-64 bg-linear-to-b from-indigo-50/80 to-transparent dark:from-indigo-950/20"></div>
-        {/* Abstract Blobs */}
-        <div className="absolute top-[-10%] right-[-5%] w-[400px] h-[400px] bg-purple-300/20 dark:bg-purple-900/10 rounded-full blur-[100px] animate-pulse"></div>
-        <div className="absolute bottom-[10%] left-[-10%] w-[300px] h-[300px] bg-emerald-300/20 dark:bg-emerald-900/10 rounded-full blur-[80px]"></div>
+    <div className="fixed inset-0 z-background overflow-hidden pointer-events-none bg-[#f8f9fc] dark:bg-[#0b0f19] transition-colors duration-500">
+        <div className="absolute top-0 inset-x-0 h-96 bg-linear-to-b from-white to-transparent dark:from-slate-900/50"></div>
         
-        {/* Noise Texture for that "Premium" feel */}
+        {/* Subtle, desaturated blobs */}
+        <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-slate-200/40 dark:bg-slate-800/20 rounded-full blur-[120px]"></div>
+        <div className="absolute bottom-[10%] left-[-10%] w-[500px] h-[500px] bg-slate-200/30 dark:bg-slate-800/10 rounded-full blur-[100px]"></div>
+        
+        {/* Noise Texture for Texture */}
         <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]" 
-             style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}>
+             style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}>
         </div>
     </div>
 );
@@ -133,85 +132,68 @@ const HeaderSection = () => {
     const hadith = useMemo(() => getDynamicHadith(), []);
 
     return (
-        <div className="flex flex-col mb-8 animate-fade-in-down relative">
-            {/* Background Quote Icon Decoration */}
-            <div className="absolute -right-4 -top-6 text-slate-200 dark:text-slate-800 opacity-50 transform rotate-12 pointer-events-none">
-                <FaQuoteLeft size={80} />
-            </div>
-
-            <div className="flex items-center gap-2 mb-3 opacity-80">
-                <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
+        <div className="flex flex-col mb-10 animate-fade-in-down relative px-1">
+            <div className="flex items-center gap-3 mb-3">
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
                     {getGregorianDate()}
                 </span>
+                <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
             </div>
             
-            <div className="relative z-raised pr-4">
-                <p className="text-xl md:text-2xl font-serif italic text-slate-800 dark:text-slate-200 leading-relaxed drop-shadow-sm">
-                    "{hadith.text}"
+            <div className="relative z-raised">
+                <p className="text-xl md:text-2xl font-serif text-slate-800 dark:text-slate-200 leading-relaxed tracking-tight">
+                    <span className="text-slate-300 dark:text-slate-700 text-4xl font-serif mr-2 relative top-2">"</span>
+                    {hadith.text}
                 </p>
-                <div className="mt-2 flex items-center gap-2">
-                    <div className="h-0.5 w-6 bg-indigo-500 rounded-full"></div>
-                    <p className="text-xs md:text-sm font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide">
-                        {hadith.narrator}
-                    </p>
-                </div>
+                <p className="text-xs font-bold text-slate-400 dark:text-slate-500 mt-4 uppercase tracking-wide flex items-center gap-2">
+                    <span className="w-4 h-px bg-slate-300 dark:bg-slate-700"></span> {hadith.narrator}
+                </p>
             </div>
         </div>
     );
 };
 
-// --- BENTO CARDS ---
+// --- ELEGANT CARDS (S-Tier Premium) ---
 
 const QuranCard = ({ lastRead, onClick }: { lastRead: {name: string, ayah: number} | null, onClick: () => void }) => {
-    // Dynamic Font Scaling Logic
-    const nameLength = lastRead?.name.length || 0;
-    let titleClass = "text-2xl"; // Default for short names (e.g. Yasin, Nuh)
-    
-    if (nameLength > 14) {
-        titleClass = "text-base"; // For very long names (e.g. Al-Mutaffifin)
-    } else if (nameLength > 8) {
-        titleClass = "text-xl"; // For medium names (e.g. Al-Baqarah)
-    }
-
     return (
         <button 
             onClick={onClick}
-            className="group relative w-full h-40 md:h-48 rounded-4xl overflow-hidden text-left transition-all duration-300 hover:scale-[1.02] active:scale-95 shadow-sm hover:shadow-xl hover:shadow-teal-500/20"
+            className="group relative w-full h-40 md:h-48 rounded-3xl overflow-hidden text-left transition-all duration-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-teal-200 dark:hover:border-teal-800 hover:shadow-xl dark:hover:shadow-teal-900/10 active:scale-[0.98]"
         >
-            {/* Background */}
-            <div className="absolute inset-0 bg-linear-to-br from-teal-500 to-emerald-700 dark:from-teal-600 dark:to-emerald-900"></div>
-            
-            {/* Pattern Decoration */}
-            <div className="absolute -right-5 -bottom-10 text-white/10 transform rotate-12 group-hover:rotate-0 transition-transform duration-700">
-                <FaQuran size={140} />
-            </div>
+            {/* Hover Gradient Overlay */}
+            <div className="absolute inset-0 bg-linear-to-br from-transparent to-transparent group-hover:from-teal-50/50 group-hover:to-white dark:group-hover:from-teal-900/10 dark:group-hover:to-slate-900 transition-colors duration-500"></div>
 
-            {/* Content */}
-            <div className="relative z-raised p-5 flex flex-col justify-between h-full text-white">
+            <div className="relative z-10 p-6 flex flex-col justify-between h-full">
                 <div className="flex justify-between items-start">
-                    <div className="p-2 bg-white/20 backdrop-blur-md rounded-xl border border-white/20 text-lg">
-                        <FaQuran />
+                    {/* Icon Box: Monochrome -> Color on Hover */}
+                    <div className="w-10 h-10 rounded-2xl bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 flex items-center justify-center border border-slate-100 dark:border-slate-700 transition-all duration-300 group-hover:bg-teal-50 dark:group-hover:bg-teal-900/30 group-hover:text-teal-600 dark:group-hover:text-teal-400 group-hover:border-teal-100 dark:group-hover:border-teal-800 group-hover:scale-110">
+                        <div className="icon-wrapper w-5 h-5 flex items-center justify-center"><FaQuran /></div>
                     </div>
-                    <div className="bg-black/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
-                        <span className="text-[10px] font-bold uppercase tracking-wider flex items-center justify-center ">Mushaf</span>
-                    </div>
+                    {/* Category Label */}
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600 opacity-70 group-hover:opacity-100 group-hover:text-teal-600/70 dark:group-hover:text-teal-400/70 transition-all">
+                        Al-Quran
+                    </span>
                 </div>
 
                 <div>
                     {lastRead ? (
                         <>
-                            <div className="flex items-center gap-2 mb-1 text-teal-100 text-xs font-medium">
-                                <span className="text-[10px]"><FaBookmark /></span> Terakhir Dibaca
-                            </div>
-                            <h3 className={`${titleClass} font-bold leading-tight mb-1 line-clamp-2`}>
+                            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 leading-tight mb-1 group-hover:text-teal-700 dark:group-hover:text-teal-300 transition-colors">
                                 {lastRead.name}
                             </h3>
-                            <p className="text-sm opacity-90 font-mono">Ayat {lastRead.ayah}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium group-hover:text-slate-600 dark:group-hover:text-slate-300">
+                                Lanjut Ayat {lastRead.ayah}
+                            </p>
                         </>
                     ) : (
                         <>
-                            <h3 className="text-xl font-bold leading-tight mb-1">Mulai Mengaji</h3>
-                            <p className="text-xs text-teal-100 opacity-90">Baca Al-Quran hari ini</p>
+                            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 leading-tight mb-1 group-hover:text-teal-700 dark:group-hover:text-teal-300 transition-colors">
+                                Baca Al-Quran
+                            </h3>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium group-hover:text-slate-600 dark:group-hover:text-slate-300">
+                                Mushaf Digital
+                            </p>
                         </>
                     )}
                 </div>
@@ -223,43 +205,33 @@ const QuranCard = ({ lastRead, onClick }: { lastRead: {name: string, ayah: numbe
 const HafalanCard = ({ stats, onClick }: { stats: {level: number, streak: number} | null, onClick: () => void }) => (
     <button 
         onClick={onClick}
-        className="group relative w-full h-40 md:h-48 rounded-4xl overflow-hidden text-left transition-all duration-300 hover:scale-[1.02] active:scale-95 shadow-sm hover:shadow-xl hover:shadow-indigo-500/20"
+        className="group relative w-full h-40 md:h-48 rounded-3xl overflow-hidden text-left transition-all duration-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-800 hover:shadow-xl dark:hover:shadow-indigo-900/10 active:scale-[0.98]"
     >
-        <div className="absolute inset-0 bg-linear-to-br from-indigo-500 to-violet-700 dark:from-indigo-600 dark:to-violet-900"></div>
+        <div className="absolute inset-0 bg-linear-to-br from-transparent to-transparent group-hover:from-indigo-50/50 group-hover:to-white dark:group-hover:from-indigo-900/10 dark:group-hover:to-slate-900 transition-colors duration-500"></div>
         
-        {/* Pattern */}
-        <div className="absolute -right-5 -bottom-5 text-white/10 transform rotate-12 group-hover:rotate-0 transition-transform duration-700">
-            <FaBrain size={120} />
-        </div>
-
-        <div className="relative z-raised p-5 flex flex-col justify-between h-full text-white">
+        <div className="relative z-10 p-6 flex flex-col justify-between h-full">
             <div className="flex justify-between items-start">
-                <div className="p-2 bg-white/20 backdrop-blur-md rounded-xl border border-white/20 text-lg">
-                    <FaBrain />
+                {/* Icon Box */}
+                <div className="w-10 h-10 rounded-2xl bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 flex items-center justify-center border border-slate-100 dark:border-slate-700 transition-all duration-300 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:border-indigo-100 dark:group-hover:border-indigo-800 group-hover:scale-110">
+                    <div className="icon-wrapper w-5 h-5 flex items-center justify-center"><FaBrain /></div>
                 </div>
-                <div className="bg-black/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
-                    <span className="text-[10px] font-bold uppercase tracking-wider flex items-center justify-center ">Hafalan</span>
-                </div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600 opacity-70 group-hover:opacity-100 group-hover:text-indigo-600/70 dark:group-hover:text-indigo-400/70 transition-all">
+                    Tahfiz
+                </span>
             </div>
 
             <div>
                 {stats ? (
-                    <div className="flex items-end gap-3">
-                        <div>
-                            <div className="text-indigo-100 text-xs font-bold uppercase mb-1">Level Anda</div>
-                            <h3 className="text-3xl font-black leading-none">{stats.level}</h3>
-                        </div>
-                        <div className="mb-1 pl-3 border-l border-white/30">
-                            <div className="flex items-center gap-1 text-orange-300 font-bold">
-                                <FaFire /> {stats.streak}
-                            </div>
-                            <span className="text-[10px] text-indigo-100">Streak Hari</span>
+                    <div>
+                        <h3 className="text-3xl font-bold text-slate-800 dark:text-white leading-none mb-1 group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-colors">{stats.level}</h3>
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300">
+                            <span className="text-amber-500 icon-wrapper w-3 h-3"><FaFire /></span> {stats.streak} Hari
                         </div>
                     </div>
                 ) : (
                     <>
-                        <h3 className="text-xl font-bold leading-tight mb-1">Target Hafalan</h3>
-                        <p className="text-xs text-indigo-100 opacity-90">Mulai setoran hafalan</p>
+                        <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 leading-tight mb-1 group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-colors">Hafalan</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium group-hover:text-slate-600 dark:group-hover:text-slate-300">Metode SRS</p>
                     </>
                 )}
             </div>
@@ -267,66 +239,77 @@ const HafalanCard = ({ stats, onClick }: { stats: {level: number, streak: number
     </button>
 );
 
-const UtilityCard = ({ title, icon, color, onClick, desc }: { title: string, desc: string, icon: React.ReactNode, color: string, onClick: () => void }) => {
-    const styles: any = {
-        emerald: "text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800 hover:border-emerald-300",
-        blue: "text-blue-600 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800 hover:border-blue-300",
-        purple: "text-purple-600 bg-purple-50 dark:bg-purple-900/20 border-purple-100 dark:border-purple-800 hover:border-purple-300",
-    };
-
-    return (
-        <button 
-            onClick={onClick}
-            className={`flex flex-col p-4 rounded-3xl border transition-all duration-300 active:scale-95 group h-full justify-between ${styles[color]}`}
-        >
-            <div className="w-full flex justify-start items-start">
-                <span className="text-2xl">{icon}</span>
-            </div>
-            <div className="text-left mt-auto">
-                <h4 className="font-bold text-sm md:text-base dark:text-white leading-tight">{title}</h4>
-                <p className="text-[10px] md:text-xs opacity-70 mt-1 font-medium dark:text-slate-300">{desc}</p>
-            </div>
-        </button>
-    );
-};
-
-// NEW AMAL CARD
 const AmalCard = ({ onClick }: { onClick: () => void }) => (
     <button 
         onClick={onClick}
-        className="group relative w-full h-40 md:h-48 rounded-4xl overflow-hidden text-left transition-all duration-300 hover:scale-[1.02] active:scale-95 shadow-sm hover:shadow-xl hover:shadow-emerald-500/20 col-span-2 md:col-span-1"
+        className="group relative w-full h-40 md:h-48 rounded-3xl overflow-hidden text-left transition-all duration-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-200 dark:hover:border-emerald-800 hover:shadow-xl dark:hover:shadow-emerald-900/10 col-span-2 md:col-span-1 active:scale-[0.98]"
     >
-        <div className="absolute inset-0 bg-linear-to-br from-emerald-500 to-green-600 dark:from-emerald-600 dark:to-green-900"></div>
+        <div className="absolute inset-0 bg-linear-to-br from-transparent to-transparent group-hover:from-emerald-50/50 group-hover:to-white dark:group-hover:from-emerald-900/10 dark:group-hover:to-slate-900 transition-colors duration-500"></div>
         
-        {/* Pattern */}
-        <div className="absolute -right-5 -bottom-5 text-white/10 transform -rotate-6 group-hover:rotate-0 transition-transform duration-700">
-            <FaCheckCircle size={120} />
-        </div>
-
-        <div className="relative z-raised p-5 flex flex-col justify-between h-full text-white">
+        <div className="relative z-10 p-6 flex flex-col justify-between h-full">
             <div className="flex justify-between items-start">
-                <div className="p-2 bg-white/20 backdrop-blur-md rounded-xl border border-white/20 text-lg">
-                    <FaCheckCircle />
+                {/* Icon Box */}
+                <div className="w-10 h-10 rounded-2xl bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 flex items-center justify-center border border-slate-100 dark:border-slate-700 transition-all duration-300 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/30 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 group-hover:border-emerald-100 dark:group-hover:border-emerald-800 group-hover:scale-110">
+                    <div className="icon-wrapper w-5 h-5 flex items-center justify-center"><FaCheckCircle /></div>
                 </div>
-                <div className="bg-black/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
-                    <span className="text-[10px] font-bold uppercase tracking-wider flex items-center justify-center ">Tracker</span>
-                </div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600 opacity-70 group-hover:opacity-100 group-hover:text-emerald-600/70 dark:group-hover:text-emerald-400/70 transition-all">
+                    Amal
+                </span>
             </div>
 
             <div>
-                <h3 className="text-xl font-bold leading-tight mb-1">Amal Yaumi</h3>
-                <p className="text-xs text-emerald-100 opacity-90">Catat ibadah harianmu</p>
+                <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 leading-tight mb-1 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">Amal Yaumi</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium group-hover:text-slate-600 dark:group-hover:text-slate-300">Catat ibadah harian</p>
             </div>
         </div>
     </button>
 );
 
+const UtilityCard = ({ title, icon, color, onClick }: { title: string, icon: React.ReactNode, color: 'emerald' | 'blue' | 'purple', onClick: () => void }) => {
+    // Config for Brand Hover Colors
+    const colorConfig = {
+        emerald: {
+            hoverBorder: 'group-hover:border-emerald-200 dark:group-hover:border-emerald-800',
+            iconColor: 'group-hover:text-emerald-600 dark:group-hover:text-emerald-400',
+            iconBg: 'group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/20'
+        },
+        blue: {
+            hoverBorder: 'group-hover:border-blue-200 dark:group-hover:border-blue-800',
+            iconColor: 'group-hover:text-blue-600 dark:group-hover:text-blue-400',
+            iconBg: 'group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20'
+        },
+        purple: {
+            hoverBorder: 'group-hover:border-purple-200 dark:group-hover:border-purple-800',
+            iconColor: 'group-hover:text-purple-600 dark:group-hover:text-purple-400',
+            iconBg: 'group-hover:bg-purple-50 dark:group-hover:bg-purple-900/20'
+        }
+    };
+
+    const conf = colorConfig[color];
+
+    return (
+        <button 
+            onClick={onClick}
+            className={`flex flex-col items-center justify-center p-4 h-36 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 transition-all duration-300 group hover:shadow-lg hover:-translate-y-1 active:scale-95 ${conf.hoverBorder}`}
+        >
+            <div className={`
+                w-12 h-12 rounded-2xl flex items-center justify-center text-xl mb-3 transition-all duration-300
+                bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500
+                ${conf.iconBg} ${conf.iconColor} group-hover:scale-110
+            `}>
+                <span className="icon-wrapper w-6 h-6 flex items-center justify-center">{icon}</span>
+            </div>
+            <h4 className={`font-bold text-sm text-slate-600 dark:text-slate-300 transition-colors group-hover:text-slate-800 dark:group-hover:text-white`}>{title}</h4>
+        </button>
+    );
+};
+
 const InstallBanner: React.FC<{ onInstall: () => void; onClose: () => void }> = ({ onInstall, onClose }) => (
-    <div className="fixed bottom-4 left-4 right-4 z-sticky animate-fade-in-up">
-        <div className="bg-slate-900/95 dark:bg-white/95 backdrop-blur-xl text-white dark:text-slate-900 p-4 rounded-3xl shadow-2xl flex items-center justify-between gap-4 border border-white/10 ring-1 ring-black/5">
+    <div className="fixed bottom-6 left-4 right-4 z-sticky animate-fade-in-up">
+        <div className="bg-slate-900/95 dark:bg-white/95 backdrop-blur-xl text-white dark:text-slate-900 p-4 rounded-2xl shadow-2xl flex items-center justify-between gap-4 border border-white/10 ring-1 ring-black/5 max-w-lg mx-auto">
             <div className="flex items-center gap-4 pl-1">
-                <div className="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                    <FaDownload />
+                <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30 text-white">
+                    <span className="icon-wrapper w-5 h-5"><FaDownload /></span>
                 </div>
                 <div className="flex flex-col">
                     <span className="text-sm font-bold">Pasang Aplikasi</span>
@@ -344,7 +327,7 @@ const InstallBanner: React.FC<{ onInstall: () => void; onClose: () => void }> = 
                     onClick={onClose}
                     className="p-2 opacity-60 hover:opacity-100 transition-opacity"
                 >
-                    <FaTimes />
+                    <span className="icon-wrapper w-4 h-4"><FaTimes /></span>
                 </button>
             </div>
         </div>
@@ -377,25 +360,24 @@ export const Home: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen pb-24 relative overflow-hidden">
+    <div className="min-h-screen pb-24 relative overflow-hidden font-sans">
       {showIOSGuide && <IOSInstallModal onClose={() => setShowIOSGuide(false)} />}
       
       <BackgroundDecor />
 
-      {/* FIX: Dynamic top padding to handle iPhone safe-areas properly */}
-      <main className="container mx-auto px-4 md:px-6 pt-[calc(7rem+env(safe-area-inset-top))] md:pt-[calc(9rem+env(safe-area-inset-top))] max-w-5xl">
+      <main className="container mx-auto px-4 md:px-6 pt-[calc(6rem+env(safe-area-inset-top))] md:pt-[calc(8rem+env(safe-area-inset-top))] max-w-4xl relative z-10">
           <HeaderSection />
 
-          {/* BENTO GRID SYSTEM */}
-          <div className="flex flex-col gap-4">
+          {/* GRID SYSTEM */}
+          <div className="flex flex-col gap-8">
               
-              {/* ROW 1: Hero Prayer Widget */}
-              <div className="w-full animate-fade-in-up" style={{ animationDelay: '50ms' }}>
+              {/* HERO: Prayer Widget */}
+              <div onClick={() => navigate('/sholat')} className="w-full animate-fade-in-up cursor-pointer active:scale-[0.99] transition-transform duration-300" style={{ animationDelay: '50ms' }}>
                   <PrayerWidget />
               </div>
 
-              {/* ROW 2: Primary Actions (Grid Adjustments for 3 Main Cards) */}
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 animate-fade-in-up" style={{ animationDelay: '150ms' }}>
+              {/* SECTION: Main Features */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 animate-fade-in-up" style={{ animationDelay: '150ms' }}>
                   <div className="col-span-2 md:col-span-1">
                     <QuranCard lastRead={lastRead} onClick={() => navigate('/mushaf')} />
                   </div>
@@ -407,41 +389,44 @@ export const Home: React.FC = () => {
                   </div>
               </div>
 
-              {/* ROW 3: Utilities */}
-              <div className="grid grid-cols-3 gap-3 md:gap-4 animate-fade-in-up" style={{ animationDelay: '250ms' }}>
-                  <UtilityCard 
-                    title="Zakat"
-                    desc="Hitung Zakat"
-                    icon={<FaHandsHelping />}
-                    color="emerald"
-                    onClick={() => navigate('/zakat')}
-                  />
-                  <UtilityCard 
-                    title="Waris"
-                    desc="Hitung Waris"
-                    icon={<FaBalanceScale />}
-                    color="blue"
-                    onClick={() => navigate('/faraidh')}
-                  />
-                  <UtilityCard 
-                    title="Finansial"
-                    desc="Cek Halal"
-                    icon={<FaStethoscope />}
-                    color="purple"
-                    onClick={() => navigate('/hede')}
-                  />
+              {/* SECTION: Tools (Compact) */}
+              <div className="animate-fade-in-up" style={{ animationDelay: '250ms' }}>
+                  <div className="flex items-center gap-4 mb-4 md:mb-5">
+                      <h4 className="text-xs font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest ml-1">Tools & Kalkulator</h4>
+                      <div className="h-px flex-1 bg-slate-100 dark:bg-slate-800"></div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3 md:gap-5">
+                      <UtilityCard 
+                        title="Zakat"
+                        icon={<FaHandsHelping />}
+                        color="emerald"
+                        onClick={() => navigate('/zakat')}
+                      />
+                      <UtilityCard 
+                        title="Waris"
+                        icon={<FaBalanceScale />}
+                        color="blue"
+                        onClick={() => navigate('/faraidh')}
+                      />
+                      <UtilityCard 
+                        title="Finansial"
+                        icon={<FaStethoscope />}
+                        color="purple"
+                        onClick={() => navigate('/hede')}
+                      />
+                  </div>
               </div>
 
           </div>    
 
           {/* FOOTER QUOTE */}
-          <div className="mt-12 text-center opacity-60 pb-8 animate-fade-in" style={{ animationDelay: '400ms' }}>
-             <p className="font-arabic text-xl text-slate-600 dark:text-slate-400 mb-2 leading-loose" style={{ fontFamily: '"Amiri", serif' }}>
+          <div className="mt-20 text-center opacity-40 pb-8 animate-fade-in" style={{ animationDelay: '400ms' }}>
+             <p className="font-arabic text-xl text-slate-500 dark:text-slate-500 mb-3 leading-loose" style={{ fontFamily: '"Amiri", serif' }}>
                 فَاسْتَبِقُوا الْخَيْرَاتِ
              </p>
-             <div className="w-8 h-1 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto mb-3"></div>
-             <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400">
-                NIZAMY Suite
+             <div className="w-8 h-0.5 bg-slate-300 dark:bg-slate-700 mx-auto rounded-full mb-3"></div>
+             <p className="text-[9px] uppercase font-bold tracking-[0.3em] text-slate-400">
+                NIZAMY
              </p>
           </div>
 

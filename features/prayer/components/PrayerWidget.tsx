@@ -1,78 +1,28 @@
-import React, { useEffect, useState, useCallback } from 'react';
+
+import React, { useEffect, useState, useMemo } from 'react';
 import type { PrayerData } from '../../../types.ts';
-import { getCoordinates, fetchPrayerTimes, fetchCityName, getNextPrayer, formatTimeLeft, savePrayerCache, getCachedPrayerData } from '../logic/prayer.service.ts';
-import { FaMapMarkerAlt, FaClock } from 'react-icons/fa';
+import { getNextPrayer, formatTimeLeft } from '../logic/prayer.service.ts';
+import { usePrayerSchedule } from '../hooks/usePrayerSchedule.ts';
+import { FaMapMarkerAlt, FaClock, FaCompass, FaCalendarAlt } from 'react-icons/fa';
 
 export const PrayerWidget: React.FC = () => {
-    const [prayerData, setPrayerData] = useState<PrayerData | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [locationName, setLocationName] = useState("Memuat lokasi...");
+    // USE NEW HOOK: Mode 'daily'
+    const { data: prayerData, locationName, loading } = usePrayerSchedule<PrayerData>('daily');
     
     const [targetDate, setTargetDate] = useState<Date | null>(null);
     const [nextPrayerName, setNextPrayerName] = useState<string | null>(null);
     const [timeLeft, setTimeLeft] = useState<string>("00:00:00");
 
-    const loadData = useCallback(async (forceRefresh = false) => {
-        setLoading(true);
-
-        const updateLocationInBackground = async (currentData: PrayerData) => {
-            try {
-                const coords = await getCoordinates();
-                const accurateCity = await fetchCityName(coords.latitude, coords.longitude);
-                if (accurateCity && accurateCity !== "Lokasi Anda" && accurateCity !== "Lokasi Terdeteksi") {
-                    setLocationName(accurateCity);
-                    savePrayerCache(currentData, accurateCity);
-                }
-            } catch { }
-        };
-        
-        if (!forceRefresh) {
-            const cached = getCachedPrayerData();
-            if (cached) {
-                setPrayerData(cached.data);
-                setLocationName(cached.city);
-                setLoading(false);
-                if (cached.city === "Lokasi Anda" || cached.city === "Lokasi Terdeteksi" || cached.city === "Jakarta Pusat") {
-                    updateLocationInBackground(cached.data);
-                }
-                return;
-            }
-        }
-
-        try {
-            const coords = await getCoordinates();
-            const [data, city] = await Promise.all([
-                fetchPrayerTimes(coords.latitude, coords.longitude),
-                fetchCityName(coords.latitude, coords.longitude)
-            ]);
-
-            if (data) {
-                setPrayerData(data);
-                setLocationName(city);
-                savePrayerCache(data, city);
-            } else {
-                 setLocationName("Gagal memuat jadwal");
-            }
-        } catch (error) {
-            const data = await fetchPrayerTimes(-6.1702, 106.8314);
-            if (data) {
-                setPrayerData(data);
-                setLocationName("Jakarta Pusat");
-                if (!forceRefresh) savePrayerCache(data, "Jakarta Pusat");
-            } else {
-                setLocationName("Gagal memuat jadwal");
-            }
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
+    // Listen for global refresh events (triggered by PrayerApp smart sync)
     useEffect(() => {
-        loadData();
-        const handleRefresh = () => loadData(true);
+        const handleRefresh = () => {
+            // The hook handles internal state, but if we needed to force re-render/re-fetch
+            // we could expose a refresh method from the hook.
+            // For now, React state updates in the hook will trigger re-render automatically if cache updates.
+        };
         window.addEventListener('nizamy-refresh-prayer', handleRefresh);
         return () => window.removeEventListener('nizamy-refresh-prayer', handleRefresh);
-    }, [loadData]);
+    }, []);
 
     useEffect(() => {
         if (!prayerData) return;
@@ -97,24 +47,38 @@ export const PrayerWidget: React.FC = () => {
 
     useEffect(() => {
         if (!targetDate) return;
-
         const tick = () => {
             const now = new Date().getTime();
             const diff = targetDate.getTime() - now;
-
             if (diff <= 0) {
                 setTimeLeft("00:00:00");
-                loadData(false); 
+                // Optional: trigger refresh logic
             } else {
                 setTimeLeft(formatTimeLeft(diff));
             }
         };
-
         tick();
         const timerId = setInterval(tick, 1000);
-
         return () => clearInterval(timerId);
-    }, [targetDate, loadData]);
+    }, [targetDate]);
+
+    // --- VISUAL LOGIC ---
+    const theme = useMemo(() => {
+        const base = { gradient: 'from-slate-900 to-black', accent: 'text-slate-300', iconColor: 'text-slate-700' };
+
+        if (!nextPrayerName) return base;
+        
+        const map: Record<string, { gradient: string, accent: string, iconColor: string }> = {
+            'Subuh': { gradient: 'from-slate-900 to-indigo-950', accent: 'text-indigo-400', iconColor: 'text-indigo-900' },
+            'Syuruq': { gradient: 'from-slate-900 to-slate-800', accent: 'text-orange-400', iconColor: 'text-orange-900' },
+            'Dzuhur': { gradient: 'from-slate-900 to-sky-950', accent: 'text-sky-400', iconColor: 'text-sky-900' },
+            'Ashar': { gradient: 'from-slate-900 to-slate-950', accent: 'text-amber-400', iconColor: 'text-amber-900' },
+            'Maghrib': { gradient: 'from-slate-900 to-purple-950', accent: 'text-purple-400', iconColor: 'text-purple-900' },
+            'Isya': { gradient: 'from-slate-900 to-black', accent: 'text-slate-400', iconColor: 'text-slate-800' },
+        };
+
+        return map[nextPrayerName] || base;
+    }, [nextPrayerName]);
 
     const PRAYER_LIST = [
         { key: 'Fajr', label: 'Subuh' },
@@ -125,55 +89,79 @@ export const PrayerWidget: React.FC = () => {
     ];
 
     if (loading && !prayerData) return (
-        <div className="w-full h-24 bg-white dark:bg-slate-800 rounded-3xl animate-pulse shadow-sm border border-slate-100 dark:border-slate-700"></div>
+        <div className="w-full h-36 bg-slate-100 dark:bg-slate-800 rounded-2xl animate-pulse shadow-sm border border-slate-200 dark:border-slate-700"></div>
     );
 
     if (!prayerData) return null;
 
     return (
-        <div className="relative w-full bg-white dark:bg-slate-800 rounded-3xl shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] border border-slate-100 dark:border-slate-700 overflow-hidden">
-            {/* Compact Padding */}
-            <div className="px-5 py-4">
+        <div className={`relative w-full rounded-2xl shadow-xl overflow-hidden group border border-slate-200 dark:border-slate-800 bg-slate-900 text-white`}>
+            
+            {/* Atmospheric Background Gradient */}
+            <div className={`absolute inset-0 bg-linear-to-br ${theme.gradient} transition-all duration-1000 ease-in-out`}></div>
+            
+            {/* Noise Texture */}
+            <div className="absolute inset-0 opacity-20 pointer-events-none mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
+            
+            {/* Content Container */}
+            <div className="relative z-card px-8 py-7 md:px-10 md:py-8">
                 
-                {/* Header: Location & Hijri - Single Line */}
-                <div className="flex justify-between items-center mb-3">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400">
-                        <div  className="text-indigo-500" ><FaMapMarkerAlt/></div>
-                        <span className="truncate max-w-[120px]">{locationName}</span>
+                {/* Top Row */}
+                <div className="flex justify-between items-start mb-6">
+                    <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2 text-[10px] font-bold text-slate-300 bg-white/5 w-fit px-3 py-1.5 rounded-lg backdrop-blur-md border border-white/5 tracking-wide">
+                            <span className="icon-wrapper w-3 h-3"><FaMapMarkerAlt /></span>
+                            <span className="truncate max-w-[150px] uppercase">{locationName}</span>
+                        </div>
+                        <div className="text-[10px] font-medium text-slate-400 pl-1 mt-0.5 tracking-wide">
+                            {prayerData.date.hijri.day} {prayerData.date.hijri.month.en} {prayerData.date.hijri.year}
+                        </div>
                     </div>
-                    <div className="text-[10px] font-medium text-slate-400 bg-slate-100 dark:bg-slate-700/50 px-2 py-0.5 rounded-full">
-                        {prayerData.date.hijri.day} {prayerData.date.hijri.month.en} {prayerData.date.hijri.year}
+                    
+                    <div className="flex items-center gap-2">
+                        <div className="flex bg-black/20 rounded-xl p-1.5 backdrop-blur-sm border border-white/5">
+                            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs text-slate-400 hover:text-white hover:bg-white/10 transition-colors" title="Arah Kiblat">
+                                <span className="icon-wrapper w-4 h-4"><FaCompass /></span>
+                            </div>
+                            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs text-slate-400 hover:text-white hover:bg-white/10 transition-colors" title="Kalender Sholat">
+                                <span className="icon-wrapper w-4 h-4"><FaCalendarAlt /></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                {/* Hero: Countdown & Next Prayer */}
-                <div className="flex items-center justify-between mb-4">
+                {/* Hero */}
+                <div className="flex items-end justify-between mb-8">
                     <div>
-                        <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-0.5">
-                            Menuju {nextPrayerName}
-                        </p>
-                        <h2 className="text-3xl md:text-4xl font-black tracking-tight font-mono tabular-nums text-slate-800 dark:text-white">
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className={`text-xs font-bold uppercase tracking-[0.2em] ${theme.accent}`}>
+                                Menuju {nextPrayerName}
+                            </span>
+                            <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${theme.accent.replace('text-', 'bg-')}`}></span>
+                        </div>
+                        <h2 className="text-5xl md:text-6xl font-medium tracking-tighter font-sans tabular-nums leading-none text-white drop-shadow-lg">
                             {timeLeft}
                         </h2>
                     </div>
-                    <div className="w-10 h-10 bg-indigo-50 dark:bg-indigo-900/30 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400 animate-pulse">
-                        <FaClock />
+                    
+                    <div className={`text-6xl md:text-7xl opacity-80 group-hover:scale-110 transition-transform duration-700 ${theme.iconColor}`}>
+                        <span className="icon-wrapper w-20 h-20 flex items-center justify-center"><FaClock /></span>
                     </div>
                 </div>
 
-                {/* Footer: Compact Prayer Grid */}
-                <div className="grid grid-cols-5 gap-1 border-t border-slate-100 dark:border-slate-700 pt-3">
+                {/* Footer Grid */}
+                <div className="grid grid-cols-5 gap-3 border-t border-white/5 pt-6">
                     {PRAYER_LIST.map((p) => {
                         const time = prayerData.timings[p.key as keyof typeof prayerData.timings];
                         const isActive = nextPrayerName === p.label;
                         
                         return (
-                            <div key={p.key} className={`flex flex-col items-center justify-center p-1 rounded-lg transition-colors ${isActive ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}`}>
-                                <span className={`text-[9px] font-bold uppercase mb-0.5 ${isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`}>
+                            <div key={p.key} className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-300 ${isActive ? 'bg-white/10 backdrop-blur-md border border-white/10 shadow-lg scale-105' : 'opacity-40 hover:opacity-70'}`}>
+                                <span className={`text-[9px] uppercase mb-1 tracking-wider ${isActive ? theme.accent : 'text-slate-400'}`}>
                                     {p.label}
                                 </span>
-                                <span className={`text-xs font-bold ${isActive ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-400'}`}>
-                                    {time}
+                                <span className={`text-xs font-sans ${isActive ? 'font-bold text-white' : 'font-medium text-slate-300'}`}>
+                                    {time.split(' ')[0]}
                                 </span>
                             </div>
                         );

@@ -40,14 +40,15 @@ const SectionTitle: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 const TermsContent = () => (
     <div className="space-y-3">
         <p className="text-xs text-slate-500">Terakhir Diperbarui: November 2025</p>
-        <p>Selamat datang di <strong>NIZAMY</strong>. Aplikasi ini menyediakan alat bantu ibadah (Kalkulator Zakat, Waris, Hafalan Quran, dan Klinik Finansial). Dengan menggunakan aplikasi ini, Anda menyetujui ketentuan berikut:</p>
+        <p>Selamat datang di <strong>NIZAMY</strong>. Aplikasi ini menyediakan alat bantu ibadah (Kalkulator Zakat, Waris, Hafalan Quran, Jadwal Sholat, dan Klinik Finansial). Dengan menggunakan aplikasi ini, Anda menyetujui ketentuan berikut:</p>
 
         <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg border border-amber-200 dark:border-amber-800 my-4 text-xs md:text-sm">
             <SectionTitle>1. Penafian Penting (Important Disclaimer)</SectionTitle>
             <ul className="list-disc pl-5 space-y-2 text-amber-900 dark:text-amber-100 mt-2">
                 <li><strong>Alat Bantu, Bukan Fatwa:</strong> Semua hasil perhitungan dan diagnosa dalam aplikasi ini adalah <strong>estimasi</strong> berdasarkan algoritma dan kaidah umum (Jumhur Ulama). Hasil ini <strong>TIDAK</strong> menggantikan fatwa resmi ulama, keputusan pengadilan agama, atau nasihat hukum profesional.</li>
                 <li><strong>Tanggung Jawab Pengguna:</strong> Anda bertanggung jawab penuh atas keakuratan data yang dimasukkan dan keputusan (finansial/hukum) yang diambil berdasarkan hasil aplikasi. Kami tidak bertanggung jawab atas kerugian yang timbul.</li>
-                <li><strong>Verifikasi Wajib:</strong> Untuk kasus sensitif seperti pembagian waris yang kompleks, sengketa harta, atau keputusan besar (resign kerja/jual aset), <strong>WAJIB</strong> berkonsultasi langsung (Talaqqi) dengan ahli ilmu terpercaya.</li>
+                <li><strong>Akurasi Kompas & Jadwal:</strong> Fitur Arah Kiblat sangat bergantung pada kualitas sensor perangkat Anda. Interferensi magnetik dapat menyebabkan penyimpangan. Jadwal sholat mungkin memiliki selisih waktu 1-2 menit (ihtiyati) dengan masjid setempat.</li>
+                <li><strong>Verifikasi Wajib:</strong> Untuk kasus sensitif seperti pembagian waris yang kompleks, sengketa harta, atau penentuan arah kiblat bangunan permanen, <strong>WAJIB</strong> berkonsultasi langsung dengan ahli ilmu terpercaya.</li>
             </ul>
         </div>
 
@@ -60,13 +61,16 @@ const TermsContent = () => (
                 <strong>Kalkulator Zakat:</strong> Perhitungan menggunakan asumsi harga emas/beras standar pasar. Pengguna disarankan menyesuaikan dengan harga aktual di daerah masing-masing saat pembayaran.
             </li>
             <li>
+                <strong>Jadwal Sholat & Kiblat:</strong> Menggunakan metode perhitungan Kemenag RI (untuk wilayah Indonesia). Akurasi kompas bersifat estimasi; pengguna disarankan melakukan kalibrasi (gerakan angka 8) sebelum penggunaan dan menjauhkan HP dari benda magnetik/besi.
+            </li>
+            <li>
                 <strong>Klinik Finansial (Audit Finansial):</strong> Fitur ini adalah alat <em>self-assessment</em> (diagnosa mandiri). Status "Kritis", "Syubhat", atau "Aman" adalah indikator teknis sistem, bukan vonis hukum syara' mutlak terhadap individu.
             </li>
             <li>
                 <strong>Al-Quran & Hafalan:</strong> Teks ayat diambil dari API publik. Jika menemukan kesalahan penulisan, mohon merujuk pada Mushaf Utsmani cetak. Fitur audio streaming menggunakan kuota data internet Anda.
             </li>
             <li>
-                <strong>Perintah Suara (Voice Command):</strong> Fitur ini menggunakan teknologi pengenalan suara (Web Speech API). Kami tidak bertanggung jawab atas kesalahan interpretasi suara oleh sistem (misal: salah dengar nominal). Pengguna wajib memverifikasi ulang data yang terisi otomatis sebelum melakukan perhitungan.
+                <strong>Perintah Suara (Voice Command):</strong> Fitur ini menggunakan teknologi pengenalan suara (Web Speech API). Kami tidak bertanggung jawab atas kesalahan interpretasi suara oleh sistem. Pengguna wajib memverifikasi ulang data yang terisi otomatis.
             </li>
         </ul>
 
@@ -105,9 +109,10 @@ const PrivacyContent = () => (
         <SectionTitle>2. Pengumpulan Data Teknis & Izin</SectionTitle>
         <p>Kami hanya mengakses data teknis yang diperlukan untuk fungsi aplikasi:</p>
         <ul className="list-disc pl-5 space-y-1">
-            <li><strong>Lokasi (GPS):</strong> Hanya diminta sesaat untuk menghitung jadwal sholat akurat. Koordinat tidak dikirim ke server kami.</li>
-            <li><strong>Mikrofon:</strong> Hanya diakses saat Anda mengaktifkan fitur Voice Command. Audio diproses langsung oleh <em>browser engine</em> dan tidak kami rekam atau simpan di server NIZAMY.</li>
-            <li><strong>IP Address:</strong> Mungkin tercatat secara otomatis oleh penyedia layanan pihak ketiga (seperti CDN Audio Quran) saat Anda memutar audio streaming.</li>
+            <li><strong>Lokasi (GPS):</strong> Hanya diminta sesaat untuk menghitung jadwal sholat akurat sesuai posisi geografis Anda. Koordinat tidak dikirim ke server kami, melainkan langsung ke API perhitungan waktu.</li>
+            <li><strong>Sensor Gerak (Magnetometer/Orientation):</strong> Diakses hanya saat Anda membuka halaman "Arah Kiblat" untuk menggerakkan jarum kompas. Data gerakan diproses secara real-time dan tidak direkam.</li>
+            <li><strong>Mikrofon:</strong> Hanya diakses saat Anda mengaktifkan fitur Voice Command. Audio diproses langsung oleh <em>browser engine</em> dan tidak kami rekam.</li>
+            <li><strong>IP Address:</strong> Mungkin tercatat secara otomatis oleh penyedia layanan pihak ketiga (seperti CDN Audio Quran) saat Anda memutar audio streaming untuk keperluan teknis pengiriman data.</li>
         </ul>
 
         <SectionTitle>3. Layanan Pihak Ketiga</SectionTitle>
@@ -115,6 +120,7 @@ const PrivacyContent = () => (
         <ul className="list-disc pl-5 space-y-1">
             <li><strong>Web Speech API (Google/Apple/Browser Vendor):</strong> Saat menggunakan Voice Command, data suara Anda mungkin dikirim ke server penyedia browser untuk diubah menjadi teks (Speech-to-Text).</li>
             <li><strong>Aladhan & Quran.com API:</strong> Untuk data jadwal sholat dan teks ayat.</li>
+            <li><strong>BigDataCloud API:</strong> Untuk mendeteksi nama kota dari koordinat GPS Anda (Reverse Geocoding).</li>
         </ul>
 
         <SectionTitle>4. Keamanan & Kehilangan Data</SectionTitle>

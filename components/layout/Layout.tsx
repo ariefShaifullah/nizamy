@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 // @ts-ignore
 import { useLocation, useNavigate, Link } from 'react-router-dom';
@@ -42,6 +41,9 @@ export const Header: React.FC = () => {
     } else if (location.pathname.includes('/amal')) {
         titleColor = 'text-emerald-600 dark:text-emerald-400';
         subtitle = 'Amal Yaumi Tracker';
+    } else if (location.pathname.includes('/sholat')) {
+        titleColor = 'text-indigo-600 dark:text-indigo-400';
+        subtitle = 'Jadwal Sholat & Kiblat';
     }
 
     const logoBgClass = titleColor.replace(/text-/g, 'bg-');

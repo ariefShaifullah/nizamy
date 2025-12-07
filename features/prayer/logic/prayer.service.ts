@@ -1,8 +1,7 @@
-
 import type { PrayerData, PrayerTimes } from "../../../types.ts";
 
-const PRAYER_CACHE_KEY = 'nizamy_prayer_cache';
-const LOCATION_CACHE_KEY = 'nizamy_user_location';
+export const PRAYER_CACHE_KEY = 'nizamy_prayer_cache';
+export const CALENDAR_CACHE_KEY = 'nizamy_prayer_calendar_cache';
 
 interface CachedPrayerData {
     data: PrayerData;
@@ -10,12 +9,15 @@ interface CachedPrayerData {
     city: string;
 }
 
-// Default location: Istiqlal Mosque, Jakarta
-const DEFAULT_COORDS = {
-    latitude: -6.1702,
-    longitude: 106.8314,
-    city: "Jakarta Pusat"
-};
+interface CachedCalendarData {
+    data: PrayerData[];
+    month: string; // MM-YYYY
+    city: string;
+}
+
+// KAABA COORDINATES
+const KAABA_LAT = 21.422487;
+const KAABA_LNG = 39.826206;
 
 export const getCoordinates = (): Promise<{ latitude: number; longitude: number }> => {
     return new Promise((resolve, reject) => {
@@ -49,9 +51,6 @@ export const fetchCityName = async (lat: number, lng: number): Promise<string> =
         if (!response.ok) return "Lokasi Anda";
 
         const data = await response.json();
-        
-        // Prioritize Locality (Kecamatan/Kota) -> City -> PrincipalSubdivision (Provinsi)
-        // Data structure typically has: locality, city, principalSubdivision
         return data.locality || data.city || data.principalSubdivision || "Lokasi Terdeteksi";
     } catch (error) {
         console.error("Reverse geocoding failed:", error);
@@ -65,7 +64,6 @@ export const fetchPrayerTimes = async (lat: number, lng: number): Promise<Prayer
         const dateStr = `${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`;
         
         // METHOD 20: Kemenag Indonesia
-        // https://api.aladhan.com/v1/timings/DD-MM-YYYY?latitude=...&longitude=...&method=20
         const url = `https://api.aladhan.com/v1/timings/${dateStr}?latitude=${lat}&longitude=${lng}&method=20`;
         
         const response = await fetch(url);
@@ -78,6 +76,37 @@ export const fetchPrayerTimes = async (lat: number, lng: number): Promise<Prayer
     } catch (error) {
         console.error("Error fetching prayer times:", error);
         return null;
+    }
+};
+
+export const fetchPrayerCalendar = async (lat: number, lng: number, month: number, year: number): Promise<PrayerData[]> => {
+    const cacheKey = `${CALENDAR_CACHE_KEY}_${month}_${year}`;
+    
+    // Note: We don't check cache here anymore to enforce network freshness when called explicitly,
+    // The hook manages the initial cache load.
+
+    try {
+        const url = `https://api.aladhan.com/v1/calendar/${year}/${month}?latitude=${lat}&longitude=${lng}&method=20`;
+        const response = await fetch(url);
+        const json = await response.json();
+
+        if (json.code === 200 && Array.isArray(json.data)) {
+            const data = json.data as PrayerData[];
+            
+            // Cache it
+            const cacheObj: CachedCalendarData = {
+                data,
+                month: `${month}-${year}`,
+                city: 'Unknown'
+            };
+            localStorage.setItem(cacheKey, JSON.stringify(cacheObj));
+            
+            return data;
+        }
+        return [];
+    } catch (error) {
+        console.error("Error fetching calendar:", error);
+        return [];
     }
 };
 
@@ -99,6 +128,20 @@ export const getCachedPrayerData = (): CachedPrayerData | null => {
     return null;
 };
 
+// NEW: Helper to get calendar cache synchronously
+export const getCalendarCache = (month: number, year: number): PrayerData[] | null => {
+    const cacheKey = `${CALENDAR_CACHE_KEY}_${month}_${year}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (!cached) return null;
+    
+    try {
+        const parsed = JSON.parse(cached) as CachedCalendarData;
+        return parsed.data;
+    } catch (e) {
+        return null;
+    }
+};
+
 export const savePrayerCache = (data: PrayerData, city: string) => {
     const today = new Date().toISOString().split('T')[0];
     const cache: CachedPrayerData = {
@@ -107,6 +150,27 @@ export const savePrayerCache = (data: PrayerData, city: string) => {
         city
     };
     localStorage.setItem(PRAYER_CACHE_KEY, JSON.stringify(cache));
+};
+
+// --- QIBLA CALCULATION ---
+// Calculate bearing from coordinate A to coordinate B
+export const calculateQiblaDirection = (lat: number, lng: number): number => {
+    const toRad = (deg: number) => deg * (Math.PI / 180);
+    const toDeg = (rad: number) => rad * (180 / Math.PI);
+
+    const lat1 = toRad(lat);
+    const lon1 = toRad(lng);
+    const lat2 = toRad(KAABA_LAT);
+    const lon2 = toRad(KAABA_LNG);
+
+    const dLon = lon2 - lon1;
+
+    const y = Math.sin(dLon) * Math.cos(lat2);
+    const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+
+    let bearing = toDeg(Math.atan2(y, x));
+    // Normalize to 0-360
+    return (bearing + 360) % 360;
 };
 
 // --- UTILS FOR COUNTDOWN ---

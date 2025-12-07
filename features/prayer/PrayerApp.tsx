@@ -1,0 +1,84 @@
+
+import React, { useState } from 'react';
+import { usePrayerSchedule } from './hooks/usePrayerSchedule.ts';
+import type { PrayerData } from '../../types.ts';
+import { QiblaCompass } from './components/QiblaCompass.tsx';
+import { PrayerCalendar } from './components/PrayerCalendar.tsx';
+import { FaCompass, FaCalendarAlt, FaMapMarkerAlt, FaSpinner } from 'react-icons/fa';
+
+type Tab = 'calendar' | 'qibla';
+
+const PrayerApp: React.FC = () => {
+    const [activeTab, setActiveTab] = useState<Tab>('calendar');
+    
+    // USE NEW HOOK: Mode 'monthly' (Loads array of data)
+    // Hook automatically syncs 'today' data to Widget cache
+    const { data: calendarData, locationName, coords, loading } = usePrayerSchedule<PrayerData[]>('monthly');
+    
+    // LIFTED STATE: Compass Permission
+    const [compassPermission, setCompassPermission] = useState(false);
+    
+    const monthLabel = new Date().toLocaleDateString('id-ID', { month: 'short', year: 'numeric' });
+
+    return (
+        <div className="min-h-screen pb-24 max-w-4xl mx-auto animate-fade-in px-4 md:px-6">
+            
+            {/* Header Card */}
+            <div className="bg-linear-to-br from-slate-800 to-slate-900 rounded-3xl p-6 md:p-8 text-white shadow-xl mb-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
+                    <FaCompass size={150} />
+                </div>
+                
+                <div className="relative z-raised">
+                    <h1 className="text-2xl md:text-3xl font-bold mb-2">Jadwal Sholat & Kiblat</h1>
+                    <div className="flex items-center gap-2 text-slate-300 text-sm font-medium bg-white/10 w-fit px-3 py-1.5 rounded-full backdrop-blur-md">
+                        {loading ? (
+                            <span className="animate-spin block"><FaSpinner /></span>
+                        ) : (
+                            <span className="text-red-400 block"><FaMapMarkerAlt /></span>
+                        )}
+                        {locationName}
+                    </div>
+                </div>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl mb-8 shadow-sm">
+                <button 
+                    onClick={() => setActiveTab('calendar')}
+                    className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all ${activeTab === 'calendar' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
+                >
+                    <span className="icon-wrapper w-4 h-4"><FaCalendarAlt /></span>
+                    <span>{monthLabel}</span>
+                </button>
+                <button 
+                    onClick={() => setActiveTab('qibla')}
+                    className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all ${activeTab === 'qibla' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
+                >
+                    <span className="icon-wrapper w-4 h-4"><FaCompass /></span>
+                    <span>Arah Kiblat</span>
+                </button>
+            </div>
+
+            {/* Content */}
+            <div className="min-h-[400px]">
+                {activeTab === 'calendar' ? (
+                    <PrayerCalendar data={calendarData || []} monthLabel={monthLabel} />
+                ) : (
+                    <div className="animate-fade-in-up">
+                        {coords && (
+                            <QiblaCompass 
+                                latitude={coords.lat} 
+                                longitude={coords.lng}
+                                hasPermission={compassPermission}
+                                onPermissionGranted={() => setCompassPermission(true)}
+                            />
+                        )}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+export default PrayerApp;

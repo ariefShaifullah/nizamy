@@ -16,6 +16,7 @@ const HafalanTracker = React.lazy(() => import('./features/hafalan/HafalanTracke
 const MushafApp = React.lazy(() => import('./features/mushaf/MushafApp.tsx'));
 const HedeApp = React.lazy(() => import('./features/hede/HedeApp.tsx'));
 const AmalYaumiApp = React.lazy(() => import('./features/amal/AmalYaumiApp.tsx'));
+const PrayerApp = React.lazy(() => import('./features/prayer/PrayerApp.tsx'));
 
 // Loading Fallback Component
 const PageLoader = () => (
@@ -78,14 +79,15 @@ const AppContent = () => {
       if (path.includes('/mushaf')) return `${base} selection:bg-teal-200 selection:text-teal-900`;
       if (path.includes('/hede')) return `${base} selection:bg-purple-200 selection:text-purple-900`;
       if (path.includes('/amal')) return `${base} selection:bg-emerald-200 selection:text-emerald-900`;
+      if (path.includes('/sholat')) return `${base} selection:bg-indigo-200 selection:text-indigo-900`;
       
       return base;
   }, [location.pathname]);
 
-  // Reduced top padding from 8rem to 6rem for better vertical alignment
+  // Reduced top padding from 8rem to 5rem for better vertical alignment
   const mainPaddingClass = location.pathname === '/' 
     ? 'flex-grow' 
-    : 'container mx-auto px-4 py-4 md:py-8 flex-grow pt-[calc(6rem+env(safe-area-inset-top))] md:pt-[calc(6rem+env(safe-area-inset-top))]';
+    : 'container mx-auto px-4 py-4 md:py-8 flex-grow pt-[calc(5rem+env(safe-area-inset-top))] md:pt-[calc(5rem+env(safe-area-inset-top))]';
 
   return (
     <div className={layoutClass}>
@@ -117,6 +119,7 @@ const AppContent = () => {
             <Route path="/mushaf" element={<MushafApp />} />
             <Route path="/hede" element={<HedeApp />} />
             <Route path="/amal" element={<AmalYaumiApp />} />
+            <Route path="/sholat" element={<PrayerApp />} />
             <Route path="*" element={<Home />} /> {/* Fallback */}
           </Routes>
         </Suspense>

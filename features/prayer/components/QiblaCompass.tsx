@@ -22,7 +22,7 @@ export const QiblaCompass: React.FC<QiblaCompassProps> = ({
     // Bearing statis ke Ka'bah (misal: 295 derajat dari Utara)
     const [qiblaBearing, setQiblaBearing] = useState(0);
     
-    // Heading HP saat ini (0-360)
+    // Heading HP saat ini (Bisa minus atau > 360 demi animasi smooth)
     const [compassHeading, setCompassHeading] = useState(0);
     
     const [isSupported, setIsSupported] = useState(true);
@@ -49,7 +49,7 @@ export const QiblaCompass: React.FC<QiblaCompassProps> = ({
             heading = 360 - event.alpha;
         }
 
-        // Smooth rotation logic
+        // Smooth rotation logic (Preserves >360 or <0 for animation continuity)
         setCompassHeading(prev => {
             const diff = heading - prev;
             if (diff > 180) return prev + diff - 360;
@@ -98,7 +98,16 @@ export const QiblaCompass: React.FC<QiblaCompassProps> = ({
         }
     };
 
-    const isAligned = Math.abs(compassHeading - qiblaBearing) < 5;
+    // --- LOGIC CORRECTION: NORMALIZE ANGLES ---
+    // 1. Normalize Heading to 0-360 for Display & Logic
+    const normalizedHeading = (compassHeading % 360 + 360) % 360;
+
+    // 2. Calculate Shortest Angular Difference (0-180)
+    // Avoids issue where 359 and 1 have a difference of 358 instead of 2
+    let angleDiff = Math.abs(normalizedHeading - qiblaBearing);
+    if (angleDiff > 180) angleDiff = 360 - angleDiff;
+
+    const isAligned = angleDiff < 5; // Threshold 5 degrees
 
     // --- RENDER HELPERS ---
     
@@ -121,14 +130,14 @@ export const QiblaCompass: React.FC<QiblaCompassProps> = ({
     }
 
     return (
-        // VIEWPORT BREAKOUT STRATEGY:
-        // relative left-1/2 -translate-x-1/2: Centers the div relative to the viewport/body
-        // w-screen: Forces full screen width, ignoring parent padding
-        // overflow-hidden: Ensures shadows clip exactly at screen edges
-        <div className="relative left-1/2 -translate-x-1/2 w-screen overflow-hidden py-24 flex flex-col items-center justify-center">
+        // BREAKOUT CONTAINER:
+        // w-[calc(100%+2rem)] & -ml-4 compensates for parent px-4 padding
+        // overflow-hidden cuts off the shadow exactly at screen edge (no scroll)
+        // py-24 ensures vertical shadow isn't cut off
+        <div className="relative w-[calc(100%+2rem)] -ml-4 md:w-full md:ml-0 md:static overflow-hidden py-24 md:py-12 flex flex-col items-center justify-center">
             
             {/* Background Glow */}
-            <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[90vw] aspect-square rounded-full blur-[80px] transition-colors duration-1000 pointer-events-none -z-10 ${isAligned ? 'bg-emerald-500/20' : 'bg-indigo-500/10'}`}></div>
+            <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[80vw] aspect-square rounded-full blur-[60px] transition-colors duration-1000 pointer-events-none -z-10 ${isAligned ? 'bg-emerald-500/20' : 'bg-indigo-500/10'}`}></div>
 
             {/* Permission Gate */}
             {!hasPermission ? (
@@ -154,7 +163,7 @@ export const QiblaCompass: React.FC<QiblaCompassProps> = ({
                     </div>
 
                     {/* COMPASS COMPONENT */}
-                    {/* Use vw units for responsive sizing that respects screen width */}
+                    {/* Width 85vw ensures it fills screen but leaves tiny breathing room, Aspect Square keeps it round */}
                     <div className="relative w-[85vw] max-w-[360px] aspect-square mx-auto">
                         
                         {/* 1. STATIC TARGET LINE (HP Heading) */}
@@ -242,7 +251,7 @@ export const QiblaCompass: React.FC<QiblaCompassProps> = ({
                         <div className="inline-flex items-center gap-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-700">
                             <div>
                                 <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Arah Anda</p>
-                                <p className="text-xl font-mono font-bold text-slate-700 dark:text-slate-200">{Math.round(compassHeading)}°</p>
+                                <p className="text-xl font-mono font-bold text-slate-700 dark:text-slate-200">{Math.round(normalizedHeading)}°</p>
                             </div>
                             <div className="w-px h-8 bg-slate-200 dark:bg-slate-600"></div>
                             <div>

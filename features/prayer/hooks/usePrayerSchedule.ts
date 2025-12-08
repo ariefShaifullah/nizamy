@@ -1,7 +1,6 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { 
-    getCoordinates, 
     fetchCityName, 
     fetchPrayerTimes, 
     fetchPrayerCalendar, 
@@ -28,12 +27,21 @@ interface UsePrayerScheduleResult<T> {
     resetToToday: () => void;
 }
 
+// Helper to prevent re-fetching if location changed minimally (approx < 1-2km)
+const areCoordsSignificant = (oldCoords: { lat: number; lng: number } | null, newCoords: { lat: number; lng: number }) => {
+    if (!oldCoords) return true;
+    const diffLat = Math.abs(oldCoords.lat - newCoords.lat);
+    const diffLng = Math.abs(oldCoords.lng - newCoords.lng);
+    // 0.01 degrees is roughly 1.1km
+    return diffLat > 0.01 || diffLng > 0.01;
+};
+
 export const usePrayerSchedule = <T extends PrayerData | PrayerData[]>(
     mode: ScheduleMode
 ): UsePrayerScheduleResult<T> => {
     const { showToast } = useToast();
     const [data, setData] = useState<T | null>(null);
-    const [locationName, setLocationName] = useState("Memuat lokasi...");
+    const [locationName, setLocationName] = useState("Menunggu Lokasi...");
     const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -66,22 +74,70 @@ export const usePrayerSchedule = <T extends PrayerData | PrayerData[]>(
         setCurrentDate(new Date());
     }, []);
 
+    // 1. LOCATION WATCHER EFFECT
+    // Automatically updates coords when GPS becomes available or changes significantly
+    useEffect(() => {
+        if (!navigator.geolocation) {
+            // Fallback if not supported
+            setCoords({ lat: -6.1702, lng: 106.8314 }); 
+            showToast("GPS tidak didukung browser ini.", "error");
+            return;
+        }
+
+        const geoId = navigator.geolocation.watchPosition(
+            (position) => {
+                const newCoords = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                
+                setCoords(prevCoords => {
+                    // Only update state if change is significant to trigger data refetch
+                    if (areCoordsSignificant(prevCoords, newCoords)) {
+                        return newCoords;
+                    }
+                    return prevCoords;
+                });
+            },
+            (err) => {
+                console.warn("GPS Watch Error:", err);
+                setCoords(prev => {
+                    // Only set fallback if we strictly have NO coords yet.
+                    // This prevents overriding valid coords if GPS signal is temporarily lost.
+                    if (!prev) {
+                        // Default: Jakarta (Istiqlal)
+                        return { lat: -6.1702, lng: 106.8314 };
+                    }
+                    return prev;
+                });
+                
+                if (err.code === 1) { // Permission Denied
+                     // Silent fail or subtle toast, don't spam
+                }
+            },
+            { 
+                enableHighAccuracy: false, // Low power is fine for city-level accuracy
+                timeout: 10000, 
+                maximumAge: 60000 
+            }
+        );
+
+        return () => navigator.geolocation.clearWatch(geoId);
+    }, []); // Empty dependency: Run once on mount to start watcher
+
+    // 2. DATA FETCHER EFFECT
+    // Runs whenever coords update (reactive) or navigation changes
     useEffect(() => {
         let isMounted = true;
 
         const fetchData = async () => {
-            const today = new Date(); // Actual today
-            
-            // Check if we are viewing the current actual month/day
+            const today = new Date(); 
             const isViewingCurrentPeriod = 
                 currentDate.getMonth() === today.getMonth() && 
                 currentDate.getFullYear() === today.getFullYear();
 
+            // Try Cache first (Instant Load)
             let hasCache = false;
-            
-            // 1. OPTIMISTIC LOADING (CACHE FIRST STRATEGY)
-            // Only use cache if viewing current period (for daily) or if monthly cache exists
-            
             if (mode === 'daily' && isViewingCurrentPeriod) {
                 const cached = getCachedPrayerData();
                 if (cached) {
@@ -93,7 +149,6 @@ export const usePrayerSchedule = <T extends PrayerData | PrayerData[]>(
                     }
                 }
             } else if (mode === 'monthly') {
-                // Check Monthly Cache for the SELECTED month
                 const cachedCalendar = getCalendarCache(currentDate.getMonth() + 1, currentDate.getFullYear());
                 if (cachedCalendar && cachedCalendar.length > 0) {
                     if (isMounted) {
@@ -101,9 +156,8 @@ export const usePrayerSchedule = <T extends PrayerData | PrayerData[]>(
                         setLoading(false);
                         hasCache = true;
                         
-                        // Try to get cached city name from daily cache to avoid "Memuat lokasi..."
-                        // if we don't have it yet
-                        if (locationName === "Memuat lokasi..." || locationName === "Gagal memuat") {
+                        // Try to restore cached city name if strictly unknown
+                        if (locationName === "Menunggu Lokasi..." || locationName === "Gagal memuat") {
                              const dailyCache = getCachedPrayerData();
                              if (dailyCache) setLocationName(dailyCache.city);
                         }
@@ -111,46 +165,27 @@ export const usePrayerSchedule = <T extends PrayerData | PrayerData[]>(
                 }
             }
 
-            // Jika cache tidak ditemukan, set loading true (karena kita butuh GPS/Network)
-            if (!hasCache && isMounted) {
+            // Only show loading if we don't have cache AND we have coords to fetch with
+            if (!hasCache && coords && isMounted) {
                 setLoading(true);
             }
             
+            // Wait for coords to be available (from watcher or fallback)
+            if (!coords) return; 
+
             setError(null);
 
-            // 2. NETWORK REFRESH
             try {
-                // Get Coordinates
-                // Use cached coords if available to save battery/time on month switch
-                let lat = coords?.lat;
-                let lng = coords?.lng;
+                const { lat, lng } = coords;
 
-                if (!lat || !lng) {
-                    try {
-                        const pos = await getCoordinates();
-                        lat = pos.latitude;
-                        lng = pos.longitude;
-                    } catch (gpsError) {
-                        console.warn("GPS failed, using fallback (Jakarta)", gpsError);
-                        if (!hasCache && isViewingCurrentPeriod) showToast("GPS tidak aktif. Menggunakan lokasi Jakarta.", "info");
-                        lat = -6.1702;
-                        lng = 106.8314;
-                    }
-                }
-
-                if (!isMounted) return;
-                setCoords({ lat, lng });
-
-                // 3. Parallel Fetch (City Name & Data)
-                // Only fetch city if we don't have a good one yet
-                const fetchCity = locationName === "Memuat lokasi..." || locationName === "Gagal memuat";
-                const cityPromise = fetchCity ? fetchCityName(lat, lng) : Promise.resolve(locationName);
+                // Smart City Fetch: Only fetch if name is generic/unknown OR if coords changed significantly from cache
+                // For simplicity, we just check if it's default
+                const shouldFetchCity = locationName === "Menunggu Lokasi..." || locationName === "Gagal memuat" || locationName === "Lokasi Anda";
+                
+                const cityPromise = shouldFetchCity ? fetchCityName(lat, lng) : Promise.resolve(locationName);
                 
                 let dataPromise;
-                
                 if (mode === 'daily') {
-                    // Daily always fetches "today" relative to real time, 
-                    // but if we expanded this to support "selected date daily view", we'd use currentDate
                     dataPromise = fetchPrayerTimes(lat, lng);
                 } else {
                     dataPromise = fetchPrayerCalendar(lat, lng, currentDate.getMonth() + 1, currentDate.getFullYear());
@@ -161,15 +196,12 @@ export const usePrayerSchedule = <T extends PrayerData | PrayerData[]>(
                 if (!isMounted) return;
 
                 if (apiData) {
-                    // Update state with fresh data
                     setData(apiData as T);
                     setLocationName(city);
 
-                    // 4. SMART CACHE SYNC
                     if (mode === 'daily') {
                         savePrayerCache(apiData as PrayerData, city);
                     } else if (mode === 'monthly' && Array.isArray(apiData)) {
-                        // If fetching monthly AND it matches TODAY's month, update daily cache for widget
                         if (isViewingCurrentPeriod) {
                             const todayStr = today.toISOString().split('T')[0];
                             const todayData = (apiData as PrayerData[]).find(d => {
@@ -179,6 +211,7 @@ export const usePrayerSchedule = <T extends PrayerData | PrayerData[]>(
 
                             if (todayData) {
                                 savePrayerCache(todayData, city);
+                                // Broadcast event for widgets
                                 window.dispatchEvent(new CustomEvent('nizamy-refresh-prayer'));
                             }
                         }
@@ -203,7 +236,7 @@ export const usePrayerSchedule = <T extends PrayerData | PrayerData[]>(
         fetchData();
 
         return () => { isMounted = false; };
-    }, [mode, refreshTrigger, showToast, currentDate]); // added currentDate dependency
+    }, [coords, mode, refreshTrigger, currentDate]); // React to coords changes automatically
 
     return { 
         data, 

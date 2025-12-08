@@ -200,12 +200,21 @@ export const useNizamyVoice = () => {
         targetUrl = '/hede'; 
         responseText = "Membuka Klinik Finansial"; 
     }
-    // 6. Beranda
+    // 6. Sholat & Kiblat (NEW)
+    else if (lowerText.match(/kiblat|arah|kompas|qibla/)) {
+         targetUrl = '/sholat?tab=qibla';
+         responseText = "Membuka Kompas Kiblat";
+    }
+    else if (lowerText.match(/sholat|solat|jadwal|waktu/)) {
+         targetUrl = '/sholat?tab=calendar';
+         responseText = "Membuka Jadwal Sholat";
+    }
+    // 7. Beranda
     else if (lowerText.match(/beranda|home|depan|menu utama/)) { 
         targetUrl = '/'; 
         responseText = "Ke Beranda"; 
     }
-    // 7. Mushaf (Fallback)
+    // 8. Mushaf (Fallback)
     else {
         // Try parsing surah
         let rawQuery = lowerText.replace(/\b(buka|baca|surat|surah|ayat|qs|ke|yang|namanya)\b/g, '').trim();

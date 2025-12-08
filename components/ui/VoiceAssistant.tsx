@@ -21,7 +21,8 @@ const SUGGESTIONS_DB: Record<string, string[]> = {
     '/hafalan': [ "Buka Hafalan", "Cek progres", "Kembali ke beranda" ],
     '/hede': [ "Mulai diagnosa", "Cek halal haram", "Buka Klinik Finansial" ],
     '/amal': [ "Buka Amal Yaumi", "Catat ibadah", "Cek progres amal" ],
-    'default': [ "Hitung Zakat Emas", "Buka Surat Yasin", "Hitung Waris", "Buka Hafalan" ]
+    '/sholat': [ "Cek Arah Kiblat", "Buka Kompas", "Lihat Jadwal Sholat" ],
+    'default': [ "Buka Arah Kiblat", "Jadwal Sholat", "Hitung Zakat", "Buka Surat Yasin" ]
 };
 
 export const VoiceAssistant: React.FC<VoiceAssistantOverlayProps> = ({ 
@@ -44,6 +45,7 @@ export const VoiceAssistant: React.FC<VoiceAssistantOverlayProps> = ({
         if (path.includes('/hafalan')) return SUGGESTIONS_DB['/hafalan'];
         if (path.includes('/hede')) return SUGGESTIONS_DB['/hede'];
         if (path.includes('/amal')) return SUGGESTIONS_DB['/amal'];
+        if (path.includes('/sholat')) return SUGGESTIONS_DB['/sholat'];
         return SUGGESTIONS_DB['default'];
     }, [location.pathname]);
 
@@ -89,7 +91,7 @@ export const VoiceAssistant: React.FC<VoiceAssistantOverlayProps> = ({
     // Status Logic
     if (transcript) {
         title = transcript;
-        subtitle = "Ketuk gambar jika selesai bicara";
+        subtitle = "Ketuk bola jika selesai bicara";
     }
     
     if (status === 'processing') {
@@ -100,10 +102,10 @@ export const VoiceAssistant: React.FC<VoiceAssistantOverlayProps> = ({
         subtitle = "Mengalihkan...";
     } else if (status === 'error') {
         title = "Maaf, tidak jelas.";
-        subtitle = "Ketuk gambar untuk coba lagi";
+        subtitle = "Ketuk bola untuk coba lagi";
     } else if (status === 'standby') {
         title = "Mode Siaga";
-        subtitle = "Ketuk gambar untuk bicara lagi";
+        subtitle = "Ketuk bola untuk bicara lagi";
     }
 
     // Visual Style Config

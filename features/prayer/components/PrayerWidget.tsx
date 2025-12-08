@@ -1,9 +1,46 @@
-
 import React, { useEffect, useState, useMemo } from 'react';
 import type { PrayerData } from '../../../types.ts';
 import { getNextPrayer, formatTimeLeft } from '../logic/prayer.service.ts';
 import { usePrayerSchedule } from '../hooks/usePrayerSchedule.ts';
 import { FaMapMarkerAlt, FaClock, FaCompass, FaCalendarAlt } from 'react-icons/fa';
+
+// --- SKELETON COMPONENT ---
+const PrayerWidgetSkeleton = () => (
+    <div className="relative w-full rounded-2xl overflow-hidden bg-slate-200 dark:bg-slate-800 animate-pulse border border-slate-300 dark:border-slate-700">
+        <div className="relative z-10 px-8 py-7 md:px-10 md:py-8">
+            {/* Top Row Skeleton */}
+            <div className="flex justify-between items-start mb-6">
+                <div className="flex flex-col gap-2">
+                    <div className="h-6 w-32 bg-slate-300 dark:bg-slate-700 rounded-lg"></div>
+                    <div className="h-3 w-24 bg-slate-300 dark:bg-slate-700 rounded-md"></div>
+                </div>
+                <div className="flex gap-2">
+                    <div className="w-8 h-8 bg-slate-300 dark:bg-slate-700 rounded-lg"></div>
+                    <div className="w-8 h-8 bg-slate-300 dark:bg-slate-700 rounded-lg"></div>
+                </div>
+            </div>
+
+            {/* Hero Skeleton */}
+            <div className="flex items-end justify-between mb-8">
+                <div>
+                    <div className="h-4 w-28 bg-slate-300 dark:bg-slate-700 rounded-md mb-3"></div>
+                    <div className="h-12 w-48 md:w-64 bg-slate-300 dark:bg-slate-700 rounded-xl"></div>
+                </div>
+                <div className="w-20 h-20 bg-slate-300 dark:bg-slate-700 rounded-full opacity-50"></div>
+            </div>
+
+            {/* Footer Grid Skeleton */}
+            <div className="grid grid-cols-5 gap-3 border-t border-slate-300/50 dark:border-slate-700/50 pt-6">
+                {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="flex flex-col items-center gap-2">
+                        <div className="h-3 w-8 bg-slate-300 dark:bg-slate-700 rounded"></div>
+                        <div className="h-4 w-10 bg-slate-300 dark:bg-slate-700 rounded"></div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    </div>
+);
 
 export const PrayerWidget: React.FC = () => {
     // USE NEW HOOK: Mode 'daily'
@@ -11,7 +48,7 @@ export const PrayerWidget: React.FC = () => {
     
     const [targetDate, setTargetDate] = useState<Date | null>(null);
     const [nextPrayerName, setNextPrayerName] = useState<string | null>(null);
-    const [timeLeft, setTimeLeft] = useState<string>("00:00:00");
+    const [timeLeft, setTimeLeft] = useState<string>("--:--:--"); // Default safer than 00:00:00 to indicate loading
 
     // Listen for global refresh events (triggered by PrayerApp smart sync)
     useEffect(() => {
@@ -47,17 +84,26 @@ export const PrayerWidget: React.FC = () => {
 
     useEffect(() => {
         if (!targetDate) return;
+        
         const tick = () => {
             const now = new Date().getTime();
             const diff = targetDate.getTime() - now;
+            
+            // Safety check for NaN
+            if (isNaN(diff)) {
+                setTimeLeft("--:--:--");
+                return;
+            }
+
             if (diff <= 0) {
                 setTimeLeft("00:00:00");
-                // Optional: trigger refresh logic
+                // Optional: trigger refresh logic if needed
             } else {
                 setTimeLeft(formatTimeLeft(diff));
             }
         };
-        tick();
+        
+        tick(); // Immediate tick
         const timerId = setInterval(tick, 1000);
         return () => clearInterval(timerId);
     }, [targetDate]);
@@ -88,11 +134,8 @@ export const PrayerWidget: React.FC = () => {
         { key: 'Isha', label: 'Isya' },
     ];
 
-    if (loading && !prayerData) return (
-        <div className="w-full h-36 bg-slate-100 dark:bg-slate-800 rounded-2xl animate-pulse shadow-sm border border-slate-200 dark:border-slate-700"></div>
-    );
-
-    if (!prayerData) return null;
+    // Show Skeleton if loading OR data is missing
+    if (loading || !prayerData) return <PrayerWidgetSkeleton />;
 
     return (
         <div className={`relative w-full rounded-2xl shadow-xl overflow-hidden group border border-slate-200 dark:border-slate-800 bg-slate-900 text-white`}>
@@ -161,7 +204,7 @@ export const PrayerWidget: React.FC = () => {
                                     {p.label}
                                 </span>
                                 <span className={`text-xs font-sans ${isActive ? 'font-bold text-white' : 'font-medium text-slate-300'}`}>
-                                    {time.split(' ')[0]}
+                                    {time ? time.split(' ')[0] : '--:--'}
                                 </span>
                             </div>
                         );

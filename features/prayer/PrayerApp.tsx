@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePrayerSchedule } from './hooks/usePrayerSchedule.ts';
 import { exportPrayerSchedulePdf } from './logic/pdf-export.ts';
 import type { PrayerData } from '../../types.ts';
 import { QiblaCompass } from './components/QiblaCompass.tsx';
 import { PrayerCalendar } from './components/PrayerCalendar.tsx';
 import { useToast } from '../../components/ui/Toast.tsx';
+import { useRouter } from '../../hooks/useRouter.ts';
 import { 
     FaCompass, 
     FaCalendarAlt, 
@@ -19,10 +20,20 @@ import {
 type Tab = 'calendar' | 'qibla';
 
 const PrayerApp: React.FC = () => {
+    const { searchParams } = useRouter();
     const [activeTab, setActiveTab] = useState<Tab>('calendar');
     const { showToast } = useToast();
     
-    // USE NEW HOOK: Mode 'monthly' with Navigation support
+    // --- Voice Command Listener ---
+    useEffect(() => {
+        const tabParam = searchParams.get('tab');
+        if (tabParam === 'qibla') {
+            setActiveTab('qibla');
+        } else if (tabParam === 'calendar') {
+            setActiveTab('calendar');
+        }
+    }, [searchParams]);
+    
     const { 
         data: calendarData, 
         locationName, 
@@ -34,7 +45,6 @@ const PrayerApp: React.FC = () => {
         resetToToday 
     } = usePrayerSchedule<PrayerData[]>('monthly');
     
-    // LIFTED STATE: Compass Permission
     const [compassPermission, setCompassPermission] = useState(false);
     
     const monthLabel = currentDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
@@ -45,10 +55,11 @@ const PrayerApp: React.FC = () => {
             showToast("Data jadwal belum tersedia.", "error");
             return;
         }
-        showToast("Menyiapkan PDF...", "info");
+        showToast("Menyiapkan dokumen PDF...", "info");
         try {
+            // Using logic export with Smart Pagination
             await exportPrayerSchedulePdf(calendarData, locationName, monthLabel);
-            showToast("Jadwal berhasil diunduh.", "success");
+            showToast("Download dimulai.", "success");
         } catch (e) {
             console.error(e);
             showToast("Gagal membuat PDF.", "error");
@@ -143,7 +154,7 @@ const PrayerApp: React.FC = () => {
                         {/* Print Action */}
                         <button 
                             onClick={handleDownloadPdf}
-                            disabled={loading || !calendarData}
+                            disabled={loading || !calendarData || calendarData.length === 0}
                             className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 dark:shadow-none disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-[0.98]"
                         >
                             <span className="icon-wrapper w-5 h-5"><FaPrint /></span>
@@ -152,6 +163,7 @@ const PrayerApp: React.FC = () => {
                     </div>
                 ) : (
                     <div className="animate-fade-in-up">
+                        {/* Render directly, skeleton inside QiblaCompass handles loading state */}
                         <QiblaCompass 
                             latitude={coords?.lat ?? null} 
                             longitude={coords?.lng ?? null}

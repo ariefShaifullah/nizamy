@@ -262,7 +262,7 @@ export const QiblaCompass: React.FC<QiblaCompassProps> = ({
                                 className="absolute top-0 left-0 w-full h-full pointer-events-none"
                                 style={{ transform: `rotate(${qiblaBearing}deg)` }}
                             >
-                                <div className="w-2 h-1/2 bg-gradient-to-t from-emerald-500 to-emerald-400 mx-auto rounded-t-full opacity-90 relative shadow-[0_0_15px_rgba(16,185,129,0.5)]">
+                                <div className="w-2 h-1/2 bg-linear-to-t from-emerald-500 to-emerald-400 mx-auto rounded-t-full opacity-90 relative shadow-[0_0_15px_rgba(16,185,129,0.5)]">
                                     {/* Counter-Rotated Icon */}
                                     <div 
                                         className="absolute -top-4 left-1/2 -translate-x-1/2 w-12 h-12 bg-white dark:bg-slate-900 rounded-full border-[3px] border-emerald-500 flex items-center justify-center shadow-lg z-dropdown"

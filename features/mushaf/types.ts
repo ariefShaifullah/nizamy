@@ -1,3 +1,4 @@
+
 export interface QuranWord {
   id: number;
   position: number;
@@ -54,4 +55,22 @@ export interface Bookmark {
   ayahNumber: number;
   timestamp: number;
   category: BookmarkCategory;
+}
+
+// Search Interfaces
+export interface SearchResultItem {
+  verse_key: string; // "2:255"
+  verse_id: number;
+  text: string; // text with highlight marks
+  translations?: { text: string; resource_id: number }[];
+}
+
+export interface SearchResponse {
+  search: {
+    query: string;
+    total_results: number;
+    current_page: number;
+    total_pages: number;
+    results: SearchResultItem[];
+  };
 }

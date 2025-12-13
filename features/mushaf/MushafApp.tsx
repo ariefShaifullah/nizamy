@@ -78,6 +78,13 @@ const MushafApp: React.FC = () => {
     useEffect(() => {
         const surahParam = searchParams.get('surah');
         const ayahParam = searchParams.get('ayah');
+        const queryParam = searchParams.get('q'); // Listen for search query
+
+        // If 'q' is present, we must stay on SurahSelection (selectedSurahId = null)
+        if (queryParam) {
+            setSelectedSurahId(null);
+            return;
+        }
 
         if (surahParam) {
             const surahId = parseInt(surahParam, 10);
@@ -423,6 +430,7 @@ const MushafApp: React.FC = () => {
                 }}
                 onJumpToBookmark={(surahId, ayahNumber) => jumpTo(surahId, ayahNumber)}
                 onRemoveBookmark={removeBookmarkById}
+                initialSearchQuery={searchParams.get('q') || ''} // NEW: Pass voice query param
             />
         );
     }

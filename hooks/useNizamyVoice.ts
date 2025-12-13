@@ -152,7 +152,18 @@ export const useNizamyVoice = () => {
 
     // --- LOGIC PRIORITIES ---
     
-    // 1. Zakat
+    // 1. GLOBAL SEARCH INTENT (Explicit "Cari ...")
+    if (lowerText.startsWith('cari') || lowerText.startsWith('temukan')) {
+        const query = lowerText.replace(/^(cari|temukan)\s+/, '').trim();
+        // Ignore if query is just empty or too short
+        if (query.length > 2) {
+            targetUrl = `/mushaf?q=${encodeURIComponent(query)}`;
+            responseText = `Mencari "${query}" di Al-Quran`;
+            return { url: targetUrl, text: responseText };
+        }
+    }
+
+    // 2. Zakat
     if (lowerText.includes('zakat') || lowerText.includes('jakat')) {
         const numVal = parseIndonesianNumber(lowerText);
         let type = 'maal';
@@ -170,7 +181,7 @@ export const useNizamyVoice = () => {
             responseText = `Membuka Zakat ${type === 'gold' ? 'Emas' : type === 'fitrah' ? 'Fitrah' : 'Maal'}`;
         }
     }
-    // 2. Waris
+    // 3. Waris
     else if (lowerText.includes('waris') || lowerText.includes('faraidh')) {
         const numVal = parseIndonesianNumber(lowerText);
         if (lowerText.includes('hitung') || numVal || lowerText.includes('anak')) {
@@ -185,22 +196,22 @@ export const useNizamyVoice = () => {
              responseText = "Membuka Waris";
         }
     }
-    // 3. Hafalan
+    // 4. Hafalan
     else if (lowerText.match(/hafalan|murajaah|hafal|srs/)) { 
         targetUrl = '/hafalan'; 
         responseText = "Membuka Hafalan"; 
     }
-    // 4. Amal Yaumi
+    // 5. Amal Yaumi
     else if (lowerText.match(/amal|yaumi|ibadah|harian|daily/)) { 
         targetUrl = '/amal'; 
         responseText = "Membuka Amal Yaumi"; 
     }
-    // 5. HEDE / Financial
+    // 6. HEDE / Financial
     else if (lowerText.match(/halal|audit|ekonomi|klinik|hede/)) { 
         targetUrl = '/hede'; 
         responseText = "Membuka Klinik Finansial"; 
     }
-    // 6. Sholat & Kiblat (NEW)
+    // 7. Sholat & Kiblat
     else if (lowerText.match(/kiblat|arah|kompas|qibla/)) {
          targetUrl = '/sholat?tab=qibla';
          responseText = "Membuka Kompas Kiblat";
@@ -209,27 +220,41 @@ export const useNizamyVoice = () => {
          targetUrl = '/sholat?tab=calendar';
          responseText = "Membuka Jadwal Sholat";
     }
-    // 7. Beranda
+    // 8. Beranda
     else if (lowerText.match(/beranda|home|depan|menu utama/)) { 
         targetUrl = '/'; 
         responseText = "Ke Beranda"; 
     }
-    // 8. Mushaf (Fallback)
+    // 9. Mushaf (Open Specific Surah/Ayah)
     else {
-        // Try parsing surah
+        // Try parsing surah command like "Buka Surat Yasin" or just "Yasin"
+        // We strip common words to isolate the query
         let rawQuery = lowerText.replace(/\b(buka|baca|surat|surah|ayat|qs|ke|yang|namanya)\b/g, '').trim();
+        
         let ayahNumber: number | null = null;
+        
+        // Check for ayah number pattern first
         const numberMatch = rawQuery.match(/\d+/);
         if (numberMatch) {
-            ayahNumber = parseInt(numberMatch[0]);
-            rawQuery = rawQuery.replace(numberMatch[0], '').trim();
-        } else if (lowerText.includes('ayat')) {
-            const parts = lowerText.split('ayat');
-            if (parts[1]) ayahNumber = parseIndonesianNumber(parts[1]);
+            // Check if user said "Ayat 5"
+            if (lowerText.includes('ayat')) {
+                 const parts = lowerText.split('ayat');
+                 // Check right side of 'ayat'
+                 if (parts[1]) ayahNumber = parseIndonesianNumber(parts[1]);
+                 // Remove the number from query for surah search
+                 rawQuery = rawQuery.replace(numberMatch[0], '').trim();
+            } else {
+                 // Or just appended number "Al Baqarah 5"
+                 // This is risky, could be Surah 5. But usually people say name then number.
+                 // We'll treat trailing number as ayah if we find a surah match
+                 ayahNumber = parseInt(numberMatch[0]);
+                 rawQuery = rawQuery.replace(numberMatch[0], '').trim();
+            }
         }
 
         const surah = findSurahByFuzzy(rawQuery);
         if (surah) {
+            // Handle special cases aliases mapping to specific ayah (e.g. Ayat Kursi)
             if (!ayahNumber) {
                 const aliasKey = normalizeText(rawQuery);
                 if (aliasKey.includes('kursi')) ayahNumber = 255;

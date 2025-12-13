@@ -1,5 +1,5 @@
 
-import type { QuranAyah, SurahInfo, QuranWord } from '../../../types.ts';
+import type { QuranAyah, SurahInfo, QuranWord, SearchResponse, SearchResultItem } from '../../../types.ts';
 import { SURAH_DATA } from '../../../constants.ts';
 
 const BASE_URL = 'https://api.quran.com/api/v4';
@@ -223,6 +223,37 @@ export const fetchVersesWithWords = async (
     }
 };
 
+export const searchQuranText = async (query: string, page = 1): Promise<{ results: SearchResultItem[], pagination: { current_page: number, total_pages: number, total_results: number } }> => {
+    try {
+        // Use quran.com search endpoint which handles Arabic morphological search
+        const url = `${BASE_URL}/search?q=${encodeURIComponent(query)}&size=20&page=${page}&language=id`;
+        
+        const response = await fetchWithRetry(url);
+        const json: SearchResponse = await response.json();
+        
+        if (json.search && Array.isArray(json.search.results)) {
+            return {
+                results: json.search.results,
+                pagination: {
+                    current_page: json.search.current_page,
+                    total_pages: json.search.total_pages,
+                    total_results: json.search.total_results
+                }
+            };
+        }
+        return {
+            results: [],
+            pagination: { current_page: page, total_pages: 0, total_results: 0 }
+        };
+    } catch (error) {
+        console.error('Search error:', error);
+        return {
+            results: [],
+            pagination: { current_page: page, total_pages: 0, total_results: 0 }
+        };
+    }
+};
+
 export const getSurahInfo = (surahId: number): SurahInfo | undefined => {
     const surah = SURAH_DATA.find(s => s.number === surahId);
     if (!surah) return undefined;
@@ -253,4 +284,4 @@ export const getPrevAyahId = (currentId: number, list: QuranAyah[]) => {
     const idx = list.findIndex(v => v.id === currentId);
     if (idx > 0) return list[idx - 1].id;
     return null;
-};
+};      

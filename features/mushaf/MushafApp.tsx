@@ -15,7 +15,7 @@ import { useMushafAudio } from './hooks/useMushafAudio.ts';
 import { useMushafData } from './hooks/useMushafData.ts';
 import { useWakeLock } from '../../hooks/useWakeLock.ts';
 import { useRouter } from '../../hooks/useRouter.ts';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate directly for manual navigation
+import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaHashtag, FaQuestionCircle, FaCog, FaBookmark } from 'react-icons/fa';
 
 // Sub-components
@@ -60,9 +60,13 @@ const MushafApp: React.FC = () => {
     const [isHelpOpen, setIsHelpOpen] = useState(false); 
     const [visibleRange, setVisibleRange] = useState({ startIndex: 0, endIndex: 0 });
     const [kamusData, setKamusData] = useState<KamusData | null>(null);
+    
+    // New State for Header Display (Decoupled from Virtuoso Index for accuracy)
+    const [headerAyahNumber, setHeaderAyahNumber] = useState<number | null>(null);
 
     const virtuosoRef = useRef<VirtuosoHandle>(null);
     const jumpInputRef = useRef<HTMLInputElement>(null); 
+    const isScrollingRef = useRef(false);
     
     const { verses, loading, error, hasMore, loadVerses, loadNextPage, loadUntilAyah, retry } = useMushafData(selectedSurahId);
 
@@ -78,9 +82,8 @@ const MushafApp: React.FC = () => {
     useEffect(() => {
         const surahParam = searchParams.get('surah');
         const ayahParam = searchParams.get('ayah');
-        const queryParam = searchParams.get('q'); // Listen for search query
+        const queryParam = searchParams.get('q'); 
 
-        // If 'q' is present, we must stay on SurahSelection (selectedSurahId = null)
         if (queryParam) {
             setSelectedSurahId(null);
             return;
@@ -89,13 +92,10 @@ const MushafApp: React.FC = () => {
         if (surahParam) {
             const surahId = parseInt(surahParam, 10);
             if (!isNaN(surahId) && surahId >= 1 && surahId <= 114) {
-                // If same surah, just jump to ayah if needed
                 if (surahId === selectedSurahId) {
                     if (ayahParam) {
                         const ayahId = parseInt(ayahParam, 10);
                         if (!isNaN(ayahId)) {
-                            // If surah already loaded and verses exist, trigger jump directly
-                            // Otherwise set pending (though this case is rare if id matches)
                             if (verses.length > 0) {
                                 handleInternalJump(ayahId);
                             } else {
@@ -104,8 +104,6 @@ const MushafApp: React.FC = () => {
                         }
                     }
                 } else {
-                    // Different surah, full reload
-                    // Set pending jump FIRST before changing ID to ensure initReader sees it
                     if (ayahParam) {
                         const ayahId = parseInt(ayahParam, 10);
                         if (!isNaN(ayahId)) {
@@ -118,13 +116,11 @@ const MushafApp: React.FC = () => {
         }
     }, [searchParams]);
 
-    // Helper for internal jump (when surah is already active)
     const handleInternalJump = async (targetAyah: number) => {
         setIsJumping(true);
         showToast(`Melompat ke ayat ${targetAyah}...`, 'info');
         try {
             await loadUntilAyah(targetAyah);
-            // Small delay to ensure render updates before scrolling
             setTimeout(() => {
                 requestAnimationFrame(() => {
                     virtuosoRef.current?.scrollToIndex({ 
@@ -141,14 +137,13 @@ const MushafApp: React.FC = () => {
         }
     };
 
-    // Handle Wake Lock based on Reading State
+    // Handle Wake Lock
     useEffect(() => {
         if (selectedSurahId) {
             requestLock();
         } else {
             releaseLock();
         }
-        // Cleanup on unmount
         return () => {
             releaseLock();
         };
@@ -164,14 +159,12 @@ const MushafApp: React.FC = () => {
         const url = getAyahAudioUrl(selectedSurahId!, ayah.verse_number);
         playAudio(url, 'ayah', ayah.id);
         
-        // Auto-scroll to active ayah with offset
         const index = verses.findIndex(v => v.id === ayah.id);
         if (index !== -1 && virtuosoRef.current) {
             virtuosoRef.current.scrollToIndex({ index, align: 'center', behavior: 'smooth' });
         }
     }, [selectedSurahId, verses, playAudio]);
 
-    // Next/Prev Logic
     const handleNextTrack = useCallback(() => {
         if (!playingAyahId || verses.length === 0) return;
         const currentIndex = verses.findIndex(v => v.id === playingAyahId);
@@ -180,7 +173,6 @@ const MushafApp: React.FC = () => {
         } else if (hasMore) {
             showToast("Memuat ayat berikutnya...", "info");
             loadNextPage();
-            // Listener in effect will handle playing next when loaded if we track state
         } else {
             showToast("Akhir surat.", "info");
             stopAudio();
@@ -212,26 +204,68 @@ const MushafApp: React.FC = () => {
         nextAyahHandler.current = handleNextTrack;
     }, [handleNextTrack]);
 
-    // --- LAST READ SAVER ---
-    // Auto-save on scroll stop
-    useEffect(() => {
-        if (!selectedSurahId || verses.length === 0 || loading) return;
+    // --- VISIBILITY TRACKING ENGINE (v2.0) ---
+    // Fixed: Uses onScroll listener and multi-point probing (Scan Beam)
+    
+    const updateVisibleAyah = useCallback(() => {
+        if (!selectedSurahId || verses.length === 0) return;
+
+        // "Scan Beam": Probe multiple vertical points to find the first valid verse.
+        // This handles gaps or large verses where a single point might miss.
+        // Points: 160px (Top), 220px (Mid-Top), 300px (Mid)
+        const checkPoints = [160, 220, 300];
+        const x = window.innerWidth / 2;
         
-        const saveTimeout = setTimeout(() => {
-            if (visibleRange.startIndex >= 0 && verses[visibleRange.startIndex]) {
-                const visibleAyahNumber = verses[visibleRange.startIndex].verse_number;
-                if (!lastRead || lastRead.surahId !== selectedSurahId || lastRead.ayahNumber !== visibleAyahNumber) {
-                    setLastRead({
-                        surahId: selectedSurahId,
-                        ayahNumber: visibleAyahNumber,
-                        timestamp: Date.now()
-                    });
+        let foundAyahNumber = null;
+
+        for (const y of checkPoints) {
+            const element = document.elementFromPoint(x, y);
+            const ayahContainer = element?.closest('[data-verse-number]');
+            
+            if (ayahContainer) {
+                const num = parseInt(ayahContainer.getAttribute('data-verse-number') || '0', 10);
+                if (num > 0) {
+                    foundAyahNumber = num;
+                    break; // Found top-most valid verse, stop scanning
                 }
             }
-        }, 2000); // Save 2 seconds after scroll stops
-        
+        }
+
+        // Only update if we ACTUALLY found a visual match.
+        // DO NOT fallback to list index (visibleRange.startIndex) because that includes buffer items (overscan) which causes the off-by-2 bug.
+        if (foundAyahNumber !== null) {
+            setHeaderAyahNumber(foundAyahNumber);
+        }
+    }, [selectedSurahId, verses]);
+
+    // Throttled Scroll Listener
+    const handleScroll = useCallback(() => {
+        if (!isScrollingRef.current) {
+            isScrollingRef.current = true;
+            requestAnimationFrame(() => {
+                updateVisibleAyah();
+                isScrollingRef.current = false;
+            });
+        }
+    }, [updateVisibleAyah]);
+
+    // 2. Debounced Saver (Persists Last Read)
+    useEffect(() => {
+        if (!headerAyahNumber || !selectedSurahId) return;
+
+        const saveTimeout = setTimeout(() => {
+            if (!lastRead || lastRead.surahId !== selectedSurahId || lastRead.ayahNumber !== headerAyahNumber) {
+                setLastRead({
+                    surahId: selectedSurahId,
+                    ayahNumber: headerAyahNumber,
+                    timestamp: Date.now()
+                });
+            }
+        }, 1500);
+
         return () => clearTimeout(saveTimeout);
-    }, [visibleRange.startIndex, selectedSurahId, verses, setLastRead, loading, lastRead]);
+    }, [headerAyahNumber, selectedSurahId, setLastRead, lastRead]);
+
 
     // --- BOOKMARK LOGIC ---
     const findBookmark = useCallback((surahId: number, ayahNumber: number): Bookmark | null => {
@@ -341,13 +375,6 @@ const MushafApp: React.FC = () => {
         if (!currentSurah) return 0;
         return Math.min(100, ((visibleRange.endIndex) / currentSurah.verses) * 100);
     }, [currentSurah, visibleRange]);
-
-    const currentVisibleAyahNumber = useMemo(() => {
-        if (verses.length > 0 && verses[visibleRange.startIndex]) {
-            return verses[visibleRange.startIndex].verse_number;
-        }
-        return null;
-    }, [visibleRange, verses]);
 
     // Interaction Handlers
     const handleTapAyah = useCallback((ayah: QuranAyah) => {
@@ -467,7 +494,7 @@ const MushafApp: React.FC = () => {
                         <div>
                             <h1 className="font-bold text-base text-slate-800 dark:text-white leading-none">{currentSurah.name}</h1>
                             <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-1 uppercase tracking-wide">
-                                {currentVisibleAyahNumber ? `Ayat ${currentVisibleAyahNumber}` : 'Memuat...'}
+                                {headerAyahNumber ? `Ayat ${headerAyahNumber}` : 'Memuat...'}
                             </p>
                         </div>
                     </button>
@@ -523,6 +550,7 @@ const MushafApp: React.FC = () => {
                 retry={retry}
                 virtuosoRef={virtuosoRef}
                 onRangeChange={setVisibleRange}
+                onScroll={handleScroll}
                 lastRead={lastRead}
                 bookmarks={bookmarks}
                 isPlaying={isPlaying}

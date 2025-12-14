@@ -57,15 +57,6 @@ export const usePWA = () => {
           });
       };
 
-      // Listen for controller change (means new SW took over)
-      navigator.serviceWorker.addEventListener("controllerchange", () => {
-        if (!needRefresh) {
-          // If we didn't trigger it manually, it might be auto claim.
-          // But usually we want to just reload if controller changes to ensure latest assets.
-          // window.location.reload(); // Optional: Auto reload
-        }
-      });
-
       // Periodically check for updates (e.g., every hour)
       const interval = setInterval(checkForUpdates, 60 * 60 * 1000);
 
@@ -87,7 +78,7 @@ export const usePWA = () => {
         handleBeforeInstallPrompt
       );
     };
-  }, []);
+  }, [needRefresh]);
 
   const installApp = async () => {
     if (!deferredPrompt) return;
@@ -104,26 +95,27 @@ export const usePWA = () => {
   };
 
   const updateServiceWorker = () => {
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .getRegistration()
-        .then((registration) => {
-          if (registration && registration.waiting) {
-            registration.waiting.postMessage({ type: "SKIP_WAITING" });
-            // Allow some time for SW to activate then reload
-            setTimeout(() => {
-              window.location.reload();
-            }, 500);
-          } else {
-            window.location.reload();
-          }
-        })
-        .catch(() => {
-          window.location.reload();
-        });
-    } else {
-      window.location.reload();
+    if (!("serviceWorker" in navigator)) {
+      return;
     }
+
+    navigator.serviceWorker.getRegistration().then((registration) => {
+      if (registration && registration.waiting) {
+        // Add a listener to reload the page once the new service worker has taken control
+        const handleControllerChange = () => {
+          window.location.reload();
+        };
+
+        navigator.serviceWorker.addEventListener(
+          "controllerchange",
+          handleControllerChange,
+          { once: true } // Automatically remove the listener after it fires
+        );
+
+        // Send a message to the waiting service worker to trigger skipWaiting()
+        registration.waiting.postMessage({ type: "SKIP_WAITING" });
+      }
+    });
   };
 
   return {

@@ -30,6 +30,7 @@ interface MushafReaderProps {
     retry: () => void;
     virtuosoRef: React.RefObject<VirtuosoHandle>;
     onRangeChange: (range: ListRange) => void;
+    onScroll: (e: Event) => void; // Added onScroll prop
     
     // Settings & State
     lastRead: LastReadState | null;
@@ -58,6 +59,7 @@ export const MushafReader: React.FC<MushafReaderProps> = ({
     retry,
     virtuosoRef,
     onRangeChange,
+    onScroll,
     lastRead,
     bookmarks,
     isPlaying,
@@ -90,6 +92,7 @@ export const MushafReader: React.FC<MushafReaderProps> = ({
                     data={verses}
                     endReached={loadNextPage}
                     rangeChanged={onRangeChange}
+                    onScroll={onScroll} // Bind the scroll listener
                     overscan={500}
                     className="pb-32 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:none]"
                     components={{

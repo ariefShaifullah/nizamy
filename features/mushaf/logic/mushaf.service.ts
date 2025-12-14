@@ -1,4 +1,3 @@
-
 import type { QuranAyah, SurahInfo, QuranWord, SearchResponse, SearchResultItem } from '../../../types.ts';
 import { SURAH_DATA } from '../../../constants.ts';
 
@@ -133,9 +132,19 @@ export const fetchVersesWithWords = async (
         const url = `${BASE_URL}/verses/by_chapter/${surahId}?language=id&words=true&word_fields=text_uthmani,audio_url,char_type_name,location&translations=33&fields=text_uthmani&per_page=${perPage}&page=${page}`;
         
         const response = await fetchWithRetry(url, { signal });
-        const json: ApiResponse = await response.json();
+        
+        // FIX: Safe JSON parsing
+        const text = await response.text();
+        if (!text) throw new Error('Empty response from API');
+        
+        let json: ApiResponse;
+        try {
+            json = JSON.parse(text);
+        } catch (e) {
+            throw new Error('Invalid JSON format from API');
+        }
 
-        if (!json || !Array.isArray(json.verses)) throw new Error('Invalid JSON format from API');
+        if (!json || !Array.isArray(json.verses)) throw new Error('Invalid JSON structure from API');
 
         // Process Data
         const processedVerses: QuranAyah[] = json.verses
@@ -223,28 +232,101 @@ export const fetchVersesWithWords = async (
     }
 };
 
-export const searchQuranText = async (query: string, page = 1): Promise<{ results: SearchResultItem[], pagination: { current_page: number, total_pages: number, total_results: number } }> => {
+/**
+ * Internal helper to execute the raw API fetch
+ */
+const executeSearch = async (query: string, page: number, language: string) => {
+    // 1. Basic cleaning: remove harakat, normalize alifs, remove tatweel
+    let normalizedQuery = query.trim();
+    
+    // Arabic-specific normalization
+    if (/[\u0600-\u06FF]/.test(normalizedQuery)) {
+        normalizedQuery = normalizedQuery
+            .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g, "") // Harakat & Waqaf
+            .replace(/[أإآ]/g, 'ا') // Normalize Alifs
+            .replace(/ى/g, 'ي') // Normalize Ya
+            .replace(/ة/g, 'ه') // Normalize Ta Marbuta -> Ha (helps matching)
+            .replace(/\u0640/g, ''); // Remove Tatweel
+    }
+
+    const url = `${BASE_URL}/search?q=${encodeURIComponent(normalizedQuery)}&size=20&page=${page}&language=${language}`;
+    
     try {
-        // Use quran.com search endpoint which handles Arabic morphological search
-        const url = `${BASE_URL}/search?q=${encodeURIComponent(query)}&size=20&page=${page}&language=id`;
-        
         const response = await fetchWithRetry(url);
-        const json: SearchResponse = await response.json();
+        const text = await response.text();
         
+        if (!text) return null;
+        const json: SearchResponse = JSON.parse(text);
         if (json.search && Array.isArray(json.search.results)) {
             return {
-                results: json.search.results,
-                pagination: {
-                    current_page: json.search.current_page,
-                    total_pages: json.search.total_pages,
-                    total_results: json.search.total_results
+                ...json,
+                search: {
+                    ...json.search,
+                    results: json.search.results.filter(r => r.text && r.text.trim().length > 0)
                 }
             };
         }
+        return null;
+    } catch (e) {
+        return null;
+    }
+};
+
+export const searchQuranText = async (query: string, page = 1): Promise<{ results: SearchResultItem[], pagination: { current_page: number, total_pages: number, total_results: number } }> => {
+    try {
+        const isArabic = /[\u0600-\u06FF]/.test(query);
+        const hasSpace = query.trim().includes(' ');
+        const langParam = 'id'; 
+
+        // 1. Main Search (Original Query)
+        const mainPromise = executeSearch(query, page, langParam);
+        
+        // 2. Aggressive Prefix Expansion (Only for Arabic Single Words on Page 1)
+        // This solves "Yanzur" not finding "Falyanzur" because API string matching is strict
+        let variationPromises: Promise<any>[] = [];
+        
+        if (isArabic && !hasSpace && page === 1) {
+            // Common Arabic prefixes that attach to words
+            // Wal- (Wa-Al), Fal- (Fa-Al/Fa-Lam), Wa-, Fa-, Al-, Li-, Bi-
+            const prefixes = ['ال', 'و', 'ف', 'ب', 'ل', 'وال', 'فال', 'فل', 'ول'];
+            
+            variationPromises = prefixes.map(prefix => {
+                // Avoid redundant checks if query already starts with prefix
+                if (query.startsWith(prefix)) return Promise.resolve(null);
+                return executeSearch(`${prefix}${query}`, 1, langParam);
+            });
+        }
+
+        const [mainResult, ...variations] = await Promise.all([mainPromise, ...variationPromises]);
+
+        // 3. Merge Results
+        let allResults: SearchResultItem[] = mainResult?.search?.results || [];
+        let mainPagination = mainResult?.search || { current_page: 1, total_pages: 1, total_results: 0 };
+
+        // Append variation results to the list
+        variations.forEach(v => {
+            if (v && v.search && v.search.results.length > 0) {
+                allResults = [...allResults, ...v.search.results];
+            }
+        });
+
+        // 4. Deduplicate (by verse_key)
+        const uniqueResults = Array.from(new Map(allResults.map(item => [item.verse_key, item])).values());
+
+        // 5. Sort? 
+        // Ideally we keep original relevance, but appended ones might be important too.
+        // For now, we trust the order: Main Matches first, then prefixed variations.
+        
         return {
-            results: [],
-            pagination: { current_page: page, total_pages: 0, total_results: 0 }
+            results: uniqueResults,
+            pagination: {
+                current_page: mainPagination.current_page,
+                total_pages: mainPagination.total_pages,
+                // Total results might be inaccurate if we merged, but it's okay for infinite scroll hints
+                total_results: mainPagination.total_results + (uniqueResults.length - (mainResult?.search?.results.length || 0))
+            }
         };
+
     } catch (error) {
         console.error('Search error:', error);
         return {
@@ -284,4 +366,4 @@ export const getPrevAyahId = (currentId: number, list: QuranAyah[]) => {
     const idx = list.findIndex(v => v.id === currentId);
     if (idx > 0) return list[idx - 1].id;
     return null;
-};      
+};

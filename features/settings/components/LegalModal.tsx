@@ -70,10 +70,14 @@ const TermsContent = () => (
                 <strong>Al-Quran & Hafalan:</strong> Teks ayat diambil dari API publik. Jika menemukan kesalahan penulisan, mohon merujuk pada Mushaf Utsmani cetak. Fitur audio streaming menggunakan kuota data internet Anda.
             </li>
             <li>
+                <strong>Halal Scanner (AI Beta):</strong> Hasil scan adalah analisis kecerdasan buatan (AI) berdasarkan komposisi bahan yang terbaca. Hasil ini <strong>BUKAN sertifikasi halal resmi</strong> dari MUI, BPJPH, atau lembaga otoritas lainnya. Sistem mungkin melakukan kesalahan dalam membaca teks (OCR) atau interpretasi. Wajib verifikasi logo halal fisik pada kemasan.
+            </li>
+            <li>
                 <strong>Perintah Suara (Voice Command):</strong> Fitur ini menggunakan teknologi pengenalan suara (Web Speech API). Kami tidak bertanggung jawab atas kesalahan interpretasi suara oleh sistem. Pengguna wajib memverifikasi ulang data yang terisi otomatis.
             </li>
         </ul>
 
+        {/* ... Rest of existing Terms Content ... */}
         <SectionTitle>3. Adab & Penggunaan</SectionTitle>
         <p>Pengguna diharapkan menggunakan aplikasi ini untuk tujuan kebaikan, ibadah, dan edukasi. Dilarang menyalahgunakan konten Al-Quran atau memanipulasi hasil perhitungan untuk tujuan penipuan.</p>
 
@@ -104,17 +108,20 @@ const PrivacyContent = () => (
             <li>Nominal aset & utang (Zakat/Klinik Finansial).</li>
             <li>Progress hafalan Quran & riwayat murajaah.</li>
             <li>Jawaban diagnosa ekonomi.</li>
+            <li>Riwayat scan produk halal.</li>
         </ul>
 
         <SectionTitle>2. Pengumpulan Data Teknis & Izin</SectionTitle>
         <p>Kami hanya mengakses data teknis yang diperlukan untuk fungsi aplikasi:</p>
         <ul className="list-disc pl-5 space-y-1">
             <li><strong>Lokasi (GPS):</strong> Hanya diminta sesaat untuk menghitung jadwal sholat akurat sesuai posisi geografis Anda. Koordinat tidak dikirim ke server kami, melainkan langsung ke API perhitungan waktu.</li>
+            <li><strong>Kamera:</strong> Diakses hanya saat menggunakan fitur Halal Scanner. Gambar diproses untuk analisis dan tidak disimpan secara permanen di server kami (Stateless Analysis).</li>
             <li><strong>Sensor Gerak (Magnetometer/Orientation):</strong> Diakses hanya saat Anda membuka halaman "Arah Kiblat" untuk menggerakkan jarum kompas. Data gerakan diproses secara real-time dan tidak direkam.</li>
             <li><strong>Mikrofon:</strong> Hanya diakses saat Anda mengaktifkan fitur Voice Command. Audio diproses langsung oleh <em>browser engine</em> dan tidak kami rekam.</li>
             <li><strong>IP Address:</strong> Mungkin tercatat secara otomatis oleh penyedia layanan pihak ketiga (seperti CDN Audio Quran) saat Anda memutar audio streaming untuk keperluan teknis pengiriman data.</li>
         </ul>
 
+        {/* ... Rest of existing Privacy Content ... */}
         <SectionTitle>3. Layanan Pihak Ketiga</SectionTitle>
         <p>Aplikasi ini menggunakan layanan pihak ketiga tertentu. Data yang Anda berikan mungkin diproses sesuai kebijakan privasi mereka:</p>
         <ul className="list-disc pl-5 space-y-1">

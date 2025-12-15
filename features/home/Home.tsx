@@ -15,11 +15,12 @@ import {
   FaStethoscope,
   FaTimes,
   FaFire,
-  FaCheckCircle
+  FaCheckCircle,
+  FaCamera,
+  FaQrcode
 } from "react-icons/fa";
 
-// --- UTILS ---
-
+// ... (Existing UTILS & CONSTANTS remain unchanged) ...
 const getGregorianDate = () => {
     return new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 };
@@ -57,25 +58,21 @@ const getDynamicHadith = () => {
     const hour = new Date().getHours();
     let category: keyof typeof HADITH_DB = 'night';
     
-    if (hour >= 0 && hour < 4) category = 'late_night'; // 00:00 - 04:00 (Qiyamul Lail)
+    if (hour >= 0 && hour < 4) category = 'late_night'; 
     else if (hour >= 4 && hour < 10) category = 'morning';
     else if (hour >= 10 && hour < 15) category = 'day';
     else if (hour >= 15 && hour < 18) category = 'afternoon';
-    // else 18-00 remains 'night'
     
     const list = HADITH_DB[category];
-    // Pick random daily based on date to keep it somewhat stable per session
     const dateNum = new Date().getDate();
     return list[dateNum % list.length];
 };
 
-// --- DYNAMIC DATA HOOKS ---
 const useHomeData = () => {
     const [lastRead, setLastRead] = useState<{name: string, ayah: number} | null>(null);
     const [hafalanStats, setHafalanStats] = useState<{level: number, streak: number} | null>(null);
 
     useEffect(() => {
-        // 1. Get Last Read
         try {
             const savedRead = localStorage.getItem('mushaf_lastRead');
             if (savedRead) {
@@ -87,14 +84,12 @@ const useHomeData = () => {
             }
         } catch (e) { console.error(e); }
 
-        // 2. Get Hafalan Stats
         try {
-            // Check logged in user first
             const usersStr = localStorage.getItem('nizamy_hafalan_users');
             if (usersStr) {
                 const users = JSON.parse(usersStr);
                 if (users.length > 0) {
-                    const lastUser = users[users.length - 1]; // Naive latest user
+                    const lastUser = users[users.length - 1]; 
                     const userDataStr = localStorage.getItem(`nizamy_hafalan_data_${lastUser.id}`);
                     if (userDataStr) {
                         const userData = JSON.parse(userDataStr);
@@ -111,17 +106,12 @@ const useHomeData = () => {
     return { lastRead, hafalanStats };
 };
 
-// --- COMPONENTS ---
-
+// ... (BackgroundDecor & HeaderSection components remain unchanged) ...
 const BackgroundDecor = () => (
     <div className="fixed inset-0 z-background overflow-hidden pointer-events-none bg-[#f8f9fc] dark:bg-[#0b0f19] transition-colors duration-500">
         <div className="absolute top-0 inset-x-0 h-96 bg-linear-to-b from-white to-transparent dark:from-slate-900/50"></div>
-        
-        {/* Subtle, desaturated blobs */}
         <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-slate-200/40 dark:bg-slate-800/20 rounded-full blur-[120px]"></div>
         <div className="absolute bottom-[10%] left-[-10%] w-[500px] h-[500px] bg-slate-200/30 dark:bg-slate-800/10 rounded-full blur-[100px]"></div>
-        
-        {/* Noise Texture for Texture */}
         <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]" 
              style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}>
         </div>
@@ -130,7 +120,6 @@ const BackgroundDecor = () => (
 
 const HeaderSection = () => {
     const hadith = useMemo(() => getDynamicHadith(), []);
-
     return (
         <div className="flex flex-col mb-10 animate-fade-in-down relative px-1">
             <div className="flex items-center gap-3 mb-3">
@@ -139,7 +128,6 @@ const HeaderSection = () => {
                 </span>
                 <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
             </div>
-            
             <div className="relative z-raised">
                 <p className="text-xl md:text-2xl font-serif text-slate-800 dark:text-slate-200 leading-relaxed tracking-tight">
                     <span className="text-slate-300 dark:text-slate-700 text-4xl font-serif mr-2 relative top-2">"</span>
@@ -153,29 +141,23 @@ const HeaderSection = () => {
     );
 };
 
-// --- ELEGANT CARDS (S-Tier Premium) ---
-
+// ... (Existing Cards - QuranCard, HafalanCard, AmalCard, UtilityCard, InstallBanner - remain unchanged) ...
 const QuranCard = ({ lastRead, onClick }: { lastRead: {name: string, ayah: number} | null, onClick: () => void }) => {
     return (
         <button 
             onClick={onClick}
             className="group relative w-full h-40 md:h-48 rounded-3xl overflow-hidden text-left transition-all duration-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-teal-200 dark:hover:border-teal-800 hover:shadow-xl dark:hover:shadow-teal-900/10 active:scale-[0.98]"
         >
-            {/* Hover Gradient Overlay */}
             <div className="absolute inset-0 bg-linear-to-br from-transparent to-transparent group-hover:from-teal-50/50 group-hover:to-white dark:group-hover:from-teal-900/10 dark:group-hover:to-slate-900 transition-colors duration-500"></div>
-
-            <div className="relative z-10 p-6 flex flex-col justify-between h-full">
+            <div className="relative z-card p-6 flex flex-col justify-between h-full">
                 <div className="flex justify-between items-start">
-                    {/* Icon Box: Monochrome -> Color on Hover */}
                     <div className="w-10 h-10 rounded-2xl bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 flex items-center justify-center border border-slate-100 dark:border-slate-700 transition-all duration-300 group-hover:bg-teal-50 dark:group-hover:bg-teal-900/30 group-hover:text-teal-600 dark:group-hover:text-teal-400 group-hover:border-teal-100 dark:group-hover:border-teal-800 group-hover:scale-110">
                         <div className="icon-wrapper w-5 h-5 flex items-center justify-center"><FaQuran /></div>
                     </div>
-                    {/* Category Label */}
                     <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600 opacity-70 group-hover:opacity-100 group-hover:text-teal-600/70 dark:group-hover:text-teal-400/70 transition-all">
                         Al-Quran
                     </span>
                 </div>
-
                 <div>
                     {lastRead ? (
                         <>
@@ -208,18 +190,15 @@ const HafalanCard = ({ stats, onClick }: { stats: {level: number, streak: number
         className="group relative w-full h-40 md:h-48 rounded-3xl overflow-hidden text-left transition-all duration-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-800 hover:shadow-xl dark:hover:shadow-indigo-900/10 active:scale-[0.98]"
     >
         <div className="absolute inset-0 bg-linear-to-br from-transparent to-transparent group-hover:from-indigo-50/50 group-hover:to-white dark:group-hover:from-indigo-900/10 dark:group-hover:to-slate-900 transition-colors duration-500"></div>
-        
-        <div className="relative z-10 p-6 flex flex-col justify-between h-full">
+        <div className="relative z-card p-6 flex flex-col justify-between h-full">
             <div className="flex justify-between items-start">
-                {/* Icon Box */}
                 <div className="w-10 h-10 rounded-2xl bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 flex items-center justify-center border border-slate-100 dark:border-slate-700 transition-all duration-300 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:border-indigo-100 dark:group-hover:border-indigo-800 group-hover:scale-110">
                     <div className="icon-wrapper w-5 h-5 flex items-center justify-center"><FaBrain /></div>
                 </div>
                 <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600 opacity-70 group-hover:opacity-100 group-hover:text-indigo-600/70 dark:group-hover:text-indigo-400/70 transition-all">
-                    Tahfiz
+                    Hafalan
                 </span>
             </div>
-
             <div>
                 {stats ? (
                     <div>
@@ -230,7 +209,7 @@ const HafalanCard = ({ stats, onClick }: { stats: {level: number, streak: number
                     </div>
                 ) : (
                     <>
-                        <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 leading-tight mb-1 group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-colors">Hafalan</h3>
+                        <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 leading-tight mb-1 group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-colors">Hafalan Quran</h3>
                         <p className="text-xs text-slate-500 dark:text-slate-400 font-medium group-hover:text-slate-600 dark:group-hover:text-slate-300">Metode SRS</p>
                     </>
                 )}
@@ -245,10 +224,8 @@ const AmalCard = ({ onClick }: { onClick: () => void }) => (
         className="group relative w-full h-40 md:h-48 rounded-3xl overflow-hidden text-left transition-all duration-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-200 dark:hover:border-emerald-800 hover:shadow-xl dark:hover:shadow-emerald-900/10 col-span-2 md:col-span-1 active:scale-[0.98]"
     >
         <div className="absolute inset-0 bg-linear-to-br from-transparent to-transparent group-hover:from-emerald-50/50 group-hover:to-white dark:group-hover:from-emerald-900/10 dark:group-hover:to-slate-900 transition-colors duration-500"></div>
-        
-        <div className="relative z-10 p-6 flex flex-col justify-between h-full">
+        <div className="relative z-card p-6 flex flex-col justify-between h-full">
             <div className="flex justify-between items-start">
-                {/* Icon Box */}
                 <div className="w-10 h-10 rounded-2xl bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 flex items-center justify-center border border-slate-100 dark:border-slate-700 transition-all duration-300 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/30 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 group-hover:border-emerald-100 dark:group-hover:border-emerald-800 group-hover:scale-110">
                     <div className="icon-wrapper w-5 h-5 flex items-center justify-center"><FaCheckCircle /></div>
                 </div>
@@ -256,7 +233,6 @@ const AmalCard = ({ onClick }: { onClick: () => void }) => (
                     Amal
                 </span>
             </div>
-
             <div>
                 <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 leading-tight mb-1 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">Amal Yaumi</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium group-hover:text-slate-600 dark:group-hover:text-slate-300">Catat ibadah harian</p>
@@ -266,7 +242,6 @@ const AmalCard = ({ onClick }: { onClick: () => void }) => (
 );
 
 const UtilityCard = ({ title, icon, color, onClick }: { title: string, icon: React.ReactNode, color: 'emerald' | 'blue' | 'purple', onClick: () => void }) => {
-    // Config for Brand Hover Colors
     const colorConfig = {
         emerald: {
             hoverBorder: 'group-hover:border-emerald-200 dark:group-hover:border-emerald-800',
@@ -284,9 +259,7 @@ const UtilityCard = ({ title, icon, color, onClick }: { title: string, icon: Rea
             iconBg: 'group-hover:bg-purple-50 dark:group-hover:bg-purple-900/20'
         }
     };
-
     const conf = colorConfig[color];
-
     return (
         <button 
             onClick={onClick}
@@ -317,18 +290,8 @@ const InstallBanner: React.FC<{ onInstall: () => void; onClose: () => void }> = 
                 </div>
             </div>
             <div className="flex items-center gap-2">
-                <button 
-                    onClick={onInstall}
-                    className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-200 transition-colors shadow-sm"
-                >
-                    Install
-                </button>
-                <button 
-                    onClick={onClose}
-                    className="p-2 opacity-60 hover:opacity-100 transition-opacity"
-                >
-                    <span className="icon-wrapper w-4 h-4"><FaTimes /></span>
-                </button>
+                <button onClick={onInstall} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-200 transition-colors shadow-sm">Install</button>
+                <button onClick={onClose} className="p-2 opacity-60 hover:opacity-100 transition-opacity"><span className="icon-wrapper w-4 h-4"><FaTimes /></span></button>
             </div>
         </div>
     </div>
@@ -351,11 +314,8 @@ export const Home: React.FC = () => {
   }, [isInstallable, isIOS, isStandalone]);
   
   const handleInstallClick = () => {
-      if (isIOS) {
-          setShowIOSGuide(true);
-      } else {
-          installApp();
-      }
+      if (isIOS) { setShowIOSGuide(true); } 
+      else { installApp(); }
       setShowInstallBanner(false);
   };
 
@@ -365,10 +325,9 @@ export const Home: React.FC = () => {
       
       <BackgroundDecor />
 
-      <main className="container mx-auto px-4 md:px-6 pt-[calc(6rem+env(safe-area-inset-top))] md:pt-[calc(8rem+env(safe-area-inset-top))] max-w-4xl relative z-10">
+      <main className="container mx-auto px-4 md:px-6 pt-[calc(6rem+env(safe-area-inset-top))] md:pt-[calc(8rem+env(safe-area-inset-top))] max-w-4xl relative z-card">
           <HeaderSection />
 
-          {/* GRID SYSTEM */}
           <div className="flex flex-col gap-8">
               
               {/* HERO: Prayer Widget */}
@@ -396,25 +355,38 @@ export const Home: React.FC = () => {
                       <div className="h-px flex-1 bg-slate-100 dark:bg-slate-800"></div>
                   </div>
                   <div className="grid grid-cols-3 gap-3 md:gap-5">
-                      <UtilityCard 
-                        title="Zakat"
-                        icon={<FaHandsHelping />}
-                        color="emerald"
-                        onClick={() => navigate('/zakat')}
-                      />
-                      <UtilityCard 
-                        title="Waris"
-                        icon={<FaBalanceScale />}
-                        color="blue"
-                        onClick={() => navigate('/faraidh')}
-                      />
-                      <UtilityCard 
-                        title="Finansial"
-                        icon={<FaStethoscope />}
-                        color="purple"
-                        onClick={() => navigate('/hede')}
-                      />
+                      <UtilityCard title="Zakat" icon={<FaHandsHelping />} color="emerald" onClick={() => navigate('/zakat')} />
+                      <UtilityCard title="Waris" icon={<FaBalanceScale />} color="blue" onClick={() => navigate('/faraidh')} />
+                      <UtilityCard title="Finansial" icon={<FaStethoscope />} color="purple" onClick={() => navigate('/hede')} />
                   </div>
+              </div>
+              {/* NEW: Halal Scanner Banner (Mobile Only) */}
+              <div className="md:hidden animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+                  <button 
+                    onClick={() => navigate('/scanner')}
+                    className="w-full bg-linear-to-r from-emerald-600 to-teal-700 text-white rounded-3xl p-5 shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition-transform relative overflow-hidden group"
+                  >
+                      <div className="absolute top-0 right-0 p-4 opacity-10 transform rotate-12">
+                          <FaQrcode size={80} />
+                      </div>
+                      <div className="flex items-center justify-between relative z-card">
+                          <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl backdrop-blur-sm border border-white/10">
+                                  <FaCamera />
+                              </div>
+                              <div className="text-left">
+                                  <div className="flex items-center gap-2">
+                                      <h3 className="font-bold text-lg leading-tight">Cek Halal</h3>
+                                      <span className="bg-yellow-400 text-yellow-900 text-[10px] font-black px-2 py-0.5 rounded-md shadow-sm uppercase tracking-wide">Beta</span>
+                                  </div>
+                                  <p className="text-xs text-emerald-100 font-medium">Scan Produk & Komposisi</p>
+                              </div>
+                          </div>
+                          <div className="bg-white text-emerald-700 rounded-full w-8 h-8 flex items-center justify-center shadow-md">
+                              <FaQrcode />
+                          </div>
+                      </div>
+                  </button>
               </div>
 
           </div>    

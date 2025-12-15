@@ -1,3 +1,4 @@
+
 import React, { useEffect, Suspense, useMemo } from 'react';
 import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { Home } from './features/home/Home.tsx';
@@ -17,6 +18,8 @@ const MushafApp = React.lazy(() => import('./features/mushaf/MushafApp.tsx'));
 const HedeApp = React.lazy(() => import('./features/hede/HedeApp.tsx'));
 const AmalYaumiApp = React.lazy(() => import('./features/amal/AmalYaumiApp.tsx'));
 const PrayerApp = React.lazy(() => import('./features/prayer/PrayerApp.tsx'));
+// NEW: Scanner
+const HalalScanner = React.lazy(() => import('./features/scanner/HalalScanner.tsx').then(module => ({ default: module.HalalScanner })));
 
 // Loading Fallback Component
 const PageLoader = () => (
@@ -80,22 +83,26 @@ const AppContent = () => {
       if (path.includes('/hede')) return `${base} selection:bg-purple-200 selection:text-purple-900`;
       if (path.includes('/amal')) return `${base} selection:bg-emerald-200 selection:text-emerald-900`;
       if (path.includes('/sholat')) return `${base} selection:bg-indigo-200 selection:text-indigo-900`;
+      if (path.includes('/scanner')) return `${base} bg-black text-white`; // Scanner overrides theme
       
       return base;
   }, [location.pathname]);
 
+  // Hide Header/Footer on Scanner Page
+  const isScanner = location.pathname === '/scanner';
+
   // Reduced top padding from 8rem to 5rem for better vertical alignment
-  const mainPaddingClass = location.pathname === '/' 
+  const mainPaddingClass = (location.pathname === '/' || isScanner) 
     ? 'flex-grow' 
     : 'container mx-auto px-4 py-4 md:py-8 flex-grow pt-[calc(5rem+env(safe-area-inset-top))] md:pt-[calc(5rem+env(safe-area-inset-top))]';
 
   return (
     <div className={layoutClass}>
-      <OfflineBanner />
-      <Header />
+      {!isScanner && <OfflineBanner />}
+      {!isScanner && <Header />}
       
       {/* PWA Update Banner */}
-      {needRefresh && (
+      {needRefresh && !isScanner && (
         <div className="bg-slate-900 text-white px-4 py-3 shadow-lg relative z-notification animate-fade-in-down flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-3 text-center sm:text-left top-20 left-0 right-0">
             <p className="text-sm font-medium">
                 ✨ Versi baru aplikasi tersedia! Update untuk fitur terbaru.
@@ -120,12 +127,13 @@ const AppContent = () => {
             <Route path="/hede" element={<HedeApp />} />
             <Route path="/amal" element={<AmalYaumiApp />} />
             <Route path="/sholat" element={<PrayerApp />} />
+            <Route path="/scanner" element={<HalalScanner />} />
             <Route path="*" element={<Home />} /> {/* Fallback */}
           </Routes>
         </Suspense>
       </main>
       
-      <Footer />
+      {!isScanner && <Footer />}
     </div>
   );
 };

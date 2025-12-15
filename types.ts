@@ -1,16 +1,15 @@
-export * from './features/faraidh/types.ts';
-export * from './features/zakat/types.ts';
-export * from './features/hafalan/types.ts';
-export * from './features/prayer/types.ts';
-export * from './features/mushaf/types.ts';
-export * from './features/hede/types.ts';
-export * from './features/amal/types.ts';
 
-// --- WEB SPEECH API TYPES DEFINITIONS ---
-// Mendefinisikan interface standar W3C untuk Speech Recognition
-// agar tidak perlu menggunakan 'any' di service.
+  export * from './features/faraidh/types.ts';
+  export * from './features/zakat/types.ts';
+  export * from './features/hafalan/types.ts';
+  export * from './features/prayer/types.ts';
+  export * from './features/mushaf/types.ts';
+  export * from './features/hede/types.ts';
+  export * from './features/amal/types.ts';
 
-export interface SpeechRecognitionEvent extends Event {
+  // --- WEB SPEECH API TYPES DEFINITIONS ---
+  // ... (Existing Speech Definitions) ...
+  export interface SpeechRecognitionEvent extends Event {
     resultIndex: number;
     results: SpeechRecognitionResultList;
   }
@@ -52,12 +51,10 @@ export interface SpeechRecognitionEvent extends Event {
     onresult: ((this: ISpeechRecognition, ev: SpeechRecognitionEvent) => any) | null;
   }
 
-  // Konstruktor untuk SpeechRecognition
   export interface SpeechRecognitionConstructor {
     new (): ISpeechRecognition;
   }
 
-  // Extend Window interface
   export interface IWindow extends Window {
     SpeechRecognition?: SpeechRecognitionConstructor;
     webkitSpeechRecognition?: SpeechRecognitionConstructor;
@@ -68,4 +65,23 @@ export interface SpeechRecognitionEvent extends Event {
     transcript: string;
     error: string | null;
     isProcessing: boolean;
+  }
+
+  // --- HALAL SCANNER TYPES ---
+  export type HalalStatus = 'halal' | 'syubhat' | 'haram' | 'unknown';
+
+  export interface IngredientAnalysis {
+    name: string;
+    status: 'safe' | 'warning' | 'critical';
+    reason?: string;
+  }
+
+  export interface ScanResult {
+    productName: string;
+    status: HalalStatus;
+    confidence: 'High' | 'Medium' | 'Low';
+    ingredients: IngredientAnalysis[];
+    reasoning: string;
+    detectedLogos: string[];
+    timestamp: string;
   }

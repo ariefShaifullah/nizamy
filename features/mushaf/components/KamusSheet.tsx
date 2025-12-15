@@ -1,11 +1,11 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
-import type { KamusData, QuranAyah, BookmarkCategory } from '../../../types.ts';
-import type { TajwidRule } from '../logic/tajwid.helper.ts';
+import type { KamusData, QuranAyah, BookmarkCategory, TajwidRule } from '../../../types.ts';
 import { analyzeTajwid, getMakhrajDetails } from '../logic/tajwid.helper.ts';
-import { getAyahAudioUrl, getWordAudioUrl } from '../logic/mushaf.service.ts';
+import { getAyahAudioUrl, getWordAudioUrl, fetchTafsir } from '../logic/mushaf.service.ts';
 import { useToast } from '../../../components/ui/Toast.tsx';
-import { FaTimes, FaPlay, FaCopy, FaLanguage, FaBookmark, FaStar, FaRegStar, FaHeart, FaBrain, FaBookOpen, FaTrash } from 'react-icons/fa';
+import { isSafari } from '../../../utils.ts';
+import { FaTimes, FaPlay, FaCopy, FaLanguage, FaBookmark, FaStar, FaRegStar, FaHeart, FaBrain, FaBookOpen, FaTrash, FaBookReader, FaSpinner, FaChevronDown, FaGlobe } from 'react-icons/fa';
 
 interface KamusSheetProps {
     data: KamusData | null;
@@ -15,13 +15,10 @@ interface KamusSheetProps {
     onUpdateBookmark: (ayah: QuranAyah, category: BookmarkCategory | null) => void;
 }
 
-// Browser Detection for Safari Fix
-const IS_SAFARI = typeof navigator !== 'undefined' && /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-
 const HighlightedArabicText: React.FC<{ text: string; rules: TajwidRule[]; fontSize?: string }> = ({ text, rules, fontSize = 'text-3xl md:text-4xl lg:text-5xl' }) => {
     
     // Fix for Safari: Bypass coloring logic to preserve ligatures
-    if (IS_SAFARI) {
+    if (isSafari) {
         return (
             <p 
                 className={`font-arabic ${fontSize} dir-rtl text-center py-6 px-2 text-slate-800 dark:text-slate-100`}
@@ -61,9 +58,18 @@ const CATEGORY_BUTTONS: { category: BookmarkCategory; icon: React.ReactNode; lab
     { category: 'general', icon: <FaStar />, label: 'Umum', color: 'amber' },
 ];
 
+// Types for Tafsir selection
+type TafsirVariant = 'kemenag' | 'ibnkathir-ar' | 'ibnkathir-en';
+
 export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAudio, onSetLastRead, onUpdateBookmark }) => {
     const { showToast } = useToast();
     const [isClosing, setIsClosing] = useState(false);
+    const [activeTab, setActiveTab] = useState<'info' | 'tafsir'>('info');
+    
+    // Tafsir State
+    const [tafsirData, setTafsirData] = useState<{ text: string, source: string } | null>(null);
+    const [isLoadingTafsir, setIsLoadingTafsir] = useState(false);
+    const [selectedTafsirVariant, setSelectedTafsirVariant] = useState<TafsirVariant>('kemenag');
 
     useEffect(() => {
         const clearSelection = () => {
@@ -72,9 +78,16 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
             }
         };
         clearSelection();
+        
+        // Reset state on new data
+        setActiveTab('info');
+        setTafsirData(null);
+        setSelectedTafsirVariant('kemenag'); // Reset to default
+        setIsLoadingTafsir(false);
+
         const timer = setTimeout(clearSelection, 150);
         return () => clearTimeout(timer);
-    }, []);
+    }, [data]);
 
     const handleClose = () => {
         setIsClosing(true);
@@ -82,6 +95,36 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
             setIsClosing(false);
             onClose();
         }, 300); 
+    };
+
+    // Generalized Tafsir Loader
+    const handleLoadTafsir = async (variant: TafsirVariant) => {
+        if (!data || data.type !== 'ayah') return;
+        
+        // UI Updates
+        if (activeTab !== 'tafsir') setActiveTab('tafsir');
+        setSelectedTafsirVariant(variant);
+        
+        // Optimization: If switching to same loaded variant, do nothing (unless empty)
+        if (activeTab === 'tafsir' && selectedTafsirVariant === variant && tafsirData) return;
+
+        setIsLoadingTafsir(true);
+        setTafsirData(null); // Clear previous to show loading state for new fetch
+
+        try {
+            const verseKey = (data.data as any).verse_key;
+            const result = await fetchTafsir(verseKey, variant);
+            
+            if (result) {
+                setTafsirData(result);
+            } else {
+                setTafsirData({ text: "Tafsir belum tersedia untuk ayat ini.", source: "Tidak Ditemukan" });
+            }
+        } catch (e) {
+            setTafsirData({ text: "Gagal memuat tafsir. Periksa koneksi internet.", source: "Error" });
+        } finally {
+            setIsLoadingTafsir(false);
+        }
     };
 
     // --- MEMOIZATION START ---
@@ -131,7 +174,6 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
     const handleCopyText = () => copyToClipboard(arabicText, 'Teks Arab');
     const handleCopyTranslation = () => {
         if (!isAyah) return;
-        // Text is already cleaned by service
         const trans = (data.data as any).translations?.[0]?.text;
         const ref = data.reference;
         const fullText = `${trans} (${ref})`;
@@ -183,7 +225,26 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
                         <FaTimes size={18} />
                     </button>
                 </div>
+
+                {isAyah && (
+                    <div className="flex px-6 pt-4 pb-2 gap-2">
+                        <button 
+                            onClick={() => setActiveTab('info')}
+                            className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${activeTab === 'info' ? 'bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                        >
+                            Umum
+                        </button>
+                        <button 
+                            onClick={() => handleLoadTafsir(selectedTafsirVariant)}
+                            className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${activeTab === 'tafsir' ? 'bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                        >
+                            Tafsir
+                        </button>
+                    </div>
+                )}
+
                 <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+                    {/* VISUAL ARABIC BLOCK - Always Visible */}
                     <div className="relative group">
                         <div className="absolute inset-0 bg-teal-500/5 dark:bg-teal-500/10 rounded-3xl blur-xl transform group-hover:scale-105 transition-transform duration-500"></div>
                         <div className="relative bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-3xl px-2 shadow-sm overflow-hidden">
@@ -192,199 +253,254 @@ export const KamusSheet: React.FC<KamusSheetProps> = ({ data, onClose, onPlayAud
                             </div>
                             <HighlightedArabicText text={arabicText} rules={tajwidRules} fontSize={isAyah ? "text-2xl md:text-3xl" : undefined} />
                         </div>
-                        {isAyah && !IS_SAFARI && (
-                            <p className="text-center text-[10px] text-slate-400 mt-2 italic">
-                                Teks diwarnai otomatis berdasarkan kaidah tajwid.
-                            </p>
-                        )}
                     </div>
 
-                    <button 
-                        onClick={() => {
-                            const url = isAyah 
-                                ? getAyahAudioUrl((data.data as any).verse_key.split(':')[0], (data.data as any).verse_number)
-                                : getWordAudioUrl((data.data as any).audio_url);
+                    {/* CONTENT SWITCHER */}
+                    {activeTab === 'tafsir' && isAyah ? (
+                        <div className="animate-fade-in space-y-4">
                             
-                            if(url) {
-                                onPlayAudio(url);
-                            } else {
-                                showToast("Audio tidak tersedia", "error");
-                            }
-                        }}
-                        className="w-full bg-linear-to-r from-teal-600 to-emerald-600 text-white py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-lg shadow-teal-500/30 hover:shadow-teal-500/40 active:scale-[0.98] transition-all"
-                    >
-                        <span className="bg-white/20 p-2 rounded-full pl-2.5">
-                            <FaPlay size={14} />
-                        </span>
-                        Putar Audio {isAyah ? 'Ayat' : 'Kata'}
-                    </button>
-
-                    <div className="grid grid-cols-2 gap-3">
-                        <button onClick={handleCopyText} className="flex items-center justify-center gap-2 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-700 dark:text-slate-300 font-semibold text-sm hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors">
-                            <FaCopy size={16} />
-                            Salin Arab
-                        </button>
-                         <button onClick={() => onSetLastRead(data.data as QuranAyah)} className="flex items-center justify-center gap-2 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-teal-700 dark:text-teal-400 font-semibold text-sm hover:bg-teal-50 dark:hover:bg-teal-900/20 border border-slate-200 dark:border-slate-700 transition-colors">
-                            <FaBookmark />
-                            Terakhir Dibaca
-                        </button>
-                    </div>
-                    
-                    {isAyah && (
-                        <div className="space-y-3">
-                            <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                                Opsi Penanda
-                            </h4>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                {CATEGORY_BUTTONS.map(btn => {
-                                    const isActive = data.bookmark?.category === btn.category;
-                                      
-                                    // Define color classes based on category
-                                    const getActiveClasses = () => {
-                                        switch(btn.category) {
-                                            case 'favorite':
-                                                return 'bg-rose-600 text-white border-rose-600 shadow-md';
-                                            case 'memorize':
-                                                return 'bg-indigo-600 text-white border-indigo-600 shadow-md';
-                                            case 'study':
-                                                return 'bg-sky-600 text-white border-sky-600 shadow-md';
-                                            case 'general':
-                                                return 'bg-amber-600 text-white border-amber-600 shadow-md';
-                                            default:
-                                                return 'bg-slate-600 text-white border-slate-600 shadow-md';
-                                        }
-                                    };
-                                    
-                                    const getInactiveClasses = () => {
-                                        switch(btn.category) {
-                                            case 'favorite':
-                                                return 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:text-rose-700 dark:hover:text-rose-400 hover:border-rose-200 dark:hover:border-rose-800';
-                                            case 'memorize':
-                                                return 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-700 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-800';
-                                            case 'study':
-                                                return 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-sky-50 dark:hover:bg-sky-900/20 hover:text-sky-700 dark:hover:text-sky-400 hover:border-sky-200 dark:hover:border-sky-800';
-                                            case 'general':
-                                                return 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-amber-50 dark:hover:bg-amber-900/20 hover:text-amber-700 dark:hover:text-amber-400 hover:border-amber-200 dark:hover:border-amber-800';
-                                            default:
-                                                return 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700';
-                                        }
-                                    };
-                                    
-                                    return (
-                                        <button 
-                                            key={btn.category} 
-                                            onClick={() => onUpdateBookmark(data.data as QuranAyah, btn.category)}
-                                            className={`flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm border transition-colors ${isActive ? getActiveClasses() : getInactiveClasses()}`}
-                                        >
-                                            {btn.icon} {btn.label}
-                                        </button>
-                                    );
-                                })}
+                            {/* LANGUAGE/SOURCE SELECTOR */}
+                            <div className="relative w-full">
+                                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-slate-400">
+                                    <FaGlobe />
+                                </div>
+                                <select
+                                    value={selectedTafsirVariant}
+                                    onChange={(e) => handleLoadTafsir(e.target.value as TafsirVariant)}
+                                    className="w-full pl-10 pr-10 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl appearance-none text-sm font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500 cursor-pointer shadow-sm"
+                                    disabled={isLoadingTafsir}
+                                >
+                                    <option value="kemenag">🇮🇩 Kemenag RI</option>
+                                    <option value="ibnkathir-en">🇬🇧 Ibn Kathir</option>
+                                    <option value="ibnkathir-ar">🇸🇦 ابن كثير</option>
+                                </select>
+                                <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-slate-400">
+                                     <FaChevronDown />
+                                </div>
                             </div>
-                            {data.bookmark && (
-                                <button onClick={() => onUpdateBookmark(data.data as QuranAyah, null)} className="w-full flex items-center justify-center gap-2 py-2.5 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-xl font-semibold text-xs hover:bg-red-100 transition-colors">
-                                    <FaTrash /> Hapus Penanda
-                                </button>
+
+                            {isLoadingTafsir ? (
+                                <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+                                    <span className="animate-spin text-2xl mb-2 text-teal-500"><FaSpinner /></span>
+                                    <p className="text-xs font-medium">Memuat tafsir...</p>
+                                </div>
+                            ) : (
+                                <div 
+                                    className={`
+                                        p-5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-sm leading-relaxed text-justify animate-fade-in
+                                        ${selectedTafsirVariant === 'ibnkathir-ar' ? 'font-arabic text-right text-xl leading-loose' : ''}
+                                    `} 
+                                    dir={selectedTafsirVariant === 'ibnkathir-ar' ? 'rtl' : 'ltr'} 
+                                    style={selectedTafsirVariant === 'ibnkathir-ar' ? { fontFamily: '"Amiri", serif' } : {}}
+                                >
+                                    {/* Handle BOTH Arabic & English Ibn Kathir as HTML (since API returns HTML) */}
+                                    {/* Kemenag is plain text (mostly), others are HTML */}
+                                    {selectedTafsirVariant === 'kemenag' ? (
+                                        <div className="whitespace-pre-line">{tafsirData?.text}</div>
+                                    ) : (
+                                        <div 
+                                            className="prose dark:prose-invert max-w-none [&>p]:mb-4 [&>h2]:text-lg [&>h2]:font-bold [&>h2]:mb-2 [&>h2]:mt-4" 
+                                            dangerouslySetInnerHTML={{ __html: tafsirData?.text || '' }} 
+                                        />
+                                    )}
+                                </div>
+                            )}
+                            
+                            {tafsirData?.source && !isLoadingTafsir && (
+                                <p className="text-[10px] text-slate-400 text-center italic">
+                                    Sumber: {tafsirData.source} via {selectedTafsirVariant === 'kemenag' ? 'EQuran.id' : 'Quran.com'}
+                                </p>
                             )}
                         </div>
-                    )}
-
-                    {isAyah ? (
-                        <div className="space-y-3">
-                            <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-2">
-                                Terjemahan
-                            </h4>
-                            <div className="p-5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
-                                <p className="text-slate-700 dark:text-slate-300 leading-loose text-base text-justify font-serif">
-                                    {/* Data is already cleaned in service */}
-                                    {(data.data as any).translations?.[0]?.text}
-                                </p>
-                            </div>
-                             <button onClick={handleCopyTranslation} className="w-full flex items-center justify-center gap-2 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-700 dark:text-slate-300 font-semibold text-xs hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors">
-                                <span className="text-sm"><FaLanguage /></span>
-                                Salin Terjemahan
-                            </button>
-                        </div>
                     ) : (
-                        <div className="space-y-8">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-800/50">
-                                    <p className="text-xs text-indigo-600 dark:text-indigo-400 font-bold uppercase mb-1">Transliterasi</p>
-                                    <p className="font-bold text-indigo-900 dark:text-indigo-100 text-lg">{(data.data as any).transliteration?.text}</p>
-                                </div>
-                                <div className="p-4 bg-teal-50 dark:bg-teal-900/20 rounded-2xl border border-teal-100 dark:border-teal-800/50">
-                                    <p className="text-xs text-teal-600 dark:text-teal-400 font-bold uppercase mb-1">Arti Kata</p>
-                                    <p className="font-bold text-teal-900 dark:text-teal-100 text-lg">{(data.data as any).translation?.text}</p>
-                                </div>
+                        <div className="animate-fade-in space-y-6">
+                            <button 
+                                onClick={() => {
+                                    const url = isAyah 
+                                        ? getAyahAudioUrl((data.data as any).verse_key.split(':')[0], (data.data as any).verse_number)
+                                        : getWordAudioUrl((data.data as any).audio_url);
+                                    
+                                    if(url) {
+                                        onPlayAudio(url);
+                                    } else {
+                                        showToast("Audio tidak tersedia", "error");
+                                    }
+                                }}
+                                className="w-full bg-linear-to-r from-teal-600 to-emerald-600 text-white py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-lg shadow-teal-500/30 hover:shadow-teal-500/40 active:scale-[0.98] transition-all"
+                            >
+                                <span className="bg-white/20 p-2 rounded-full pl-2.5">
+                                    <FaPlay size={14} />
+                                </span>
+                                Putar Audio
+                            </button>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <button onClick={handleCopyText} className="flex items-center justify-center gap-2 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-700 dark:text-slate-300 font-semibold text-sm hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors">
+                                    <FaCopy size={16} />
+                                    Salin Arab
+                                </button>
+                                <button onClick={() => onSetLastRead(data.data as QuranAyah)} className="flex items-center justify-center gap-2 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-teal-700 dark:text-teal-400 font-semibold text-sm hover:bg-teal-50 dark:hover:bg-teal-900/20 border border-slate-200 dark:border-slate-700 transition-colors">
+                                    <FaBookmark />
+                                    Terakhir Dibaca
+                                </button>
                             </div>
-                            <div>
-                                <div className="flex items-center gap-2 mb-3">
+                            
+                            {isAyah && (
+                                <div className="space-y-3">
                                     <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                                        Analisis Tajwid
+                                        Opsi Penanda
                                     </h4>
-                                    <span className="text-[10px] font-bold bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-800/50 uppercase tracking-wide">
-                                        Beta
-                                    </span>
-                                </div>
-                                {tajwidRules.length > 0 && !IS_SAFARI ? (
-                                    <div className="space-y-3">
-                                        {tajwidRules.map((rule, idx) => (
-                                            <div key={idx} className={`p-4 rounded-2xl border-l-4 shadow-sm bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 flex gap-4 items-start`}>
-                                                <div className="mt-1">
-                                                    <div className={`w-3 h-3 rounded-full ${rule.color.replace('text-', 'bg-').split(' ')[0]}`}></div>
-                                                </div>
-                                                <div>
-                                                    <h5 className={`font-bold text-base ${rule.color}`}>{rule.name}</h5>
-                                                    <p className="text-sm mt-1 opacity-90 leading-relaxed text-slate-600 dark:text-slate-300">{rule.description}</p>
-                                                </div>
-                                            </div>
-                                        ))}
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                        {CATEGORY_BUTTONS.map(btn => {
+                                            const isActive = data.bookmark?.category === btn.category;
+                                            
+                                            // Define color classes based on category
+                                            const getActiveClasses = () => {
+                                                switch(btn.category) {
+                                                    case 'favorite':
+                                                        return 'bg-rose-600 text-white border-rose-600 shadow-md';
+                                                    case 'memorize':
+                                                        return 'bg-indigo-600 text-white border-indigo-600 shadow-md';
+                                                    case 'study':
+                                                        return 'bg-sky-600 text-white border-sky-600 shadow-md';
+                                                    case 'general':
+                                                        return 'bg-amber-600 text-white border-amber-600 shadow-md';
+                                                    default:
+                                                        return 'bg-slate-600 text-white border-slate-600 shadow-md';
+                                                }
+                                            };
+                                            
+                                            const getInactiveClasses = () => {
+                                                switch(btn.category) {
+                                                    case 'favorite':
+                                                        return 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:text-rose-700 dark:hover:text-rose-400 hover:border-rose-200 dark:hover:border-rose-800';
+                                                    case 'memorize':
+                                                        return 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-700 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-800';
+                                                    case 'study':
+                                                        return 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-sky-50 dark:hover:bg-sky-900/20 hover:text-sky-700 dark:hover:text-sky-400 hover:border-sky-200 dark:hover:border-sky-800';
+                                                    case 'general':
+                                                        return 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-amber-50 dark:hover:bg-amber-900/20 hover:text-amber-700 dark:hover:text-amber-400 hover:border-amber-200 dark:hover:border-amber-800';
+                                                    default:
+                                                        return 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700';
+                                                }
+                                            };
+                                            
+                                            return (
+                                                <button 
+                                                    key={btn.category} 
+                                                    onClick={() => onUpdateBookmark(data.data as QuranAyah, btn.category)}
+                                                    className={`flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm border transition-colors ${isActive ? getActiveClasses() : getInactiveClasses()}`}
+                                                >
+                                                    {btn.icon} {btn.label}
+                                                </button>
+                                            );
+                                        })}
                                     </div>
-                                ) : (
-                                    <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 text-center">
-                                        <p className="text-slate-500 dark:text-slate-400 text-sm">
-                                            {IS_SAFARI ? 'Analisis Tajwid dinonaktifkan di Safari.' : 'Tidak ada hukum tajwid khusus yang terdeteksi pada kata ini.'}
+                                    {data.bookmark && (
+                                        <button onClick={() => onUpdateBookmark(data.data as QuranAyah, null)} className="w-full flex items-center justify-center gap-2 py-2.5 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-xl font-semibold text-xs hover:bg-red-100 transition-colors">
+                                            <FaTrash /> Hapus Penanda
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+
+                            {isAyah ? (
+                                <div className="space-y-3">
+                                    <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-2">
+                                        Terjemahan
+                                    </h4>
+                                    <div className="p-5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                                        <p className="text-slate-700 dark:text-slate-300 leading-loose text-base text-justify font-serif">
+                                            {(data.data as any).translations?.[0]?.text}
                                         </p>
                                     </div>
-                                )}
-                            </div>
-                            <div>
-                                <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-3">
-                                    Bedah Makhraj Huruf
-                                </h4>
-                                {makhrajList.length > 0 ? (
-                                    <div className="space-y-3">
-                                        {makhrajList.map((m, idx) => (
-                                            <div key={idx} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex gap-4">
-                                                <div className="w-12 h-12 shrink-0 bg-white dark:bg-slate-900 rounded-full flex items-center justify-center text-2xl font-arabic border border-slate-100 dark:border-slate-600 text-slate-800 dark:text-slate-200" style={{ fontFamily: '"Amiri", serif' }}>
-                                                    {m.letter}
-                                                </div>
-                                                <div className="flex-1">
-                                                    <div className="flex flex-wrap gap-2 mb-1">
-                                                        <h5 className="font-bold text-slate-800 dark:text-white">{m.name}</h5>
-                                                        <span className="text-xs bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded text-slate-600 dark:text-slate-300 font-medium">{m.area}</span>
-                                                    </div>
-                                                    <p className="text-sm text-slate-600 dark:text-slate-300 mb-2">{m.place}</p>
-                                                    <div className="flex flex-wrap gap-1.5 mb-2">
-                                                        {m.sifat.map(s => (
-                                                            <span key={s} className="text-[10px] bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded text-slate-500 dark:text-slate-400">
-                                                                {s}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                    {m.note && (
-                                                        <p className="text-xs text-slate-500 dark:text-slate-400 italic border-l-2 border-slate-300 pl-2">
-                                                            Tips: {m.note}
-                                                        </p>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        ))}
+                                    <button onClick={handleCopyTranslation} className="w-full flex items-center justify-center gap-2 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-700 dark:text-slate-300 font-semibold text-xs hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors">
+                                        <span className="text-sm"><FaLanguage /></span>
+                                        Salin Terjemahan
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="space-y-8">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-800/50">
+                                            <p className="text-xs text-indigo-600 dark:text-indigo-400 font-bold uppercase mb-1">Transliterasi</p>
+                                            <p className="font-bold text-indigo-900 dark:text-indigo-100 text-lg">{(data.data as any).transliteration?.text}</p>
+                                        </div>
+                                        <div className="p-4 bg-teal-50 dark:bg-teal-900/20 rounded-2xl border border-teal-100 dark:border-teal-800/50">
+                                            <p className="text-xs text-teal-600 dark:text-teal-400 font-bold uppercase mb-1">Arti Kata</p>
+                                            <p className="font-bold text-teal-900 dark:text-teal-100 text-lg">{(data.data as any).translation?.text}</p>
+                                        </div>
                                     </div>
-                                ) : (
-                                    <p className="text-slate-500 text-sm text-center">Data makhraj tidak tersedia.</p>
-                                )}
-                            </div>
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                                                Analisis Tajwid
+                                            </h4>
+                                            <span className="text-[10px] font-bold bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-800/50 uppercase tracking-wide">
+                                                Beta
+                                            </span>
+                                        </div>
+                                        {tajwidRules.length > 0 && !isSafari ? (
+                                            <div className="space-y-3">
+                                                {tajwidRules.map((rule, idx) => (
+                                                    <div key={idx} className={`p-4 rounded-2xl border-l-4 shadow-sm bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 flex gap-4 items-start`}>
+                                                        <div className="mt-1">
+                                                            <div className={`w-3 h-3 rounded-full ${rule.color.replace('text-', 'bg-').split(' ')[0]}`}></div>
+                                                        </div>
+                                                        <div>
+                                                            <h5 className={`font-bold text-base ${rule.color}`}>{rule.name}</h5>
+                                                            <p className="text-sm mt-1 opacity-90 leading-relaxed text-slate-600 dark:text-slate-300">{rule.description}</p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 text-center">
+                                                <p className="text-slate-500 dark:text-slate-400 text-sm">
+                                                    {isSafari ? 'Analisis Tajwid dinonaktifkan di Safari.' : 'Tidak ada hukum tajwid khusus yang terdeteksi pada kata ini.'}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-3">
+                                            Bedah Makhraj Huruf
+                                        </h4>
+                                        {makhrajList.length > 0 ? (
+                                            <div className="space-y-3">
+                                                {makhrajList.map((m, idx) => (
+                                                    <div key={idx} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex gap-4">
+                                                        <div className="w-12 h-12 shrink-0 bg-white dark:bg-slate-900 rounded-full flex items-center justify-center text-2xl font-arabic border border-slate-100 dark:border-slate-600 text-slate-800 dark:text-slate-200" style={{ fontFamily: '"Amiri", serif' }}>
+                                                            {m.letter}
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <div className="flex flex-wrap gap-2 mb-1">
+                                                                <h5 className="font-bold text-slate-800 dark:text-white">{m.name}</h5>
+                                                                <span className="text-xs bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded text-slate-600 dark:text-slate-300 font-medium">{m.area}</span>
+                                                            </div>
+                                                            <p className="text-sm text-slate-600 dark:text-slate-300 mb-2">{m.place}</p>
+                                                            <div className="flex flex-wrap gap-1.5 mb-2">
+                                                                {m.sifat.map(s => (
+                                                                    <span key={s} className="text-[10px] bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded text-slate-500 dark:text-slate-400">
+                                                                        {s}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                            {m.note && (
+                                                                <p className="text-xs text-slate-500 dark:text-slate-400 italic border-l-2 border-slate-300 pl-2">
+                                                                    Tips: {m.note}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <p className="text-slate-500 text-sm text-center">Data makhraj tidak tersedia.</p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

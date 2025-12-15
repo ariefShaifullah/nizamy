@@ -12,6 +12,8 @@ export const useMushafAudio = ({ onEnded }: UseMushafAudioProps = {}) => {
     const [playingWordId, setPlayingWordId] = useState<number | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [progress, setProgress] = useState(0);
+    
+    // Lazy initialization ref
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
     // Keep onEnded ref current to avoid closure staleness in event listeners
@@ -20,27 +22,13 @@ export const useMushafAudio = ({ onEnded }: UseMushafAudioProps = {}) => {
         onEndedRef.current = onEnded;
     }, [onEnded]);
 
+    // Cleanup on unmount
     useEffect(() => {
-        audioRef.current = new Audio();
-        
-        const audio = audioRef.current;
-        
-        const handleTimeUpdate = () => {
-            if (audio.duration) {
-                const percent = (audio.currentTime / audio.duration) * 100;
-                setProgress(percent);
-            }
-        };
-
-        audio.addEventListener('timeupdate', handleTimeUpdate);
-
         return () => {
-            if (audio) {
-                audio.removeEventListener('timeupdate', handleTimeUpdate);
-                audio.onended = null;
-                audio.onerror = null;
-                audio.pause();
-                audio.removeAttribute('src');
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.removeAttribute('src');
+                audioRef.current = null;
             }
         };
     }, []);
@@ -49,7 +37,6 @@ export const useMushafAudio = ({ onEnded }: UseMushafAudioProps = {}) => {
         if (audioRef.current) {
             audioRef.current.pause();
             audioRef.current.currentTime = 0;
-            audioRef.current.removeAttribute('src');
         }
         setIsPlaying(false);
         setPlayingAyahId(null);
@@ -58,18 +45,33 @@ export const useMushafAudio = ({ onEnded }: UseMushafAudioProps = {}) => {
     }, []);
 
     const playAudio = useCallback(async (url: string, type: 'ayah' | 'word', id: number) => {
-        if (!url || !audioRef.current) return;
+        if (!url) return;
 
-        // Don't full stop if switching tracks to avoid UI flicker, just pause
-        if (audioRef.current) audioRef.current.pause();
+        // Lazy Initialize Audio on first user interaction
+        if (!audioRef.current) {
+            audioRef.current = new Audio();
+            
+            // Attach permanent listeners
+            audioRef.current.addEventListener('timeupdate', () => {
+                if (audioRef.current && audioRef.current.duration) {
+                    const percent = (audioRef.current.currentTime / audioRef.current.duration) * 100;
+                    setProgress(percent);
+                }
+            });
+        }
+
+        const audio = audioRef.current;
+
+        // Ensure clean state before playing new track
+        audio.pause();
 
         if (type === 'ayah') {
             setPlayingAyahId(id);
             setPlayingWordId(null);
         } else {
             setPlayingWordId(id);
-            // Word playback shouldn't clear ayah selection entirely if we want context, 
-            // but for now let's keep it simple: either ayah mode or word mode playing.
+            // In Word mode, we don't necessarily want to clear Ayah ID if we want to keep context, 
+            // but for simple playback logic, we focus on what is playing.
             setPlayingAyahId(null); 
         }
         
@@ -77,24 +79,32 @@ export const useMushafAudio = ({ onEnded }: UseMushafAudioProps = {}) => {
         setProgress(0);
 
         try {
-            audioRef.current.src = url;
-            audioRef.current.load();
+            audio.src = url;
+            // Vital: load() resets the media element and prepares it for new playback
+            audio.load();
             
-            const playPromise = audioRef.current.play();
+            const playPromise = audio.play();
             
             if (playPromise !== undefined) {
                 playPromise.catch(e => {
-                    if (e.name === 'NotSupportedError' || e.message?.includes('supported source')) {
+                    // Ignore abort errors which happen if user clicks multiple items quickly
+                    if (e.name === 'AbortError') return;
+
+                    if (e.name === 'NotAllowedError') {
+                        showToast("Autoplay diblokir browser. Silakan ketuk lagi.", "info");
+                    } else if (e.name === 'NotSupportedError' || e.message?.includes('supported source')) {
                         showToast("Format audio tidak didukung", "error");
+                    } else {
+                        console.error("Audio Play Error:", e);
                     }
-                    if (e.name !== 'AbortError') {
-                        setIsPlaying(false);
-                    }
+                    
+                    setIsPlaying(false);
+                    setPlayingAyahId(null);
+                    setPlayingWordId(null);
                 });
             }
             
-            audioRef.current.onended = () => {
-                // Logic handled by parent via callback if provided
+            audio.onended = () => {
                 if (onEndedRef.current && type === 'ayah') {
                     onEndedRef.current();
                 } else {
@@ -105,9 +115,11 @@ export const useMushafAudio = ({ onEnded }: UseMushafAudioProps = {}) => {
                 }
             };
 
-            audioRef.current.onerror = () => {
-                if (audioRef.current?.src) {
-                    showToast("Audio tidak tersedia (Network/404)", "error");
+            audio.onerror = (e) => {
+                console.error("Audio Error Event:", e);
+                // Only show toast if source was actually set
+                if (audio.src) {
+                    showToast("Gagal memuat audio (Network/404)", "error");
                 }
                 setIsPlaying(false);
                 setPlayingAyahId(null);
@@ -116,7 +128,7 @@ export const useMushafAudio = ({ onEnded }: UseMushafAudioProps = {}) => {
             };
 
         } catch (err) {
-            console.error(err);
+            console.error("Sync Audio Error:", err);
             setIsPlaying(false);
             setProgress(0);
         }

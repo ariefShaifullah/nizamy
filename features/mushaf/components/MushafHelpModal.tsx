@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Modal } from '../../../components/ui/Modal.tsx';
 import { audioService } from '../../../services/audio.service.ts';
-import { FaTimes, FaHeadphones, FaSearchPlus, FaCog } from 'react-icons/fa';
+import { FaTimes, FaHeadphones, FaSearchPlus, FaBookmark, FaHashtag } from 'react-icons/fa';
 
 interface MushafHelpModalProps {
   onClose: () => void;
@@ -13,19 +13,19 @@ export const MushafHelpModal: React.FC<MushafHelpModalProps> = ({ onClose }) => 
 
   const content = [
     {
-      title: "Audio & Mode Per Kata",
-      desc: "Ketuk ayat untuk memutar Murattal full.\n\nIngin belajar pelafalan? Aktifkan **Mode Per Kata** di menu Pengaturan, lalu ketuk kata Arab untuk mendengar ejaannya.",
-      icon: <FaHeadphones />
+      title: "Navigasi & Penanda Pintar",
+      desc: "Gunakan tombol **#** di atas untuk loncat ke nomor ayat tertentu dengan cepat.\n\nSimpan ayat dengan **Kategori Khusus** (Hafalan, Kajian, Favorit) agar mudah dikelompokkan dan ditemukan kembali.",
+      icon: <FaBookmark />
     },
     {
-      title: "Tajwid & Bedah Kata",
-      desc: "Tekan & tahan (Long Press) pada ayat atau kata untuk membuka fitur canggih:\n\n✨ Analisis Hukum Tajwid\n🗣️ Bedah Makhraj Huruf\n📖 Detail Arti Kata",
+      title: "Tafsir & Bedah Ayat",
+      desc: "Tekan & tahan **(Long Press)** pada ayat untuk membuka lembar detail.\n\nNikmati akses ke **Tafsir Kemenag & Ibn Kathir**, serta analisis hukum Tajwid dan Makhraj huruf secara mendalam.",
       icon: <FaSearchPlus />
     },
     {
-      title: "Personalisasi",
-      desc: "Buka menu Pengaturan (ikon gerigi) di pojok kanan atas untuk mengubah ukuran huruf Arab atau menyembunyikan terjemahan agar lebih fokus.",
-      icon: <FaCog />
+      title: "Audio & Mode Per Kata",
+      desc: "Putar Murottal per ayat, atau aktifkan **Mode Per Kata** di Pengaturan untuk mendengar pelafalan satu per satu.\n\nSesuaikan ukuran huruf Arab agar mata lebih nyaman saat membaca.",
+      icon: <FaHeadphones />
     }
   ];
 
@@ -71,7 +71,7 @@ export const MushafHelpModal: React.FC<MushafHelpModalProps> = ({ onClose }) => 
         </div>
 
         <div className="p-6">
-            <div className="min-h-[100px] flex items-center justify-center">
+            <div className="min-h-[120px] flex items-center justify-center">
                 <p className="text-slate-600 dark:text-slate-300 text-center leading-relaxed whitespace-pre-line text-sm md:text-base">
                     {current.desc.split('**').map((part, i) => 
                         i % 2 === 1 ? <strong key={i} className="text-teal-600 dark:text-teal-400">{part}</strong> : part

@@ -1,24 +1,10 @@
 
+import type { TajwidRule, MakhrajDetail } from '../types.ts';
+
 /**
  * Advanced Tajwid & Makhraj Analysis Helper
  * Handles Intra-word rules, Inter-word rules, Special Cases, and Letter Articulation Points.
  */
-
-export interface TajwidRule {
-    name: string;
-    description: string;
-    color: string; // Tailwind class for badge
-    indexes: number[]; // Indices of characters in the text to highlight
-}
-
-export interface MakhrajDetail {
-    letter: string;
-    name: string; // e.g., "Alif", "Ba"
-    area: string; // e.g., "Al-Halq (Tenggorokan)"
-    place: string; // Specific pronunciation method
-    sifat: string[]; // Characteristics: Jahr, Hams, etc.
-    note?: string; // Additional tips
-}
 
 // --- REGEX PATTERNS (ARABIC UNICODE) ---
 // Harakat

@@ -3,22 +3,14 @@ import React, { useCallback, useMemo } from 'react';
 import type { QuranAyah, QuranWord, LastReadState, Bookmark, BookmarkCategory } from '../../../types.ts';
 import { useLongPress } from '../../../hooks/useLongPress.ts';
 import { FaEllipsisH, FaPlay, FaBookmark, FaStar } from 'react-icons/fa';
-import { analyzeTajwid } from '../logic/tajwid.helper.ts';
-
-// --- BROWSER DETECTION ---
-// Safari (WebKit) has a known issue where wrapping individual Arabic letters in <span> 
-// breaks the cursive ligatures (huruf terputus). 
-// To preserve the sanctity of the Quranic text, we disable coloring on Safari.
-const IS_SAFARI = typeof navigator !== 'undefined' && /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+import { useMushafSettings } from '../context/MushafContext.tsx';
+import { isSafari } from '../../../utils.ts';
 
 interface AyahRendererProps {
     ayah: QuranAyah;
     globalIndex: number;
     isPlaying: boolean;
     activeWordIndex: number | null;
-    wordMode: boolean;
-    fontSize: number;
-    showTranslation: boolean;
     lastRead: LastReadState | null;
     bookmarks: Bookmark[];
     onTapAyah: (ayah: QuranAyah) => void; 
@@ -35,10 +27,13 @@ const CATEGORY_COLORS: Record<BookmarkCategory, string> = {
 };
 
 export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({ 
-    ayah, globalIndex, isPlaying, activeWordIndex, wordMode, fontSize, showTranslation, lastRead, bookmarks,
+    ayah, globalIndex, isPlaying, activeWordIndex, lastRead, bookmarks,
     onTapAyah, onLongPressAyah, onTapWord, onLongPressWord 
 }) => {
     
+    // 1. Consume Context (No more prop drilling)
+    const { fontSize, showTranslation, wordMode } = useMushafSettings();
+
     const handleTap = useCallback(() => {
         onTapAyah(ayah);
     }, [onTapAyah, ayah]);
@@ -59,14 +54,9 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
     };
 
     // --- Dynamic Line Height Calculation ---
-    // Taller line height for smaller fonts to prevent crowding
-    // Tighter line height for very large fonts to keep text cohesive
     const lineHeight = useMemo(() => {
         const base = 2.0;
         const scale = Math.max(0, (fontSize - 24) * 0.02); 
-        // 24px -> 2.0
-        // 40px -> 2.32
-        // 60px -> 2.72
         return base + scale;
     }, [fontSize]);
 
@@ -75,23 +65,6 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
     const bookmarkForAyah = useMemo(() => 
         bookmarks.find(b => b.surahId === parseInt(ayah.verse_key.split(':')[0]) && b.ayahNumber === ayah.verse_number),
     [bookmarks, ayah.verse_key, ayah.verse_number]);
-
-    const processedWords = useMemo(() => {
-        return ayah.words.map((word, index) => {
-            if (word.char_type_name !== 'word') return { word, rules: [] };
-            
-            const nextWord = index < ayah.words.length - 1 ? ayah.words[index + 1] : null;
-            const isEndAyah = index === ayah.words.length - 1;
-            
-            const rules = analyzeTajwid(
-                word.text_uthmani, 
-                nextWord?.text_uthmani, 
-                word.location, 
-                isEndAyah
-            );
-            return { word, rules };
-        });
-    }, [ayah.words]);
 
     return (
         <div 
@@ -160,11 +133,12 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
                         WebkitFontFeatureSettings: '"cv01" 1, "cv02" 1, "ss01" 1'
                     }}
                 >
-                    {processedWords.map((item, index) => (
+                    {ayah.words.map((word, index) => (
                         <WordItem 
-                            key={`${ayah.id}-${item.word.id}-${index}`} 
-                            word={item.word} 
-                            tajwidRules={item.rules}
+                            key={`${ayah.id}-${word.id}-${index}`} 
+                            word={word} 
+                            // Tajwid rules are now pre-calculated in service, simple lookup
+                            tajwidRules={word.tajwidRules || []}
                             parentAyah={ayah}
                             isActive={activeWordIndex === index}
                             wordMode={wordMode}
@@ -206,6 +180,8 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
         </div>
     );
 }, (prevProps, nextProps) => {
+    // Basic props comparison (Context consumers inside will trigger re-render if context changes)
+    // We only need to check props passed from parent
     const areLastReadsEqual = (prev: LastReadState | null, next: LastReadState | null) => {
         if (prev === next) return true;
         if (!prev || !next) return false;
@@ -226,9 +202,8 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
         prevProps.ayah.id === nextProps.ayah.id &&
         prevProps.isPlaying === nextProps.isPlaying &&
         prevProps.activeWordIndex === nextProps.activeWordIndex &&
-        prevProps.wordMode === nextProps.wordMode &&
-        prevProps.fontSize === nextProps.fontSize &&
-        prevProps.showTranslation === nextProps.showTranslation &&
+        // Note: fontSize, wordMode, etc are now from Context, but React.memo checks props.
+        // If Context changes, component re-renders regardless of props equality.
         prevProps.globalIndex === nextProps.globalIndex &&
         areLastReadsEqual(prevProps.lastRead, nextProps.lastRead) &&
         areBookmarksEqual(prevProps.bookmarks, nextProps.bookmarks)
@@ -289,7 +264,7 @@ const WordItem: React.FC<{
 
     const renderColoredText = () => {
         // Fix for Safari: Return plain text if Safari or no rules/wordMode
-        if (IS_SAFARI || !wordMode || tajwidRules.length === 0) {
+        if (isSafari || !wordMode || tajwidRules.length === 0) {
             return word.text_uthmani;
         }
 

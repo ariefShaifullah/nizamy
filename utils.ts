@@ -1,3 +1,4 @@
+
 export const formatCurrency = (value: number): string => {
   return new Intl.NumberFormat("id-ID", {
     style: "currency",
@@ -33,3 +34,6 @@ export const gcd = (a: number, b: number): number =>
 // Least Common Multiple
 export const lcm = (a: number, b: number): number =>
   a === 0 || b === 0 ? 0 : (a * b) / gcd(a, b);
+
+// Browser Detection
+export const isSafari = typeof navigator !== 'undefined' && /^((?!chrome|android).)*safari/i.test(navigator.userAgent);

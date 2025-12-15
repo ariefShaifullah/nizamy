@@ -1,18 +1,20 @@
 
 import React from 'react';
 import { Modal } from '../../../components/ui/Modal.tsx';
+import { useMushafSettings } from '../context/MushafContext.tsx';
 
 interface MushafSettingsProps {
-    fontSize: number;
-    setFontSize: (size: number) => void;
-    showTranslation: boolean;
-    setShowTranslation: (show: boolean) => void;
-    wordMode: boolean;
-    setWordMode: (mode: boolean) => void;
     onClose: () => void;
 }
 
-export const MushafSettingsModal: React.FC<MushafSettingsProps> = ({ fontSize, setFontSize, showTranslation, setShowTranslation, wordMode, setWordMode, onClose }) => {
+export const MushafSettingsModal: React.FC<MushafSettingsProps> = ({ onClose }) => {
+    // Consume Context directly
+    const { 
+        fontSize, setFontSize, 
+        showTranslation, setShowTranslation, 
+        wordMode, setWordMode 
+    } = useMushafSettings();
+
     return (
         <Modal isOpen={true} onClose={onClose} title="Tampilan Mushaf" maxWidth="max-w-sm">
             <div className="p-6 space-y-6">

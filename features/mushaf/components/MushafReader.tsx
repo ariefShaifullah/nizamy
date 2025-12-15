@@ -1,10 +1,11 @@
 
-import React from 'react';
-import { Virtuoso, type VirtuosoHandle, type ListRange } from 'react-virtuoso';
+import React, { useRef, useEffect, useCallback } from 'react';
+import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 import { AyahRenderer } from './AyahRenderer.tsx';
 import { SurahHeader } from './SurahHeader.tsx';
 import { SURAH_DATA } from '../../../constants.ts';
 import type { QuranAyah, QuranWord, LastReadState, Bookmark } from '../../../types.ts';
+import { useDebounce } from '../../../hooks/useDebounce.ts';
 
 // Skeleton Component
 const VersesSkeleton = () => (
@@ -29,8 +30,8 @@ interface MushafReaderProps {
     loadNextPage: () => void;
     retry: () => void;
     virtuosoRef: React.RefObject<VirtuosoHandle>;
-    onRangeChange: (range: ListRange) => void;
-    onScroll: (e: Event) => void; // Added onScroll prop
+    onVisibleAyahChange: (ayahNumber: number) => void;
+    initialIndex?: number; // New Prop for precise jump
     
     // Settings & State
     lastRead: LastReadState | null;
@@ -38,9 +39,6 @@ interface MushafReaderProps {
     isPlaying: boolean;
     playingAyahId: number | null;
     playingWordId: number | null;
-    wordMode: boolean;
-    fontSize: number;
-    showTranslation: boolean;
 
     // Handlers
     onTapAyah: (ayah: QuranAyah) => void;
@@ -58,21 +56,43 @@ export const MushafReader: React.FC<MushafReaderProps> = ({
     loadNextPage,
     retry,
     virtuosoRef,
-    onRangeChange,
-    onScroll,
+    onVisibleAyahChange,
+    initialIndex,
     lastRead,
     bookmarks,
     isPlaying,
     playingAyahId,
     playingWordId,
-    wordMode,
-    fontSize,
-    showTranslation,
     onTapAyah,
     onLongPressAyah,
     onTapWord,
     onLongPressWord
 }) => {
+    
+    // LOGIC: Center Screen Detection
+    // This is more accurate for "Last Read" than checking the top item.
+    const handleScroll = useCallback(() => {
+        // Debounce slightly to avoid heavy calculations every pixel
+        requestAnimationFrame(() => {
+            const centerY = window.innerHeight / 2;
+            const centerX = window.innerWidth / 2;
+            
+            // Find element at the exact center of the screen
+            const element = document.elementFromPoint(centerX, centerY);
+            
+            if (element) {
+                // Traverse up to find the container with data attribute
+                const verseContainer = element.closest('[data-verse-number]');
+                if (verseContainer) {
+                    const num = parseInt(verseContainer.getAttribute('data-verse-number') || '0', 10);
+                    if (num > 0) {
+                        onVisibleAyahChange(num);
+                    }
+                }
+            }
+        });
+    }, [onVisibleAyahChange]);
+
     return (
         <div className="grow relative w-full max-w-3xl mx-auto bg-white dark:bg-slate-950 pl-5">
             {error && (
@@ -91,9 +111,13 @@ export const MushafReader: React.FC<MushafReaderProps> = ({
                     style={{ height: '100%' }}
                     data={verses}
                     endReached={loadNextPage}
-                    rangeChanged={onRangeChange}
-                    onScroll={onScroll} // Bind the scroll listener
-                    overscan={500}
+                    // Use onScroll for center detection instead of rangeChanged
+                    onScroll={handleScroll}
+                    // CRITICAL FIX: initialTopMostItemIndex
+                    // This forces the list to render starting at this index immediately on mount.
+                    // No scrolling required, avoiding layout shifts and inaccuracies.
+                    initialTopMostItemIndex={initialIndex || 0}
+                    overscan={1000} 
                     className="pb-32 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:none]"
                     components={{
                         Header: () => surah ? <SurahHeader surah={surah} /> : null,
@@ -116,9 +140,6 @@ export const MushafReader: React.FC<MushafReaderProps> = ({
                                 globalIndex={index}
                                 isPlaying={playingAyahId === ayah.id}
                                 activeWordIndex={playingWordId ? ayah.words.findIndex(w => w.id === playingWordId) : null}
-                                wordMode={wordMode}
-                                fontSize={fontSize}
-                                showTranslation={showTranslation}
                                 lastRead={lastRead}
                                 bookmarks={bookmarks}
                                 onTapAyah={onTapAyah}

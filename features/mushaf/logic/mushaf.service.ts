@@ -1,8 +1,15 @@
+
 import type { QuranAyah, SurahInfo, QuranWord, SearchResponse, SearchResultItem } from '../../../types.ts';
 import { SURAH_DATA } from '../../../constants.ts';
+import { analyzeTajwid } from './tajwid.helper.ts';
 
 const BASE_URL = 'https://api.quran.com/api/v4';
 const AUDIO_CDN = 'https://audio.qurancdn.com'; 
+const EQURAN_BASE = 'https://equran.id/api/v2'; // Official EQuran.id V2 API
+
+// --- CACHING VARIABLES ---
+// Cache Tafsir per Surah (EQuran returns full surah tafsir)
+let tafsirCache: Record<number, { ayat: number, teks: string }[]> = {};
 
 // --- HELPER FUNCTIONS ---
 
@@ -31,13 +38,26 @@ const constructWbwUrl = (location: string): string | null => {
     return `${AUDIO_CDN}/wbw/${surah}_${ayah}_${word}.mp3`;
 };
 
-// Helper to clean HTML tags and specifically remove footnotes contents (numbers)
+// Helper to clean HTML tags but preserve readability (paragraphs)
 const cleanTranslationText = (text: string): string => {
     if (!text) return '';
     return text
-        .replace(/<sup[^>]*>.*?<\/sup>/gi, '') // Remove <sup> tags AND their content (the numbers)
+        .replace(/<br\s*\/?>/gi, '\n') // Replace <br> with newline
+        .replace(/<\/p>/gi, '\n\n') // End of paragraph -> double newline
+        .replace(/<sup[^>]*>.*?<\/sup>/gi, '') // Remove <sup> tags AND their content (footnotes)
         .replace(/<[^>]*>?/gm, '') // Remove any other remaining HTML tags
         .trim();
+};
+
+// Helper to sanitize Quran.com HTML content (Remove inline styles that break Dark Mode)
+const sanitizeTafsirHtml = (html: string): string => {
+    if (!html) return '';
+    return html
+        .replace(/style="[^"]*"/g, "") // Remove inline styles (colors, fonts)
+        .replace(/class="[^"]*"/g, "") // Remove external classes
+        .replace(/<a /g, '<span ').replace(/<\/a>/g, '</span>') // Disable links
+        .replace(/<span[^>]*>/g, '<span>') // Clean spans
+        .replace(/<div[^>]*>/g, '<div>'); // Clean divs
 };
 
 // Robust fetch with retry logic
@@ -53,7 +73,7 @@ async function fetchWithRetry(url: string, options: RequestInit = {}, retries = 
         
         if (!res.ok) {
              if (res.status === 404 || res.status === 400) {
-                 throw new Error(`API Error ${res.status}: ${res.statusText}`);
+                 return res;
              }
              if ((res.status === 429 || res.status >= 500) && retries > 0) {
                  await new Promise(r => setTimeout(r, backoff));
@@ -117,77 +137,62 @@ interface FetchResponse {
     };
 }
 
-/**
- * Fetch verses with pagination to prevent browser freeze.
- * Default perPage is 10 to keep the DOM light.
- */
 export const fetchVersesWithWords = async (
     surahId: number, 
     page: number = 1, 
-    perPage: number = 10, // Small chunk size for performance
+    perPage: number = 10, 
     signal?: AbortSignal
 ): Promise<FetchResponse> => {
     try {
-        // URL Construction
-        const url = `${BASE_URL}/verses/by_chapter/${surahId}?language=id&words=true&word_fields=text_uthmani,audio_url,char_type_name,location&translations=33&fields=text_uthmani&per_page=${perPage}&page=${page}`;
+        const url = `${BASE_URL}/verses/by_chapter/${surahId}?language=id&words=true&word_fields=text_uthmani,audio_url,char_type_name,location&translations=39&fields=text_uthmani&per_page=${perPage}&page=${page}`;
         
         const response = await fetchWithRetry(url, { signal });
-        
-        // FIX: Safe JSON parsing
         const text = await response.text();
         if (!text) throw new Error('Empty response from API');
         
         let json: ApiResponse;
-        try {
-            json = JSON.parse(text);
-        } catch (e) {
-            throw new Error('Invalid JSON format from API');
-        }
+        try { json = JSON.parse(text); } catch (e) { throw new Error('Invalid JSON format from API'); }
 
         if (!json || !Array.isArray(json.verses)) throw new Error('Invalid JSON structure from API');
 
-        // Process Data
         const processedVerses: QuranAyah[] = json.verses
-            // Robust filtering: Ensure item is object and has critical ID fields
             .filter((ayah) => ayah && typeof ayah === 'object' && ayah.id && ayah.verse_number) 
             .map((ayah) => {
                 let cleanedWords = Array.isArray(ayah.words) ? ayah.words : [];
 
-                // Handle Bismillah Logic (Only affects Verse 1)
                 if (ayah.verse_number === 1 && surahId !== 1 && surahId !== 9) {
                     const bismillahTokens = ['بِسْمِ', 'ٱللَّهِ', 'ٱلرَّحْمَٰنِ', 'ٱلرَّحِيمِ'];
-                    
-                    // Check if the first 4 words match the Bismillah pattern
                     let isBismillahHeader = true;
                     if (cleanedWords.length >= 4) {
                         for(let i=0; i<4; i++) {
-                            // Simple inclusion check for safety
                             if (!cleanedWords[i].text_uthmani.includes(bismillahTokens[i])) {
                                 isBismillahHeader = false;
                                 break;
                             }
                         }
-                    } else {
-                        isBismillahHeader = false;
-                    }
-
-                    // Strip Bismillah only if detected safely
-                    if (isBismillahHeader) { 
-                        cleanedWords = cleanedWords.slice(4);
-                    }
+                    } else { isBismillahHeader = false; }
+                    if (isBismillahHeader) cleanedWords = cleanedWords.slice(4);
                 }
 
-                // Fix Audio URLs and Map to Internal Type
-                const processedWords: QuranWord[] = cleanedWords.map((w) => {
+                const processedWords: QuranWord[] = cleanedWords.map((w, index) => {
                     let finalAudioUrl: string | null = null;
                     if (w.char_type_name === 'word') {
-                        if (w.location) {
-                            finalAudioUrl = constructWbwUrl(w.location);
-                        } else {
-                            finalAudioUrl = getCleanAudioUrl(w.audio_url);
-                        }
+                        finalAudioUrl = w.location ? constructWbwUrl(w.location) : getCleanAudioUrl(w.audio_url);
                     }
-                    // Normalize to QuranWord type
+
+                    let tajwidRules = [];
+                    if (w.char_type_name === 'word') {
+                        const nextWord = index < cleanedWords.length - 1 ? cleanedWords[index + 1] : null;
+                        const isEndAyah = index === cleanedWords.length - 1;
+                        
+                        tajwidRules = analyzeTajwid(
+                            w.text_uthmani, 
+                            nextWord?.text_uthmani, 
+                            w.location, 
+                            isEndAyah
+                        );
+                    }
+
                     return {
                         id: w.id,
                         position: w.position,
@@ -200,11 +205,11 @@ export const fetchVersesWithWords = async (
                         translation: w.translation,
                         transliteration: w.transliteration,
                         code_v1: w.code_v1,
-                        location: w.location
+                        location: w.location,
+                        tajwidRules 
                     };
                 });
 
-                // Clean translations here
                 const cleanedTranslations = ayah.translations?.map(t => ({
                     ...t,
                     text: cleanTranslationText(t.text)
@@ -233,20 +238,122 @@ export const fetchVersesWithWords = async (
 };
 
 /**
- * Internal helper to execute the raw API fetch
+ * Fetch Tafsir with support for multiple providers.
+ * 
+ * @param verseKey - format "1:1"
+ * @param variant - 'kemenag' | 'ibnkathir-ar' | 'ibnkathir-en'
  */
+export const fetchTafsir = async (
+    verseKey: string, 
+    variant: 'kemenag' | 'ibnkathir-ar' | 'ibnkathir-en' = 'kemenag'
+): Promise<{ text: string, source: string } | null> => {
+    try {
+        const [surahId, ayahId] = verseKey.split(':').map(Number);
+        
+        // 1. KEMENAG (INDONESIA) - Uses EQuran.id
+        if (variant === 'kemenag') {
+            // Check Memory Cache first
+            if (tafsirCache[surahId]) {
+                const cachedItem = tafsirCache[surahId].find(t => t.ayat === ayahId);
+                if (cachedItem) {
+                    return { text: cachedItem.teks, source: "Tafsir Kemenag RI" };
+                }
+            }
+
+            // Fetch from EQuran.id
+            const url = `${EQURAN_BASE}/tafsir/${surahId}`;
+            const res = await fetchWithRetry(url);
+            if (!res.ok) throw new Error(`EQuran API Error: ${res.status}`);
+            
+            const json = await res.json();
+            if (json.code === 200 && json.data && Array.isArray(json.data.tafsir)) {
+                tafsirCache[surahId] = json.data.tafsir;
+                const targetItem = json.data.tafsir.find((t: any) => t.ayat === ayahId);
+                if (targetItem) {
+                    return { text: targetItem.teks, source: "Tafsir Kemenag RI" };
+                }
+            }
+        } 
+        
+        // 2. TAFSIR INTERNATIONAL (QURAN.COM)
+        else {
+            // ID 169 = Tafsir Ibn Kathir (English)
+            // Slug 'ar-tafsir-ibn-kathir' = Tafsir Ibn Kathir (Arabic)
+            // ID 16 = Tafsir Al-Muyassar (Arabic) - Fallback
+            // ID 91 = Tafsir Al-Jalalayn (Arabic) - Fallback 2
+            
+            let resourceParam: string | number = variant === 'ibnkathir-ar' ? 'ar-tafsir-ibn-kathir' : 169;
+            let sourceName = variant === 'ibnkathir-ar' ? "Tafsir Ibn Kathir (Arab)" : "Tafsir Ibn Kathir (English)";
+            
+            const fetchFromApi = async (param: string | number) => {
+                const url = `${BASE_URL}/tafsirs/${param}/by_ayah/${verseKey}`;
+                const r = await fetchWithRetry(url);
+                if (r.ok) return r.json();
+                return null;
+            };
+
+            let json = await fetchFromApi(resourceParam);
+
+            // FALLBACK LOGIC FOR ARABIC: If primary Arabic source is empty OR returns English (API bug)
+            if (variant === 'ibnkathir-ar') {
+                const text = json?.tafsir?.text || '';
+                // Simple check: If text exists but looks like English (ASCII), reject it.
+                // Or if it returns empty.
+                const isEnglish = text.length > 5 && /^[\x00-\x7F]*$/.test(text.replace(/<[^>]*>/g, '').trim().slice(0, 50)); 
+                const isEmpty = !text;
+
+                if (isEmpty || isEnglish) {
+                    // Try Al-Muyassar (ID 16) - Very reliable Arabic tafsir
+                    json = await fetchFromApi(16);
+                    if (json && json.tafsir && json.tafsir.text) {
+                         sourceName = "Tafsir Al-Muyassar (Arab)";
+                    } else {
+                        // If still empty, try Al-Jalalayn (ID 91)
+                        json = await fetchFromApi(91);
+                        if (json && json.tafsir && json.tafsir.text) {
+                             sourceName = "Tafsir Al-Jalalayn (Arab)";
+                        }
+                    }
+                }
+            }
+            
+            if (json && json.tafsir && json.tafsir.text) {
+                const sanitizedText = sanitizeTafsirHtml(json.tafsir.text);
+                return { 
+                    text: sanitizedText, 
+                    source: sourceName 
+                };
+            }
+        }
+        
+        return null;
+
+    } catch (e) {
+        console.error("Tafsir fetch failed:", e);
+        return {
+            text: "Gagal memuat data tafsir. Pastikan perangkat Anda terhubung ke internet.",
+            source: "Error Koneksi"
+        };
+    }
+};
+
+export const preloadAudio = (url: string) => {
+    const audio = new Audio();
+    audio.src = url;
+    audio.preload = 'auto';
+};
+
 const executeSearch = async (query: string, page: number, language: string) => {
-    // 1. Basic cleaning: remove harakat, normalize alifs, remove tatweel
     let normalizedQuery = query.trim();
     
     // Arabic-specific normalization
     if (/[\u0600-\u06FF]/.test(normalizedQuery)) {
         normalizedQuery = normalizedQuery
             .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g, "") // Harakat & Waqaf
-            .replace(/[أإآ]/g, 'ا') // Normalize Alifs
-            .replace(/ى/g, 'ي') // Normalize Ya
-            .replace(/ة/g, 'ه') // Normalize Ta Marbuta -> Ha (helps matching)
-            .replace(/\u0640/g, ''); // Remove Tatweel
+            .replace(/[أإآ]/g, 'ا')
+            .replace(/ى/g, 'ي')
+            .replace(/ة/g, 'ه')
+            .replace(/\u0640/g, ''); 
     }
 
     const url = `${BASE_URL}/search?q=${encodeURIComponent(normalizedQuery)}&size=20&page=${page}&language=${language}`;
@@ -278,20 +385,13 @@ export const searchQuranText = async (query: string, page = 1): Promise<{ result
         const hasSpace = query.trim().includes(' ');
         const langParam = 'id'; 
 
-        // 1. Main Search (Original Query)
         const mainPromise = executeSearch(query, page, langParam);
         
-        // 2. Aggressive Prefix Expansion (Only for Arabic Single Words on Page 1)
-        // This solves "Yanzur" not finding "Falyanzur" because API string matching is strict
         let variationPromises: Promise<any>[] = [];
         
         if (isArabic && !hasSpace && page === 1) {
-            // Common Arabic prefixes that attach to words
-            // Wal- (Wa-Al), Fal- (Fa-Al/Fa-Lam), Wa-, Fa-, Al-, Li-, Bi-
             const prefixes = ['ال', 'و', 'ف', 'ب', 'ل', 'وال', 'فال', 'فل', 'ول'];
-            
             variationPromises = prefixes.map(prefix => {
-                // Avoid redundant checks if query already starts with prefix
                 if (query.startsWith(prefix)) return Promise.resolve(null);
                 return executeSearch(`${prefix}${query}`, 1, langParam);
             });
@@ -299,30 +399,22 @@ export const searchQuranText = async (query: string, page = 1): Promise<{ result
 
         const [mainResult, ...variations] = await Promise.all([mainPromise, ...variationPromises]);
 
-        // 3. Merge Results
         let allResults: SearchResultItem[] = mainResult?.search?.results || [];
         let mainPagination = mainResult?.search || { current_page: 1, total_pages: 1, total_results: 0 };
 
-        // Append variation results to the list
         variations.forEach(v => {
             if (v && v.search && v.search.results.length > 0) {
                 allResults = [...allResults, ...v.search.results];
             }
         });
 
-        // 4. Deduplicate (by verse_key)
         const uniqueResults = Array.from(new Map(allResults.map(item => [item.verse_key, item])).values());
 
-        // 5. Sort? 
-        // Ideally we keep original relevance, but appended ones might be important too.
-        // For now, we trust the order: Main Matches first, then prefixed variations.
-        
         return {
             results: uniqueResults,
             pagination: {
                 current_page: mainPagination.current_page,
                 total_pages: mainPagination.total_pages,
-                // Total results might be inaccurate if we merged, but it's okay for infinite scroll hints
                 total_results: mainPagination.total_results + (uniqueResults.length - (mainResult?.search?.results.length || 0))
             }
         };

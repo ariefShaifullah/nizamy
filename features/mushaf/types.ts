@@ -1,4 +1,20 @@
 
+export interface TajwidRule {
+    name: string;
+    description: string;
+    color: string; // Tailwind class for badge
+    indexes: number[]; // Indices of characters in the text to highlight
+}
+
+export interface MakhrajDetail {
+    letter: string;
+    name: string; // e.g., "Alif", "Ba"
+    area: string; // e.g., "Al-Halq (Tenggorokan)"
+    place: string; // Specific pronunciation method
+    sifat: string[]; // Characteristics: Jahr, Hams, etc.
+    note?: string; // Additional tips
+}
+
 export interface QuranWord {
   id: number;
   position: number;
@@ -12,6 +28,7 @@ export interface QuranWord {
   transliteration?: { text: string };
   code_v1?: string;
   location?: string; // Format "surah:ayah:word" e.g. "1:1:1"
+  tajwidRules?: TajwidRule[]; // Pre-calculated rules for performance
 }
 
 export interface QuranAyah {

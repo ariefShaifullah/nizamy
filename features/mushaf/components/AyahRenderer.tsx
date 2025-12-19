@@ -1,5 +1,5 @@
 
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useEffect, useState } from 'react';
 import type { QuranAyah, QuranWord, LastReadState, Bookmark, BookmarkCategory } from '../../../types.ts';
 import { useLongPress } from '../../../hooks/useLongPress.ts';
 import { FaEllipsisH, FaPlay, FaBookmark, FaStar } from 'react-icons/fa';
@@ -10,6 +10,7 @@ interface AyahRendererProps {
     ayah: QuranAyah;
     globalIndex: number;
     isPlaying: boolean;
+    isHighlighted?: boolean; // New Prop
     activeWordIndex: number | null;
     lastRead: LastReadState | null;
     bookmarks: Bookmark[];
@@ -27,12 +28,22 @@ const CATEGORY_COLORS: Record<BookmarkCategory, string> = {
 };
 
 export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({ 
-    ayah, globalIndex, isPlaying, activeWordIndex, lastRead, bookmarks,
+    ayah, globalIndex, isPlaying, isHighlighted, activeWordIndex, lastRead, bookmarks,
     onTapAyah, onLongPressAyah, onTapWord, onLongPressWord 
 }) => {
     
-    // 1. Consume Context (No more prop drilling)
+    // 1. Consume Context
     const { fontSize, showTranslation, wordMode } = useMushafSettings();
+    const [animateHighlight, setAnimateHighlight] = useState(false);
+
+    // Effect to trigger animation only once when highlighted
+    useEffect(() => {
+        if (isHighlighted) {
+            setAnimateHighlight(true);
+            const timer = setTimeout(() => setAnimateHighlight(false), 2000); // 2s glow
+            return () => clearTimeout(timer);
+        }
+    }, [isHighlighted]);
 
     const handleTap = useCallback(() => {
         onTapAyah(ayah);
@@ -66,15 +77,19 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
         bookmarks.find(b => b.surahId === parseInt(ayah.verse_key.split(':')[0]) && b.ayahNumber === ayah.verse_number),
     [bookmarks, ayah.verse_key, ayah.verse_number]);
 
+    // Determine background class
+    let bgClass = 'bg-transparent';
+    if (isPlaying) {
+        bgClass = 'bg-teal-50/60 dark:bg-teal-900/10';
+    } else if (animateHighlight) {
+        bgClass = 'bg-yellow-100/50 dark:bg-yellow-900/30 transition-colors duration-1000';
+    }
+
     return (
         <div 
             data-verse-index={globalIndex}
             data-verse-number={ayah.verse_number}
-            className={`relative py-8 md:py-12 transition-all duration-500 border-b border-slate-100 dark:border-slate-800/50 group ${
-                isPlaying 
-                ? 'bg-teal-50/60 dark:bg-teal-900/10' 
-                : 'bg-transparent'
-            }`}
+            className={`relative py-8 md:py-12 transition-all duration-500 border-b border-slate-100 dark:border-slate-800/50 group ${bgClass}`}
         >
             <div className="flex justify-between items-center mb-6 px-5 md:px-10">
                 <div className="flex items-center gap-3">
@@ -180,8 +195,6 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
         </div>
     );
 }, (prevProps, nextProps) => {
-    // Basic props comparison (Context consumers inside will trigger re-render if context changes)
-    // We only need to check props passed from parent
     const areLastReadsEqual = (prev: LastReadState | null, next: LastReadState | null) => {
         if (prev === next) return true;
         if (!prev || !next) return false;
@@ -202,8 +215,7 @@ export const AyahRenderer: React.FC<AyahRendererProps> = React.memo(({
         prevProps.ayah.id === nextProps.ayah.id &&
         prevProps.isPlaying === nextProps.isPlaying &&
         prevProps.activeWordIndex === nextProps.activeWordIndex &&
-        // Note: fontSize, wordMode, etc are now from Context, but React.memo checks props.
-        // If Context changes, component re-renders regardless of props equality.
+        prevProps.isHighlighted === nextProps.isHighlighted && // Check highlight prop
         prevProps.globalIndex === nextProps.globalIndex &&
         areLastReadsEqual(prevProps.lastRead, nextProps.lastRead) &&
         areBookmarksEqual(prevProps.bookmarks, nextProps.bookmarks)
@@ -263,7 +275,6 @@ const WordItem: React.FC<{
     }
 
     const renderColoredText = () => {
-        // Fix for Safari: Return plain text if Safari or no rules/wordMode
         if (isSafari || !wordMode || tajwidRules.length === 0) {
             return word.text_uthmani;
         }

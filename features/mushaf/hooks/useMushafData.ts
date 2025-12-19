@@ -78,9 +78,15 @@ export const useMushafData = (selectedSurahId: number | null) => {
         if (targetAyah <= currentMaxAyah) return; 
 
         const targetPage = Math.ceil(targetAyah / PER_PAGE);
-        const currentPage = page;
+        
+        // BUG FIX: If verses are empty, we must start from page 1.
+        // Previously it started from page + 1 (which is 2), skipping verses 1-10.
+        let startPage = page + 1;
+        if (verses.length === 0) {
+            startPage = 1;
+        }
 
-        if (targetPage <= currentPage) return;
+        if (targetPage < startPage) return;
 
         setLoading(true);
         
@@ -93,7 +99,7 @@ export const useMushafData = (selectedSurahId: number | null) => {
         
         try {
             const pagesToFetch = [];
-            for (let p = currentPage + 1; p <= targetPage; p++) {
+            for (let p = startPage; p <= targetPage; p++) {
                 pagesToFetch.push(p);
             }
 

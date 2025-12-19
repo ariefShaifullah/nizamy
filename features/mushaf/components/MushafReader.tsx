@@ -93,6 +93,10 @@ export const MushafReader: React.FC<MushafReaderProps> = ({
         });
     }, [onVisibleAyahChange]);
 
+    // Initial index passed from App (0-based) maps to Verse Number (1-based) usually.
+    // If initialIndex is provided, it means we are jumping to (initialIndex + 1).
+    const highlightedAyahNumber = initialIndex !== undefined ? initialIndex + 1 : null;
+
     return (
         <div className="grow relative w-full max-w-3xl mx-auto bg-white dark:bg-slate-950 pl-5">
             {error && (
@@ -139,6 +143,8 @@ export const MushafReader: React.FC<MushafReaderProps> = ({
                                 ayah={ayah}
                                 globalIndex={index}
                                 isPlaying={playingAyahId === ayah.id}
+                                // If this is the specific ayah we jumped to, highlight it
+                                isHighlighted={highlightedAyahNumber === ayah.verse_number}
                                 activeWordIndex={playingWordId ? ayah.words.findIndex(w => w.id === playingWordId) : null}
                                 lastRead={lastRead}
                                 bookmarks={bookmarks}

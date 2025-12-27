@@ -1,108 +1,149 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import type { ScanResult } from "../../../types.ts";
 
-const SCAN_RESPONSE_SCHEMA = {
-  type: Type.OBJECT,
-  properties: {
-    productName: { type: Type.STRING, description: "Nama produk yang terdeteksi" },
-    status: { 
-      type: Type.STRING, 
-      enum: ["halal", "syubhat", "haram", "unknown"],
-      description: "Status hukum produk"
-    },
-    confidence: { type: Type.STRING, enum: ["High", "Medium", "Low"] },
-    ingredients: {
-      type: Type.ARRAY,
-      items: {
-        type: Type.OBJECT,
-        properties: {
-          name: { type: Type.STRING },
-          status: { type: Type.STRING, enum: ["safe", "warning", "critical"] },
-          reason: { type: Type.STRING }
-        },
-        required: ["name", "status"]
-      }
-    },
-    reasoning: { type: Type.STRING, description: "Penjelasan ringkas dalam Bahasa Indonesia" },
-    detectedLogos: { 
-      type: Type.ARRAY, 
-      items: { type: Type.STRING },
-      description: "Nama lembaga sertifikasi yang logonya terdeteksi (MUI, BPJPH, dll)"
-    }
-  },
-  required: ["productName", "status", "ingredients", "reasoning", "detectedLogos"],
-};
-
 const SYSTEM_INSTRUCTION = `Anda adalah pakar audit Halal digital kelas dunia.
-Tugas: Analisa gambar produk (kemasan/label bahan) untuk menentukan status kehalalan.
-Kaidah:
-1. Prioritas: Logo Halal resmi (MUI, BPJPH, JAKIM, MUIB, dll). Jika ada, tandai di 'detectedLogos'.
-2. Analisis E-Numbers: Cek daftar kode E (misal: E471, E120). Berikan catatan jika sumbernya tidak jelas (Syubhat).
-3. Bahan Kritis: Deteksi babi (Pork, Lard), Alkohol/Khamr, Gelatin non-halal, atau bahan hewani tanpa label sembelihan halal.
-4. Kejujuran AI: Jika gambar buram atau teks tidak terbaca, set status ke 'unknown' dan minta user foto ulang area komposisi.
-Output: JSON murni sesuai schema. Gunakan Bahasa Indonesia yang sopan dan profesional.`;
+Tugas: Analisa gambar produk (kemasan, label bahan, logo) untuk status kehalalan.
+Output WAJIB berupa JSON valid. Jangan tambahkan teks lain di luar JSON.
+
+Format JSON:
+{
+  "productName": "Nama Produk",
+  "status": "halal" | "syubhat" | "haram" | "unknown",
+  "confidence": "High" | "Medium" | "Low",
+  "ingredients": [
+    { "name": "nama bahan", "status": "safe" | "warning" | "critical", "reason": "penjelasan singkat" }
+  ],
+  "reasoning": "Kesimpulan audit dalam Bahasa Indonesia",
+  "detectedLogos": ["MUI", "BPJPH", "dll"]
+}
+
+Kaidah Analisis:
+1. Haram: Babi (Pork, Lard), Alkohol/Khamr, Gelatin non-halal.
+2. Syubhat: E471, E120, bahan hewani tanpa logo halal.
+3. Halal: Ada logo halal resmi atau komposisi nabati 100%.
+4. Unknown: Teks tidak terbaca.`;
 
 const compressImage = async (base64Str: string): Promise<string> => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const img = new Image();
-    img.src = base64Str;
+    img.crossOrigin = "Anonymous"; // Safety for some environments
+    
+    // Timeout to prevent hanging
+    const timer = setTimeout(() => reject(new Error("Timeout memproses gambar.")), 5000);
+
     img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const MAX_WIDTH = 1200; // Ukuran sedikit lebih besar untuk deteksi teks lebih baik
-      let width = img.width;
-      let height = img.height;
+      clearTimeout(timer);
+      try {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 1024; // Increased slightly for better OCR
+        let width = img.width;
+        let height = img.height;
 
-      if (width > MAX_WIDTH) {
-        height *= MAX_WIDTH / width;
-        width = MAX_WIDTH;
-      }
+        if (width > MAX_WIDTH) {
+          height *= MAX_WIDTH / width;
+          width = MAX_WIDTH;
+        }
 
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = 'high';
-          ctx.drawImage(img, 0, 0, width, height);
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(img, 0, 0, width, height);
+            // JPEG Quality 0.7 for balance
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            resolve(dataUrl.split(',')[1]);
+        } else {
+            reject(new Error("Gagal membuat canvas context."));
+        }
+      } catch (e) {
+        reject(e);
       }
-      resolve(canvas.toDataURL('image/jpeg', 0.8).split(',')[1]);
     };
+    
+    img.onerror = (e) => {
+        clearTimeout(timer);
+        console.error("Image load error:", e);
+        reject(new Error("Format gambar tidak dikenali atau rusak."));
+    };
+    
+    img.src = base64Str;
   });
 };
 
-export const analyzeImage = async (base64Image: string): Promise<ScanResult> => {
+export const analyzeBatch = async (images: string[]): Promise<ScanResult> => {
+  if (images.length === 0) throw new Error("Tidak ada gambar.");
+
   try {
-    const imageData = await compressImage(base64Image);
+    const compressedImages = await Promise.all(images.map(img => compressImage(img)));
     const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
     
+    const imageParts = compressedImages.map(data => ({
+      inlineData: { mimeType: 'image/jpeg', data }
+    }));
+
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-flash-latest', // Updated to a valid multimodal model
       contents: {
         parts: [
-          { inlineData: { mimeType: 'image/jpeg', data: imageData } },
-          { text: "Lakukan audit halal menyeluruh pada produk dalam gambar ini. Ekstrak nama produk dan analisa daftar bahan yang terlihat." }
+          ...imageParts,
+          { text: "Analisa status halal produk ini. Keluarkan JSON saja." }
         ]
       },
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
-        responseMimeType: "application/json",
-        responseSchema: SCAN_RESPONSE_SCHEMA,
-        temperature: 0.1 // Rendah untuk konsistensi data
+        responseMimeType: "application/json", 
+        temperature: 0.1
       }
     });
 
-    // Robust JSON Extraction
-    const rawText = response.text;
-    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("Format analisis tidak valid.");
+    const rawText = response.text || "";
     
-    const result = JSON.parse(jsonMatch[0]) as ScanResult;
+    if (!rawText) {
+        throw new Error("Respon AI kosong. Silakan coba lagi.");
+    }
+
+    // Cleaning JSON
+    let cleanText = rawText
+        .replace(/```json/gi, "")
+        .replace(/```/g, "")
+        .trim();
+    
+    const start = cleanText.indexOf('{');
+    const end = cleanText.lastIndexOf('}');
+    
+    if (start === -1 || end === -1) {
+        console.error("Raw AI Response:", rawText);
+        throw new Error("Format respon tidak valid (Bukan JSON).");
+    }
+    
+    cleanText = cleanText.substring(start, end + 1);
+    
+    const result = JSON.parse(cleanText) as ScanResult;
     result.timestamp = new Date().toISOString();
+    
+    // Validasi basic
+    if (!result.status) result.status = 'unknown';
+    
     return result;
+
   } catch (error: any) {
-    console.error("Scanner Service Error:", error);
-    if (error.message?.includes("Safety")) throw new Error("Gambar mengandung konten yang diblokir sistem keamanan.");
-    throw new Error("Gagal menganalisa produk. Pastikan teks komposisi terlihat jelas.");
+    console.error("Scanner Error:", error);
+    
+    // Expose specific API errors
+    if (error.message) {
+        if (error.message.includes("Safety")) return Promise.reject(new Error("Konten diblokir oleh filter keamanan."));
+        if (error.message.includes("400")) return Promise.reject(new Error("Permintaan tidak valid (Bad Request)."));
+        if (error.message.includes("403")) return Promise.reject(new Error("Akses API ditolak (Cek API Key)."));
+        if (error.message.includes("429")) return Promise.reject(new Error("Terlalu banyak permintaan. Tunggu sebentar."));
+        if (error.message.includes("500")) return Promise.reject(new Error("Server Google sedang sibuk."));
+        
+        // Return original error if it's a known logic error
+        if (!error.message.includes("Gagal menganalisa")) return Promise.reject(error);
+    }
+    
+    throw new Error("Gagal menganalisa. Cek koneksi internet atau coba foto ulang.");
   }
 };

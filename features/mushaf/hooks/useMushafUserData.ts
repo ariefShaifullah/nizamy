@@ -10,20 +10,25 @@ export const useMushafUserData = () => {
     const [bookmarks, setBookmarks] = useLocalStorage<Bookmark[]>("mushaf_bookmarks_v2", []);
 
     // Auto-save last read (for scrolling)
-    const saveLastRead = useCallback((surahId: number, ayahNumber: number) => {
-        if (!lastRead || lastRead.surahId !== surahId || lastRead.ayahNumber !== ayahNumber) {
+    const saveLastRead = useCallback((surahId: number, ayahNumber: number, mode: 'surah' | 'juz' = 'surah', juzId?: number) => {
+        if (!lastRead || lastRead.surahId !== surahId || lastRead.ayahNumber !== ayahNumber || lastRead.mode !== mode) {
             setLastRead({
+                mode,
                 surahId,
+                juzId,
                 ayahNumber,
                 timestamp: Date.now()
             });
         }
     }, [lastRead, setLastRead]);
 
-    // Manual save last read (via Button)
-    const saveLastReadManual = useCallback((ayah: QuranAyah, surahId: number) => {
+    // Manual save last read (via Button in KamusSheet)
+    // FIX: Added mode and juzId params so manual save respects the current viewing mode
+    const saveLastReadManual = useCallback((ayah: QuranAyah, surahId: number, mode: 'surah' | 'juz' = 'surah', juzId?: number) => {
         setLastRead({
+            mode, 
             surahId: surahId,
+            juzId,
             ayahNumber: ayah.verse_number,
             timestamp: Date.now()
         });
@@ -34,7 +39,14 @@ export const useMushafUserData = () => {
         return bookmarks.find(b => b.surahId === surahId && b.ayahNumber === ayahNumber) || null;
     }, [bookmarks]);
 
-    const updateBookmark = useCallback((surahId: number, ayah: QuranAyah, category: BookmarkCategory | null) => {
+    // Update Bookmark Logic
+    const updateBookmark = useCallback((
+        surahId: number, 
+        ayah: QuranAyah, 
+        category: BookmarkCategory | null,
+        mode: 'surah' | 'juz' = 'surah',
+        juzId?: number
+    ) => {
         const ayahNumber = ayah.verse_number;
         const bookmarkId = `${surahId}:${ayahNumber}`;
 
@@ -42,23 +54,31 @@ export const useMushafUserData = () => {
             setBookmarks(prev => prev.filter(b => b.id !== bookmarkId));
             showToast("Penanda dihapus", "info");
         } else {
-            const existingBookmark = bookmarks.find(b => b.id === bookmarkId);
-            if (existingBookmark) {
-                setBookmarks(prev => prev.map(b => b.id === bookmarkId ? { ...b, category } : b));
-                showToast("Kategori penanda diubah", "success");
-            } else {
+            setBookmarks(prev => {
+                const existingIndex = prev.findIndex(b => b.id === bookmarkId);
                 const newBookmark: Bookmark = {
                     id: bookmarkId,
                     surahId,
                     ayahNumber,
                     timestamp: Date.now(),
-                    category
+                    category,
+                    mode,  // Save the context (Juz/Surah)
+                    juzId  // Save the Juz ID if applicable
                 };
-                setBookmarks(prev => [...prev, newBookmark].sort((a,b) => a.surahId - b.surahId || a.ayahNumber - b.ayahNumber));
-                showToast("Penanda disimpan!", "success");
-            }
+
+                if (existingIndex >= 0) {
+                    // Update existing
+                    const updated = [...prev];
+                    updated[existingIndex] = newBookmark;
+                    return updated;
+                } else {
+                    // Add new and sort
+                    return [...prev, newBookmark].sort((a,b) => a.surahId - b.surahId || a.ayahNumber - b.ayahNumber);
+                }
+            });
+            showToast("Penanda disimpan!", "success");
         }
-    }, [bookmarks, setBookmarks, showToast]);
+    }, [setBookmarks, showToast]);
 
     const removeBookmarkById = useCallback((bookmarkId: string) => {
         setBookmarks(prev => prev.filter(b => b.id !== bookmarkId));

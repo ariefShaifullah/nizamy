@@ -59,7 +59,9 @@ export interface KamusData {
 }
 
 export interface LastReadState {
-  surahId: number;
+  mode?: 'surah' | 'juz'; // Added mode
+  surahId: number; // Keep for backward compat / logic
+  juzId?: number; // Optional
   ayahNumber: number;
   timestamp: number;
 }
@@ -72,6 +74,8 @@ export interface Bookmark {
   ayahNumber: number;
   timestamp: number;
   category: BookmarkCategory;
+  mode?: 'surah' | 'juz'; // NEW: Store context
+  juzId?: number; // NEW: Store context
 }
 
 // Search Interfaces
@@ -90,4 +94,9 @@ export interface SearchResponse {
     total_pages: number;
     results: SearchResultItem[];
   };
+}
+
+export interface ReadingSession {
+    type: 'surah' | 'juz';
+    id: number;
 }

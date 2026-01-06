@@ -1,11 +1,11 @@
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { fetchVersesWithWords } from '../logic/mushaf.service.ts';
-import type { QuranAyah } from '../../../types.ts';
+import type { QuranAyah, ReadingSession } from '../../../types.ts';
 
-const PER_PAGE = 10; // Keep constant for consistency
+const PER_PAGE = 10; 
 
-export const useMushafData = (selectedSurahId: number | null) => {
+export const useMushafData = (session: ReadingSession | null) => {
     const [verses, setVerses] = useState<QuranAyah[]>([]);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
@@ -14,8 +14,17 @@ export const useMushafData = (selectedSurahId: number | null) => {
     
     const abortControllerRef = useRef<AbortController | null>(null);
 
+    // 1. AUTO RESET when session changes
+    useEffect(() => {
+        setVerses([]);
+        setPage(1);
+        setHasMore(true);
+        setLoading(false);
+        setError(null);
+    }, [session?.type, session?.id]);
+
     const loadVerses = useCallback(async (targetPage: number, reset: boolean = false) => {
-        if (!selectedSurahId) return;
+        if (!session) return;
 
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
@@ -26,14 +35,8 @@ export const useMushafData = (selectedSurahId: number | null) => {
         setLoading(true);
         setError(null);
         
-        if (reset) {
-            setVerses([]);
-            setHasMore(true);
-            setPage(1);
-        }
-
         try {
-            const result = await fetchVersesWithWords(selectedSurahId, targetPage, PER_PAGE, controller.signal);
+            const result = await fetchVersesWithWords(session.type, session.id, targetPage, PER_PAGE, controller.signal);
             
             if (!controller.signal.aborted) {
                 if (reset) {
@@ -54,7 +57,7 @@ export const useMushafData = (selectedSurahId: number | null) => {
                 setLoading(false);
             }
         }
-    }, [selectedSurahId]);
+    }, [session]);
 
     const loadNextPage = useCallback(() => {
         if (!hasMore || loading) return;
@@ -67,92 +70,119 @@ export const useMushafData = (selectedSurahId: number | null) => {
         loadVerses(page, false);
     }, [loadVerses, page]);
 
-    // NEW: Concurrent Batching Strategy
-    // Loads pages in chunks of 4 parallel requests to speed up deep jumps
-    const loadUntilAyah = useCallback(async (targetAyah: number) => {
-        if (!selectedSurahId || loading) return;
+    // 2. DIRECT JUMP (Faster than findAndLoadVerse for Surah Mode)
+    // Loads a specific page directly, bypassing sequential loading.
+    // Useful for jumping to Ayah 100+ without fetching 1-99.
+    const jumpToPage = useCallback(async (targetAyahNumber: number): Promise<number> => {
+        if (!session) return -1;
 
-        const currentMaxAyah = verses.length > 0 ? verses[verses.length - 1].verse_number : 0;
-        
-        // If target is already loaded
-        if (targetAyah <= currentMaxAyah) return; 
-
-        const targetPage = Math.ceil(targetAyah / PER_PAGE);
-        
-        // BUG FIX: If verses are empty, we must start from page 1.
-        // Previously it started from page + 1 (which is 2), skipping verses 1-10.
-        let startPage = page + 1;
-        if (verses.length === 0) {
-            startPage = 1;
-        }
-
-        if (targetPage < startPage) return;
+        // Calculate estimated page (1-based)
+        // API uses offset/limit, but our wrapper uses page number.
+        // Assuming 10 verses per page (PER_PAGE constant).
+        const targetPage = Math.ceil(targetAyahNumber / PER_PAGE);
 
         setLoading(true);
+        setVerses([]); // Clear current list for clean jump
         
-        // Cancel pending single loads
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
         }
         const controller = new AbortController();
         abortControllerRef.current = controller;
-        
+
         try {
-            const pagesToFetch = [];
-            for (let p = startPage; p <= targetPage; p++) {
-                pagesToFetch.push(p);
-            }
-
-            // OPTIMIZATION: Concurrent Batching
-            // Fetch 4 pages at a time. Much faster than sequential, safe for API rate limits.
-            const CHUNK_SIZE = 4;
+            const result = await fetchVersesWithWords(session.type, session.id, targetPage, PER_PAGE, controller.signal);
             
-            for (let i = 0; i < pagesToFetch.length; i += CHUNK_SIZE) {
-                if (controller.signal.aborted) break;
+            if (!controller.signal.aborted) {
+                setVerses(result.verses);
+                setPage(targetPage);
+                setHasMore(result.meta.next_page !== null);
+                setLoading(false);
 
-                const chunk = pagesToFetch.slice(i, i + CHUNK_SIZE);
-                
-                // Fetch chunk in parallel
-                const chunkResults = await Promise.all(
-                    chunk.map(p => fetchVersesWithWords(selectedSurahId, p, PER_PAGE, controller.signal))
-                );
-
-                const accumulatedChunkVerses: QuranAyah[] = [];
-                let hitEnd = false;
-
-                // Flatten results (Promise.all preserves order)
-                for (const result of chunkResults) {
-                    accumulatedChunkVerses.push(...result.verses);
-                    if (result.meta.next_page === null) {
-                        hitEnd = true;
-                    }
-                }
-
-                if (!controller.signal.aborted) {
-                    // Update state incrementally so UI grows and doesn't feel stuck
-                    setVerses(prev => [...prev, ...accumulatedChunkVerses]);
-                    
-                    // Update page tracking to the last page of this chunk
-                    setPage(chunk[chunk.length - 1]);
-                    
-                    if (hitEnd) {
-                        setHasMore(false);
-                        break; 
-                    }
-                }
+                // Find index of target ayah in this chunk
+                const indexInChunk = result.verses.findIndex(v => v.verse_number === targetAyahNumber);
+                return indexInChunk !== -1 ? indexInChunk : 0;
             }
-
         } catch (err: any) {
             if (err.name !== 'AbortError') {
-                console.error("Jump load failed", err);
-                setError("Gagal memuat ayat untuk loncat.");
-            }
-        } finally {
-            if (!controller.signal.aborted) {
+                console.error("Jump failed", err);
+                setError("Gagal melompat ke ayat.");
                 setLoading(false);
             }
         }
-    }, [selectedSurahId, loading, verses, page]);
+        return -1;
+    }, [session]);
+
+    // 3. SEQUENTIAL FINDER (Fallback for Juz Mode or complex cases)
+    const findAndLoadVerse = useCallback(async (targetKey: string): Promise<number> => {
+        if (!session || loading) return -1;
+
+        // Check memory first
+        let foundIndex = verses.findIndex(v => v.verse_key === targetKey);
+        if (foundIndex !== -1) return foundIndex;
+
+        if (!hasMore) return -1;
+
+        setLoading(true);
+        
+        if (abortControllerRef.current) abortControllerRef.current.abort();
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
+        
+        let currentPage = page + 1;
+        if (verses.length === 0) currentPage = 1;
+
+        try {
+            // Concurrent fetch for speed (fetch 3 pages ahead)
+            const CHUNK_SIZE = 3; 
+            
+            while (true) {
+                if (controller.signal.aborted) break;
+
+                const chunkPages = [];
+                for (let i = 0; i < CHUNK_SIZE; i++) chunkPages.push(currentPage + i);
+
+                const chunkResults = await Promise.all(
+                    chunkPages.map(p => fetchVersesWithWords(session.type, session.id, p, PER_PAGE, controller.signal))
+                );
+
+                const newVerses: QuranAyah[] = [];
+                let hitEnd = false;
+
+                for (const res of chunkResults) {
+                    newVerses.push(...res.verses);
+                    if (res.meta.next_page === null) hitEnd = true;
+                }
+
+                if (!controller.signal.aborted) {
+                    setVerses(prev => [...prev, ...newVerses]);
+                    setPage(chunkPages[chunkPages.length - 1]);
+                    
+                    const matchInBatch = newVerses.findIndex(v => v.verse_key === targetKey);
+                    
+                    if (matchInBatch !== -1) {
+                        setLoading(false);
+                        return verses.length + matchInBatch; 
+                    }
+
+                    if (hitEnd) {
+                        setHasMore(false);
+                        break;
+                    }
+                    
+                    currentPage += CHUNK_SIZE;
+                }
+            }
+        } catch (err: any) {
+            if (err.name !== 'AbortError') {
+                console.error("Deep search failed", err);
+                setError("Gagal mencari ayat.");
+            }
+        } finally {
+            if (!controller.signal.aborted) setLoading(false);
+        }
+        return -1;
+    }, [session, loading, verses, page, hasMore]);
 
     return {
         verses,
@@ -161,7 +191,8 @@ export const useMushafData = (selectedSurahId: number | null) => {
         hasMore,
         loadVerses,
         loadNextPage,
-        loadUntilAyah,
+        findAndLoadVerse,
+        jumpToPage, // New capability
         retry
     };
 };

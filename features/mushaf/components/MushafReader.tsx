@@ -4,7 +4,7 @@ import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 import { AyahRenderer } from './AyahRenderer.tsx';
 import { SurahHeader } from './SurahHeader.tsx';
 import { SURAH_DATA } from '../../../constants.ts';
-import type { QuranAyah, QuranWord, LastReadState, Bookmark } from '../../../types.ts';
+import type { QuranAyah, QuranWord, LastReadState, Bookmark, ReadingSession } from '../../../types.ts';
 import { useDebounce } from '../../../hooks/useDebounce.ts';
 
 // Skeleton Component
@@ -22,7 +22,7 @@ const VersesSkeleton = () => (
 );
 
 interface MushafReaderProps {
-    surah: typeof SURAH_DATA[0];
+    session: ReadingSession; // Changed from surah
     verses: QuranAyah[];
     loading: boolean;
     error: string | null;
@@ -30,7 +30,7 @@ interface MushafReaderProps {
     loadNextPage: () => void;
     retry: () => void;
     virtuosoRef: React.RefObject<VirtuosoHandle>;
-    onVisibleAyahChange: (ayahNumber: number) => void;
+    onVisibleAyahChange: (ayah: QuranAyah) => void; // CHANGED: Pass full object
     initialIndex?: number; // New Prop for precise jump
     
     // Settings & State
@@ -48,7 +48,7 @@ interface MushafReaderProps {
 }
 
 export const MushafReader: React.FC<MushafReaderProps> = ({
-    surah,
+    session,
     verses,
     loading,
     error,
@@ -69,6 +69,8 @@ export const MushafReader: React.FC<MushafReaderProps> = ({
     onLongPressWord
 }) => {
     
+    const surah = session.type === 'surah' ? SURAH_DATA.find(s => s.number === session.id) : null;
+
     // LOGIC: Center Screen Detection
     // This is more accurate for "Last Read" than checking the top item.
     const handleScroll = useCallback(() => {
@@ -82,16 +84,20 @@ export const MushafReader: React.FC<MushafReaderProps> = ({
             
             if (element) {
                 // Traverse up to find the container with data attribute
-                const verseContainer = element.closest('[data-verse-number]');
+                const verseContainer = element.closest('[data-verse-index]');
                 if (verseContainer) {
-                    const num = parseInt(verseContainer.getAttribute('data-verse-number') || '0', 10);
-                    if (num > 0) {
-                        onVisibleAyahChange(num);
+                    const indexStr = verseContainer.getAttribute('data-verse-index');
+                    if (indexStr) {
+                        const index = parseInt(indexStr, 10);
+                        const ayahData = verses[index];
+                        if (ayahData) {
+                            onVisibleAyahChange(ayahData);
+                        }
                     }
                 }
             }
         });
-    }, [onVisibleAyahChange]);
+    }, [onVisibleAyahChange, verses]);
 
     // Initial index passed from App (0-based) maps to Verse Number (1-based) usually.
     // If initialIndex is provided, it means we are jumping to (initialIndex + 1).
@@ -124,7 +130,9 @@ export const MushafReader: React.FC<MushafReaderProps> = ({
                     overscan={1000} 
                     className="pb-32 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:none]"
                     components={{
-                        Header: () => surah ? <SurahHeader surah={surah} /> : null,
+                        // In Juz Mode, we don't show the Big Surah Header (it's inline).
+                        // In Surah Mode, we show it at the top.
+                        Header: () => (session.type === 'surah' && surah) ? <SurahHeader surah={surah} /> : <div className="h-4"></div>,
                         Footer: () => (
                             <div className="py-10 text-center">
                                 {loading ? (
@@ -141,6 +149,7 @@ export const MushafReader: React.FC<MushafReaderProps> = ({
                         <div id={`ayah-${ayah.id}`}>
                             <AyahRenderer
                                 ayah={ayah}
+                                mode={session.type} // PASS MODE HERE
                                 globalIndex={index}
                                 isPlaying={playingAyahId === ayah.id}
                                 // If this is the specific ayah we jumped to, highlight it

@@ -3,7 +3,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { fetchVersesWithWords } from '../logic/mushaf.service.ts';
 import type { QuranAyah, ReadingSession } from '../../../types.ts';
 
-const PER_PAGE = 10; 
+const PER_PAGE = 10;
 
 export const useMushafData = (session: ReadingSession | null) => {
     const [verses, setVerses] = useState<QuranAyah[]>([]);
@@ -11,7 +11,7 @@ export const useMushafData = (session: ReadingSession | null) => {
     const [hasMore, setHasMore] = useState(true);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    
+
     const abortControllerRef = useRef<AbortController | null>(null);
 
     // 1. AUTO RESET when session changes
@@ -34,17 +34,17 @@ export const useMushafData = (session: ReadingSession | null) => {
 
         setLoading(true);
         setError(null);
-        
+
         try {
             const result = await fetchVersesWithWords(session.type, session.id, targetPage, PER_PAGE, controller.signal);
-            
+
             if (!controller.signal.aborted) {
                 if (reset) {
                     setVerses(result.verses);
                 } else {
                     setVerses(prev => [...prev, ...result.verses]);
                 }
-                
+
                 if (result.meta.next_page === null) {
                     setHasMore(false);
                 }
@@ -70,20 +70,18 @@ export const useMushafData = (session: ReadingSession | null) => {
         loadVerses(page, false);
     }, [loadVerses, page]);
 
-    // 2. DIRECT JUMP (Faster than findAndLoadVerse for Surah Mode)
-    // Loads a specific page directly, bypassing sequential loading.
-    // Useful for jumping to Ayah 100+ without fetching 1-99.
+    // 2. DIRECT JUMP WITH CONTEXT
+    // Fix: Instead of loading just the target page, we load ALL pages from 1 to targetPage.
+    // This ensures the user can scroll UP to the beginning of the Surah.
     const jumpToPage = useCallback(async (targetAyahNumber: number): Promise<number> => {
         if (!session) return -1;
 
-        // Calculate estimated page (1-based)
-        // API uses offset/limit, but our wrapper uses page number.
-        // Assuming 10 verses per page (PER_PAGE constant).
+        // Calculate needed page (1-based)
         const targetPage = Math.ceil(targetAyahNumber / PER_PAGE);
 
         setLoading(true);
-        setVerses([]); // Clear current list for clean jump
-        
+        setVerses([]); // Clear current list
+
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
         }
@@ -91,22 +89,35 @@ export const useMushafData = (session: ReadingSession | null) => {
         abortControllerRef.current = controller;
 
         try {
-            const result = await fetchVersesWithWords(session.type, session.id, targetPage, PER_PAGE, controller.signal);
-            
+            // Create array of pages [1, 2, ..., targetPage]
+            // We fetch all preceding pages so the virtual list has the full context from Ayah 1.
+            const pagesToFetch = Array.from({ length: targetPage }, (_, i) => i + 1);
+
+            // Fetch concurrently
+            const results = await Promise.all(
+                pagesToFetch.map(p => fetchVersesWithWords(session.type, session.id, p, PER_PAGE, controller.signal))
+            );
+
             if (!controller.signal.aborted) {
-                setVerses(result.verses);
+                // Combine all verses
+                const allVerses = results.flatMap(r => r.verses);
+                const lastResult = results[results.length - 1];
+
+                setVerses(allVerses);
                 setPage(targetPage);
-                setHasMore(result.meta.next_page !== null);
+                setHasMore(lastResult.meta.next_page !== null);
                 setLoading(false);
 
-                // Find index of target ayah in this chunk
-                const indexInChunk = result.verses.findIndex(v => v.verse_number === targetAyahNumber);
-                return indexInChunk !== -1 ? indexInChunk : 0;
+                // Find index of target ayah in the complete list
+                // Since we loaded from Page 1, the index should simply be ayahNumber - 1 (if data is perfect),
+                // but finding it by ID/Number is safer.
+                const indexInList = allVerses.findIndex(v => v.verse_number === targetAyahNumber);
+                return indexInList !== -1 ? indexInList : 0;
             }
         } catch (err: any) {
             if (err.name !== 'AbortError') {
                 console.error("Jump failed", err);
-                setError("Gagal melompat ke ayat.");
+                setError("Gagal memuat ayat.");
                 setLoading(false);
             }
         }
@@ -124,18 +135,18 @@ export const useMushafData = (session: ReadingSession | null) => {
         if (!hasMore) return -1;
 
         setLoading(true);
-        
+
         if (abortControllerRef.current) abortControllerRef.current.abort();
         const controller = new AbortController();
         abortControllerRef.current = controller;
-        
+
         let currentPage = page + 1;
         if (verses.length === 0) currentPage = 1;
 
         try {
             // Concurrent fetch for speed (fetch 3 pages ahead)
-            const CHUNK_SIZE = 3; 
-            
+            const CHUNK_SIZE = 3;
+
             while (true) {
                 if (controller.signal.aborted) break;
 
@@ -157,19 +168,19 @@ export const useMushafData = (session: ReadingSession | null) => {
                 if (!controller.signal.aborted) {
                     setVerses(prev => [...prev, ...newVerses]);
                     setPage(chunkPages[chunkPages.length - 1]);
-                    
+
                     const matchInBatch = newVerses.findIndex(v => v.verse_key === targetKey);
-                    
+
                     if (matchInBatch !== -1) {
                         setLoading(false);
-                        return verses.length + matchInBatch; 
+                        return verses.length + matchInBatch;
                     }
 
                     if (hitEnd) {
                         setHasMore(false);
                         break;
                     }
-                    
+
                     currentPage += CHUNK_SIZE;
                 }
             }

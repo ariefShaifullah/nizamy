@@ -5,20 +5,19 @@ import { HedeReport } from './components/HedeReport.tsx';
 import { HedeHistory } from './components/HedeHistory.tsx';
 import { TathhirCalculator } from './components/TathhirCalculator.tsx';
 import { HedeAnalyzing } from './components/report/HedeAnalyzing.tsx';
-import type { HedeResult, HedeHistoryEntry, ViolationType, HedeTab } from '../../types.ts';
+import { HedeLandingScreen } from './components/HedeLandingScreen.tsx';
+import { PreWizardScreen } from './components/PreWizardScreen.tsx';
+import { ViolationBadge } from './components/ViolationBadge.tsx';
+import type { HedeResult, HedeHistoryEntry, HedeTab } from '../../types.ts';
 import { useLocalStorage } from '../../hooks/useLocalStorage.ts';
 import { useIndexedDB } from '../../hooks/useIndexedDB.ts';
 import {
-    FaShieldAlt,
     FaHistory,
     FaBroom,
     FaBookOpen,
     FaWallet,
     FaLightbulb,
-    FaSearch,
-    FaCheckCircle,
-    FaArrowRight,
-    FaHeart
+    FaSearch
 } from 'react-icons/fa';
 import { FAQ } from '../../components/ui/FAQ.tsx';
 import { Modal } from '../../components/ui/Modal.tsx';
@@ -30,101 +29,6 @@ import { audioService } from '../../services/audio.service.ts';
 
 type WizardState = 'idle' | 'pre-wizard' | 'wizard' | 'analyzing';
 type ViewState = 'landing' | 'report';
-
-// --- SUB-COMPONENT: Landing Screen ---
-const HedeLandingScreen: React.FC<{
-    onStartAudit: () => void;
-    onViewFaq: () => void;
-}> = ({ onStartAudit, onViewFaq }) => {
-    return (
-        <div className="bg-white dark:bg-slate-800/50 rounded-[2.5rem] p-8 md:p-12 text-center shadow-sm border border-slate-100 dark:border-slate-800 relative overflow-hidden group">
-            <div className="relative z-raised flex flex-col items-center">
-                <div className="w-24 h-24 bg-linear-to-br from-indigo-50 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-3xl flex items-center justify-center text-purple-600 dark:text-purple-400 mb-6 shadow-md border border-white dark:border-slate-700">
-                    <div className="icon-wrapper w-12 h-12 flex items-center justify-center text-5xl drop-shadow-sm"><FaWallet /></div>
-                </div>
-                <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-slate-900 dark:text-white mb-2">Klinik Finansial</h1>
-                <p className="font-bold text-purple-600 dark:text-purple-400 text-sm md:text-base uppercase tracking-widest mb-4">Cek Kesehatan Finansial
-
-                </p>
-                <p className="hidden md:block text-base md:text-lg font-medium text-slate-500 dark:text-slate-400 mb-12 max-w-2xl leading-relaxed">
-                    Cek kesehatan finansial Anda dari Riba, Gharar, & Maysir. Dapatkan roadmap hijrah personal untuk menuju harta yang lebih berkah.
-                </p>
-
-                <button onClick={onStartAudit} className="group w-full md:w-auto px-10 py-4 bg-purple-600 text-white rounded-2xl font-bold text-lg transition-all shadow-xl shadow-purple-200/80 dark:shadow-none hover:shadow-2xl hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3">
-                    Mulai Diagnosa
-                    <div className="icon-wrapper w-5 h-5 group-hover:translate-x-1 transition-transform flex items-center justify-center"><FaArrowRight /></div>
-                </button>
-
-                <div className="flex items-center justify-center gap-4 mt-8 lg:hidden">
-                    <button onClick={onViewFaq} className="text-xs font-bold text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors flex items-center gap-1.5">
-                        <FaLightbulb /> Panduan & FAQ
-                    </button>
-                </div>
-
-                <p className="mt-6 text-[10px] text-slate-400 bg-slate-50 dark:bg-slate-900 px-3 py-1 rounded-full border border-slate-100 dark:border-slate-800">
-                    🔒 Data diproses 100% lokal di perangkat Anda.
-                </p>
-            </div>
-        </div>
-    );
-};
-
-
-// --- SUB-COMPONENT: Pre-Wizard Onboarding Screen ---
-const PreWizardScreen: React.FC<{ onStart: () => void; onCancel: () => void }> = ({ onStart, onCancel }) => {
-    return (
-        <div className="fixed inset-0 z-overlay bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4 animate-fade-in">
-            <div className="max-w-md w-full bg-white dark:bg-slate-800 rounded-3xl shadow-2xl p-6 sm:p-8 text-center border border-slate-100 dark:border-slate-700">
-                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-2 sm:mb-3">Bismillah, Mari Periksa Kesehatan Ekonomi Kita.</h2>
-                <p className="text-slate-500 dark:text-slate-400 mb-6 sm:mb-8 text-sm sm:text-base">Ini adalah alat introspeksi, bukan penghakiman.</p>
-
-                <div className="space-y-3 text-left mb-8 sm:mb-10">
-                    <div className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
-                        <div className="icon-wrapper w-5 h-5 text-emerald-500 shrink-0 mt-1"><FaCheckCircle /></div>
-                        <div>
-                            <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm">Jujur & Amanah</h4>
-                            <p className="text-xs text-slate-600 dark:text-slate-300">Jawaban Anda akan menentukan akurasi hasil.</p>
-                        </div>
-                    </div>
-                    <div className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
-                        <div className="icon-wrapper w-5 h-5 text-blue-500 shrink-0 mt-1"><FaShieldAlt /></div>
-                        <div>
-                            <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm">100% Privasi</h4>
-                            <p className="text-xs text-slate-600 dark:text-slate-300">Semua data hanya tersimpan di perangkat Anda.</p>
-                        </div>
-                    </div>
-                    <div className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
-                        <div className="icon-wrapper w-5 h-5 text-rose-500 shrink-0 mt-1"><FaHeart /></div>
-                        <div>
-                            <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm">Bukan Menghakimi</h4>
-                            <p className="text-xs text-slate-600 dark:text-slate-300">Setiap perjalanan hijrah itu unik.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-3">
-                    <button onClick={onCancel} className="w-full sm:w-auto px-6 py-3 text-slate-500 font-bold rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">Batal</button>
-                    <button onClick={onStart} className="w-full sm:flex-1 py-4 bg-purple-600 text-white font-bold rounded-2xl hover:bg-purple-700 transition-colors shadow-lg">Lanjut, Saya Siap</button>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-
-// WCAG Contrast Fix for Main App Badges
-const ViolationBadge: React.FC<{ type: ViolationType | 'general' }> = ({ type }) => {
-    if (type === 'general' || type === 'none') return <span className="text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-600 font-bold">Umum</span>;
-
-    const badgeStyles: Record<string, string> = {
-        riba: 'bg-red-100 text-red-900 border-red-200 dark:bg-red-900/40 dark:text-red-100 dark:border-red-800',
-        gharar: 'bg-orange-100 text-orange-900 border-orange-200 dark:bg-orange-900/40 dark:text-orange-100 dark:border-orange-800',
-        maysir: 'bg-purple-100 text-purple-900 border-purple-200 dark:bg-purple-900/40 dark:text-purple-100 dark:border-purple-800',
-        zulm: 'bg-slate-100 text-slate-900 border-slate-200 dark:bg-slate-800 dark:text-slate-100 dark:border-slate-700',
-    };
-
-    return <span className={`text-[10px] uppercase font-black px-2 py-0.5 rounded border ${badgeStyles[type]}`}>{type}</span>;
-};
 
 const HedeApp: React.FC = () => {
     const { showToast } = useToast();

@@ -24,25 +24,8 @@ import { SurahSelection } from './components/SurahSelection.tsx';
 import { MushafReader } from './components/MushafReader.tsx';
 import { MushafStickyPlayer } from './components/MushafStickyPlayer.tsx';
 import { MushafProvider, useMushafSettings } from './context/MushafContext.tsx';
+import { OnboardingTooltip } from './components/OnboardingTooltip.tsx';
 
-// Tooltip Component
-const OnboardingTooltip = ({ onClose }: { onClose: () => void }) => (
-    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-tooltip pointer-events-none w-full max-w-xs px-4">
-        <div className="bg-slate-900 text-white p-4 rounded-xl shadow-2xl animate-bounce-slow relative text-center pointer-events-auto">
-            <div className="font-bold text-sm mb-1">👆 Tips Cepat</div>
-            <p className="text-xs text-slate-300 leading-relaxed">
-                Tekan <span className="text-teal-400 font-bold">tahan lama</span> pada ayat untuk membuka Kamus, Tafsir, dan Simpan Ayat.
-            </p>
-            <button
-                onClick={onClose}
-                className="mt-3 bg-white text-slate-900 px-4 py-1.5 rounded-full text-[10px] font-bold"
-            >
-                Mengerti
-            </button>
-            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-2 border-8 border-transparent border-t-slate-900"></div>
-        </div>
-    </div>
-);
 
 // --- WRAPPER COMPONENT FOR CONTEXT ---
 const MushafAppContent: React.FC = () => {

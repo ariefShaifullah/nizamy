@@ -1,0 +1,918 @@
+{
+    "surahs": [
+        {
+            "number": 1,
+            "name": "Al-Fatihah",
+            "verses": 7,
+            "arti": "Pembukaan",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 2,
+            "name": "Al-Baqarah",
+            "verses": 286,
+            "arti": "Sapi Betina",
+            "type": "Madaniyah"
+        },
+        {
+            "number": 3,
+            "name": "Ali 'Imran",
+            "verses": 200,
+            "arti": "Keluarga Imran",
+            "type": "Madaniyah"
+        },
+        {
+            "number": 4,
+            "name": "An-Nisa'",
+            "verses": 176,
+            "arti": "Wanita",
+            "type": "Madaniyah"
+        },
+        {
+            "number": 5,
+            "name": "Al-Ma'idah",
+            "verses": 120,
+            "arti": "Hidangan",
+            "type": "Madaniyah"
+        },
+        {
+            "number": 6,
+            "name": "Al-An'am",
+            "verses": 165,
+            "arti": "Binatang Ternak",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 7,
+            "name": "Al-A'raf",
+            "verses": 206,
+            "arti": "Tempat Tertinggi",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 8,
+            "name": "Al-Anfal",
+            "verses": 75,
+            "arti": "Harta Rampasan",
+            "type": "Madaniyah"
+        },
+        {
+            "number": 9,
+            "name": "At-Taubah",
+            "verses": 129,
+            "arti": "Pengampunan",
+            "type": "Madaniyah"
+        },
+        {
+            "number": 10,
+            "name": "Yunus",
+            "verses": 109,
+            "arti": "Nabi Yunus",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 11,
+            "name": "Hud",
+            "verses": 123,
+            "arti": "Nabi Hud",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 12,
+            "name": "Yusuf",
+            "verses": 111,
+            "arti": "Nabi Yusuf",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 13,
+            "name": "Ar-Ra'd",
+            "verses": 43,
+            "arti": "Guruh",
+            "type": "Madaniyah"
+        },
+        {
+            "number": 14,
+            "name": "Ibrahim",
+            "verses": 52,
+            "arti": "Nabi Ibrahim",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 15,
+            "name": "Al-Hijr",
+            "verses": 99,
+            "arti": "Bukit Berbatu",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 16,
+            "name": "An-Nahl",
+            "verses": 128,
+            "arti": "Lebah",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 17,
+            "name": "Al-Isra'",
+            "verses": 111,
+            "arti": "Perjalanan Malam",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 18,
+            "name": "Al-Kahf",
+            "verses": 110,
+            "arti": "Gua",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 19,
+            "name": "Maryam",
+            "verses": 98,
+            "arti": "Siti Maryam",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 20,
+            "name": "Ta-Ha",
+            "verses": 135,
+            "arti": "Taha",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 21,
+            "name": "Al-Anbiya'",
+            "verses": 112,
+            "arti": "Para Nabi",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 22,
+            "name": "Al-Hajj",
+            "verses": 78,
+            "arti": "Haji",
+            "type": "Madaniyah"
+        },
+        {
+            "number": 23,
+            "name": "Al-Mu'minun",
+            "verses": 118,
+            "arti": "Orang Mukmin",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 24,
+            "name": "An-Nur",
+            "verses": 64,
+            "arti": "Cahaya",
+            "type": "Madaniyah"
+        },
+        {
+            "number": 25,
+            "name": "Al-Furqan",
+            "verses": 77,
+            "arti": "Pembeda",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 26,
+            "name": "Asy-Syu'ara'",
+            "verses": 227,
+            "arti": "Para Penyair",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 27,
+            "name": "An-Naml",
+            "verses": 93,
+            "arti": "Semut",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 28,
+            "name": "Al-Qasas",
+            "verses": 88,
+            "arti": "Kisah-kisah",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 29,
+            "name": "Al-Ankabut",
+            "verses": 69,
+            "arti": "Laba-laba",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 30,
+            "name": "Ar-Rum",
+            "verses": 60,
+            "arti": "Bangsa Romawi",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 31,
+            "name": "Luqman",
+            "verses": 34,
+            "arti": "Luqman",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 32,
+            "name": "As-Sajdah",
+            "verses": 30,
+            "arti": "Sujud",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 33,
+            "name": "Al-Ahzab",
+            "verses": 73,
+            "arti": "Golongan Bersekutu",
+            "type": "Madaniyah"
+        },
+        {
+            "number": 34,
+            "name": "Saba'",
+            "verses": 54,
+            "arti": "Kaum Saba'",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 35,
+            "name": "Fatir",
+            "verses": 45,
+            "arti": "Pencipta",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 36,
+            "name": "Ya-Sin",
+            "verses": 83,
+            "arti": "Yasin",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 37,
+            "name": "As-Saffat",
+            "verses": 182,
+            "arti": "Yang Bersaf-saf",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 38,
+            "name": "Sad",
+            "verses": 88,
+            "arti": "Sad",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 39,
+            "name": "Az-Zumar",
+            "verses": 75,
+            "arti": "Rombongan",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 40,
+            "name": "Ghafir",
+            "verses": 85,
+            "arti": "Pengampun",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 41,
+            "name": "Fussilat",
+            "verses": 54,
+            "arti": "Yang Dijelaskan",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 42,
+            "name": "Asy-Syura",
+            "verses": 53,
+            "arti": "Musyawarah",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 43,
+            "name": "Az-Zukhruf",
+            "verses": 89,
+            "arti": "Perhiasan",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 44,
+            "name": "Ad-Dukhan",
+            "verses": 59,
+            "arti": "Kabut",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 45,
+            "name": "Al-Jatsiyah",
+            "verses": 37,
+            "arti": "Yang Berlutut",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 46,
+            "name": "Al-Ahqaf",
+            "verses": 35,
+            "arti": "Bukit Pasir",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 47,
+            "name": "Muhammad",
+            "verses": 38,
+            "arti": "Nabi Muhammad",
+            "type": "Madaniyah"
+        },
+        {
+            "number": 48,
+            "name": "Al-Fath",
+            "verses": 29,
+            "arti": "Kemenangan",
+            "type": "Madaniyah"
+        },
+        {
+            "number": 49,
+            "name": "Al-Hujurat",
+            "verses": 18,
+            "arti": "Kamar-kamar",
+            "type": "Madaniyah"
+        },
+        {
+            "number": 50,
+            "name": "Qaf",
+            "verses": 45,
+            "arti": "Qaf",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 51,
+            "name": "Adz-Dzariyat",
+            "verses": 60,
+            "arti": "Angin",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 52,
+            "name": "At-Tur",
+            "verses": 49,
+            "arti": "Bukit",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 53,
+            "name": "An-Najm",
+            "verses": 62,
+            "arti": "Bintang",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 54,
+            "name": "Al-Qamar",
+            "verses": 55,
+            "arti": "Bulan",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 55,
+            "name": "Ar-Rahman",
+            "verses": 78,
+            "arti": "Yang Maha Pemurah",
+            "type": "Madaniyah"
+        },
+        {
+            "number": 56,
+            "name": "Al-Waqi'ah",
+            "verses": 96,
+            "arti": "Hari Kiamat",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 57,
+            "name": "Al-Hadid",
+            "verses": 29,
+            "arti": "Besi",
+            "type": "Madaniyah"
+        },
+        {
+            "number": 58,
+            "name": "Al-Mujadilah",
+            "verses": 22,
+            "arti": "Wanita Menggugat",
+            "type": "Madaniyah"
+        },
+        {
+            "number": 59,
+            "name": "Al-Hasyr",
+            "verses": 24,
+            "arti": "Pengusiran",
+            "type": "Madaniyah"
+        },
+        {
+            "number": 60,
+            "name": "Al-Mumtahanah",
+            "verses": 13,
+            "arti": "Wanita Diuji",
+            "type": "Madaniyah"
+        },
+        {
+            "number": 61,
+            "name": "As-Saff",
+            "verses": 14,
+            "arti": "Barisan",
+            "type": "Madaniyah"
+        },
+        {
+            "number": 62,
+            "name": "Al-Jumu'ah",
+            "verses": 11,
+            "arti": "Jumat",
+            "type": "Madaniyah"
+        },
+        {
+            "number": 63,
+            "name": "Al-Munafiqun",
+            "verses": 11,
+            "arti": "Orang Munafik",
+            "type": "Madaniyah"
+        },
+        {
+            "number": 64,
+            "name": "At-Taghabun",
+            "verses": 18,
+            "arti": "Hari Ditampakkan",
+            "type": "Madaniyah"
+        },
+        {
+            "number": 65,
+            "name": "At-Talaq",
+            "verses": 12,
+            "arti": "Talak",
+            "type": "Madaniyah"
+        },
+        {
+            "number": 66,
+            "name": "At-Tahrim",
+            "verses": 12,
+            "arti": "Mengharamkan",
+            "type": "Madaniyah"
+        },
+        {
+            "number": 67,
+            "name": "Al-Mulk",
+            "verses": 30,
+            "arti": "Kerajaan",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 68,
+            "name": "Al-Qalam",
+            "verses": 52,
+            "arti": "Pena",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 69,
+            "name": "Al-Haqqah",
+            "verses": 52,
+            "arti": "Hari Kiamat",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 70,
+            "name": "Al-Ma'arij",
+            "verses": 44,
+            "arti": "Tempat Naik",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 71,
+            "name": "Nuh",
+            "verses": 28,
+            "arti": "Nabi Nuh",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 72,
+            "name": "Al-Jin",
+            "verses": 28,
+            "arti": "Jin",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 73,
+            "name": "Al-Muzzammil",
+            "verses": 20,
+            "arti": "Orang Berselimut",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 74,
+            "name": "Al-Muddatsir",
+            "verses": 56,
+            "arti": "Orang Berkemul",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 75,
+            "name": "Al-Qiyamah",
+            "verses": 40,
+            "arti": "Hari Kiamat",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 76,
+            "name": "Al-Insan",
+            "verses": 31,
+            "arti": "Manusia",
+            "type": "Madaniyah"
+        },
+        {
+            "number": 77,
+            "name": "Al-Mursalat",
+            "verses": 50,
+            "arti": "Malaikat",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 78,
+            "name": "An-Naba'",
+            "verses": 40,
+            "arti": "Berita Besar",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 79,
+            "name": "An-Nazi'at",
+            "verses": 46,
+            "arti": "Malaikat Pencabut",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 80,
+            "name": "'Abasa",
+            "verses": 42,
+            "arti": "Ia Bermuka Masam",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 81,
+            "name": "At-Takwir",
+            "verses": 29,
+            "arti": "Menggulung",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 82,
+            "name": "Al-Infitar",
+            "verses": 19,
+            "arti": "Terbelah",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 83,
+            "name": "Al-Mutaffifin",
+            "verses": 36,
+            "arti": "Orang Curang",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 84,
+            "name": "Al-Inshiqaq",
+            "verses": 25,
+            "arti": "Terbelah",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 85,
+            "name": "Al-Buruj",
+            "verses": 22,
+            "arti": "Gugusan Bintang",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 86,
+            "name": "At-Tariq",
+            "verses": 17,
+            "arti": "Yang Datang",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 87,
+            "name": "Al-A'la",
+            "verses": 19,
+            "arti": "Yang Paling Tinggi",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 88,
+            "name": "Al-Ghashiyah",
+            "verses": 26,
+            "arti": "Hari Pembalasan",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 89,
+            "name": "Al-Fajr",
+            "verses": 30,
+            "arti": "Fajar",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 90,
+            "name": "Al-Balad",
+            "verses": 20,
+            "arti": "Negeri",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 91,
+            "name": "Asy-Syams",
+            "verses": 15,
+            "arti": "Matahari",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 92,
+            "name": "Al-Lail",
+            "verses": 21,
+            "arti": "Malam",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 93,
+            "name": "Ad-Duha",
+            "verses": 11,
+            "arti": "Waktu Duha",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 94,
+            "name": "Al-Insyirah",
+            "verses": 8,
+            "arti": "Kelapangan",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 95,
+            "name": "At-Tin",
+            "verses": 8,
+            "arti": "Buah Tin",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 96,
+            "name": "Al-'Alaq",
+            "verses": 19,
+            "arti": "Segumpal Darah",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 97,
+            "name": "Al-Qadr",
+            "verses": 5,
+            "arti": "Kemuliaan",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 98,
+            "name": "Al-Bayyinah",
+            "verses": 8,
+            "arti": "Bukti Nyata",
+            "type": "Madaniyah"
+        },
+        {
+            "number": 99,
+            "name": "Az-Zalzalah",
+            "verses": 8,
+            "arti": "Goncangan",
+            "type": "Madaniyah"
+        },
+        {
+            "number": 100,
+            "name": "Al-'Adiyat",
+            "verses": 11,
+            "arti": "Kuda Perang",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 101,
+            "name": "Al-Qari'ah",
+            "verses": 11,
+            "arti": "Hari Kiamat",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 102,
+            "name": "At-Takatsur",
+            "verses": 8,
+            "arti": "Bermegah-megahan",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 103,
+            "name": "Al-'Asr",
+            "verses": 3,
+            "arti": "Masa",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 104,
+            "name": "Al-Humazah",
+            "verses": 9,
+            "arti": "Pengumpat",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 105,
+            "name": "Al-Fil",
+            "verses": 5,
+            "arti": "Gajah",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 106,
+            "name": "Quraisy",
+            "verses": 4,
+            "arti": "Suku Quraisy",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 107,
+            "name": "Al-Ma'un",
+            "verses": 7,
+            "arti": "Barang Berguna",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 108,
+            "name": "Al-Kautsar",
+            "verses": 3,
+            "arti": "Nikmat Banyak",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 109,
+            "name": "Al-Kafirun",
+            "verses": 6,
+            "arti": "Orang Kafir",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 110,
+            "name": "An-Nasr",
+            "verses": 3,
+            "arti": "Pertolongan",
+            "type": "Madaniyah"
+        },
+        {
+            "number": 111,
+            "name": "Al-Lahab",
+            "verses": 5,
+            "arti": "Gejolak Api",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 112,
+            "name": "Al-Ikhlas",
+            "verses": 4,
+            "arti": "Ikhlas",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 113,
+            "name": "Al-Falaq",
+            "verses": 5,
+            "arti": "Waktu Subuh",
+            "type": "Makkiyah"
+        },
+        {
+            "number": 114,
+            "name": "An-Nas",
+            "verses": 6,
+            "arti": "Manusia",
+            "type": "Makkiyah"
+        }
+    ],
+    "arabicNames": {
+        "Al-Fatihah": "الفاتحة",
+        "Al-Baqarah": "البقرة",
+        "Ali 'Imran": "آل عمران",
+        "An-Nisa'": "النساء",
+        "Al-Ma'idah": "المائدة",
+        "Al-An'am": "الأنعام",
+        "Al-A'raf": "الأعراف",
+        "Al-Anfal": "الأنفال",
+        "At-Taubah": "التوبة",
+        "Yunus": "يونس",
+        "Hud": "هود",
+        "Yusuf": "يوسف",
+        "Ar-Ra'd": "الرعد",
+        "Ibrahim": "إبراهيم",
+        "Al-Hijr": "الحجر",
+        "An-Nahl": "النحل",
+        "Al-Isra'": "الإسراء",
+        "Al-Kahf": "الكهف",
+        "Maryam": "مريم",
+        "Ta-Ha": "طه",
+        "Al-Anbiya'": "الأنبياء",
+        "Al-Hajj": "الحج",
+        "Al-Mu'minun": "المؤمنون",
+        "An-Nur": "النور",
+        "Al-Furqan": "الفرقان",
+        "Asy-Syu'ara'": "الشعراء",
+        "An-Naml": "النمل",
+        "Al-Qasas": "القصص",
+        "Al-Ankabut": "العنكبوت",
+        "Ar-Rum": "الروم",
+        "Luqman": "لقمان",
+        "As-Sajdah": "السجدة",
+        "Al-Ahzab": "الأحزاب",
+        "Saba'": "سبأ",
+        "Fatir": "فاطر",
+        "Ya-Sin": "يس",
+        "As-Saffat": "الصافات",
+        "Sad": "ص",
+        "Az-Zumar": "الزمر",
+        "Ghafir": "غافر",
+        "Fussilat": "فصلت",
+        "Asy-Syura": "الشورى",
+        "Az-Zukhruf": "الزخرف",
+        "Ad-Dukhan": "الدخان",
+        "Al-Jatsiyah": "الجاثية",
+        "Al-Ahqaf": "الأحقاف",
+        "Muhammad": "محمد",
+        "Al-Fath": "الفتح",
+        "Al-Hujurat": "الحجرات",
+        "Qaf": "ق",
+        "Adz-Dzariyat": "الذاريات",
+        "At-Tur": "الطور",
+        "An-Najm": "النجم",
+        "Al-Qamar": "القمر",
+        "Ar-Rahman": "الرحمن",
+        "Al-Waqi'ah": "الواقعة",
+        "Al-Hadid": "الحديد",
+        "Al-Mujadilah": "المجادلة",
+        "Al-Hasyr": "الحشر",
+        "Al-Mumtahanah": "الممتحنة",
+        "As-Saff": "الصف",
+        "Al-Jumu'ah": "الجمعة",
+        "Al-Munafiqun": "المنافقون",
+        "At-Taghabun": "التغابن",
+        "At-Talaq": "الطلاق",
+        "At-Tahrim": "التحريم",
+        "Al-Mulk": "الملك",
+        "Al-Qalam": "القلم",
+        "Al-Haqqah": "الحاقة",
+        "Al-Ma'arij": "المعارج",
+        "Nuh": "نوح",
+        "Al-Jin": "الجن",
+        "Al-Muzzammil": "المزمل",
+        "Al-Muddatsir": "المدثر",
+        "Al-Qiyamah": "القيامة",
+        "Al-Insan": "الإنسان",
+        "Al-Mursalat": "المرسلات",
+        "An-Naba'": "النبأ",
+        "An-Nazi'at": "النازعات",
+        "'Abasa": "عبس",
+        "At-Takwir": "التكوير",
+        "Al-Infitar": "الإنفطار",
+        "Al-Mutaffifin": "المطففين",
+        "Al-Inshiqaq": "الإنشقاق",
+        "Al-Buruj": "البروج",
+        "At-Tariq": "الطارق",
+        "Al-A'la": "الأعلى",
+        "Al-Ghashiyah": "الغاشية",
+        "Al-Fajr": "الفجر",
+        "Al-Balad": "البلد",
+        "Asy-Syams": "الشمس",
+        "Al-Lail": "الليل",
+        "Ad-Duha": "الضحى",
+        "Al-Insyirah": "الشرح",
+        "At-Tin": "التين",
+        "Al-'Alaq": "العلق",
+        "Al-Qadr": "القدر",
+        "Al-Bayyinah": "البينة",
+        "Az-Zalzalah": "الزلزلة",
+        "Al-'Adiyat": "العاديات",
+        "Al-Qari'ah": "القارعة",
+        "At-Takatsur": "التكاثر",
+        "Al-'Asr": "العصر",
+        "Al-Humazah": "الهمزة",
+        "Al-Fil": "الفيل",
+        "Quraisy": "قريش",
+        "Al-Ma'un": "الماعون",
+        "Al-Kautsar": "الكوثر",
+        "Al-Kafirun": "الكافرون",
+        "An-Nasr": "النصر",
+        "Al-Lahab": "المسد",
+        "Al-Ikhlas": "الإخلاص",
+        "Al-Falaq": "الفلق",
+        "An-Nas": "الناس"
+    }
+}

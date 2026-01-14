@@ -1,0 +1,225 @@
+@import "tailwindcss";
+
+/* Tailwind v4: Dark mode configuration */
+@variant dark (&:where(.dark, .dark *));
+
+/* Tailwind v4: Theme customization */
+@theme {
+  /* Custom Colors */
+  --color-slate-850: #1e293b;
+  --color-slate-900: #0f172a;
+  --color-slate-950: #020617;
+  
+  --color-primary-50: #f0f9ff;
+  --color-primary-100: #e0f2fe;
+  --color-primary-200: #bae6fd;
+  --color-primary-300: #7dd3fc;
+  --color-primary-400: #38bdf8;
+  --color-primary-500: #0ea5e9;
+  --color-primary-600: #0284c7;
+  --color-primary-700: #0369a1;
+  --color-primary-800: #075985;
+  --color-primary-900: #0c4a6e;
+  --color-primary-950: #082f49;
+  
+  --color-emerald-50: #ecfdf5;
+  --color-emerald-100: #d1fae5;
+  --color-emerald-200: #a7f3d0;
+  --color-emerald-300: #6ee7b7;
+  --color-emerald-400: #34d399;
+  --color-emerald-500: #10b981;
+  --color-emerald-600: #059669;
+  --color-emerald-700: #047857;
+  --color-emerald-800: #065f46;
+  --color-emerald-900: #064e3b;
+  --color-emerald-950: #022c22;
+  
+  /* Custom Font Families */
+  --font-sans: 'Inter', sans-serif;
+  --font-serif: 'Georgia', 'Cambria', 'Times New Roman', 'Times', serif;
+  --font-arabic: 'Amiri', 'Kitab', 'Traditional Arabic', 'Arial', sans-serif;
+  
+  /* Custom Animations */
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  
+  /* Animation Durations */
+  --animate-fade-in: fadeIn 0.5s var(--ease-out);
+  --animate-fade-in-up: fadeInUp 0.5s var(--ease-out);
+  --animate-fade-in-down: fadeInDown 0.5s var(--ease-out);
+  --animate-bounce-slow: bounce 3s infinite;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInDown {
+  0% { opacity: 0; transform: translateY(-20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+
+/* --- SCANNER BATCH MODE STYLES --- */
+
+@keyframes scan-animation {
+  0% { top: 0; opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+@keyframes focus-ping {
+  0% { transform: scale(1.5); opacity: 0.8; }
+  50% { transform: scale(0.9); opacity: 1; }
+  100% { transform: scale(1); opacity: 0; }
+}
+
+@keyframes float-in {
+  0% { opacity: 0; transform: translateY(20px) scale(0.9); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.scanner-focus-ring {
+  animation: focus-ping 0.8s ease-out forwards;
+}
+
+.scanner-thumbnail-enter {
+  animation: float-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.scanner-viewfinder-gradient {
+  background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.6) 100%);
+}
+
+.scanner-glass-tray {
+  background: rgba(255, 255, 255, 0.1);
+  /* backdrop-filter: blur(20px); */
+  /* -webkit-backdrop-filter: blur(20px); */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+
+/* Global Utility: Hide Scrollbar but keep functionality */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+/* Custom Scrollbar for vertical lists (Waris, etc) */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px; /* Thinner for cleaner look */
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {  
+  background-color: rgba(148, 163, 184, 0.5);
+  border-radius: 20px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(148, 163, 184, 0.8);
+}
+
+/* Dark mode scrollbar adjustments */
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(71, 85, 105, 0.5);
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(71, 85, 105, 0.8);
+}
+
+/* Z-Index Registry - Centralized z-index management */
+/* Use these CSS custom properties to maintain consistent layering */
+:root {
+  /* Background layers (negative values) */
+  --z-background: -10;
+  
+  /* Content layers (0-9) */
+  --z-base: 0;
+  --z-raised: 1;
+  --z-card: 10;
+  
+  /* Interactive elements (10-49) */
+  --z-dropdown: 20;
+  --z-tooltip: 30;
+  --z-popover: 40;
+  
+  /* Navigation & sticky elements (50-99) */
+  --z-sticky: 50;
+  --z-header: 60;
+  --z-navigation: 70;
+  
+  /* Overlays & modals (100-999) */
+  --z-overlay: 100;
+  --z-modal: 200;
+  --z-drawer: 300;
+  --z-toast: 400;
+  
+  /* Critical system UI (1000+) */
+  --z-notification: 1000;
+  --z-loading: 1100;
+  --z-error: 1200;
+  --z-debug: 9999;
+}
+
+/* Z-Index Utility Classes */
+.z-background { z-index: var(--z-background); }
+.z-base { z-index: var(--z-base); }
+.z-raised { z-index: var(--z-raised); }
+.z-card { z-index: var(--z-card); }
+.z-dropdown { z-index: var(--z-dropdown); }
+.z-tooltip { z-index: var(--z-tooltip); }
+.z-popover { z-index: var(--z-popover); }
+.z-sticky { z-index: var(--z-sticky); }
+.z-header { z-index: var(--z-header); }
+.z-navigation { z-index: var(--z-navigation); }
+.z-overlay { z-index: var(--z-overlay); }
+.z-modal { z-index: var(--z-modal); }
+.z-drawer { z-index: var(--z-drawer); }
+.z-toast { z-index: var(--z-toast); }
+.z-notification { z-index: var(--z-notification); }
+.z-loading { z-index: var(--z-loading); }
+.z-error { z-index: var(--z-error); }
+.z-debug { z-index: var(--z-debug); }
+
+/* Safe Area padding for mobile devices with notches/home bars */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 20px);
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.9); /* Increased opacity for fallback */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  /* backdrop-filter: blur(14px) saturate(160%); */
+  /* -webkit-backdrop-filter: blur(14px) saturate(160%); */
+}
+
+.dark .glass {
+  background: rgba(20, 20, 30, 0.9); /* Increased opacity for fallback */
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Backdrop Blur Utilities - Disabled for Performance
+.backdrop-blur-sm {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+...
+.backdrop-blur-3xl {
+  backdrop-filter: blur(64px);
+  -webkit-backdrop-filter: blur(64px);
+} 
+*/
+.backdrop-blur-sm, .backdrop-blur, .backdrop-blur-md, .backdrop-blur-lg, .backdrop-blur-xl, .backdrop-blur-2xl, .backdrop-blur-3xl {
+    /* No-op for performance */
+}

@@ -1,172 +1,100 @@
-
 <!DOCTYPE html>
 <html lang="id">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <meta name="color-scheme" content="light dark">
-    <meta name="theme-color" content="#4f46e5">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" href="/manifest.json">
-      <!-- Google tag -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=TAG_ID"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
 
-      gtag('config', 'G-EQ211HGMPQ');
-    </script>
-    <title>NIZAMY: Aplikasi Ibadah Islam (Waris, Zakat, Hafalan, Klinik Finansial)</title>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="/manifest.json">
+  <!-- Google tag -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=TAG_ID"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
 
-    <!-- Preconnect to Critical Origins -->
-    <link rel="preconnect" href="https://api.alquran.cloud" crossorigin>
-    <link rel="preconnect" href="https://everyayah.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://cdn-icons-png.flaticon.com" crossorigin>
+    gtag('config', 'G-EQ211HGMPQ');
+  </script>
+  <title>NIZAMY: Aplikasi Ibadah Islam (Waris, Zakat, Hafalan, Klinik Finansial)</title>
 
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="NIZAMY Islam Apps Suite: Kalkulator Waris (Faraidh), Zakat, Hafalan Quran (SRS), dan Klinik Finansial untuk diagnosa riba & gharar. Gratis, Privasi Terjaga." />
-    <meta name="keywords" content="kalkulator faraidh, hitung waris, zakat, hafalan quran, audit halal, cek riba, ekonomi syariah, klinik finansial, nizamy" />
-   
-    <meta name="author" content="NIZAMY" />
+  <!-- Preconnect to Critical Origins -->
+  <link rel="preconnect" href="https://api.alquran.cloud" crossorigin>
+  <link rel="preconnect" href="https://everyayah.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn-icons-png.flaticon.com" crossorigin>
 
-    <!-- Favicon -->
-    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=6">
-    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=6">
-    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=6">
-    <link rel="manifest" href="/manifest">
-    <link rel="icon" href="/images/favicon.ico">
+  <!-- SEO Meta Tags -->
+  <meta name="description"
+    content="NIZAMY Islam Apps Suite: Kalkulator Waris (Faraidh), Zakat, Hafalan Quran (SRS), dan Klinik Finansial untuk diagnosa riba & gharar. Gratis, Privasi Terjaga." />
+  <meta name="keywords"
+    content="kalkulator faraidh, hitung waris, zakat, hafalan quran, audit halal, cek riba, ekonomi syariah, klinik finansial, nizamy" />
 
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://nizamy.com/">
-    <meta property="og:title" content="NIZAMY: Aplikasi Islam Terlengkap">
-    <meta property="og:description" content="Satu aplikasi untuk Waris, Zakat, Hafalan Quran, dan Klinik Finansial.">
-    <meta property="og:image" content="https://nizamy.com/og-image.png">
+  <meta name="author" content="NIZAMY" />
 
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://nizamy.com/">
-    <meta property="twitter:title" content="NIZAMY: Aplikasi Ibadah Islam">
-    <meta property="twitter:description" content="Satu aplikasi untuk Waris, Zakat, Hafalan Quran, dan Klinik Finansial.">
-    <meta property="twitter:image" content="https://nizamy.com/og-image.png">
-    
-   <!-- Fonts Loading Strategy: Critical Blocking for Amiri to prevent FOUT on Quran Text -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=block" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=block" rel="stylesheet"></noscript>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Favicon -->
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=6">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=6">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=6">
+  <link rel="manifest" href="/manifest">
+  <link rel="icon" href="/images/favicon.ico">
 
-    <!-- Dark Mode Anti-FOUC Script -->
-    <script>
-      (function() {
-        const storageKey = 'vite-ui-theme';
-        const theme = localStorage.getItem(storageKey);
-        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        
-        if (theme === 'dark' || (theme === 'system' && systemTheme === 'dark') || (!theme && systemTheme === 'dark')) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
-      })();
-    </script>
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://nizamy.com/">
+  <meta property="og:title" content="NIZAMY: Aplikasi Islam Terlengkap">
+  <meta property="og:description" content="Satu aplikasi untuk Waris, Zakat, Hafalan Quran, dan Klinik Finansial.">
+  <meta property="og:image" content="https://nizamy.com/og-image.png">
 
-    <style>
-      /* Global Utility: Hide Scrollbar but keep functionality */
-      .hide-scrollbar::-webkit-scrollbar {
-        display: none;
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://nizamy.com/">
+  <meta property="twitter:title" content="NIZAMY: Aplikasi Ibadah Islam">
+  <meta property="twitter:description" content="Satu aplikasi untuk Waris, Zakat, Hafalan Quran, dan Klinik Finansial.">
+  <meta property="twitter:image" content="https://nizamy.com/og-image.png">
+
+  <!-- Fonts Loading Strategy: Critical Blocking for Amiri to prevent FOUT on Quran Text -->
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=block" as="style"
+    onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=block" rel="stylesheet">
+  </noscript>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Dark Mode Anti-FOUC Script -->
+  <script>
+    (function () {
+      const storageKey = 'vite-ui-theme';
+      const theme = localStorage.getItem(storageKey);
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+
+      if (theme === 'dark' || (theme === 'system' && systemTheme === 'dark') || (!theme && systemTheme === 'dark')) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
       }
-      .hide-scrollbar {
-        -ms-overflow-style: none; /* IE and Edge */
-        scrollbar-width: none; /* Firefox */
-      }
+    })();
+  </script>
 
-      /* Custom Scrollbar for vertical lists (Waris, etc) */
-      .custom-scrollbar::-webkit-scrollbar {
-        width: 6px; /* Thinner for cleaner look */
-        height: 6px;
-      }
-      .custom-scrollbar::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb {  
-        background-color: rgba(148, 163, 184, 0.5);
-        border-radius: 20px;
-        
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background-color: rgba(148, 163, 184, 0.8);
-      }
+  <style>
+    /* Critical CSS for preventing FOUC - other styles in src/index.css */
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
 
-        /* Dark mode scrollbar adjustments */
-      .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-        background-color: rgba(71, 85, 105, 0.5);
-      }
-      .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background-color: rgba(71, 85, 105, 0.8);
-      }
-      
-      /* Safe Area padding for mobile devices with notches/home bars */
-      .pb-safe {
-        padding-bottom: env(safe-area-inset-bottom, 20px);
-      }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
 
-      .glass {
-        background: rgba(255, 255, 255, 0.12);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(14px) saturate(160%);
-        -webkit-backdrop-filter: blur(14px) saturate(160%);
-      }
-
-      .dark .glass {
-        background: rgba(20, 20, 30, 0.25);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-      }
-
-      /* Backdrop Blur Utilities */
-      .backdrop-blur-sm {
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
-      }
-
-      .backdrop-blur {
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-      }
-
-      .backdrop-blur-md {
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-      }
-
-      .backdrop-blur-lg {
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-      }
-
-      .backdrop-blur-xl {
-        backdrop-filter: blur(24px);
-        -webkit-backdrop-filter: blur(24px);
-      }
-
-      .backdrop-blur-2xl {
-        backdrop-filter: blur(40px);
-        -webkit-backdrop-filter: blur(40px);
-      }
-
-      .backdrop-blur-3xl {
-        backdrop-filter: blur(64px);
-        -webkit-backdrop-filter: blur(64px);
-      }
-
-    </style>
-    
-    <!-- Structured Data (Schema.org) -->
-    <script type="application/ld+json">
+  <!-- Structured Data (Schema.org) -->
+  <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebApplication",
@@ -182,17 +110,21 @@
     }
     </script>
 </head>
-  <body class="bg-linear-to-br from-indigo-50 via-white to-cyan-50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 bg-fixed min-h-screen text-slate-800 dark:text-slate-100 font-sans antialiased transition-colors duration-500">
-    <div id="root">
-        <!-- Static content for SEO and non-JS users -->
-        <div style="text-align: center; padding: 40px; font-family: 'Inter', sans-serif;">
-            <h1 style="font-size: 2.25rem; font-weight: 800; color: #0369a1;">NIZAMY: Aplikasi Islam</h1>
-            <p style="margin-top: 1rem; font-size: 1.125rem; color: #475569;">Memuat aplikasi... Mohon tunggu sebentar.</p>
-            <noscript>
-                <p style="margin-top: 1rem; color: #dc2626; font-weight: bold;">Harap aktifkan JavaScript untuk menggunakan aplikasi ini.</p>
-            </noscript>
-        </div>
+
+<body
+  class="bg-linear-to-br from-indigo-50 via-white to-cyan-50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 bg-fixed min-h-screen text-slate-800 dark:text-slate-100 font-sans antialiased transition-colors duration-500">
+  <div id="root">
+    <!-- Static content for SEO and non-JS users -->
+    <div style="text-align: center; padding: 40px; font-family: 'Inter', sans-serif;">
+      <h1 style="font-size: 2.25rem; font-weight: 800; color: #0369a1;">NIZAMY: Aplikasi Islam</h1>
+      <p style="margin-top: 1rem; font-size: 1.125rem; color: #475569;">Memuat aplikasi... Mohon tunggu sebentar.</p>
+      <noscript>
+        <p style="margin-top: 1rem; color: #dc2626; font-weight: bold;">Harap aktifkan JavaScript untuk menggunakan
+          aplikasi ini.</p>
+      </noscript>
     </div>
-    <script type="module" src="/index.tsx"></script>
-  </body>
+  </div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>

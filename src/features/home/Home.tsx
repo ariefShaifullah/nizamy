@@ -12,13 +12,12 @@ import {
     FaQuran,
     FaBrain,
     FaDownload,
-    FaStethoscope,
+    FaWallet,
     FaTimes,
     FaFire,
     FaCheckCircle,
     FaCamera,
     FaQrcode,
-    FaWallet
 } from "react-icons/fa";
 
 // ... (Existing UTILS & CONSTANTS remain unchanged) ...

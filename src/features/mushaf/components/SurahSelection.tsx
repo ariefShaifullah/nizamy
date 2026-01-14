@@ -151,15 +151,6 @@ export const SurahSelection: React.FC<SurahSelectionProps> = ({
 
             {/* 1. Header & Search Bar */}
             <div className="flex flex-col gap-4 md:gap-6 mb-8">
-                {/* Debug Info */}
-                {(isLoading || error || SURAH_DATA.length === 0) && (
-                    <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-xl text-xs font-mono mb-4">
-                        <p>Status: {isLoading ? 'Loading...' : 'Ready'}</p>
-                        <p>Surahs Loaded: {SURAH_DATA.length}</p>
-                        {error && <p className="text-red-500 font-bold">Error: {error}</p>}
-                    </div>
-                )}
-
                 {/* Title (Desktop Only) */}
                 <div className="hidden md:flex justify-between items-end">
                     <div>

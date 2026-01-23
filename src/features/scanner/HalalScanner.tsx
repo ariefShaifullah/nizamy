@@ -6,8 +6,8 @@ import type { ScanResult } from '../../types.ts';
 import { useToast } from '../../components/ui/Toast.tsx';
 import { useIndexedDB } from '../../hooks/useIndexedDB.ts';
 import { useConfirm } from '../../components/ui/ConfirmContext.tsx';
-import { 
-    FaCamera, FaImage, FaArrowLeft, 
+import {
+    FaCamera, FaImage, FaArrowLeft,
     FaHistory, FaSyncAlt, FaTimes, FaShieldAlt,
     FaBolt, FaTrash, FaCheck, FaSpinner, FaSearch
 } from 'react-icons/fa';
@@ -29,11 +29,11 @@ export const HalalScanner: React.FC = () => {
     const [cameraReady, setCameraReady] = useState(false);
     const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
     const [showHistory, setShowHistory] = useState(false);
-    
+
     // Batch Mode State
     const [capturedImages, setCapturedImages] = useState<string[]>([]);
     const MAX_BATCH_SIZE = 4;
-    
+
     // Hardware Features State
     const [isTorchOn, setIsTorchOn] = useState(false);
     const [canTorch, setCanTorch] = useState(false);
@@ -43,7 +43,7 @@ export const HalalScanner: React.FC = () => {
         facingMode,
         width: { ideal: 1920 },
         height: { ideal: 1080 },
-        aspectRatio: 9/16, // Portrait mobile standard
+        aspectRatio: 9 / 16, // Portrait mobile standard
     }), [facingMode]);
 
     useEffect(() => {
@@ -96,12 +96,12 @@ export const HalalScanner: React.FC = () => {
         if (capturedImages.length === 0) return;
         setIsScanning(true);
         if (isTorchOn) toggleTorch();
-        
+
         try {
             const data = await analyzeBatch(capturedImages);
             setResult(data);
             setHistory(prev => [data, ...prev].slice(0, 20));
-            setCapturedImages([]); 
+            setCapturedImages([]);
         } catch (error: any) {
             showToast(error.message, "error");
         } finally {
@@ -138,19 +138,19 @@ export const HalalScanner: React.FC = () => {
         <div className="fixed inset-0 z-overlay bg-black text-white flex flex-col overflow-hidden font-sans select-none touch-manipulation">
             {/* --- TOP BAR (Float) --- */}
             <div className="absolute top-0 left-0 right-0 z-header flex justify-between items-center px-4 pt-[calc(env(safe-area-inset-top)+12px)] pb-4 bg-linear-to-b from-black/60 to-transparent pointer-events-none">
-                <button 
+                <button
                     onClick={() => result ? setResult(null) : navigate('/')}
                     className="w-11 h-11 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/10 active:scale-95 transition-all pointer-events-auto"
                 >
                     <span className="text-lg"><FaArrowLeft /></span>
                 </button>
-                
+
                 <div className="flex bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 items-center gap-2 pointer-events-auto">
                     <span className="text-emerald-400 text-sm"><FaShieldAlt /></span>
                     <span className="text-[10px] font-black uppercase tracking-widest">HALAL SCANNER</span>
                 </div>
 
-                <button 
+                <button
                     onClick={() => setShowHistory(true)}
                     className="w-11 h-11 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/10 active:scale-95 transition-all pointer-events-auto"
                 >
@@ -159,7 +159,7 @@ export const HalalScanner: React.FC = () => {
             </div>
 
             {/* --- VIEWFINDER --- */}
-            <div 
+            <div
                 className="flex-1 relative flex flex-col bg-slate-900 overflow-hidden"
                 onClick={handleTapToFocus}
                 onTouchStart={handleTapToFocus}
@@ -178,10 +178,10 @@ export const HalalScanner: React.FC = () => {
                     className="absolute inset-0 w-full h-full object-cover"
                     imageSmoothing={true}
                 />
-                
+
                 {/* Focus Ring Animation */}
                 {focusPoint && (
-                    <div 
+                    <div
                         className="absolute w-16 h-16 border-2 border-yellow-400/80 rounded-full pointer-events-none scanner-focus-ring z-raised -ml-8 -mt-8"
                         style={{ top: focusPoint.y, left: focusPoint.x }}
                     />
@@ -196,7 +196,7 @@ export const HalalScanner: React.FC = () => {
                             <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-white/60 rounded-tr-2xl -mt-1 -mr-1"></div>
                             <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-white/60 rounded-bl-2xl -mb-1 -ml-1"></div>
                             <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-white/60 rounded-br-2xl -mb-1 -mr-1"></div>
-                            
+
                             <div className="absolute -bottom-16 left-0 right-0 text-center">
                                 <p className="text-xs font-medium text-white/90 bg-black/40 px-3 py-1.5 rounded-full backdrop-blur-md inline-block">
                                     Foto komposisi & logo
@@ -208,13 +208,12 @@ export const HalalScanner: React.FC = () => {
 
                 {/* Torch Button (Floating Right) */}
                 {cameraReady && canTorch && !result && !isScanning && (
-                    <button 
+                    <button
                         onClick={(e) => { e.stopPropagation(); toggleTorch(); }}
-                        className={`absolute right-4 top-1/3 w-12 h-12 rounded-full flex items-center justify-center transition-all z-dropdown backdrop-blur-md border ${
-                            isTorchOn 
-                            ? 'bg-yellow-400 text-black border-yellow-400 shadow-lg shadow-yellow-400/20' 
-                            : 'bg-black/30 text-white border-white/20'
-                        }`}
+                        className={`absolute right-4 top-1/3 w-12 h-12 rounded-full flex items-center justify-center transition-all z-dropdown backdrop-blur-md border ${isTorchOn
+                                ? 'bg-yellow-400 text-black border-yellow-400 shadow-lg shadow-yellow-400/20'
+                                : 'bg-black/30 text-white border-white/20'
+                            }`}
                     >
                         <FaBolt />
                     </button>
@@ -234,7 +233,7 @@ export const HalalScanner: React.FC = () => {
                             {isProcessingFile ? "Memproses Gambar" : "Analisis AI Berjalan"}
                         </h3>
                         <p className="text-slate-400 text-xs font-medium max-w-xs leading-relaxed">
-                            {isProcessingFile ? "Sedang membaca file..." : "Gemini AI sedang membaca komposisi produk..."}
+                            {isProcessingFile ? "Sedang membaca file..." : "AI sedang membaca komposisi produk..."}
                         </p>
                     </div>
                 )}
@@ -252,21 +251,21 @@ export const HalalScanner: React.FC = () => {
             {/* --- BOTTOM CONTROLS --- */}
             {!result && !isScanning && !isProcessingFile && (
                 <div className="relative z-navigation bg-linear-to-t from-black via-black/90 to-transparent pt-12 pb-[calc(2rem+env(safe-area-inset-bottom))] px-6">
-                    
+
                     {/* Thumbnail Tray */}
                     {capturedImages.length > 0 && (
                         <div className="flex gap-3 overflow-x-auto pb-6 hide-scrollbar items-end h-24 mb-2">
                             {capturedImages.map((img, idx) => (
                                 <div key={idx} className="relative shrink-0 w-16 h-20 rounded-lg overflow-hidden border border-white/30 shadow-lg scanner-thumbnail-enter group">
                                     <img src={img} className="w-full h-full object-cover" alt="" />
-                                    <button 
+                                    <button
                                         onClick={(e) => { e.stopPropagation(); removeCapturedImage(idx); }}
                                         className="absolute top-0.5 right-0.5 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-[10px] shadow-sm z-10 active:scale-90"
                                     >
                                         <FaTimes />
                                     </button>
                                     <div className="absolute bottom-0 inset-x-0 bg-black/60 text-white text-[9px] font-bold text-center py-0.5">
-                                        #{idx+1}
+                                        #{idx + 1}
                                     </div>
                                 </div>
                             ))}
@@ -282,7 +281,7 @@ export const HalalScanner: React.FC = () => {
                     {/* Main Action Bar */}
                     <div className="flex items-center justify-around">
                         {/* Gallery Button */}
-                        <button 
+                        <button
                             onClick={() => fileInputRef.current?.click()}
                             className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white border border-white/10 active:scale-90 transition-all hover:bg-white/20"
                         >
@@ -292,7 +291,7 @@ export const HalalScanner: React.FC = () => {
                         {/* Shutter / Analyze Button */}
                         <div className="relative">
                             {capturedImages.length > 0 ? (
-                                <button 
+                                <button
                                     onClick={handleStartAnalysis}
                                     className="h-20 px-8 bg-emerald-500 rounded-4xl flex items-center gap-3 text-white shadow-lg shadow-emerald-500/30 active:scale-95 transition-all animate-pulse"
                                 >
@@ -303,7 +302,7 @@ export const HalalScanner: React.FC = () => {
                                     </div>
                                 </button>
                             ) : (
-                                <button 
+                                <button
                                     onClick={handleCapture}
                                     disabled={!cameraReady}
                                     className={`w-20 h-20 rounded-full border-4 border-white/80 flex items-center justify-center p-1 transition-all ${!cameraReady ? 'opacity-50' : 'active:scale-90'}`}
@@ -315,7 +314,7 @@ export const HalalScanner: React.FC = () => {
 
                         {/* Flip / Capture More Button */}
                         {capturedImages.length > 0 ? (
-                             <button 
+                            <button
                                 onClick={handleCapture}
                                 disabled={capturedImages.length >= MAX_BATCH_SIZE}
                                 className={`w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white border border-white/10 active:scale-90 transition-all ${capturedImages.length >= MAX_BATCH_SIZE ? 'opacity-30' : 'hover:bg-white/20'}`}
@@ -323,7 +322,7 @@ export const HalalScanner: React.FC = () => {
                                 <FaCamera />
                             </button>
                         ) : (
-                            <button 
+                            <button
                                 onClick={toggleFacingMode}
                                 className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white border border-white/10 active:scale-90 transition-all hover:bg-white/20"
                             >
@@ -339,7 +338,7 @@ export const HalalScanner: React.FC = () => {
                 <div className="absolute inset-0 z-modal bg-black/80 backdrop-blur-sm animate-fade-in flex items-end">
                     <div className="absolute inset-0" onClick={() => setShowHistory(false)}></div>
                     <div className="relative bg-white dark:bg-slate-900 w-full h-[85vh] rounded-t-[2.5rem] flex flex-col shadow-2xl animate-slide-up overflow-hidden">
-                        
+
                         <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0">
                             <h3 className="text-xl font-black text-slate-900 dark:text-white">Riwayat Audit</h3>
                             <div className="flex gap-2">
@@ -362,7 +361,7 @@ export const HalalScanner: React.FC = () => {
                                 </div>
                             ) : (
                                 history.map((item, idx) => (
-                                    <button 
+                                    <button
                                         key={item.timestamp || idx}
                                         onClick={() => { setResult(item); setShowHistory(false); }}
                                         className="w-full p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 flex items-center justify-between text-left active:scale-[0.98] transition-transform"
@@ -373,11 +372,10 @@ export const HalalScanner: React.FC = () => {
                                                 {new Date(item.timestamp).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                                             </p>
                                         </div>
-                                        <div className={`px-2.5 py-1 rounded-lg border text-[9px] font-black uppercase tracking-wider ${
-                                            item.status === 'halal' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                            item.status === 'haram' ? 'bg-red-50 text-red-600 border-red-100' : 
-                                            'bg-amber-50 text-amber-600 border-amber-100'
-                                        }`}>
+                                        <div className={`px-2.5 py-1 rounded-lg border text-[9px] font-black uppercase tracking-wider ${item.status === 'halal' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                                item.status === 'haram' ? 'bg-red-50 text-red-600 border-red-100' :
+                                                    'bg-amber-50 text-amber-600 border-amber-100'
+                                            }`}>
                                             {item.status}
                                         </div>
                                     </button>
@@ -387,14 +385,14 @@ export const HalalScanner: React.FC = () => {
                     </div>
                 </div>
             )}
-            
+
             {/* Hidden Input */}
-            <input 
-                type="file" 
-                ref={fileInputRef} 
-                accept="image/*" 
+            <input
+                type="file"
+                ref={fileInputRef}
+                accept="image/*"
                 multiple
-                className="hidden" 
+                className="hidden"
                 onChange={(e) => {
                     const files = Array.from(e.target.files || []) as File[];
                     if (files.length > 0) {
@@ -420,7 +418,7 @@ export const HalalScanner: React.FC = () => {
                             }
                         }, 100);
                     }
-                }} 
+                }}
             />
         </div>
     );

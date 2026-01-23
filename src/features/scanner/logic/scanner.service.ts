@@ -28,16 +28,16 @@ const compressImage = async (base64Str: string): Promise<string> => {
   return new Promise((resolve, reject) => {
     // Safety check for main thread blocking
     if (base64Str.length > 10 * 1024 * 1024) {
-        return reject(new Error("Ukuran gambar terlalu besar (>10MB)."));
+      return reject(new Error("Ukuran gambar terlalu besar (>10MB)."));
     }
 
     const img = new Image();
-    img.crossOrigin = "Anonymous"; 
-    
+    img.crossOrigin = "Anonymous";
+
     // STRICT TIMEOUT to prevent main thread hanging forever on corrupt images
     const timer = setTimeout(() => {
-        img.src = ""; // Cancel load
-        reject(new Error("Timeout memproses gambar."));
+      img.src = ""; // Cancel load
+      reject(new Error("Timeout memproses gambar."));
     }, 5000);
 
     img.onload = () => {
@@ -57,26 +57,26 @@ const compressImage = async (base64Str: string): Promise<string> => {
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         if (ctx) {
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = 'high';
-            ctx.drawImage(img, 0, 0, width, height);
-            // Lower quality slightly to reduce payload size and speed up transfer
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-            resolve(dataUrl.split(',')[1]);
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(img, 0, 0, width, height);
+          // Lower quality slightly to reduce payload size and speed up transfer
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          resolve(dataUrl.split(',')[1]);
         } else {
-            reject(new Error("Gagal membuat canvas context."));
+          reject(new Error("Gagal membuat canvas context."));
         }
       } catch (e) {
         reject(e);
       }
     };
-    
+
     img.onerror = (e) => {
-        clearTimeout(timer);
-        console.error("Image load error:", e);
-        reject(new Error("Format gambar tidak dikenali atau rusak."));
+      clearTimeout(timer);
+      console.error("Image load error:", e);
+      reject(new Error("Format gambar tidak dikenali atau rusak."));
     };
-    
+
     img.src = base64Str;
   });
 };
@@ -86,22 +86,22 @@ export const analyzeBatch = async (images: string[]): Promise<ScanResult> => {
 
   try {
     const compressedImages = await Promise.all(images.map(img => compressImage(img)));
-    
+
     // SECURITY NOTE: In a production environment, this key should strictly be proxy-ed.
     // However, adhering to current instruction constraints:
-    const apiKey = process.env.API_KEY;
+    const apiKey = import.meta.env.VITE_API_KEY;
     if (!apiKey) {
-        throw new Error("API Key tidak ditemukan. Pastikan Environment Variable dikonfigurasi.");
+      throw new Error("API Key tidak ditemukan. Pastikan Environment Variable dikonfigurasi.");
     }
 
     const ai = new GoogleGenAI({ apiKey: apiKey });
-    
+
     const imageParts = compressedImages.map(data => ({
       inlineData: { mimeType: 'image/jpeg', data }
     }));
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-3-flash-preview',
       contents: {
         parts: [
           ...imageParts,
@@ -110,42 +110,42 @@ export const analyzeBatch = async (images: string[]): Promise<ScanResult> => {
       },
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
-        responseMimeType: "application/json", 
+        responseMimeType: "application/json",
         temperature: 0.1
       }
     });
 
     const rawText = response.text || "";
-    
+
     if (!rawText) {
-        throw new Error("Respon AI kosong. Silakan coba lagi.");
+      throw new Error("Respon AI kosong. Silakan coba lagi.");
     }
 
     let cleanText = rawText
-        .replace(/```json/gi, "")
-        .replace(/```/g, "")
-        .trim();
-    
+      .replace(/```json/gi, "")
+      .replace(/```/g, "")
+      .trim();
+
     const start = cleanText.indexOf('{');
     const end = cleanText.lastIndexOf('}');
-    
+
     if (start === -1 || end === -1) {
-        console.error("Raw AI Response:", rawText);
-        throw new Error("Format respon tidak valid (Bukan JSON).");
+      console.error("Raw AI Response:", rawText);
+      throw new Error("Format respon tidak valid (Bukan JSON).");
     }
-    
+
     cleanText = cleanText.substring(start, end + 1);
-    
+
     const result = JSON.parse(cleanText) as ScanResult;
     result.timestamp = new Date().toISOString();
-    
+
     if (!result.status) result.status = 'unknown';
-    
+
     return result;
 
   } catch (error) {
     console.error("Scanner Error:", error);
-    
+
     const errorMessage = error instanceof Error ? error.message : String(error);
 
     // Map specific errors to user friendly messages
@@ -153,12 +153,11 @@ export const analyzeBatch = async (images: string[]): Promise<ScanResult> => {
     if (errorMessage.includes("400")) return Promise.reject(new Error("Permintaan tidak valid."));
     if (errorMessage.includes("403")) return Promise.reject(new Error("Akses ditolak (Cek API Key)."));
     if (errorMessage.includes("429")) return Promise.reject(new Error("Terlalu banyak permintaan. Tunggu sebentar."));
-    if (errorMessage.includes("500")) return Promise.reject(new Error("Server Google sedang sibuk."));
-    
+    if (errorMessage.includes("500")) return Promise.reject(new Error("Server sedang sibuk."));
+
     // Return known logic errors
     if (!errorMessage.includes("Gagal menganalisa")) return Promise.reject(error);
-    
+
     throw new Error("Gagal menganalisa. Cek koneksi internet atau coba foto ulang.");
   }
 };
-    

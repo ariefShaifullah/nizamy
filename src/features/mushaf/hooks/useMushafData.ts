@@ -13,6 +13,7 @@ export const useMushafData = (session: ReadingSession | null) => {
     const [error, setError] = useState<string | null>(null);
 
     const abortControllerRef = useRef<AbortController | null>(null);
+    const searchAbortControllerRef = useRef<AbortController | null>(null);  // Separate controller for findAndLoadVerse
 
     // 1. AUTO RESET when session changes
     useEffect(() => {
@@ -126,25 +127,27 @@ export const useMushafData = (session: ReadingSession | null) => {
 
     // 3. SEQUENTIAL FINDER (Fallback for Juz Mode or complex cases)
     const findAndLoadVerse = useCallback(async (targetKey: string): Promise<number> => {
-        if (!session || loading) return -1;
+        if (!session) return -1;
 
-        // Check memory first
-        let foundIndex = verses.findIndex(v => v.verse_key === targetKey);
+        // Check memory FIRST
+        const foundIndex = verses.findIndex(v => v.verse_key === targetKey);
         if (foundIndex !== -1) return foundIndex;
 
         if (!hasMore) return -1;
 
         setLoading(true);
 
-        if (abortControllerRef.current) abortControllerRef.current.abort();
+        // Use separate abort controller so we don't get cancelled by loadVerses/loadNextPage
+        if (searchAbortControllerRef.current) searchAbortControllerRef.current.abort();
         const controller = new AbortController();
-        abortControllerRef.current = controller;
+        searchAbortControllerRef.current = controller;
 
         let currentPage = page + 1;
         if (verses.length === 0) currentPage = 1;
 
+        let accumulatedCount = verses.length; // Track locally to avoid stale closure state
+
         try {
-            // Concurrent fetch for speed (fetch 3 pages ahead)
             const CHUNK_SIZE = 3;
 
             while (true) {
@@ -169,11 +172,14 @@ export const useMushafData = (session: ReadingSession | null) => {
                     setVerses(prev => [...prev, ...newVerses]);
                     setPage(chunkPages[chunkPages.length - 1]);
 
+                    const prevAccumulated = accumulatedCount;
+                    accumulatedCount += newVerses.length;
+
                     const matchInBatch = newVerses.findIndex(v => v.verse_key === targetKey);
 
                     if (matchInBatch !== -1) {
                         setLoading(false);
-                        return verses.length + matchInBatch;
+                        return prevAccumulated + matchInBatch;
                     }
 
                     if (hitEnd) {
@@ -193,7 +199,7 @@ export const useMushafData = (session: ReadingSession | null) => {
             if (!controller.signal.aborted) setLoading(false);
         }
         return -1;
-    }, [session, loading, verses, page, hasMore]);
+    }, [session, verses, page, hasMore]);
 
     return {
         verses,

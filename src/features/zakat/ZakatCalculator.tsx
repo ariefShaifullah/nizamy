@@ -14,47 +14,39 @@ import { useConfirm } from '../../components/ui/ConfirmContext.tsx';
 import { useDebounce } from '../../hooks/useDebounce.ts';
 import { useRouter } from '../../hooks/useRouter.ts'; // Import router
 import { FaRedo, FaTags, FaReceipt, FaCog } from 'react-icons/fa';
-import { 
-    FitrahView, 
-    MaalView, 
-    GoldSilverView, 
-    BusinessView, 
-    AgricultureView, 
-    LivestockView, 
-    SummaryView 
+import { ZAKAT_TABS } from './constants.ts';
+import { ZakatCategoryGrid } from './components/ZakatCategoryGrid.tsx';
+import {
+    FitrahView,
+    MaalView,
+    GoldSilverView,
+    BusinessView,
+    AgricultureView,
+    LivestockView,
+    SummaryView
 } from './components/ZakatTabs.tsx';
 
 const INITIAL_SETTINGS: ZakatSettings = {
-    goldPrice: 2400000, 
+    goldPrice: 2400000,
     silverPrice: 25000,
     ricePrice: 15000,
     riceKgPerPerson: 2.5,
     currency: 'IDR'
 };
 
-const TABS = [
-    { id: 'fitrah', label: 'Fitrah', icon: '🍚' },
-    { id: 'maal', label: 'Maal', icon: '💰' },
-    { id: 'gold', label: 'Emas', icon: '🥇' },
-    { id: 'business', label: 'Niaga', icon: '🏪' },
-    { id: 'agri', label: 'Tani', icon: '🌾' },
-    { id: 'livestock', label: 'Ternak', icon: '🐄' },
-    { id: 'summary', label: 'Hasil', icon: '🧾' },
-];
-
 const ZakatCalculator: React.FC = () => {
     const { showToast } = useToast();
     const { confirm } = useConfirm();
-    const { searchParams } = useRouter(); 
-    
+    const { searchParams } = useRouter();
+
     const [activeTab, setActiveTab] = useState('fitrah');
     const [settings, setSettings] = useLocalStorage<ZakatSettings>('zakatSettings', INITIAL_SETTINGS);
     const [history, setHistory] = useIndexedDB<ZakatHistoryEntry[]>('zakatHistory', []);
-    
+
     const initZakatState = () => {
         if (typeof window !== 'undefined') {
-             const saved = localStorage.getItem('zakatState');
-             if (saved) return JSON.parse(saved);
+            const saved = localStorage.getItem('zakatState');
+            if (saved) return JSON.parse(saved);
         }
         return initialZakatState;
     };
@@ -83,7 +75,7 @@ const ZakatCalculator: React.FC = () => {
         // MODE 1: NAVIGATION ONLY (e.g. "Buka Zakat Pertanian")
         if (targetTab && !action) {
             // Validate tab exists
-            if (TABS.some(t => t.id === targetTab)) {
+            if (ZAKAT_TABS.some(t => t.id === targetTab)) {
                 setActiveTab(targetTab);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
@@ -93,14 +85,14 @@ const ZakatCalculator: React.FC = () => {
         // MODE 2: CALCULATION (e.g. "Hitung Zakat Emas 100 gram")
         if (action === 'calculate' && amountStr) {
             const amount = parseFloat(amountStr);
-            
+
             if (!isNaN(amount) && amount > 0) {
                 // 1. Reset state to ensure clean calculation
                 dispatch({ type: 'RESET' });
-                
+
                 // 2. Map 'type' to specific input field
                 let targetKey: keyof ZakatState = 'cash'; // Default to Maal/Cash
-                
+
                 switch (type) {
                     case 'gold':
                         targetKey = 'goldWeight';
@@ -123,11 +115,11 @@ const ZakatCalculator: React.FC = () => {
 
                 // 3. Update Value
                 dispatch({ type: 'SET_VALUE', payload: { key: targetKey, value: amount } });
-                
+
                 // 4. DIRECTLY Jump to Summary (Result) - No Flicker
                 setActiveTab('summary');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
-                
+
                 showToast('Hasil perhitungan ditampilkan.', 'success');
             }
         }
@@ -136,7 +128,7 @@ const ZakatCalculator: React.FC = () => {
     const handleInputChange = (key: keyof ZakatState, value: any) => {
         dispatch({ type: 'SET_VALUE', payload: { key, value } });
     };
-    
+
     const handleSettingChange = (key: keyof ZakatSettings, value: number) => {
         setSettings(prev => ({ ...prev, [key]: value }));
     };
@@ -164,7 +156,7 @@ const ZakatCalculator: React.FC = () => {
             state: state,
             result: result
         };
-        
+
         setHistory(prev => [newEntry, ...prev].slice(0, 10));
         showToast("Perhitungan berhasil disimpan!", 'success');
     };
@@ -198,7 +190,7 @@ const ZakatCalculator: React.FC = () => {
             showToast("Riwayat dihapus", 'info');
         }
     };
-    
+
     const goToSummary = () => {
         setActiveTab('summary');
         if (navRef.current) {
@@ -219,7 +211,7 @@ const ZakatCalculator: React.FC = () => {
 
     return (
         <div className="max-w-7xl mx-auto animate-fade-in pb-32 lg:pb-12 relative">
-             <div className="hidden lg:block text-center mb-8">
+            <div className="hidden lg:block text-center mb-8">
                 <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-emerald-900 dark:text-emerald-400 sm:text-5xl drop-shadow-sm">
                     Kalkulator Zakat
                 </h1>
@@ -247,8 +239,8 @@ const ZakatCalculator: React.FC = () => {
                     <button onClick={handleReset} className="text-xs font-bold px-4 py-2 rounded-lg bg-slate-800 hover:bg-red-900/50 text-slate-300 hover:text-white transition-colors border border-slate-700 flex items-center gap-2">
                         <span className="icon-wrapper w-3 h-3"><FaRedo /></span> Reset
                     </button>
-                    <button 
-                        onClick={() => setShowSettings(!showSettings)} 
+                    <button
+                        onClick={() => setShowSettings(!showSettings)}
                         className={`text-xs font-bold px-4 py-2 rounded-lg border transition-colors flex items-center shadow-sm ${showSettings ? 'bg-emerald-600 text-white border-emerald-500' : 'bg-slate-800 text-emerald-400 border-slate-700 hover:bg-slate-700'}`}
                     >
                         <span className="icon-wrapper w-3 h-3 mr-2"><FaCog /></span>
@@ -276,12 +268,12 @@ const ZakatCalculator: React.FC = () => {
                                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wide">{field.label}</label>
                                 <div className="relative">
                                     <span className="absolute left-3 top-2.5 text-slate-400 text-sm font-bold">Rp</span>
-                                    <input 
-                                        type="text" 
+                                    <input
+                                        type="text"
                                         inputMode="numeric"
-                                        value={settings[field.key] === 0 ? '' : formatNumber(settings[field.key] as number)} 
-                                        onChange={(e) => handleSettingChange(field.key, parseInt(e.target.value.replace(/\D/g, '') || '0', 10))} 
-                                        className="w-full bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl py-2.5 pl-10 pr-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 font-bold" 
+                                        value={settings[field.key] === 0 ? '' : formatNumber(settings[field.key] as number)}
+                                        onChange={(e) => handleSettingChange(field.key, parseInt(e.target.value.replace(/\D/g, '') || '0', 10))}
+                                        className="w-full bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl py-2.5 pl-10 pr-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 font-bold"
                                     />
                                 </div>
                                 {field.hint && <p className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-1 font-medium">{field.hint}</p>}
@@ -293,30 +285,32 @@ const ZakatCalculator: React.FC = () => {
 
             <div className="flex flex-col lg:flex-row gap-6 md:gap-8 items-start">
                 <div className="w-full lg:w-64 shrink-0 top-[74px] lg:top-24 z-raised py-2 lg:py-0 mb-2 lg:mb-0">
-                    <div className="relative bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-white/20 dark:border-slate-700 rounded-2xl shadow-lg lg:bg-transparent lg:border-0 lg:shadow-none lg:rounded-none lg:backdrop-blur-none overflow-hidden lg:overflow-visible">
+                    {/* Mobile: Grid Selector */}
+                    <div className="lg:hidden">
+                        <ZakatCategoryGrid tabs={ZAKAT_TABS} activeTab={activeTab} onSelect={handleSwitchTab} />
+                    </div>
+
+                    {/* Desktop: Vertical Sidebar */}
+                    <div className="hidden lg:block relative bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-white/20 dark:border-slate-700 rounded-2xl shadow-lg lg:bg-transparent lg:border-0 lg:shadow-none lg:rounded-none lg:backdrop-blur-none overflow-hidden lg:overflow-visible">
                         <div ref={navRef} className="flex lg:flex-col overflow-x-auto lg:overflow-visible space-x-2 lg:space-x-0 lg:space-y-2 hide-scrollbar p-2 lg:p-0" aria-label="Tabs">
-                            {TABS.map(tab => (
+                            {ZAKAT_TABS.map(tab => (
                                 <button
                                     key={tab.id}
                                     onClick={() => handleSwitchTab(tab.id)}
-                                    className={`whitespace-nowrap px-4 py-3 text-sm font-bold rounded-xl transition-all flex items-center shrink-0 border ${
-                                        activeTab === tab.id 
-                                        ? 'bg-emerald-600 text-white shadow-md shadow-emerald-200/50 dark:shadow-none border-emerald-600 lg:translate-x-2' 
+                                    className={`whitespace-nowrap px-4 py-3 text-sm font-bold rounded-xl transition-all flex items-center shrink-0 border ${activeTab === tab.id
+                                        ? 'bg-emerald-600 text-white shadow-md shadow-emerald-200/50 dark:shadow-none border-emerald-600 lg:translate-x-2'
                                         : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border-transparent hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:text-emerald-700 dark:hover:text-emerald-400'
-                                    }`}
+                                        }`}
                                 >
                                     <span className="mr-3 text-lg">{tab.icon}</span>
                                     {tab.label}
                                 </button>
                             ))}
-                            <div className="w-2 shrink-0 lg:hidden"></div>
                         </div>
-                        <div className="lg:hidden absolute inset-y-0 right-0 w-8 bg-linear-to-l from-white dark:from-slate-900 to-transparent pointer-events-none"></div>
-                        <div className="lg:hidden absolute inset-y-0 left-0 w-4 bg-linear-to-r from-white dark:from-slate-900 to-transparent pointer-events-none"></div>
                     </div>
                 </div>
 
-                <div className="flex-1 w-full min-w-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-[2.5rem] shadow-xl shadow-emerald-100/20 dark:shadow-none border border-white/50 dark:border-slate-700/50 md:min-h-[500px] p-6 md:p-8 relative">
+                <div className="flex-1 w-full min-w-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-xl shadow-emerald-100/20 dark:shadow-none border border-white/50 dark:border-slate-700/50 md:min-h-[500px] p-6 md:p-8 relative">
                     {activeTab === 'fitrah' && <FitrahView state={state} settings={settings} onChange={handleInputChange} onNext={goToSummary} />}
                     {activeTab === 'maal' && <MaalView state={state} settings={settings} onChange={handleInputChange} onNext={goToSummary} />}
                     {activeTab === 'gold' && <GoldSilverView state={state} settings={settings} onChange={handleInputChange} onNext={goToSummary} />}
@@ -324,10 +318,10 @@ const ZakatCalculator: React.FC = () => {
                     {activeTab === 'agri' && <AgricultureView state={state} settings={settings} onChange={handleInputChange} onNext={goToSummary} />}
                     {activeTab === 'livestock' && <LivestockView state={state} settings={settings} onChange={handleInputChange} onNext={goToSummary} />}
                     {activeTab === 'summary' && (
-                        <SummaryView 
+                        <SummaryView
                             result={result}
                             state={state}
-                            history={history} 
+                            history={history}
                             onSaveHistory={handleSaveHistory}
                             onDownloadPDF={handleDownloadPDF}
                             onClearHistory={handleClearHistory}
@@ -336,9 +330,9 @@ const ZakatCalculator: React.FC = () => {
                     )}
                 </div>
             </div>
-            
+
             <div className="hidden lg:block">
-                <FAQ 
+                <FAQ
                     title="FAQ Zakat"
                     subtitle="Pelajari lebih lanjut tentang Nisab & Haul."
                     data={ZAKAT_FAQ}

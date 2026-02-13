@@ -3,9 +3,9 @@ import { AMAL_TASKS, AMAL_FAQ } from './constants.ts';
 import { getLogForDate, toggleTaskCompletion, getHistoryRange, getLogDateKey } from './logic/amal.service.ts';
 import type { DailyAmalLog, AmalCategory } from './types.ts';
 import { Heatmap } from './components/Heatmap.tsx';
-import { 
-    FaChevronLeft, FaChevronRight, FaCalendarAlt, 
-    FaFire, FaCheckDouble, FaMosque, FaSun, FaHandHoldingHeart, 
+import {
+    FaChevronLeft, FaChevronRight, FaCalendarAlt,
+    FaFire, FaCheckDouble, FaMosque, FaSun, FaHandHoldingHeart,
     FaCheck
 } from 'react-icons/fa';
 import { audioService } from '../../services/audio.service.ts';
@@ -15,23 +15,23 @@ import { FAQ } from '../../components/ui/FAQ.tsx';
 
 // --- CONSTANTS ---
 const CATEGORY_META: Record<AmalCategory, { title: string; subtitle: string; icon: React.ReactNode; color: string; gradient: string }> = {
-    wajib: { 
-        title: 'Fardhu', 
-        subtitle: 'Tiang Agama', 
+    wajib: {
+        title: 'Fardhu',
+        subtitle: 'Tiang Agama',
         icon: <FaMosque />,
         color: 'text-emerald-600 dark:text-emerald-400',
         gradient: 'from-emerald-500 to-teal-600'
     },
-    sunnah: { 
-        title: 'Sunnah', 
-        subtitle: 'Penyempurna', 
+    sunnah: {
+        title: 'Sunnah',
+        subtitle: 'Penyempurna',
         icon: <FaSun />,
         color: 'text-blue-600 dark:text-blue-400',
         gradient: 'from-blue-500 to-indigo-600'
     },
-    social: { 
-        title: 'Sosial', 
-        subtitle: 'Hablum Minannas', 
+    social: {
+        title: 'Sosial',
+        subtitle: 'Hablum Minannas',
         icon: <FaHandHoldingHeart />,
         color: 'text-rose-600 dark:text-rose-400',
         gradient: 'from-rose-500 to-pink-600'
@@ -57,7 +57,7 @@ const CelebrationOverlay = ({ onDismiss }: { onDismiss: () => void }) => {
             </div>
             {/* Simple CSS Particles */}
             {[...Array(20)].map((_, i) => (
-                <div 
+                <div
                     key={i}
                     className="absolute w-3 h-3 rounded-full animate-ping"
                     style={{
@@ -80,7 +80,7 @@ const ScoreRing: React.FC<{ percentage: number; label: string }> = ({ percentage
     const normalizedRadius = radius - stroke * 2;
     const circumference = normalizedRadius * 2 * Math.PI;
     const strokeDashoffset = circumference - (percentage / 100) * circumference;
-    
+
     // Gradient ID for SVG
     const gradientId = "scoreGradient";
 
@@ -88,7 +88,7 @@ const ScoreRing: React.FC<{ percentage: number; label: string }> = ({ percentage
         <div className="relative w-40 h-40 flex items-center justify-center mx-auto my-4 group">
             {/* Ambient Glow */}
             <div className={`absolute inset-0 rounded-full blur-2xl opacity-30 transition-colors duration-700 ${percentage === 100 ? 'bg-emerald-400' : 'bg-indigo-500'}`}></div>
-            
+
             <svg
                 height="100%"
                 width="100%"
@@ -137,15 +137,15 @@ const ScoreRing: React.FC<{ percentage: number; label: string }> = ({ percentage
 };
 
 // --- COMPONENT: TASK CARD (ULTRA PREMIUM) ---
-const TaskCard: React.FC<{ 
-    task: typeof AMAL_TASKS[0]; 
-    isCompleted: boolean; 
-    onToggle: (id: string) => void; 
+const TaskCard: React.FC<{
+    task: typeof AMAL_TASKS[0];
+    isCompleted: boolean;
+    onToggle: (id: string) => void;
 }> = React.memo(({ task, isCompleted, onToggle }) => {
-    
+
     // Dynamic styles based on completion
-    const bgClass = isCompleted 
-        ? `bg-linear-to-r ${CATEGORY_META[task.category].gradient} text-white border-transparent` 
+    const bgClass = isCompleted
+        ? `bg-linear-to-r ${CATEGORY_META[task.category].gradient} text-white border-transparent`
         : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700/50 hover:border-slate-200 dark:hover:border-slate-600 text-slate-600 dark:text-slate-300';
 
     return (
@@ -198,7 +198,7 @@ export const AmalYaumiApp: React.FC = () => {
     const [history, setHistory] = useState<DailyAmalLog[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCelebration, setShowCelebration] = useState(false);
-    
+
     useWakeLock();
 
     const loadData = useCallback(async () => {
@@ -207,7 +207,7 @@ export const AmalYaumiApp: React.FC = () => {
         try {
             const [log, hist] = await Promise.all([
                 getLogForDate(dateKey),
-                getHistoryRange(150) 
+                getHistoryRange(150)
             ]);
             setCurrentLog(log);
             setHistory(hist);
@@ -227,11 +227,11 @@ export const AmalYaumiApp: React.FC = () => {
 
         // Instant UI Feedback
         if (isNowCompleted) audioService.playClick();
-        else audioService.playClick(); 
+        else audioService.playClick();
 
         const newLog = await toggleTaskCompletion(dateKey, taskId);
         setCurrentLog(newLog);
-        
+
         setHistory(prev => {
             const idx = prev.findIndex(p => p.date === dateKey);
             if (idx >= 0) {
@@ -259,12 +259,12 @@ export const AmalYaumiApp: React.FC = () => {
 
     const completionPercent = currentLog ? currentLog.totalScore : 0;
     const isToday = getLogDateKey(selectedDate) === getLogDateKey(new Date());
-    
+
     const streak = useMemo(() => {
         let count = 0;
         for (let i = history.length - 1; i >= 0; i--) {
             if (history[i].totalScore > 0) count++;
-            else if (i !== history.length - 1 && history[i].date < getLogDateKey(new Date())) break; 
+            else if (i !== history.length - 1 && history[i].date < getLogDateKey(new Date())) break;
         }
         return count;
     }, [history]);
@@ -279,7 +279,7 @@ export const AmalYaumiApp: React.FC = () => {
         const wajibIds = AMAL_TASKS.filter(t => t.category === 'wajib').map(t => t.id);
         const currentIds = currentLog?.completedTasks || [];
         const toAdd = wajibIds.filter(id => !currentIds.includes(id));
-        
+
         if (toAdd.length === 0) {
             showToast("Semua Fardhu sudah selesai!", 'info');
             return;
@@ -300,28 +300,28 @@ export const AmalYaumiApp: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] dark:bg-slate-900 transition-colors duration-500 animate-fade-in relative overflow-x-hidden">
-            
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-500 animate-fade-in relative overflow-x-hidden">
+
             {showCelebration && <CelebrationOverlay onDismiss={() => setShowCelebration(false)} />}
 
             {/* Background Noise Texture */}
-            <div className="fixed inset-0 opacity-[0.03] pointer-events-none z-background" 
-                 style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}>
+            <div className="fixed inset-0 opacity-[0.03] pointer-events-none z-background"
+                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}>
             </div>
 
             {/* Main Content with CORRECT SPACING */}
             <div className="container mx-auto px-4 md:px-6 py-6 pb-24 md:pb-12 max-w-7xl relative z-raised">
                 <div className="lg:grid lg:grid-cols-12 gap-8 items-start">
-                    
+
                     {/* --- LEFT SIDEBAR (STICKY COMMAND CENTER) --- */}
                     <div className="lg:col-span-4 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:custom-scrollbar lg:pr-2 space-y-6 mb-8 lg:mb-0 transition-all duration-300">
-                        
+
                         {/* 1. Master Score Widget (Dark Glass) */}
-                        <div className="relative overflow-hidden bg-slate-850 text-white rounded-4xl shadow-2xl shadow-indigo-900/20 p-6 text-center border border-white/5 group">
+                        <div className="relative overflow-hidden bg-slate-850 text-white rounded-3xl shadow-2xl shadow-indigo-900/20 p-6 text-center border border-white/5 group">
                             {/* Decorative Blobs */}
                             <div className="absolute -top-20 -right-20 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
                             <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"></div>
-                            
+
                             <div className="relative z-card">
                                 <div className="flex justify-between items-center mb-4">
                                     <div className="text-left">
@@ -339,7 +339,7 @@ export const AmalYaumiApp: React.FC = () => {
                                 <div className="py-2">
                                     <ScoreRing percentage={completionPercent} label="Selesai" />
                                 </div>
-                                
+
                                 <p className="text-sm font-medium text-slate-300 mt-2 bg-white/5 py-2 rounded-lg border border-white/5">
                                     "{getMotivationText(completionPercent)}"
                                 </p>
@@ -362,7 +362,7 @@ export const AmalYaumiApp: React.FC = () => {
 
                         {/* 2. Quick Actions */}
                         {isToday && completionPercent < 100 && (
-                            <button 
+                            <button
                                 onClick={markAllFardhu}
                                 className="w-full py-4 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 font-bold text-slate-700 dark:text-slate-200 flex items-center justify-center gap-3 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:border-indigo-200 dark:hover:border-indigo-800 hover:text-indigo-700 dark:hover:text-indigo-400 transition-all active:scale-[0.98]"
                             >
@@ -391,7 +391,7 @@ export const AmalYaumiApp: React.FC = () => {
                                     const tasks = taskGroups[cat];
                                     const completedCount = tasks.filter(t => currentLog?.completedTasks.includes(t.id)).length;
                                     const meta = CATEGORY_META[cat];
-                                    
+
                                     return (
                                         <div key={cat} className="animate-fade-in-up">
                                             {/* Category Header */}
@@ -418,7 +418,7 @@ export const AmalYaumiApp: React.FC = () => {
                                             {/* Task Grid */}
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                                 {tasks.map(task => (
-                                                    <TaskCard 
+                                                    <TaskCard
                                                         key={task.id}
                                                         task={task}
                                                         isCompleted={currentLog?.completedTasks.includes(task.id) || false}
@@ -442,10 +442,10 @@ export const AmalYaumiApp: React.FC = () => {
 
                 {/* FAQ SECTION (MOVED TO BOTTOM FULL WIDTH) */}
                 <div className="mt-16 md:mt-20 border-t border-slate-200 dark:border-slate-800 pt-8">
-                    <FAQ 
-                        title="Tentang Amal Yaumi" 
-                        subtitle="Muhasabah Harian & Konsistensi" 
-                        data={AMAL_FAQ} 
+                    <FAQ
+                        title="Tentang Amal Yaumi"
+                        subtitle="Muhasabah Harian & Konsistensi"
+                        data={AMAL_FAQ}
                     />
                 </div>
             </div>

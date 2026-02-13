@@ -15,28 +15,28 @@ interface VoiceAssistantOverlayProps {
 }
 
 const SUGGESTIONS_DB: Record<string, string[]> = {
-    '/zakat': [ "Hitung Zakat Emas 50 gram", "Hitung Zakat Maal 100 juta", "Hitung Zakat Fitrah" ],
-    '/faraidh': [ "Hitung Waris 1 Milyar", "Ada istri ibu dan anak laki", "Hitung Waris" ],
-    '/mushaf': [ "Buka Surat Yasin", "Buka Ayat Kursi", "Buka Al Kahfi ayat 10" ],
-    '/hafalan': [ "Buka Hafalan", "Cek progres", "Kembali ke beranda" ],
-    '/hede': [ "Mulai diagnosa", "Cek halal haram", "Buka Klinik Finansial" ],
-    '/amal': [ "Buka Amal Yaumi", "Catat ibadah", "Cek progres amal" ],
-    '/sholat': [ "Cek Arah Kiblat", "Buka Kompas", "Lihat Jadwal Sholat" ],
-    'default': [ "Buka Arah Kiblat", "Jadwal Sholat", "Hitung Zakat", "Buka Surat Yasin" ]
+    '/zakat': ["Hitung Zakat Emas 50 gram", "Hitung Zakat Maal 100 juta", "Hitung Zakat Fitrah"],
+    '/faraidh': ["Hitung Waris 1 Milyar", "Ada istri ibu dan anak laki", "Hitung Waris"],
+    '/mushaf': ["Buka Surat Yasin", "Buka Ayat Kursi", "Buka Al Kahfi ayat 10"],
+    '/hafalan': ["Buka Hafalan", "Cek progres", "Kembali ke beranda"],
+    '/hede': ["Mulai diagnosa", "Cek halal haram", "Buka Klinik Finansial"],
+    '/amal': ["Buka Amal Yaumi", "Catat ibadah", "Cek progres amal"],
+    '/sholat': ["Cek Arah Kiblat", "Buka Kompas", "Lihat Jadwal Sholat"],
+    'default': ["Buka Arah Kiblat", "Jadwal Sholat", "Hitung Zakat", "Buka Surat Yasin"]
 };
 
-export const VoiceAssistant: React.FC<VoiceAssistantOverlayProps> = ({ 
-    isListening, 
-    status, 
-    transcript, 
-    feedback, 
+export const VoiceAssistant: React.FC<VoiceAssistantOverlayProps> = ({
+    isListening,
+    status,
+    transcript,
+    feedback,
     onStop,
     onRestart
 }) => {
     const location = useLocation();
     const [suggestionIndex, setSuggestionIndex] = useState(0);
     const [dots, setDots] = useState('');
-    
+
     const currentSuggestions = useMemo(() => {
         const path = location.pathname;
         if (path.includes('/zakat')) return SUGGESTIONS_DB['/zakat'];
@@ -74,7 +74,7 @@ export const VoiceAssistant: React.FC<VoiceAssistantOverlayProps> = ({
         e.stopPropagation();
         if (status === 'listening') {
             // Tap while listening -> Force Stop (Manual Endpoint)
-            onStop(); 
+            onStop();
         } else if (status === 'standby' || status === 'error') {
             // Tap while standby/error -> Restart
             onRestart();
@@ -84,16 +84,16 @@ export const VoiceAssistant: React.FC<VoiceAssistantOverlayProps> = ({
     if (!isListening) return null;
 
     // --- STATUS CONFIGURATION ---
-    
+
     let title = "Mendengarkan...";
     let subtitle = `Coba katakan: "${currentSuggestions[suggestionIndex]}"`;
-    
+
     // Status Logic
     if (transcript) {
         title = transcript;
         subtitle = "Ketuk bola jika selesai bicara";
     }
-    
+
     if (status === 'processing') {
         title = "Memproses" + dots;
         subtitle = "Mohon tunggu sebentar...";
@@ -137,7 +137,7 @@ export const VoiceAssistant: React.FC<VoiceAssistantOverlayProps> = ({
     return (
         <div className="fixed inset-0 z-overlay flex flex-col justify-end pointer-events-none font-sans">
             {/* Backdrop Blur (Click to Close) */}
-            <div 
+            <div
                 className="absolute inset-0 bg-black/30 backdrop-blur-[2px] transition-opacity duration-300 pointer-events-auto"
                 onClick={onStop}
             />
@@ -146,15 +146,15 @@ export const VoiceAssistant: React.FC<VoiceAssistantOverlayProps> = ({
             <div className={`
                 relative w-full max-w-lg mx-auto 
                 bg-white/10 dark:bg-slate-900/10 backdrop-blur-2xl 
-                rounded-t-[2.5rem] shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.3)]
+                rounded-t-3xl shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.3)]
                 p-6 pb-[calc(env(safe-area-inset-bottom)+1.5rem)]
                 transform transition-transform duration-500 ease-out pointer-events-auto
                 flex flex-col items-center justify-center
                 border-t border-white/20 dark:border-slate-700
                 ${isListening ? 'translate-y-0' : 'translate-y-full'}
             `}>
-                
-                
+
+
 
                 {/* ORB VISUALIZER */}
                 <div className="relative mb-6 mt-2">
@@ -165,9 +165,9 @@ export const VoiceAssistant: React.FC<VoiceAssistantOverlayProps> = ({
                             <div className="absolute inset-0 rounded-full bg-purple-500/20 animate-[ping_2.5s_cubic-bezier(0,0,0.2,1)_infinite_0.5s]"></div>
                         </>
                     )}
-                    
+
                     {/* Main Orb Button */}
-                    <button 
+                    <button
                         onClick={handleOrbClick}
                         className={`
                             relative w-20 h-20 rounded-full flex items-center justify-center shadow-2xl transition-all duration-500 ease-out

@@ -1,6 +1,12 @@
 
 export type ZakatType = 'fitrah' | 'maal' | 'goldSilver' | 'business' | 'agriculture' | 'livestock';
 
+export interface ZakatTab {
+  id: string;
+  label: string;
+  icon: string;
+}
+
 export interface ZakatSettings {
   goldPrice: number; // Per gram
   silverPrice: number; // Per gram
@@ -13,14 +19,14 @@ export interface ZakatState {
   // Fitrah
   fitrahPeople: number;
   fitrahMethod: 'rice' | 'money';
-  
+
   // Maal (Wealth)
   cash: number;
   savings: number;
   investments: number; // Deposito, stocks, etc.
   otherAssets: number; // Rent, etc.
   debts: number; // Hutang jatuh tempo
-  
+
   // Rikaz (Temuan/Hadiah)
   rikazValue: number;
 
@@ -32,7 +38,7 @@ export interface ZakatState {
   bizAssets: number;
   bizInventory: number;
   bizLiabilities: number;
-  
+
   // Agriculture
   agriHarvest: number; // In currency or kg depending on calc
   agriMethod: 'natural' | 'artificial'; // 10% vs 5%

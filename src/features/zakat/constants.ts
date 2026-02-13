@@ -35,3 +35,13 @@ export const ZAKAT_FAQ = [
       'Hal ini bersumber dari hadits riwayat Abu Daud No. 1573 dari Ali bin Abi Thalib r.a., di mana Rasulullah SAW bersabda: "...Jika engkau memiliki 200 dirham dan telah berlalu satu tahun, maka zakatnya 5 dirham. Dan tidak ada kewajiban zakat pada emas hingga mencapai 20 dinar..." \n\nUlama kontemporer mengonversi 20 Dinar setara ±85 gram emas dan 200 Dirham setara ±595 gram perak.\n\nJika harta Anda (tunai, tabungan, saham) nilainya setara atau lebih dari harga 85 gram emas saat ini, maka wajib zakat 2.5%.',
   },
 ];
+
+export const ZAKAT_TABS = [
+  { id: 'fitrah', label: 'Fitrah', icon: '🍚' },
+  { id: 'maal', label: 'Maal', icon: '💰' },
+  { id: 'gold', label: 'Emas', icon: '🥇' },
+  { id: 'business', label: 'Niaga', icon: '🏪' },
+  { id: 'agri', label: 'Tani', icon: '🌾' },
+  { id: 'livestock', label: 'Ternak', icon: '🐄' },
+  { id: 'summary', label: 'Hasil', icon: '🧾' },
+];

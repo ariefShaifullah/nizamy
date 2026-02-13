@@ -2,6 +2,7 @@ import React, { useEffect, Suspense, useMemo } from 'react';
 import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { Home } from './features/home/Home.tsx';
 import { Header, Footer } from './components/layout/Layout.tsx';
+import { BottomNav } from './components/layout/BottomNav.tsx';
 import { useToast } from './components/ui/Toast.tsx';
 import { OfflineBanner } from './components/ui/OfflineBanner.tsx';
 import { PageLoader } from './components/ui/PageLoader.tsx';
@@ -93,6 +94,7 @@ const AppContent = () => {
         </Suspense>
       </main>
 
+      {!isScanner && <BottomNav />}
       {!isScanner && <Footer />}
     </div>
   );

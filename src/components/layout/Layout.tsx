@@ -4,49 +4,36 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext.tsx';
 import { GlobalSettings } from '../../features/settings/components/GlobalSettings.tsx';
 import { LegalModal, type LegalType } from '../../features/settings/components/LegalModal.tsx';
-import { VoiceAssistant } from '../ui/VoiceAssistant.tsx'; // Import UI Overlay
-import { useNizamyVoice } from '../../hooks/useNizamyVoice.ts'; // Import Logic Hook
-import { FaBars, FaSun, FaMoon, FaCog, FaArrowLeft, FaShieldAlt, FaFileContract, FaMicrophone } from 'react-icons/fa';
+import { VoiceAssistant } from '../ui/VoiceAssistant.tsx';
+import { useNizamyVoice } from '../../hooks/useNizamyVoice.ts';
+import { FaSun, FaMoon, FaCog, FaArrowLeft, FaShieldAlt, FaFileContract, FaMicrophone } from 'react-icons/fa';
 
 export const Header: React.FC = () => {
-    // Consume simpler API from Context
     const { toggleTheme, isDark } = useTheme();
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-    // Voice Assistant Logic Integration
+    // Voice Assistant Logic
     const { isListening, status, transcript, feedback, startListening, stopListening, isSupported } = useNizamyVoice();
 
     const location = useLocation();
     const navigate = useNavigate();
     const isHome = location.pathname === '/';
 
-    let titleColor = 'text-indigo-600 dark:text-indigo-400';
-    let subtitle = '';
+    // Unified teal color for all pages — no more per-route color chaos
+    const titleColor = 'text-teal-600 dark:text-teal-400';
 
-    if (location.pathname.includes('/zakat')) {
-        titleColor = 'text-emerald-600 dark:text-emerald-400';
-        subtitle = 'Kalkulator Zakat';
-    } else if (location.pathname.includes('/faraidh')) {
-        titleColor = 'text-blue-600 dark:text-blue-400';
-        subtitle = 'Kalkulator Waris Islam';
-    } else if (location.pathname.includes('/hafalan')) {
-        titleColor = 'text-indigo-600 dark:text-indigo-400';
-        subtitle = 'Hafalan Quran Tracker';
-    } else if (location.pathname.includes('/mushaf')) {
-        titleColor = 'text-teal-600 dark:text-teal-400';
-        subtitle = 'Mushaf & Kamus Tajwid';
-    } else if (location.pathname.includes('/hede')) {
-        titleColor = 'text-purple-600 dark:text-purple-400';
-        subtitle = 'Klinik Finansial';
-    } else if (location.pathname.includes('/amal')) {
-        titleColor = 'text-emerald-600 dark:text-emerald-400';
-        subtitle = 'Amal Yaumi Tracker';
-    } else if (location.pathname.includes('/sholat')) {
-        titleColor = 'text-indigo-600 dark:text-indigo-400';
-        subtitle = 'Jadwal Sholat & Kiblat';
-    }
-
-    const logoBgClass = titleColor.replace(/text-/g, 'bg-');
+    // Simple subtitle map
+    const subtitleMap: Record<string, string> = {
+        '/zakat': 'Kalkulator Zakat',
+        '/faraidh': 'Kalkulator Waris',
+        '/hafalan': 'Hafalan Quran',
+        '/mushaf': 'Al-Quran',
+        '/hede': 'Cek Finansial',
+        '/amal': 'Amal Yaumi',
+        '/sholat': 'Jadwal Sholat',
+        '/scanner': 'Cek Halal',
+    };
+    const subtitle = Object.entries(subtitleMap).find(([path]) => location.pathname.includes(path))?.[1] || '';
 
     const logoStyle = {
         maskImage: 'url("/images/logo_nizamy.png?v=6")',
@@ -67,66 +54,65 @@ export const Header: React.FC = () => {
 
     return (
         <>
-            <header className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-sm fixed top-0 left-0 right-0 z-header border-b border-white/20 dark:border-slate-700/50 transition-all duration-300 pt-[env(safe-area-inset-top)]">
-                <div className="container mx-auto px-4 py-3 md:py-4 flex justify-between items-center">
-                    <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity group focus:outline-none min-w-0">
-
+            <header className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg fixed top-0 left-0 right-0 z-header border-b border-slate-200 dark:border-slate-800 transition-colors duration-200 pt-[env(safe-area-inset-top)]">
+                <div className="container mx-auto px-4 py-2.5 md:py-3 flex justify-between items-center">
+                    <Link to="/" className="flex items-center space-x-2.5 hover:opacity-80 transition-opacity focus:outline-none min-w-0">
                         <div className="md:hidden shrink-0">
                             {isHome ? (
                                 <div
-                                    className={`w-10 h-10 transition-all duration-500 drop-shadow-sm ${logoBgClass}`}
+                                    className="w-9 h-9 bg-teal-600 dark:bg-teal-400 transition-colors"
                                     style={logoStyle}
                                 />
                             ) : (
-                                <div className="w-10 h-10 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-md border border-white/20 dark:border-slate-700 text-slate-600 dark:text-slate-300 shadow-sm flex items-center justify-center">
-                                    <span className="icon-wrapper w-4 h-4 flex items-center justify-center"><FaArrowLeft /></span>
+                                <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 flex items-center justify-center">
+                                    <span className="icon-wrapper w-3.5 h-3.5 flex items-center justify-center"><FaArrowLeft /></span>
                                 </div>
                             )}
                         </div>
 
                         <div
-                            className={`hidden md:block w-11 h-11 transition-all duration-500 drop-shadow-sm ${logoBgClass}`}
+                            className="hidden md:block w-10 h-10 bg-teal-600 dark:bg-teal-400 transition-colors"
                             style={logoStyle}
                         />
 
                         <div className="text-left min-w-0">
-                            <p className={`text-lg md:text-2xl font-extrabold tracking-tight leading-none ${titleColor} drop-shadow-sm truncate`}>NIZAMY</p>
+                            <p className={`text-base md:text-xl font-extrabold tracking-tight leading-none ${titleColor}`}>NIZAMY</p>
                             {!isHome && (
-                                <p className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-medium mt-0.5 truncate max-w-[120px] md:max-w-none animate-fade-in">
+                                <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider font-medium mt-0.5 truncate max-w-[140px] md:max-w-none">
                                     {subtitle}
                                 </p>
                             )}
                         </div>
                     </Link>
 
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-1.5 shrink-0">
                         {/* Voice Trigger */}
                         {isSupported && (
                             <button
                                 onClick={startListening}
-                                className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 border border-indigo-200 dark:border-indigo-800 transition-all shadow-sm flex items-center justify-center active:scale-95"
+                                className="w-9 h-9 rounded-xl bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 hover:bg-teal-100 dark:hover:bg-teal-900/30 border border-teal-200 dark:border-teal-800 transition-all flex items-center justify-center active:scale-95 shadow-sm"
                                 aria-label="Voice Assistant"
                             >
                                 <span className="icon-wrapper w-4 h-4 flex items-center justify-center"><FaMicrophone /></span>
                             </button>
                         )}
 
-                        {/* Theme Toggle - Restored for Mobile */}
+                        {/* Theme Toggle */}
                         <button
                             onClick={handleToggle}
-                            className="w-10 h-10 flex rounded-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-md text-slate-600 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700 hover:text-indigo-500 dark:hover:text-yellow-400 border border-white/20 dark:border-slate-700 transition-all shadow-sm items-center justify-center active:scale-95"
+                            className="w-9 h-9 flex rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-all items-center justify-center active:scale-95"
                             aria-label={isDark ? "Ubah ke Mode Terang" : "Ubah ke Mode Gelap"}
                         >
                             {isDark ? (
-                                <div className="text-yellow-400 animate-fade-in icon-wrapper w-4 h-4 flex items-center justify-center"><FaSun /></div>
+                                <div className="text-yellow-500 icon-wrapper w-4 h-4 flex items-center justify-center"><FaSun /></div>
                             ) : (
-                                <div className="text-indigo-600 animate-fade-in icon-wrapper w-4 h-4 flex items-center justify-center"><FaMoon /></div>
+                                <div className="text-slate-500 icon-wrapper w-4 h-4 flex items-center justify-center"><FaMoon /></div>
                             )}
                         </button>
 
                         <button
                             onClick={() => setIsSettingsOpen(true)}
-                            className="w-10 h-10 rounded-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-md text-slate-600 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700 border border-white/20 dark:border-slate-700 transition-all shadow-sm flex items-center justify-center active:scale-95"
+                            className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-all flex items-center justify-center active:scale-95"
                             aria-label="Pengaturan Aplikasi"
                         >
                             <span className="icon-wrapper w-4 h-4 flex items-center justify-center"><FaCog /></span>
@@ -135,7 +121,8 @@ export const Header: React.FC = () => {
                 </div>
             </header>
 
-            {/* Global Voice Overlay Rendered Here */}
+            {isSettingsOpen && <GlobalSettings isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />}
+
             <VoiceAssistant
                 isListening={isListening}
                 status={status}
@@ -144,8 +131,6 @@ export const Header: React.FC = () => {
                 onStop={stopListening}
                 onRestart={startListening}
             />
-
-            {isSettingsOpen && <GlobalSettings isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />}
         </>
     );
 };
@@ -155,24 +140,24 @@ export const Footer: React.FC = () => {
 
     return (
         <>
-            <footer className="hidden md:block text-center py-8 mt-12 border-t border-white/20 dark:border-slate-700 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md transition-colors duration-300">
+            <footer className="hidden md:block text-center py-6 mt-12 border-t border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 transition-colors duration-200">
                 <div className="container mx-auto px-4">
-                    <div className="flex justify-center gap-6 mb-4 text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400">
+                    <div className="flex justify-center gap-6 mb-3 text-xs font-medium text-slate-400 dark:text-slate-500">
                         <button
                             onClick={() => setLegalType('terms')}
-                            className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-2"
+                            className="hover:text-teal-600 dark:hover:text-teal-400 transition-colors flex items-center gap-1.5"
                         >
-                            <span className="icon-wrapper w-4 h-4"><FaFileContract /></span> Syarat & Ketentuan
+                            <span className="icon-wrapper w-3 h-3"><FaFileContract /></span> Syarat & Ketentuan
                         </button>
                         <button
                             onClick={() => setLegalType('privacy')}
-                            className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-2"
+                            className="hover:text-teal-600 dark:hover:text-teal-400 transition-colors flex items-center gap-1.5"
                         >
-                            <span className="icon-wrapper w-4 h-4"><FaShieldAlt /></span> Kebijakan Privasi
+                            <span className="icon-wrapper w-3 h-3"><FaShieldAlt /></span> Kebijakan Privasi
                         </button>
                     </div>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm flex items-center justify-center gap-1">
-                        &copy; {new Date().getFullYear()} NIZAMY <span className="hidden sm:inline">| Islam Apps Suite</span>.
+                    <p className="text-slate-400 dark:text-slate-500 text-xs">
+                        &copy; {new Date().getFullYear()} NIZAMY <span className="hidden sm:inline">· Islam Apps Suite</span>
                     </p>
                 </div>
             </footer>

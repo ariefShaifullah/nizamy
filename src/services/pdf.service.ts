@@ -2,14 +2,20 @@
 import { formatCurrency, formatDate } from '../utils.ts';
 
 // Constants
-const PRINT_WIDTH = 800; 
+const PRINT_WIDTH = 800;
 
 /**
  * Helper to load PDF libraries dynamically
  */
 export const loadPdfLibs = async () => {
-    const { jsPDF } = await import('jspdf');
-    const html2canvas = (await import('html2canvas')).default;
+    const jsPDFModule = await import('jspdf');
+    // Handle various import scenarios for jsPDF
+    // @ts-ignore
+    const jsPDF = jsPDFModule.default?.jsPDF || jsPDFModule.jsPDF || jsPDFModule.default;
+
+    const html2canvasModule = await import('html2canvas');
+    const html2canvas = (html2canvasModule.default || html2canvasModule) as any;
+
     return { jsPDF, html2canvas };
 };
 
@@ -84,69 +90,114 @@ export const generateReportLayout = (metadata: ReportMetadata, contentHtml: stri
  * Supports Smart Pagination via `.pdf-page` class
  */
 export const generatePdfFromHtml = async (htmlContent: string, filename: string) => {
-    let container: HTMLElement | null = null;
+    let iframe: HTMLIFrameElement | null = null;
 
     try {
         const { jsPDF, html2canvas } = await loadPdfLibs();
 
-        // 1. Create Sandboxed Container
-        container = document.createElement('div');
-        container.style.position = 'fixed';
-        container.style.top = '0';
-        container.style.left = '-10000px';
-        container.style.width = `${PRINT_WIDTH}px`;
-        container.style.zIndex = '-9999';
-        container.style.backgroundColor = '#ffffff';
-        container.style.color = '#0f172a'; // Slate-900
-        container.style.fontFamily = 'sans-serif';
-        container.innerHTML = htmlContent;
-        
-        document.body.appendChild(container);
+        // 1. Create Sandboxed Iframe
+        iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed';
+        iframe.style.top = '0';
+        iframe.style.left = '-10000px';
+        iframe.style.width = `${PRINT_WIDTH}px`;
+        iframe.style.height = '1000px'; // Initial height
+        iframe.style.border = 'none';
+        iframe.style.visibility = 'hidden';
+        document.body.appendChild(iframe);
 
-        // Wait for rendering
-        await new Promise(resolve => setTimeout(resolve, 100));
+        const doc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (!doc) {
+            throw new Error("Could not access iframe document");
+        }
 
-        // 2. CHECK FOR SMART PAGINATION (.pdf-page)
-        const pages = container.querySelectorAll('.pdf-page');
-        
+        // 2. Write isolated content
+        // We explicitly do NOT include the main app's stylesheets to avoid Tailwind v4's oklch colors
+        doc.open();
+        doc.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <style>
+                    body { 
+                        margin: 0; 
+                        padding: 0; 
+                        background-color: #ffffff; 
+                        font-family: sans-serif;
+                        color: #0f172a;
+                        -webkit-font-smoothing: antialiased;
+                    }
+                    /* Ensure images are loaded with CORS if needed */
+                    img { max-width: 100%; }
+                </style>
+                <!-- Preload Fonts if possible, though html2canvas has its own font loading logic -->
+                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=Amiri&display=swap" rel="stylesheet">
+            </head>
+            <body>
+                ${htmlContent}
+            </body>
+            </html>
+        `);
+        doc.close();
+
+        // 3. Wait for Iframe Load (Images & Fonts)
+        await new Promise<void>((resolve) => {
+            if (doc.readyState === 'complete') {
+                resolve();
+            } else {
+                iframe!.onload = () => resolve();
+            }
+        });
+
+        // Small buffer for font rendering
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // 4. CHECK FOR SMART PAGINATION (.pdf-page)
+        const pages = doc.querySelectorAll('.pdf-page');
+
         if (pages.length > 0) {
             // -- SMART MODE: RENDER PER PAGE --
             const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const pdfWidth = pdf.internal.pageSize.getWidth(); // 210mm
 
             for (let i = 0; i < pages.length; i++) {
                 if (i > 0) pdf.addPage();
-                
+
                 const pageEl = pages[i] as HTMLElement;
-                // Force white background on page element
+                // Force white background
                 pageEl.style.backgroundColor = '#ffffff';
-                
+
                 const canvas = await html2canvas(pageEl, {
                     scale: 2,
                     backgroundColor: '#ffffff',
-                    width: PRINT_WIDTH,
                     windowWidth: PRINT_WIDTH,
-                    useCORS: true
+                    useCORS: true,
+                    logging: false
                 });
 
                 const imgData = canvas.toDataURL('image/png');
                 const imgHeight = (canvas.height * pdfWidth) / canvas.width;
-                
+
                 pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight);
             }
             pdf.save(filename);
 
         } else {
             // -- CLASSIC MODE: SLICE CANVAS --
-            const canvas = await html2canvas(container, {
+            const body = doc.body;
+            // Ensure body expands to content
+            const bodyHeight = body.scrollHeight;
+
+            const canvas = await html2canvas(body, {
                 scale: 2,
                 backgroundColor: '#ffffff',
                 width: PRINT_WIDTH,
                 windowWidth: PRINT_WIDTH,
-                height: container.scrollHeight,
-                windowHeight: container.scrollHeight,
-                useCORS: true
+                height: bodyHeight,
+                windowHeight: bodyHeight,
+                useCORS: true,
+                logging: false
             });
 
             const imgData = canvas.toDataURL('image/png');
@@ -163,7 +214,7 @@ export const generatePdfFromHtml = async (htmlContent: string, filename: string)
             heightLeft -= pdfHeight;
 
             while (heightLeft > 0) {
-                position = heightLeft - imgHeight; 
+                position = heightLeft - imgHeight;
                 pdf.addPage();
                 pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
                 heightLeft -= pdfHeight;
@@ -175,8 +226,8 @@ export const generatePdfFromHtml = async (htmlContent: string, filename: string)
         console.error("PDF Gen Error:", err);
         alert("Gagal membuat PDF. Silakan coba lagi.");
     } finally {
-        if (container && document.body.contains(container)) {
-            document.body.removeChild(container);
+        if (iframe && document.body.contains(iframe)) {
+            document.body.removeChild(iframe);
         }
     }
 };

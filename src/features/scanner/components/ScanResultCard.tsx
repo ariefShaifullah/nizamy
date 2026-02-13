@@ -12,8 +12,8 @@ import {
 } from "react-icons/fa";
 
 interface ScanResultCardProps {
-    result: ScanResult;
-    onReset: () => void;
+  result: ScanResult;
+  onReset: () => void;
 }
 
 export const ScanResultCard: React.FC<ScanResultCardProps> = ({ result, onReset }) => {
@@ -68,7 +68,7 @@ export const ScanResultCard: React.FC<ScanResultCardProps> = ({ result, onReset 
     <div className="w-full max-w-md mx-auto animate-fade-in px-2">
       {/* World-Class Certificate Header */}
       <div
-        className={`relative overflow-hidden rounded-[2.5rem] shadow-2xl ${config.bgSoft} border-2 ${config.borderColor} text-center p-8 backdrop-blur-2xl transition-colors duration-500`}
+        className={`relative overflow-hidden rounded-3xl shadow-2xl ${config.bgSoft} border-2 ${config.borderColor} text-center p-8 backdrop-blur-2xl transition-colors duration-500`}
       >
         {/* Decorative Pattern */}
         <div
@@ -118,24 +118,24 @@ export const ScanResultCard: React.FC<ScanResultCardProps> = ({ result, onReset 
         <div className="mt-6 flex flex-wrap gap-2 justify-center">
           {result.detectedLogos.length > 0
             ? result.detectedLogos.map((logo, idx) => (
-                <span
-                  key={idx}
-                  className="px-4 py-1.5 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-sm flex items-center gap-2"
-                >
-                  <span className="icon-wrapper w-3 h-3 flex items-center justify-center">
-                    <FaCheckCircle />
-                  </span>
-                  Logo {logo} Terdeteksi
+              <span
+                key={idx}
+                className="px-4 py-1.5 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-sm flex items-center gap-2"
+              >
+                <span className="icon-wrapper w-3 h-3 flex items-center justify-center">
+                  <FaCheckCircle />
                 </span>
-              ))
+                Logo {logo} Terdeteksi
+              </span>
+            ))
             : result.status !== "unknown" && (
-                <span className="px-4 py-1.5 bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-widest rounded-full border border-slate-200 dark:border-slate-700 flex items-center gap-2">
-                  <span className="icon-wrapper w-3 h-3 flex items-center justify-center">
-                    <FaInfoCircle />
-                  </span>
-                  Logo Halal Fisik Tidak Terdeteksi
+              <span className="px-4 py-1.5 bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-widest rounded-full border border-slate-200 dark:border-slate-700 flex items-center gap-2">
+                <span className="icon-wrapper w-3 h-3 flex items-center justify-center">
+                  <FaInfoCircle />
                 </span>
-              )}
+                Logo Halal Fisik Tidak Terdeteksi
+              </span>
+            )}
         </div>
 
         <div className="mt-5 flex items-center justify-center gap-2">

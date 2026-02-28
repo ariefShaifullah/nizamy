@@ -27,8 +27,8 @@ import {
 } from './components/ZakatTabs.tsx';
 
 const INITIAL_SETTINGS: ZakatSettings = {
-    goldPrice: 2400000,
-    silverPrice: 25000,
+    goldPrice: 3000000,
+    silverPrice: 48000,
     ricePrice: 15000,
     riceKgPerPerson: 2.5,
     currency: 'IDR'

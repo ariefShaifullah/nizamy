@@ -110,8 +110,8 @@ export const generateContractPdf = async (type: ContractType) => {
         title = "Ikrar Bara'ah (Pernyataan Berlepas Diri)";
         filename = "Ikrar_Hijrah.pdf";
         content = `
-            <div style="text-align:center; margin-bottom:30px;">
-                <h2 style="font-family:serif; margin-bottom:10px;">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيم</h2>
+            <div dir="rtl" style="text-align:center; margin-bottom:30px;">
+                <h2 lang="ar" dir="rtl" style="font-family: 'Amiri', 'Traditional Arabic', Arial, sans-serif; font-size: 26px; color: #1e293b; margin: 0; font-weight: 400; letter-spacing: 0; margin-bottom:10px;">بِسْمِ الله الرَّحْمَنِ الرَّحِيم</h2>
             </div>
 
             <p style="text-align:justify; line-height:1.8;">

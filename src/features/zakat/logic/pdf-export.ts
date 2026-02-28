@@ -7,7 +7,7 @@ import { generatePdfFromHtml, generateReportLayout, pdfStyles as styles } from '
  * Zakat Report Builder
  */
 export const exportZakatPdf = async (result: ZakatResult, state: ZakatState) => {
-    
+
     const rows = result.items.map(item => `
         <tr>
             <td style="${styles.td}">
@@ -24,8 +24,8 @@ export const exportZakatPdf = async (result: ZakatResult, state: ZakatState) => 
 
     const contentHtml = `
         <!-- Basmalah -->
-        <div style="text-align: center; margin-bottom: 20px;">
-            <h2 style="font-family: 'Amiri', serif; font-size: 24px; color: #065f46; margin: 0;">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيم</h2>
+        <div dir="rtl" style="text-align: center; margin-bottom: 20px;">
+            <h2 lang="ar" dir="rtl" style="font-family: 'Amiri', 'Traditional Arabic', Arial, sans-serif; font-size: 26px; color: #065f46; margin: 0; font-weight: 400; letter-spacing: 0;">بِسْمِ اللهِ الرَّحْمَنِ الرَّحِيم</h2>
         </div>
 
         <!-- Total Box -->

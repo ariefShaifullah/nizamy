@@ -143,10 +143,16 @@ export const PrayerWidget: React.FC = () => {
             {/* Decorative Noise Texture */}
             <div className="absolute inset-0 opacity-20 bg-noise mix-blend-overlay pointer-events-none"></div>
 
-            {/* Decorative Pattern */}
-            <div className="absolute top-0 right-0 w-32 h-32 opacity-10 pointer-events-none" style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20.5V18h2v2.5h-2zM20 5.5V3h2v2.5h-2zM20-9.5v-2.5h2v2.5h-2zM5.5 20H3v2h2.5v-2zM-9.5 20h-2.5v2h2.5v-2zM20 35.5V33h2v2.5h-2z' fill='%23ffffff' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
-            }} />
+            {/* Decorative Ornament - Covers whole card but fades out using CSS mask so only top-right is visible */}
+            <img
+                src="/images/ornaments.svg"
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-overlay pointer-events-none transition-all duration-700"
+                style={{
+                    WebkitMaskImage: 'linear-gradient(225deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 50%)',
+                    maskImage: 'linear-gradient(225deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 50%)'
+                }}
+            />
 
             {/* Dynamic Glow */}
             <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-white/5 rounded-full blur-3xl animate-pulse-slow pointer-events-none"></div>

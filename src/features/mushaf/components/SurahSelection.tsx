@@ -170,9 +170,16 @@ export const SurahSelection: React.FC<SurahSelectionProps> = ({
                         onClick={() => { audioService.playClick(); onJumpToLastRead(); }}
                         className="relative w-full overflow-hidden bg-linear-to-r from-teal-600 to-emerald-600 rounded-3xl p-6 md:p-8 text-white shadow-xl shadow-teal-500/20 cursor-pointer group transform transition-all hover:scale-[1.01] mt-2 md:mt-0 animate-fade-in-down"
                     >
-                        <div className="absolute -right-6 -bottom-10 opacity-20 transform rotate-12 group-hover:rotate-0 group-hover:scale-110 transition-all duration-700">
-                            <FaMosque size={180} />
-                        </div>
+                        {/* Decorative Ornament - Covers whole card but fades out using CSS mask so only top-right is visible */}
+                        <img
+                            src="/images/ornaments.svg"
+                            alt=""
+                            className="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay pointer-events-none scale-125 group-hover:scale-[1.3] transition-all duration-700"
+                            style={{
+                                WebkitMaskImage: 'linear-gradient(225deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 60%)',
+                                maskImage: 'linear-gradient(225deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 60%)'
+                            }}
+                        />
                         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
                         <div className="relative z-raised">

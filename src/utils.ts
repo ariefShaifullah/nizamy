@@ -27,13 +27,28 @@ export const formatDate = (
   );
 };
 
-// Greatest Common Divisor
-export const gcd = (a: number, b: number): number =>
-  b === 0 ? a : gcd(b, a % b);
+// Greatest Common Divisor (with input guards)
+export const gcd = (a: number, b: number): number => {
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return 1;
+  if (a < 0) a = Math.abs(a);
+  if (b < 0) b = Math.abs(b);
+  if (a === 0 && b === 0) return 1; // Guard: gcd(0,0) undefined, return 1 to avoid division by zero downstream
+  while (b !== 0) {
+    const temp = b;
+    b = a % b;
+    a = temp;
+  }
+  return a;
+};
 
-// Least Common Multiple
-export const lcm = (a: number, b: number): number =>
-  a === 0 || b === 0 ? 0 : (a * b) / gcd(a, b);
+// Least Common Multiple (with input guards)
+export const lcm = (a: number, b: number): number => {
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return 1;
+  if (a === 0 || b === 0) return 0;
+  if (a < 0) a = Math.abs(a);
+  if (b < 0) b = Math.abs(b);
+  return (a / gcd(a, b)) * b; // Divide first to reduce overflow risk
+};
 
 // Browser Detection
 export const isSafari = typeof navigator !== 'undefined' && /^((?!chrome|android).)*safari/i.test(navigator.userAgent);

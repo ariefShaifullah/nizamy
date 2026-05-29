@@ -19,6 +19,24 @@ export const initialHeirsState: HeirInputState = {
   [Heir.PaternalSister]: 0,
   [Heir.MaternalBrother]: 0,
   [Heir.MaternalSister]: 0,
+  // Dzawil Arham
+  [Heir.DaughterSon]: 0,
+  [Heir.DaughterDaughter]: 0,
+  [Heir.FullBrotherSon]: 0,
+  [Heir.FullBrotherDaughter]: 0,
+  [Heir.FullSisterSon]: 0,
+  [Heir.PaternalBrotherSon]: 0,
+  [Heir.PaternalBrotherDaughter]: 0,
+  [Heir.PaternalUncleFull]: 0,
+  [Heir.PaternalUnclePaternal]: 0,
+  [Heir.PaternalAunt]: 0,
+  [Heir.PaternalAuntPaternal]: 0,
+  [Heir.MaternalAunt]: 0,
+  [Heir.MaternalUncle]: 0,
+  [Heir.PaternalUnclesSonFull]: 0,
+  [Heir.PaternalUnclesDaughterFull]: 0,
+  [Heir.PaternalUnclesSonPaternal]: 0,
+  [Heir.PaternalUnclesDaughterPaternal]: 0,
 };
 
 export const HEIR_LABELS: { [key in Heir]: string } = {
@@ -39,6 +57,25 @@ export const HEIR_LABELS: { [key in Heir]: string } = {
   [Heir.PaternalSister]: "Saudara Perempuan Seayah",
   [Heir.MaternalBrother]: "Saudara Laki-laki Seibu",
   [Heir.MaternalSister]: "Saudara Perempuan Seibu",
+  // Ashabah lanjutan (KHI Pasal 175)
+  [Heir.FullBrotherSon]: "Keponakan Laki-laki (Saudara Kandung)",
+  [Heir.PaternalBrotherSon]: "Keponakan Laki-laki (Saudara Seayah)",
+  [Heir.PaternalUncleFull]: "Paman Kandung",
+  [Heir.PaternalUnclePaternal]: "Paman Seayah",
+  [Heir.PaternalUnclesSonFull]: "Sepupu Laki-laki Kandung",
+  [Heir.PaternalUnclesSonPaternal]: "Sepupu Laki-laki Seayah",
+  // Dzawil Arham (KHI Pasal 176)
+  [Heir.DaughterSon]: "Cucu Laki-laki (dari Anak Perempuan)",
+  [Heir.DaughterDaughter]: "Cucu Perempuan (dari Anak Perempuan)",
+  [Heir.FullBrotherDaughter]: "Keponakan Perempuan (Saudara Kandung)",
+  [Heir.FullSisterSon]: "Anak dari Saudari Kandung",
+  [Heir.PaternalBrotherDaughter]: "Keponakan Perempuan (Saudara Seayah)",
+  [Heir.PaternalAunt]: "Bibi Kandung",
+  [Heir.PaternalAuntPaternal]: "Bibi Seayah",
+  [Heir.MaternalAunt]: "Bibi Seibu",
+  [Heir.MaternalUncle]: "Paman Seibu",
+  [Heir.PaternalUnclesDaughterFull]: "Sepupu Perempuan Kandung",
+  [Heir.PaternalUnclesDaughterPaternal]: "Sepupu Perempuan Seayah",
 };
 
 export const QURAN_REFS = {
@@ -56,6 +93,7 @@ export const LEGAL_BASIS = {
   IJTIHAD_UMAR_UMARIYYATAIN: "Putusan Umar bin Khattab r.a. (Ijma' Sahabat)",
   MAZHAB_ZAID_AKDARIYYAH: "Mazhab Zaid bin Thabit r.a. (Al-Akdariyyah)",
   QAUL_ALI_RADD: "Qaul Ali bin Abi Thalib r.a. & Jumhur (Radd)",
+  IJTIHAD_UMAR_MUSYTARAKAH: "Putusan Umar bin Khattab r.a. (Al-Musytarakah)",
 };
 
 export const HEIR_GROUPS = [
@@ -90,6 +128,40 @@ export const HEIR_GROUPS = [
       Heir.MaternalSister,
     ],
   },
+  {
+    title: "Ashabah Lanjutan",
+    heirs: [
+      // Pasal 175 point 6-7: Anak laki-laki saudara
+      Heir.FullBrotherSon,
+      Heir.PaternalBrotherSon,
+      // Pasal 175 point 8-9: Paman
+      Heir.PaternalUncleFull,
+      Heir.PaternalUnclePaternal,
+      // Pasal 175 point 10-11: Anak paman (sepupu laki-laki)
+      Heir.PaternalUnclesSonFull,
+      Heir.PaternalUnclesSonPaternal,
+    ],
+  },
+  {
+    title: "Dzawil Arham",
+    heirs: [
+      // Tier 1: Cucu dari anak perempuan (male via female line + female)
+      Heir.DaughterSon,
+      Heir.DaughterDaughter,
+      // Tier 2: Anak perempuan saudara & anak saudari
+      Heir.FullBrotherDaughter,
+      Heir.FullSisterSon,
+      Heir.PaternalBrotherDaughter,
+      // Tier 3: Bibi & paman seibu
+      Heir.PaternalAunt,
+      Heir.PaternalAuntPaternal,
+      Heir.MaternalAunt,
+      Heir.MaternalUncle,
+      // Tier 4: Sepupu perempuan
+      Heir.PaternalUnclesDaughterFull,
+      Heir.PaternalUnclesDaughterPaternal,
+    ],
+  },
 ];
 
 export const FIQH_DEFINITIONS: {
@@ -119,6 +191,11 @@ export const FIQH_DEFINITIONS: {
     title: "Kasus Al-Akdariyyah",
     definition:
       "Kasus spesifik (suami, ibu, kakek, saudari kandung). Zaid bin Thabit r.a. menerapkan metode khusus: menjumlahkan bagian kakek dan saudari, lalu membaginya dengan perbandingan 2:1 (laki-laki:perempuan), karena aturan dasar akan merugikan kakek.",
+  },
+  DZAWIL_ARHAM: {
+    title: "Dzawil Arham (Kerabat Jauh)",
+    definition:
+      "Dzawil Arham adalah kerabat yang tidak termasuk ashhab al-furudh maupun ashabah, seperti cucu dari anak perempuan, anak saudara perempuan, bibi, dan paman seibu. Menurut KHI (Pasal 174-193), mereka berhak menerima warisan jika tidak ada ahli waris lain yang lebih dekat. KHI menganut pendapat Tsauri dan Abu Hanifah yang memberikan hak waris kepada dzawil arham.",
   },
 };
 

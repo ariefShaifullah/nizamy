@@ -10,23 +10,27 @@ import { useRouter } from '../../../hooks/useRouter.ts';
 
 // 1. Define Context State Interface
 interface FaraidhContextType {
-    // State
-    heirs: HeirInputState;
-    estate: string;
-    deceasedGender: 'male' | 'female';
-    result: CalculationResult | null;
-    history: HistoryEntry[];
-    isPending: boolean;
-    
-    // Actions / Setters
-    dispatch: React.Dispatch<FaraidhAction>;
-    setEstate: (value: string) => void;
-    setDeceasedGender: (value: 'male' | 'female') => void;
-    
-    // Logic Methods
-    handleCalculate: () => void;
-    loadFromHistory: (entry: HistoryEntry) => void;
-    clearHistory: () => Promise<void>;
+ // State
+ heirs: HeirInputState;
+ estate: string;
+ wasiat: string;
+ utang: string;
+ deceasedGender: 'male' | 'female';
+ result: CalculationResult | null;
+ history: HistoryEntry[];
+ isPending: boolean;
+ 
+ // Actions / Setters
+ dispatch: React.Dispatch<FaraidhAction>;
+ setEstate: (value: string) => void;
+ setWasiat: (value: string) => void;
+ setUtang: (value: string) => void;
+ setDeceasedGender: (value: 'male' | 'female') => void;
+ 
+ // Logic Methods
+ handleCalculate: () => void;
+ loadFromHistory: (entry: HistoryEntry) => void;
+ clearHistory: () => Promise<void>;
 }
 
 const FaraidhContext = createContext<FaraidhContextType | undefined>(undefined);
@@ -49,6 +53,8 @@ export const FaraidhProvider: React.FC<{ children: React.ReactNode; setActiveTab
     // -- State --
     const [heirs, dispatch] = useReducer(heirsReducer, initialHeirsState);
     const [estate, setEstate] = useState<string>('100000000');
+    const [wasiat, setWasiat] = useState<string>('0');
+    const [utang, setUtang] = useState<string>('0');
     const [deceasedGender, setDeceasedGender] = useState<'male' | 'female'>('male');
     const [result, setResult] = useState<CalculationResult | null>(null);
     const [isPending, startTransition] = useTransition();
@@ -102,47 +108,59 @@ export const FaraidhProvider: React.FC<{ children: React.ReactNode; setActiveTab
 
     // -- Logic: Calculate --
     const handleCalculate = useCallback(() => {
-        const estateValue = parseFloat(estate);
-        if (isNaN(estateValue) || estateValue <= 0) {
-            showToast("Mohon masukkan nilai harta yang valid.", 'error');
-            return;
-        }
+    const estateValue = parseFloat(estate);
+    const wasiatValue = parseFloat(wasiat) || 0;
+    const utangValue = parseFloat(utang) || 0;
+    if (isNaN(estateValue) || estateValue <= 0) {
+    showToast("Mohon masukkan nilai harta yang valid (lebih dari 0).", 'error');
+    return;
+    }
 
-        startTransition(() => {
-            try {
-                const calculationResult = calculateFaraidh(heirs, estateValue);
-                setResult(calculationResult);
-                
-                const newHistoryEntry: HistoryEntry = {
-                    id: new Date().toISOString(),
-                    timestamp: new Date().toLocaleString('id-ID'),
-                    estate: estateValue,
-                    heirs,
-                    result: calculationResult,
-                };
-                
-                setHistory(prevHistory => [newHistoryEntry, ...prevHistory].slice(0, 10));
-                
-                showToast("Perhitungan selesai!", 'success');
+    const netEstate = estateValue - utangValue - wasiatValue;
+    if (netEstate <= 0) {
+    showToast("Harta bersih setelah utang dan wasiat harus lebih dari 0.", 'error');
+    return;
+    }
 
-                // Auto switch tab on mobile
-                if (window.innerWidth < 1024) {
-                    setActiveTab('result');
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                }
+    startTransition(() => {
+    try {
+    const calculationResult = calculateFaraidh(heirs, estateValue, deceasedGender, wasiatValue, utangValue);
+    setResult(calculationResult);
+ 
+    const newHistoryEntry: HistoryEntry = {
+    id: new Date().toISOString(),
+    timestamp: new Date().toLocaleString('id-ID'),
+    estate: estateValue,
+    heirs,
+    result: calculationResult,
+    wasiat: wasiatValue,
+    utang: utangValue,
+    };
+ 
+    setHistory(prevHistory => [newHistoryEntry, ...prevHistory].slice(0, 10));
+ 
+    showToast("Perhitungan selesai!", 'success');
 
-            } catch (error) {
-                console.error("Calculation failed:", error);
-                showToast("Terjadi kesalahan dalam perhitungan.", 'error');
-            }
-        });
-    }, [estate, heirs, setHistory, showToast, setActiveTab]);
+    // Auto switch tab on mobile
+    if (window.innerWidth < 1024) {
+    setActiveTab('result');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    } catch (error) {
+    console.error("Calculation failed:", error);
+    showToast("Terjadi kesalahan dalam perhitungan.", 'error');
+    }
+    });
+    }, [estate, wasiat, utang, heirs, setHistory, showToast, setActiveTab]);
 
     // -- Logic: History --
     const loadFromHistory = useCallback((entry: HistoryEntry) => {
-        setEstate(String(entry.estate));
-        dispatch({ type: 'LOAD_STATE', payload: entry.heirs });
-        setResult(entry.result);
+    setEstate(String(entry.estate));
+    setWasiat(String(entry.wasiat || 0));
+    setUtang(String(entry.utang || 0));
+    dispatch({ type: 'LOAD_STATE', payload: entry.heirs });
+    setResult(entry.result);
         
         if (entry.heirs.husband > 0) setDeceasedGender('female');
         else if (entry.heirs.wife > 0) setDeceasedGender('male');
@@ -169,18 +187,22 @@ export const FaraidhProvider: React.FC<{ children: React.ReactNode; setActiveTab
     }, [setHistory, confirm, showToast]);
 
     const value = {
-        heirs,
-        estate,
-        deceasedGender,
-        result,
-        history,
-        isPending,
-        dispatch,
-        setEstate,
-        setDeceasedGender,
-        handleCalculate,
-        loadFromHistory,
-        clearHistory
+    heirs,
+    estate,
+    wasiat,
+    utang,
+    deceasedGender,
+    result,
+    history,
+    isPending,
+    dispatch,
+    setEstate,
+    setWasiat,
+    setUtang,
+    setDeceasedGender,
+    handleCalculate,
+    loadFromHistory,
+    clearHistory
     };
 
     return (

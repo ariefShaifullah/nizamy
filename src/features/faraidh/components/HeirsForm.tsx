@@ -25,18 +25,22 @@ const HeirGroupAccordion: React.FC<{
 
     if (heirKeys.length === 0) return null;
 
+    const accordionId = `group-${title.replace(/\s+/g, '-').toLowerCase()}`;
+
     return (
-        <div className={`
-            bg-white dark:bg-slate-800 rounded-2xl border transition-all duration-300 overflow-hidden
-            ${isOpen
-                ? 'border-indigo-200 dark:border-indigo-800 shadow-md ring-1 ring-indigo-100 dark:ring-indigo-900/30'
-                : 'border-slate-200 dark:border-slate-700 shadow-sm'
-            }
-        `}>
-            <button
-                onClick={toggle}
-                className="w-full flex items-center justify-between p-4 bg-transparent hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors"
-            >
+    <div className={`
+    bg-white dark:bg-slate-800 rounded-2xl border transition-all duration-300 overflow-hidden
+    ${isOpen
+    ? 'border-indigo-200 dark:border-indigo-800 shadow-md ring-1 ring-indigo-100 dark:ring-indigo-900/30'
+    : 'border-slate-200 dark:border-slate-700 shadow-sm'
+    }
+    `}>
+    <button
+    onClick={toggle}
+    aria-expanded={isOpen}
+    aria-controls={accordionId}
+    className="w-full flex items-center justify-between p-4 bg-transparent hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors"
+    >
                 <div className="flex items-center gap-3">
                     <span className={`text-sm font-bold uppercase tracking-wider ${activeCount > 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-400'}`}>
                         {title}
@@ -55,7 +59,7 @@ const HeirGroupAccordion: React.FC<{
                 </div>
             </button>
 
-            <div className={`transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
+            <div id={accordionId} role="region" aria-label={title} className={`transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
                 <div className="p-3 pt-0 space-y-2">
                     {heirKeys.map((heirKey) => (
                         <HeirInput
@@ -72,14 +76,18 @@ const HeirGroupAccordion: React.FC<{
 
 export const HeirsForm: React.FC = React.memo(() => {
     const {
-        heirs,
-        dispatch,
-        estate,
-        setEstate,
-        deceasedGender,
-        setDeceasedGender,
-        handleCalculate,
-        isPending
+    heirs,
+    dispatch,
+    estate,
+    setEstate,
+    wasiat,
+    setWasiat,
+    utang,
+    setUtang,
+    deceasedGender,
+    setDeceasedGender,
+    handleCalculate,
+    isPending
     } = useFaraidh();
 
     const formatInputValue = (value: string): string => {
@@ -114,6 +122,14 @@ export const HeirsForm: React.FC = React.memo(() => {
     };
 
     const totalHeirs = (Object.values(heirs) as number[]).reduce((a, b) => a + b, 0);
+
+ // Live wasiat cap computation for real-time warning
+ const estateNum = parseFloat(estate) || 0;
+ const utangNum = parseFloat(utang) || 0;
+ const wasiatNum = parseFloat(wasiat) || 0;
+ const liveWasiatCap = Math.floor(Math.max(0, estateNum - utangNum) / 3);
+ const wasiatExceedsCap = wasiatNum > liveWasiatCap && liveWasiatCap > 0;
+ const netEstateInvalid = estateNum > 0 && (estateNum - utangNum - wasiatNum) <= 0;
 
     const visibleGroups = useMemo(() => {
         return HEIR_GROUPS.map(group => ({
@@ -162,35 +178,98 @@ export const HeirsForm: React.FC = React.memo(() => {
 
                 {/* 2. Estate Input */}
                 <div className="relative group rounded-3xl p-1 bg-linear-to-br from-indigo-100 via-indigo-50 to-white dark:from-indigo-900 dark:via-slate-800 dark:to-slate-900 shadow-xl shadow-indigo-100/50 dark:shadow-none transition-all duration-500 hover:shadow-2xl hover:shadow-indigo-200/50 dark:hover:shadow-none">
-                    <div className="absolute inset-0 bg-white dark:bg-slate-900 rounded-[1.4rem] m-px"></div>
+                <div className="absolute inset-0 bg-white dark:bg-slate-900 rounded-[1.4rem] m-px"></div>
 
-                    <div className="relative p-6 md:p-8 flex flex-col justify-center h-full overflow-hidden rounded-[1.4rem]">
-                        <div className="absolute top-0 right-0 -mr-8 -mt-8 opacity-[0.03] dark:opacity-[0.05] transition-transform duration-700 group-hover:rotate-12 group-hover:scale-110 pointer-events-none icon-wrapper text-indigo-600 dark:text-indigo-400">
-                            <FaCoins size={228} />
-                        </div>
-
-                        <label htmlFor="estate" className="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-3 ml-1">
-                            Total Harta Waris (Netto)
-                        </label>
-
-                        <div className="relative flex items-center">
-                            <span className="absolute left-0 text-indigo-600 dark:text-indigo-400 font-bold text-2xl md:text-3xl pointer-events-none">Rp</span>
-                            <input
-                                type="text"
-                                inputMode="numeric"
-                                id="estate"
-                                value={formatInputValue(estate)}
-                                onChange={handleEstateChange}
-                                className="w-full bg-transparent border-b-2 border-slate-200 dark:border-slate-700 focus:border-indigo-500 dark:focus:border-indigo-400 pl-12 pr-4 py-2 text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white placeholder-slate-300 focus:outline-none transition-colors tracking-tight"
-                                placeholder="0"
-                                disabled={isPending}
-                            />
-                        </div>
-                        <p className="text-[10px] text-slate-400 mt-2 ml-1 italic">
-                            *Pastikan harta sudah dikurangi biaya pengurusan jenazah, pelunasan utang, & wasiat (maks 1/3).
-                        </p>
-                    </div>
+                <div className="relative p-6 md:p-8 flex flex-col justify-center h-full overflow-hidden rounded-[1.4rem]">
+                <div className="absolute top-0 right-0 -mr-8 -mt-8 opacity-[0.03] dark:opacity-[0.05] transition-transform duration-700 group-hover:rotate-12 group-hover:scale-110 pointer-events-none icon-wrapper text-indigo-600 dark:text-indigo-400">
+                <FaCoins size={228} />
                 </div>
+
+                <label htmlFor="estate" className="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-3 ml-1">
+                Total Harta Waris (Bruto)
+                </label>
+
+                <div className="relative flex items-center">
+                <span className="absolute left-0 text-indigo-600 dark:text-indigo-400 font-bold text-2xl md:text-3xl pointer-events-none">Rp</span>
+                <input
+                type="text"
+                inputMode="numeric"
+                id="estate"
+                value={formatInputValue(estate)}
+                onChange={handleEstateChange}
+                className="w-full bg-transparent border-b-2 border-slate-200 dark:border-slate-700 focus:border-indigo-500 dark:focus:border-indigo-400 pl-12 pr-4 py-2 text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white placeholder-slate-300 focus:outline-none transition-colors tracking-tight"
+                placeholder="0"
+                disabled={isPending}
+                />
+                </div>
+                </div>
+                </div>
+
+                {/* 2b. Wasiat & Utang Inputs */}
+                <div className="grid grid-cols-2 gap-3">
+                {/* Wasiat */}
+                <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm">
+                <label htmlFor="wasiat" className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2 ml-0.5">
+                Wasiat (maks 1/3)
+                </label>
+                <div className="relative flex items-center">
+                <span className="absolute left-0 text-slate-400 dark:text-slate-500 font-bold text-sm pointer-events-none">Rp</span>
+                <input
+                type="text"
+                inputMode="numeric"
+                id="wasiat"
+                value={formatInputValue(wasiat)}
+                onChange={(e) => {
+                const rawValue = e.target.value;
+                const unformattedValue = rawValue.replace(/\./g, '');
+                if (/^\d*$/.test(unformattedValue)) {
+                setWasiat(unformattedValue);
+                }
+                }}
+                className="w-full bg-transparent border-b border-slate-200 dark:border-slate-700 focus:border-indigo-500 dark:focus:border-indigo-400 pl-9 pr-2 py-1.5 text-lg font-bold text-slate-900 dark:text-white placeholder-slate-300 focus:outline-none transition-colors"
+                placeholder="0"
+                disabled={isPending}
+                />
+                </div>
+                {wasiatExceedsCap && (
+                <p className="mt-1.5 text-[10px] font-medium text-amber-600 dark:text-amber-400 leading-snug">
+                Maks 1/3 dari sisa setelah utang = Rp {liveWasiatCap.toLocaleString('id-ID')}
+                </p>
+                )}
+                </div>
+
+                {/* Utang */}
+                <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm">
+                <label htmlFor="utang" className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2 ml-0.5">
+                Utang / Pinjaman
+                </label>
+                <div className="relative flex items-center">
+                <span className="absolute left-0 text-slate-400 dark:text-slate-500 font-bold text-sm pointer-events-none">Rp</span>
+                <input
+                type="text"
+                inputMode="numeric"
+                id="utang"
+                value={formatInputValue(utang)}
+                onChange={(e) => {
+                const rawValue = e.target.value;
+                const unformattedValue = rawValue.replace(/\./g, '');
+                if (/^\d*$/.test(unformattedValue)) {
+                setUtang(unformattedValue);
+                }
+                }}
+                className="w-full bg-transparent border-b border-slate-200 dark:border-slate-700 focus:border-indigo-500 dark:focus:border-indigo-400 pl-9 pr-2 py-1.5 text-lg font-bold text-slate-900 dark:text-white placeholder-slate-300 focus:outline-none transition-colors"
+                placeholder="0"
+                disabled={isPending}
+                />
+                </div>
+                </div>
+                </div>
+
+                {netEstateInvalid && (
+                <p className="text-[11px] font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-xl border border-red-100 dark:border-red-900/30">
+                Harta bersih setelah utang dan wasiat harus lebih dari 0.
+                </p>
+                )}
 
                 {/* 3. Heirs Input */}
                 <div className="space-y-4">

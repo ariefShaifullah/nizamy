@@ -85,14 +85,14 @@ export const calculateFaraidh = (
   if (totalHeirsCount === 0) {
       return {
       estate,
-      netEstate: estate,
-      wasiat: 0,
-      utang: 0,
+      netEstate,
+      wasiat: effectiveWasiat,
+      utang,
       heirResults: [],
       aslAlMasalah: 0,
       totalSharesNum: 0,
       finalDenominator: 0,
-      notes: ["Tidak ada ahli waris yang diketahui. Seluruh harta diserahkan ke Baitul Mal atau digunakan untuk kemaslahatan umum."],
+      notes: [...notes, "Tidak ada ahli waris yang diketahui. Seluruh harta bersih diserahkan ke Baitul Mal atau digunakan untuk kemaslahatan umum."],
       };
   }
 

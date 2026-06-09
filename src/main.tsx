@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 import './index.css'; // Global CSS (Z-Index Registry, etc.)
 import { AppProviders } from './components/providers/AppProviders.tsx';
+import { HelmetProvider } from 'react-helmet-async';
 
 // Polyfill/Type definition for import.meta.env
 const isProduction = (() => {
@@ -39,9 +40,11 @@ if ('serviceWorker' in navigator && isProduction) {
 
 const root = ReactDOM.createRoot(rootElement);
 root.render(
-  <React.StrictMode>
-    <AppProviders>
-      <App />
-    </AppProviders>
-  </React.StrictMode>
+ <React.StrictMode>
+ <HelmetProvider>
+ <AppProviders>
+ <App />
+ </AppProviders>
+ </HelmetProvider>
+ </React.StrictMode>
 );

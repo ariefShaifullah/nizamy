@@ -1,0 +1,15 @@
+# Caddy SPA fallback for nizamy.com
+# Usage: caddy run --config Caddyfile
+
+nizamy.com {
+    root * /var/www/nizamy
+    encode gzip
+
+    # Static assets — long cache (Vite hashes filenames)
+    @assets path /assets/*
+    header @assets Cache-Control "public, max-age=31536000, immutable"
+
+    # SPA fallback
+    try_files {path} /index.html
+    file_server
+}

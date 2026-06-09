@@ -1,5 +1,5 @@
 import React, { useEffect, Suspense, useMemo } from 'react';
-import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { Home } from './features/home/Home.tsx';
 import { Header, Footer } from './components/layout/Layout.tsx';
 import { BottomNav } from './components/layout/BottomNav.tsx';
@@ -7,6 +7,7 @@ import { useToast } from './components/ui/Toast.tsx';
 import { OfflineBanner } from './components/ui/OfflineBanner.tsx';
 import { PageLoader } from './components/ui/PageLoader.tsx';
 import { useAppInitialization } from './hooks/useAppInitialization.ts';
+import { PageHead } from './hooks/usePageMetadata.tsx';
 
 // Lazy Load Components (Feature-Based)
 const FaraidhCalculator = React.lazy(() => import('./features/faraidh/FaraidhCalculator.tsx'));
@@ -58,8 +59,9 @@ const AppContent = () => {
     : 'container mx-auto px-4 py-4 md:py-8 flex-grow pt-[calc(5rem+env(safe-area-inset-top))] md:pt-[calc(5rem+env(safe-area-inset-top))]';
 
   return (
-    <div className={layoutClass}>
-      {!isScanner && <OfflineBanner />}
+  <div className={layoutClass}>
+  <PageHead />
+  {!isScanner && <OfflineBanner />}
       {!isScanner && <Header />}
 
       {/* PWA Update Banner */}
@@ -102,8 +104,8 @@ const AppContent = () => {
 
 export default function App() {
   return (
-    <HashRouter>
-      <AppContent />
-    </HashRouter>
+  <BrowserRouter>
+  <AppContent />
+  </BrowserRouter>
   );
 }

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { usePWA } from './usePWA.ts';
-import { usePageMetadata } from './usePageMetadata.ts';
+import { usePageMetadata } from './usePageMetadata.tsx';
 import { useHafalanReminder } from './useHafalanReminder.ts';
 import { migrateFromLocalStorage } from '../services/db.service.ts';
 

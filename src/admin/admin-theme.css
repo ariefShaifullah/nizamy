@@ -1,0 +1,81 @@
+/* NIZAMY Admin Theme — uses data-admin-theme to avoid conflict with public site */
+
+:root,
+[data-admin-theme="dark"] {
+  --admin-bg: #0f172a;
+  --admin-bg-secondary: #1e293b;
+  --admin-surface: rgba(255, 255, 255, 0.03);
+  --admin-surface-hover: rgba(255, 255, 255, 0.06);
+  --admin-border: rgba(255, 255, 255, 0.08);
+  --admin-border-hover: rgba(255, 255, 255, 0.15);
+  --admin-text: #f1f5f9;
+  --admin-text-secondary: rgba(255, 255, 255, 0.5);
+  --admin-text-muted: rgba(255, 255, 255, 0.25);
+  --admin-accent: #6366f1;
+  --admin-accent-hover: #818cf8;
+  --admin-accent-bg: rgba(99, 102, 241, 0.1);
+  --admin-accent-border: rgba(99, 102, 241, 0.25);
+  --admin-input-bg: rgba(255, 255, 255, 0.05);
+  --admin-input-text: #ffffff;
+  --admin-header-bg: rgba(15, 23, 42, 0.9);
+  --admin-danger: #f87171;
+  --admin-success: #34d399;
+  --admin-warning: #fbbf24;
+  --admin-editor-bg: #1e293b;
+  --admin-editor-text: #e2e8f0;
+}
+
+[data-admin-theme="light"] {
+  --admin-bg: #f8fafc;
+  --admin-bg-secondary: #f1f5f9;
+  --admin-surface: rgba(0, 0, 0, 0.03);
+  --admin-surface-hover: rgba(0, 0, 0, 0.06);
+  --admin-border: rgba(0, 0, 0, 0.08);
+  --admin-border-hover: rgba(0, 0, 0, 0.15);
+  --admin-text: #1e293b;
+  --admin-text-secondary: rgba(0, 0, 0, 0.5);
+  --admin-text-muted: rgba(0, 0, 0, 0.25);
+  --admin-accent: #4f46e5;
+  --admin-accent-hover: #6366f1;
+  --admin-accent-bg: rgba(79, 70, 229, 0.08);
+  --admin-accent-border: rgba(79, 70, 229, 0.2);
+  --admin-input-bg: #ffffff;
+  --admin-input-text: #1e293b;
+  --admin-header-bg: rgba(248, 250, 252, 0.9);
+  --admin-danger: #dc2626;
+  --admin-success: #059669;
+  --admin-warning: #d97706;
+  --admin-editor-bg: #ffffff;
+  --admin-editor-text: #334155;
+}
+
+/* Quill editor tweaks for admin */
+.admin-editor .ql-toolbar.ql-snow {
+  border-color: var(--admin-border) !important;
+  background: var(--admin-bg-secondary) !important;
+}
+.admin-editor .ql-container.ql-snow {
+  border-color: var(--admin-border) !important;
+  background: var(--admin-editor-bg) !important;
+  color: var(--admin-editor-text) !important;
+  font-size: 0.9375rem;
+  min-height: 300px;
+}
+.admin-editor .ql-editor {
+  min-height: 300px;
+}
+.admin-editor .ql-editor.ql-blank::before {
+  color: var(--admin-text-muted) !important;
+}
+.admin-editor .ql-snow .ql-stroke {
+  stroke: var(--admin-text-secondary) !important;
+}
+.admin-editor .ql-snow .ql-fill {
+  fill: var(--admin-text-secondary) !important;
+}
+.admin-editor .ql-snow .ql-picker-label {
+  color: var(--admin-text-secondary) !important;
+}
+.admin-editor .ql-snow a {
+  color: var(--admin-accent) !important;
+}

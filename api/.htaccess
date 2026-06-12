@@ -1,0 +1,10 @@
+# Block direct access to sensitive files in /api/
+<FilesMatch "\.(sql|bak|log|md|env)$">
+    Require all denied
+</FilesMatch>
+
+<Files "config.php">
+    Require all denied
+</Files>
+
+Options -Indexes

@@ -20,6 +20,10 @@ const PrayerApp = React.lazy(() => import('./features/prayer/PrayerApp.tsx'));
 // NEW: Scanner
 const HalalScanner = React.lazy(() => import('./features/scanner/HalalScanner.tsx').then(module => ({ default: module.HalalScanner })));
 
+// Blog (non-lazy — Helmet + structured data needs immediate render)
+import BlogPage from './pages/BlogPage.tsx';
+import BlogPostPage from './pages/BlogPostPage.tsx';
+
 // Inner Component to use hooks that require Router context
 const AppContent = () => {
   const location = useLocation();
@@ -52,6 +56,8 @@ const AppContent = () => {
 
   // Hide Header/Footer on Scanner Page
   const isScanner = location.pathname === '/scanner';
+  // Hide BottomNav on blog post pages for better reading experience
+  const isBlogPost = location.pathname.startsWith('/blog/');
 
   // Reduced top padding from 8rem to 5rem for better vertical alignment
   const mainPaddingClass = (location.pathname === '/' || isScanner)
@@ -91,12 +97,14 @@ const AppContent = () => {
             <Route path="/amal" element={<AmalYaumiApp />} />
             <Route path="/sholat" element={<PrayerApp />} />
             <Route path="/scanner" element={<HalalScanner />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/blog/:slug" element={<BlogPostPage />} />
             <Route path="*" element={<Home />} /> {/* Fallback */}
           </Routes>
         </Suspense>
       </main>
 
-      {!isScanner && <BottomNav />}
+      {!isScanner && !isBlogPost && <BottomNav />}
       {!isScanner && <Footer />}
     </div>
   );

@@ -62,6 +62,12 @@ const PAGE_META: Record<string, PageMeta> = {
     keywords: 'halal scanner, scan barcode halal, cek halal, sertifikasi halal MUI, barcode halal',
     brandColorLight: '#4f46e5',
   },
+  '/blog': {
+    title: 'NIZAMY | Artikel Islam — Waris, Zakat, Ekonomi Syariah',
+    description: 'Artikel Islam tentang waris (faraidh), zakat, hafalan Quran, ekonomi syariah, dan klinik finansial. Panduan lengkap sesuai dalil Syar\'i.',
+    keywords: 'artikel islam, waris islam, zakat, ekonomi syariah, hafalan quran, fiqh waris, klinik finansial',
+    brandColorLight: '#4f46e5',
+  },
 };
 
 const DEFAULT_META: PageMeta = {

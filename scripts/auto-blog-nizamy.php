@@ -144,7 +144,6 @@ function callGeminiAPI($prompt)
 
 		$response = curl_exec($ch);
 		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-		curl_close($ch);
 
 		if ($httpCode === 200) {
 			$result = json_decode($response, true);
@@ -183,7 +182,6 @@ function getUnsplashImage($query, $db)
 
 	$response = curl_exec($ch);
 	$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-	curl_close($ch);
 
 	if ($httpCode !== 200) {
 		echo "❌ Unsplash API Error ($httpCode)\n";
@@ -213,7 +211,6 @@ function getUnsplashImage($query, $db)
 			CURLOPT_SSL_VERIFYPEER => false
 		]);
 		curl_exec($ch);
-		curl_close($ch);
 	}
 
 	return [

@@ -18,6 +18,8 @@ import {
     FaCamera,
     FaArrowRight,
 } from "react-icons/fa";
+import { useBlogPosts } from '../../hooks/useBlogPosts.ts';
+import BlogCard from '../../components/blog/BlogCard.tsx';
 
 // --- UTILS ---
 const getGregorianDate = () => {
@@ -281,6 +283,8 @@ export const Home: React.FC = () => {
     const [showIOSGuide, setShowIOSGuide] = useState(false);
     const [showInstallBanner, setShowInstallBanner] = useState(false);
 
+    const { posts: latestPosts, loading: blogLoading } = useBlogPosts({ page: 1, per_page: 3 });
+
     useEffect(() => {
         const dismissed = localStorage.getItem(INSTALL_DISMISS_KEY);
         if (dismissed) {
@@ -399,6 +403,29 @@ export const Home: React.FC = () => {
                         />
                     </div>
                 </div>
+
+                {/* === ARTIKEL TERBARU === */}
+                {latestPosts && latestPosts.length > 0 && (
+                    <div className="mb-10 animate-fade-in">
+                        <div className="flex items-center justify-between mb-4 px-1">
+                            <div className="flex items-center gap-3">
+                                <h4 className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Artikel Terbaru</h4>
+                                <div className="h-px w-8 bg-slate-200 dark:bg-slate-800"></div>
+                            </div>
+                            <button
+                                onClick={() => navigate('/blog')}
+                                className="text-xs font-bold text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 flex items-center gap-1.5 transition-colors"
+                            >
+                                Lihat Semua <span className="icon-wrapper w-3 h-3 flex items-center justify-center"><FaArrowRight /></span>
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {latestPosts.slice(0, 3).map(post => (
+                                <BlogCard key={post.id} post={post} />
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {/* Footer */}
                 <div className="text-center opacity-30 pb-4">

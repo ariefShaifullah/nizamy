@@ -5,6 +5,7 @@ import {
     FaQuran,
     FaMosque,
     FaCheckCircle,
+    FaBookOpen,
     FaEllipsisH,
 } from 'react-icons/fa';
 
@@ -19,7 +20,7 @@ const NAV_ITEMS: NavItem[] = [
     { path: '/', label: 'Beranda', icon: <FaHome /> },
     { path: '/mushaf', label: 'Al-Quran', icon: <FaQuran /> },
     { path: '/sholat', label: 'Sholat', icon: <FaMosque /> },
-    { path: '/amal', label: 'Amal', icon: <FaCheckCircle /> },
+    { path: '/blog', label: 'Artikel', icon: <FaBookOpen /> },
 ];
 
 // Routes where bottom nav should be hidden (fullscreen features)

@@ -406,7 +406,7 @@ export const Home: React.FC = () => {
 
                 {/* === ARTIKEL TERBARU === */}
                 {latestPosts && latestPosts.length > 0 && (
-                    <div className="mb-10 animate-fade-in">
+                    <div className="hidden md:block mb-10 animate-fade-in">
                         <div className="flex items-center justify-between mb-4 px-1">
                             <div className="flex items-center gap-3">
                                 <h4 className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Artikel Terbaru</h4>

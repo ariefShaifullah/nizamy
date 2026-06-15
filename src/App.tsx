@@ -60,7 +60,8 @@ const AppContent = () => {
   const isBlogPost = location.pathname.startsWith('/blog/');
 
   // Reduced top padding from 8rem to 5rem for better vertical alignment
-  const mainPaddingClass = (location.pathname === '/' || isScanner)
+  const isBlog = location.pathname.startsWith('/blog');
+  const mainPaddingClass = (location.pathname === '/' || isScanner || isBlog)
     ? 'flex-grow'
     : 'container mx-auto px-4 py-4 md:py-8 flex-grow pt-[calc(5rem+env(safe-area-inset-top))] md:pt-[calc(5rem+env(safe-area-inset-top))]';
 

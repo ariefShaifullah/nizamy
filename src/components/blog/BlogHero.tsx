@@ -2,13 +2,15 @@ import React from 'react';
 
 export default function BlogHero() {
   return (
-    <section className="relative overflow-hidden border-b border-slate-200/70 bg-[#F8FAFC] dark:border-slate-800/60 dark:bg-[#0F172A]">
+    <section className="relative overflow-hidden bg-[#F8FAFC] dark:bg-[#0F172A]">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808010_1px,transparent_1px),linear-gradient(to_bottom,#80808010_1px,transparent_1px)] bg-[size:18px_18px] [mask-image:radial-gradient(ellipse_70%_60%_at_50%_0%,#000_75%,transparent_100%)]" />
+        <div 
+          className="absolute inset-0 bg-[url('/images/ornaments.svg')] bg-[length:320px] bg-repeat opacity-[0.03] invert mix-blend-multiply dark:invert-0 dark:opacity-5 dark:mix-blend-screen pointer-events-none [mask-image:linear-gradient(to_bottom,black_10%,transparent_90%)]"
+        />
         <div className="absolute left-1/2 top-0 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-blue-900/10 blur-[120px] dark:bg-blue-900/20" />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-6xl px-4 py-20 md:py-28">
+      <div className="relative z-10 mx-auto max-w-6xl px-4 pt-[calc(7rem+env(safe-area-inset-top))] pb-16 md:pt-[calc(9rem+env(safe-area-inset-top))] md:pb-24">
         <div className="mx-auto max-w-4xl text-center">
           <span className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-[#1E3A8A] shadow-sm backdrop-blur dark:border-blue-900/40 dark:bg-[#0F172A]/50 dark:text-blue-300">
             Pustaka Keislaman Digital

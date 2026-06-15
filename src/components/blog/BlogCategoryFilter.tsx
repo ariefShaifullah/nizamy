@@ -56,9 +56,6 @@ export default function BlogCategoryFilter({
                 Atur Ulang
               </button>
             )}
-            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-['Source_Sans_3'] text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-400">
-              {pagination ? `${pagination.total_pages} halaman` : 'Memuat...'}
-            </div>
           </div>
         </div>
 
@@ -68,10 +65,10 @@ export default function BlogCategoryFilter({
               Filter Kategori
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2 snap-x md:flex-wrap md:overflow-x-visible md:pb-0">
               <button
                 onClick={() => onCategoryChange(null)}
-                className={`rounded-xl px-4 py-2.5 font-['Source_Sans_3'] text-sm font-semibold transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1E3A8A] cursor-pointer ${
+                className={`shrink-0 snap-start whitespace-nowrap rounded-xl px-4 py-2.5 font-['Source_Sans_3'] text-sm font-semibold transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1E3A8A] cursor-pointer ${
                   !activeCategory
                     ? 'bg-[#1E3A8A] text-white shadow-sm dark:bg-white dark:text-[#0F172A]'
                     : 'border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-[#0F172A] dark:text-slate-400 dark:hover:bg-slate-900'
@@ -85,7 +82,7 @@ export default function BlogCategoryFilter({
                 <button
                   key={cat.id}
                   onClick={() => onCategoryChange(cat.name)}
-                  className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 font-['Source_Sans_3'] text-sm font-semibold transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1E3A8A] cursor-pointer ${
+                  className={`shrink-0 snap-start whitespace-nowrap inline-flex items-center gap-2 rounded-xl px-4 py-2.5 font-['Source_Sans_3'] text-sm font-semibold transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1E3A8A] cursor-pointer ${
                     activeCategory === cat.name
                       ? 'bg-[#1E3A8A] text-white shadow-md shadow-blue-900/20 dark:bg-blue-600'
                       : 'border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-[#0F172A] dark:text-slate-400 dark:hover:bg-slate-900'

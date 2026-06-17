@@ -12,23 +12,32 @@ export function useBlogPosts(params?: {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (isBackground = false) => {
+    if (!isBackground) setLoading(true);
     setError(null);
     try {
       const data = await fetchPosts(params);
       setPosts(data.posts);
       setPagination(data.pagination);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load posts');
+      if (!isBackground) setError(e instanceof Error ? e.message : 'Failed to load posts');
     } finally {
-      setLoading(false);
+      if (!isBackground) setLoading(false);
     }
   }, [params?.page, params?.per_page, params?.category, params?.search]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { 
+    load(); 
+    
+    // Auto-refresh every 30 seconds for background updates
+    const intervalId = setInterval(() => {
+      load(true);
+    }, 30000);
+    
+    return () => clearInterval(intervalId);
+  }, [load]);
 
-  return { posts, pagination, loading, error, reload: load };
+  return { posts, pagination, loading, error, reload: () => load(false) };
 }
 
 export function useBlogPost(slug: string) {

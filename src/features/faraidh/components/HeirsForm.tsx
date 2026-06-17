@@ -97,6 +97,28 @@ export const HeirsForm: React.FC = React.memo(() => {
         return formatNumber(numberValue);
     };
 
+    /** Converts a number to human-readable Indonesian shorthand */
+    const formatReadableAmount = (value: number): string => {
+        if (!value || value === 0) return '';
+        if (value >= 1_000_000_000_000) {
+            const v = value / 1_000_000_000_000;
+            return `${Number.isInteger(v) ? v : v.toFixed(1).replace('.0', '')} Triliun`;
+        }
+        if (value >= 1_000_000_000) {
+            const v = value / 1_000_000_000;
+            return `${Number.isInteger(v) ? v : v.toFixed(1).replace('.0', '')} Miliar`;
+        }
+        if (value >= 1_000_000) {
+            const v = value / 1_000_000;
+            return `${Number.isInteger(v) ? v : v.toFixed(1).replace('.0', '')} Juta`;
+        }
+        if (value >= 1_000) {
+            const v = value / 1_000;
+            return `${Number.isInteger(v) ? v : v.toFixed(1).replace('.0', '')} Ribu`;
+        }
+        return formatNumber(value);
+    };
+
     const handleEstateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const rawValue = e.target.value;
         const unformattedValue = rawValue.replace(/\./g, '');
@@ -202,6 +224,11 @@ export const HeirsForm: React.FC = React.memo(() => {
                 disabled={isPending}
                 />
                 </div>
+                {estateNum > 0 && (
+                <p className="mt-2 text-xs font-semibold text-indigo-500 dark:text-indigo-400 ml-1 animate-fade-in">
+                    Rp {formatReadableAmount(estateNum)}
+                </p>
+                )}
                 </div>
                 </div>
 
@@ -211,6 +238,11 @@ export const HeirsForm: React.FC = React.memo(() => {
                 <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm">
                 <label htmlFor="wasiat" className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2 ml-0.5">
                 Wasiat (maks 1/3)
+                {liveWasiatCap > 0 && (
+                    <span className="ml-1 normal-case tracking-normal text-indigo-500 dark:text-indigo-400 font-semibold">
+                        · Rp {formatReadableAmount(liveWasiatCap)}
+                    </span>
+                )}
                 </label>
                 <div className="relative flex items-center">
                 <span className="absolute left-0 text-slate-400 dark:text-slate-500 font-bold text-sm pointer-events-none">Rp</span>
@@ -231,9 +263,14 @@ export const HeirsForm: React.FC = React.memo(() => {
                 disabled={isPending}
                 />
                 </div>
+                {wasiatNum > 0 && !wasiatExceedsCap && (
+                <p className="mt-1.5 text-[10px] font-semibold text-slate-400 dark:text-slate-500 animate-fade-in">
+                    Rp {formatReadableAmount(wasiatNum)}
+                </p>
+                )}
                 {wasiatExceedsCap && (
                 <p className="mt-1.5 text-[10px] font-medium text-amber-600 dark:text-amber-400 leading-snug">
-                Maks 1/3 dari sisa setelah utang = Rp {liveWasiatCap.toLocaleString('id-ID')}
+                Maks 1/3 = Rp {formatReadableAmount(liveWasiatCap)} ({liveWasiatCap.toLocaleString('id-ID')})
                 </p>
                 )}
                 </div>
@@ -262,6 +299,11 @@ export const HeirsForm: React.FC = React.memo(() => {
                 disabled={isPending}
                 />
                 </div>
+                {utangNum > 0 && (
+                <p className="mt-1.5 text-[10px] font-semibold text-slate-400 dark:text-slate-500 animate-fade-in">
+                    Rp {formatReadableAmount(utangNum)}
+                </p>
+                )}
                 </div>
                 </div>
 

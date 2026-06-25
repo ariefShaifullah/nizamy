@@ -59,20 +59,22 @@ export async function fetchPosts(params?: {
   if (params?.category) searchParams.set('category', params.category);
   if (params?.search) searchParams.set('search', params.search);
 
+  searchParams.set('_t', String(Date.now()));
+
   const url = `${API_BASE}/posts.php?${searchParams.toString()}`;
-  const res = await fetch(url);
+  const res = await fetch(url, { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch posts');
   return res.json();
 }
 
 export async function fetchPost(slug: string): Promise<BlogPost> {
-  const res = await fetch(`${API_BASE}/posts.php?slug=${encodeURIComponent(slug)}`);
+  const res = await fetch(`${API_BASE}/posts.php?slug=${encodeURIComponent(slug)}&_t=${Date.now()}`, { cache: 'no-store' });
   if (!res.ok) throw new Error('Post not found');
   return res.json();
 }
 
 export async function fetchCategories(): Promise<BlogCategory[]> {
-  const res = await fetch(`${API_BASE}/categories.php`);
+  const res = await fetch(`${API_BASE}/categories.php?_t=${Date.now()}`, { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch categories');
   return res.json();
 }

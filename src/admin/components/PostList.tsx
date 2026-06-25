@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { FaPencilAlt, FaTrash, FaSearch, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { apiCall } from '../lib/api';
 import type { Post } from '../lib/types';

@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'nizamy-cache-v6';
+const CACHE_NAME = 'nizamy-cache-v7';
 const QURAN_CACHE = 'nizamy-quran-data-v1';
 const AUDIO_CACHE = 'nizamy-audio-cache-v1';
 const ASSET_CACHE = 'nizamy-external-assets-v1';
@@ -160,7 +160,17 @@ self.addEventListener('fetch', (event) => {
       return;
   }
 
-  // 4. Navigation (HTML): Network First
+  // 4. API Requests: Network First (Bypass Stale Cache)
+  if (url.pathname.includes('/api/') || url.pathname.endsWith('.php')) {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        return caches.match(event.request);
+      })
+    );
+    return;
+  }
+
+  // 5. Navigation (HTML): Network First
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)

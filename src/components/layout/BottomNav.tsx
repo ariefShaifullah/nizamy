@@ -4,9 +4,7 @@ import {
     FaHome,
     FaQuran,
     FaMosque,
-    FaCheckCircle,
     FaBookOpen,
-    FaEllipsisH,
 } from 'react-icons/fa';
 
 interface NavItem {
@@ -24,7 +22,7 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 // Routes where bottom nav should be hidden (fullscreen features)
-const HIDDEN_ON_ROUTES = ['/scanner', '/mushaf'];
+const HIDDEN_ON_ROUTES = ['/scanner', '/mushaf', '/zakat', '/faraidh', '/hede', '/hafalan'];
 
 export const BottomNav: React.FC = () => {
     const location = useLocation();

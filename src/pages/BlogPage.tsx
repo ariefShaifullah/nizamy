@@ -15,7 +15,7 @@ export default function BlogPage() {
 
   const { posts, pagination, loading, error } = useBlogPosts({
     page,
-    per_page: 9,
+    per_page: 7,
     category: activeCategory || undefined,
     search: debouncedSearch || undefined,
   });
@@ -86,6 +86,7 @@ export default function BlogPage() {
             pagination={pagination}
             page={page}
             onPageChange={setPage}
+            loading={loading}
           />
         </div>
       </div>

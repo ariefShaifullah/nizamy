@@ -13,11 +13,24 @@ export function useBlogPosts(params?: {
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async (isBackground = false) => {
+    // Prevent background polling from appending duplicates when using infinite scroll
+    if (isBackground && params?.page && params.page > 1) return;
+
     if (!isBackground) setLoading(true);
     setError(null);
     try {
       const data = await fetchPosts(params);
-      setPosts(data.posts);
+      
+      if (!isBackground && params?.page && params.page > 1) {
+        setPosts(prev => {
+          const existingIds = new Set(prev.map(p => p.id));
+          const newPosts = data.posts.filter(p => !existingIds.has(p.id));
+          return [...prev, ...newPosts];
+        });
+      } else {
+        setPosts(data.posts);
+      }
+      
       setPagination(data.pagination);
     } catch (e) {
       if (!isBackground) setError(e instanceof Error ? e.message : 'Failed to load posts');

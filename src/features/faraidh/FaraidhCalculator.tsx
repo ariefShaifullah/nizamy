@@ -31,7 +31,7 @@ const FaraidhContent: React.FC<{
     return (
         <div className="max-w-screen-2xl mx-auto pb-0 lg:pb-16 animate-fade-in px-0 md:px-6">
             {/* Desktop Header */}
-            <div className="hidden lg:block text-center mb-10 lg:mb-16">
+            <div className="text-center mb-6 lg:mb-16">
                 <div className="inline-flex items-center justify-center p-2 mb-4">
                     <h1 className="text-3xl font-extrabold tracking-tight text-blue-900 dark:text-blue-100">
                         Kalkulator Waris Islam

@@ -4,7 +4,7 @@ export default function BlogHero() {
   return (
     <section className="relative overflow-hidden bg-[#F8FAFC] dark:bg-[#0F172A]">
       <div className="pointer-events-none absolute inset-0">
-        <div 
+        <div
           className="absolute inset-0 bg-[url('/images/ornaments.svg')] bg-[length:320px] bg-repeat opacity-[0.03] invert mix-blend-multiply dark:invert-0 dark:opacity-5 dark:mix-blend-screen pointer-events-none [mask-image:linear-gradient(to_bottom,black_10%,transparent_90%)]"
         />
         <div className="absolute left-1/2 top-0 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-blue-900/10 blur-[120px] dark:bg-blue-900/20" />
@@ -18,7 +18,7 @@ export default function BlogHero() {
 
           <h1 className="mt-6 font-['Lexend'] text-4xl font-black tracking-tight text-[#020617] dark:text-white sm:text-5xl md:text-6xl">
             Telusuri Kumpulan <br className="hidden sm:block" />
-            <span className="bg-gradient-to-r from-[#1E3A8A] to-[#CA8A04] bg-clip-text text-transparent dark:from-blue-400 dark:to-yellow-400">
+            <span>
               Artikel Islami
             </span>
           </h1>

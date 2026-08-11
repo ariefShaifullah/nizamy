@@ -82,7 +82,7 @@ $topics = [
 	['title' => 'Panduan Menghitung Zakat Maal: Simpanan, Emas, dan Investasi', 'category' => 'Zakat', 'image_query' => 'Islamic charity gold'],
 	['title' => 'Zakat Fitrah 2026: Nisab, Harga, dan Cara Menghitungnya', 'category' => 'Zakat', 'image_query' => 'Ramadan zakat food'],
 	['title' => 'Zakat Penghasilan: Berapa yang Harus Dikeluarkan dari Gaji Anda?', 'category' => 'Zakat', 'image_query' => 'Muslim salary income'],
-	['title' => 'Zakat Profesi: Panduan Lengkap untuk Profesional Muslim', 'category' => 'Zakat', 'image_query' => 'Muslim professional work'],
+	['title' => 'Zakat Hewan Ternak: Panduan Lengkap untuk Peternak Muslim', 'category' => 'Zakat', 'image_query' => 'Muslim livestock farming'],
 	['title' => 'Zakat Emas dan Perak: Nisab Terbaru dan Cara Perhitungannya', 'category' => 'Zakat', 'image_query' => 'gold bars Islamic'],
 	['title' => 'Bedanya Zakat, Infaq, dan Sedekah: Penjelasan Lengkap', 'category' => 'Zakat', 'image_query' => 'Islamic giving charity'],
 
@@ -123,7 +123,7 @@ $topics = [
 
 function callGeminiAPI($prompt)
 {
-	$model = 'gemini-2.5-flash';
+	$model = 'gemini-3.6-flash';
 	$maxRetries = 3;
 	$retryDelay = 30;
 	$attempt = 0;
@@ -228,7 +228,8 @@ function addInternalLinks($content, $links)
 	$maxLinks = 8; // Cap internal links per article for SEO best practice
 	$count = 0;
 	foreach ($links as $keyword => $url) {
-		if ($count >= $maxLinks) break;
+		if ($count >= $maxLinks)
+			break;
 		if (in_array($keyword, $linked))
 			continue;
 		// Match keyword not already inside an HTML tag or anchor

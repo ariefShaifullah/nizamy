@@ -325,7 +325,7 @@ export const AmalYaumiApp: React.FC = () => {
                             <div className="relative z-card">
                                 <div className="flex justify-between items-center mb-4">
                                     <div className="text-left">
-                                        <h2 className="text-lg font-bold tracking-tight">Amal Yaumi</h2>
+                                        <h1 className="text-lg font-bold tracking-tight">Amal Yaumi</h1>
                                         <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">
                                             {selectedDate.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' })}
                                         </p>

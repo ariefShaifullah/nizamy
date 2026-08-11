@@ -3,6 +3,9 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useTheme } from '../context/ThemeContext.tsx';
+import { generateFAQSchema, generateSoftwareSchema } from '../lib/seo.ts';
+import { FARAIDH_FAQ } from '../features/faraidh/constants.ts';
+import { ZAKAT_FAQ } from '../features/zakat/constants.ts';
 
 const SITE_URL = 'https://nizamy.com';
 
@@ -126,6 +129,21 @@ export const PageHead = () => {
       <meta property="twitter:title" content={meta.title} />
       <meta property="twitter:description" content={meta.description} />
       <meta property="twitter:url" content={canonicalUrl} />
+
+      {/* Structured Data */}
+      <script type="application/ld+json">
+        {JSON.stringify(generateSoftwareSchema(meta.title, meta.description, canonicalUrl))}
+      </script>
+      {canonicalUrl.includes('/faraidh') && (
+        <script type="application/ld+json">
+          {JSON.stringify(generateFAQSchema(FARAIDH_FAQ))}
+        </script>
+      )}
+      {canonicalUrl.includes('/zakat') && (
+        <script type="application/ld+json">
+          {JSON.stringify(generateFAQSchema(ZAKAT_FAQ))}
+        </script>
+      )}
     </Helmet>
   );
 };

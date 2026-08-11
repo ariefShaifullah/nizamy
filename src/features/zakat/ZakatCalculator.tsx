@@ -211,7 +211,7 @@ const ZakatCalculator: React.FC = () => {
 
     return (
         <div className="max-w-7xl mx-auto animate-fade-in pb-32 lg:pb-12 relative">
-            <div className="hidden lg:block text-center mb-8">
+            <div className="text-center mb-6 lg:mb-8 pt-4 lg:pt-0">
                 <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-emerald-900 dark:text-emerald-400 sm:text-5xl drop-shadow-sm">
                     Kalkulator Zakat
                 </h1>

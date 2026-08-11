@@ -101,16 +101,37 @@
   <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "WebApplication",
-        "name": "NIZAMY: Kalkulator Waris Islam",
-        "description": "Kalkulator Waris Islam (Faraidh) & Kalkulator Zakat terlengkap. Hitung pembagian harta waris & zakat secara akurat, transparan, sesuai dalil Syar'i.",
-        "applicationCategory": "LifestyleApplication",
-        "operatingSystem": "Any",
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "IDR"
-        }
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://nizamy.com/#organization",
+            "name": "NIZAMY",
+            "url": "https://nizamy.com",
+            "logo": "https://nizamy.com/images/apple-touch-icon.png",
+            "description": "Platform aplikasi ibadah Islam (Waris, Zakat, Hafalan, Klinik Finansial)."
+          },
+          {
+            "@type": "SoftwareApplication",
+            "@id": "https://nizamy.com/#software",
+            "name": "NIZAMY: Aplikasi Ibadah Islam",
+            "description": "Kalkulator Waris Islam (Faraidh) & Kalkulator Zakat terlengkap. Hitung pembagian harta waris & zakat secara akurat, transparan, sesuai dalil Syar'i.",
+            "url": "https://nizamy.com",
+            "applicationCategory": "LifestyleApplication",
+            "operatingSystem": "Any",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "IDR"
+            }
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://nizamy.com/#website",
+            "url": "https://nizamy.com",
+            "name": "NIZAMY",
+            "publisher": { "@id": "https://nizamy.com/#organization" }
+          }
+        ]
       }
     </script>
 </head>

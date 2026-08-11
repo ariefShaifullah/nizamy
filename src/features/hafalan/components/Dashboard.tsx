@@ -83,7 +83,7 @@ const StatsHeader: React.FC<{ profile: any; gamification: any; itemCount: number
           <div className="flex justify-between items-start">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2 tracking-tight">Ahlan, {profile.name}!</h1>
-              <p className="text-indigo-200 text-xs md:text-sm mt-1 font-medium italic opacity-90 line-clamp-1">"{getMotivationalQuote()}"</p>
+              <p className="text-indigo-200 text-xs md:text-sm mt-1 font-medium italic opacity-90 text-balance">"{getMotivationalQuote()}"</p>
             </div>
             <button onClick={onSettings} className="bg-white/10 p-2.5 rounded-xl hover:bg-white/20 transition-colors backdrop-blur-md border border-white/10" aria-label="Pengaturan">
               <FaCog />

@@ -25,18 +25,18 @@ $baseUrl = 'https://nizamy.com';
 echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
 echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
 
-// Static feature pages
+// Static feature pages — trailing slashes to match server canonical redirects
 $staticPages = [
     ['loc' => '/', 'priority' => '1.0', 'changefreq' => 'weekly'],
-    ['loc' => '/faraidh', 'priority' => '0.9', 'changefreq' => 'weekly'],
-    ['loc' => '/zakat', 'priority' => '0.9', 'changefreq' => 'weekly'],
-    ['loc' => '/hafalan', 'priority' => '0.8', 'changefreq' => 'weekly'],
-    ['loc' => '/mushaf', 'priority' => '0.8', 'changefreq' => 'weekly'],
-    ['loc' => '/sholat', 'priority' => '0.7', 'changefreq' => 'daily'],
-    ['loc' => '/hede', 'priority' => '0.7', 'changefreq' => 'weekly'],
-    ['loc' => '/amal', 'priority' => '0.6', 'changefreq' => 'weekly'],
-    ['loc' => '/scanner', 'priority' => '0.6', 'changefreq' => 'weekly'],
-    ['loc' => '/blog', 'priority' => '0.8', 'changefreq' => 'daily'],
+    ['loc' => '/faraidh/', 'priority' => '0.9', 'changefreq' => 'weekly'],
+    ['loc' => '/zakat/', 'priority' => '0.9', 'changefreq' => 'weekly'],
+    ['loc' => '/hafalan/', 'priority' => '0.8', 'changefreq' => 'weekly'],
+    ['loc' => '/mushaf/', 'priority' => '0.8', 'changefreq' => 'weekly'],
+    ['loc' => '/sholat/', 'priority' => '0.7', 'changefreq' => 'daily'],
+    ['loc' => '/hede/', 'priority' => '0.7', 'changefreq' => 'weekly'],
+    ['loc' => '/amal/', 'priority' => '0.6', 'changefreq' => 'weekly'],
+    ['loc' => '/scanner/', 'priority' => '0.6', 'changefreq' => 'weekly'],
+    ['loc' => '/blog/', 'priority' => '0.8', 'changefreq' => 'daily'],
 ];
 
 foreach ($staticPages as $page) {

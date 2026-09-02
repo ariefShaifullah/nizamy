@@ -35,34 +35,35 @@ if (empty(GEMINI_API_KEY)) {
 }
 
 // Internal links for SEO — expanded for deeper cross-linking
+// Note: URLs include trailing slashes to match sitemap and canonical URLs
 $internalLinks = [
 	// Faraidh / Waris
-	'kalkulator waris' => 'https://nizamy.com/faraidh',
-	'waris islam' => 'https://nizamy.com/faraidh',
-	'faraidh' => 'https://nizamy.com/faraidh',
-	'pembagian harta' => 'https://nizamy.com/faraidh',
-	'hukum waris' => 'https://nizamy.com/faraidh',
-	'fiqh waris' => 'https://nizamy.com/faraidh',
-	'ahli waris' => 'https://nizamy.com/faraidh',
-	'harta warisan' => 'https://nizamy.com/faraidh',
-	'bagian waris' => 'https://nizamy.com/faraidh',
+	'kalkulator waris' => 'https://nizamy.com/faraidh/',
+	'waris islam' => 'https://nizamy.com/faraidh/',
+	'faraidh' => 'https://nizamy.com/faraidh/',
+	'pembagian harta' => 'https://nizamy.com/faraidh/',
+	'hukum waris' => 'https://nizamy.com/faraidh/',
+	'fiqh waris' => 'https://nizamy.com/faraidh/',
+	'ahli waris' => 'https://nizamy.com/faraidh/',
+	'harta warisan' => 'https://nizamy.com/faraidh/',
+	'bagian waris' => 'https://nizamy.com/faraidh/',
 	// Zakat
-	'kalkulator zakat' => 'https://nizamy.com/zakat',
-	'zakat maal' => 'https://nizamy.com/zakat',
-	'zakat fitrah' => 'https://nizamy.com/zakat',
-	'zakat penghasilan' => 'https://nizamy.com/zakat',
-	'zakat emas' => 'https://nizamy.com/zakat',
-	'zakat' => 'https://nizamy.com/zakat',
+	'kalkulator zakat' => 'https://nizamy.com/zakat/',
+	'zakat maal' => 'https://nizamy.com/zakat/',
+	'zakat fitrah' => 'https://nizamy.com/zakat/',
+	'zakat penghasilan' => 'https://nizamy.com/zakat/',
+	'zakat emas' => 'https://nizamy.com/zakat/',
+	'zakat' => 'https://nizamy.com/zakat/',
 	// Hafalan
-	'hafalan quran' => 'https://nizamy.com/hafalan',
-	'menghafal al-quran' => 'https://nizamy.com/hafalan',
-	'muroja\'ah' => 'https://nizamy.com/hafalan',
+	'hafalan quran' => 'https://nizamy.com/hafalan/',
+	'menghafal al-quran' => 'https://nizamy.com/hafalan/',
+	'muroja\'ah' => 'https://nizamy.com/hafalan/',
 	// Other features
-	'ekonomi syariah' => 'https://nizamy.com/hede',
-	'audit halal' => 'https://nizamy.com/hede',
-	'cek riba' => 'https://nizamy.com/hede',
+	'ekonomi syariah' => 'https://nizamy.com/hede/',
+	'audit halal' => 'https://nizamy.com/hede/',
+	'cek riba' => 'https://nizamy.com/hede/',
 	// Blog cross-link (links to the blog index for topical authority)
-	'blog NIZAMY' => 'https://nizamy.com/blog',
+	'blog NIZAMY' => 'https://nizamy.com/blog/',
 	'NIZAMY' => 'https://nizamy.com',
 ];
 

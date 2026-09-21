@@ -31,3 +31,18 @@ export function generateSoftwareSchema(name: string, description: string, url: s
     },
   };
 }
+
+export function generateBreadcrumbSchema(items: { name: string; url: string }[]) {
+  if (!items || items.length === 0) return null;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": items.map((item, index) => ({
+      "@type": "ListItem",
+      "position": index + 1,
+      "name": item.name,
+      "item": item.url,
+    })),
+  };
+}

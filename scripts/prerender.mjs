@@ -19,7 +19,7 @@ const baseHtml = fs.readFileSync(INDEX_HTML_PATH, 'utf-8');
 const routes = [
     {
         path: '/faraidh',
-        title: 'NIZAMY | Kalkulator Waris Islam (Faraidh)',
+        title: 'Kalkulator Waris Islam (Faraidh) - Akurat & Sesuai Syariat | NIZAMY',
         description: 'Kalkulator Waris Islam terlengkap. Hitung pembagian harta waris sesuai faraidh — akurat, transparan, dalil Syar\'i.',
         keywords: 'kalkulator waris, kalkulator waris islam, kalkulator faraidh, hitung waris, pembagian waris, faraidh calculator, waris calculator, harta waris, ilmu waris, hukum waris islam',
         body: {
@@ -30,7 +30,7 @@ const routes = [
     },
     {
         path: '/zakat',
-        title: 'NIZAMY | Kalkulator Zakat Online (Fitrah & Maal)',
+        title: 'Kalkulator Zakat Online (Fitrah & Maal) | NIZAMY',
         description: 'Kalkulator Zakat terlengkap — zakat fitrah, maal, penghasilan, emas, pertanian. Hitung sesuai syariat Islam secara akurat.',
         keywords: 'kalkulator zakat, hitung zakat, zakat fitrah, zakat maal, zakat penghasilan, zakat emas, kalkulator zakat online, cara hitung zakat',
         body: {
@@ -41,7 +41,7 @@ const routes = [
     },
     {
         path: '/hafalan',
-        title: 'NIZAMY | Hafalan Quran Tracker (SRS)',
+        title: 'Hafalan Quran Tracker (SRS) - Jadwal Otomatis | NIZAMY',
         description: 'Tracker hafalan Al-Quran dengan metode Spaced Repetition (SRS). Jadwal review otomatis agar hafalan tetap kuat.',
         keywords: 'hafalan quran, tracker hafalan, SRS quran, spaced repetition quran, menghafal alquran, hafalan tracker, jadwal hafalan',
         body: {
@@ -52,7 +52,7 @@ const routes = [
     },
     {
         path: '/mushaf',
-        title: 'NIZAMY | Mushaf Digital & Kamus Tajwid',
+        title: 'Mushaf Digital & Kamus Tajwid - Baca Al-Quran | NIZAMY',
         description: 'Mushaf digital Al-Quran dengan audio, terjemahan, dan kamus tajwid. Baca, dengar, dan pelajari tajwid dalam satu aplikasi.',
         keywords: 'mushaf digital, alquran online, tajwid, baca quran, dengar quran, quran digital, mushaf online, kamus tajwid',
         body: {
@@ -63,7 +63,7 @@ const routes = [
     },
     {
         path: '/hede',
-        title: 'NIZAMY | HEDE — Audit Halal & Cek Riba',
+        title: 'HEDE: Audit Halal & Cek Riba Keuangan Syariah | NIZAMY',
         description: 'HEDE: audit halal dan cek riba pada produk keuangan. Analisis kesesuaian syariah pada investasi, asuransi, dan pinjaman Anda.',
         keywords: 'audit halal, cek riba, halal check, riba checker, ekonomi syariah, keuangan syariah, klinik finansial islam',
         body: {
@@ -74,7 +74,7 @@ const routes = [
     },
     {
         path: '/amal',
-        title: 'NIZAMY | Amal Yaumi — Tracker Amal Harian',
+        title: 'Amal Yaumi Tracker - Catatan Amal Harian Islam | NIZAMY',
         description: 'Tracker amal yaumi (harian Islam). Catat sholat, dzikir, puasa Sunnah, dan amal kebaikan lainnya setiap hari.',
         keywords: 'amal yaumi, tracker amal, amal harian islam, catatan amal, dzikir tracker, checklist ibadah, kebaikan harian',
         body: {
@@ -85,7 +85,7 @@ const routes = [
     },
     {
         path: '/sholat',
-        title: 'NIZAMY | Jadwal Sholat & Kiblat',
+        title: 'Jadwal Sholat Akurat & Arah Kiblat | NIZAMY',
         description: 'Jadwal sholat akurat berdasarkan lokasi Anda + penunjuk arah kiblat. Notifikasi adzan & waktu sholat tepat waktu.',
         keywords: 'jadwal sholat, arah kiblat, waktu sholat, adzan, jadwal shalat, prayer times, qibla finder, waktu sholat lokasi',
         body: {
@@ -96,7 +96,7 @@ const routes = [
     },
     {
         path: '/scanner',
-        title: 'NIZAMY | Halal Scanner',
+        title: 'Halal Scanner (Cek Barcode) - Sertifikasi MUI | NIZAMY',
         description: 'Scan barcode produk untuk mengecek status halal. Verifikasi sertifikasi halal MUI secara instan.',
         keywords: 'halal scanner, scan barcode halal, cek halal, sertifikasi halal MUI, barcode halal, cek produk halal',
         body: {
@@ -107,7 +107,7 @@ const routes = [
     },
     {
         path: '/blog',
-        title: 'NIZAMY | Artikel Islam — Waris, Zakat, Ekonomi Syariah',
+        title: 'Artikel Islam (Waris, Zakat, Ekonomi Syariah) | NIZAMY',
         description: 'Artikel Islam tentang waris (faraidh), zakat, hafalan Quran, ekonomi syariah, dan klinik finansial. Panduan lengkap sesuai dalil Syar\'i.',
         keywords: 'artikel islam, waris islam, zakat, ekonomi syariah, hafalan quran, fiqh waris, klinik finansial, panduan islam',
         body: {

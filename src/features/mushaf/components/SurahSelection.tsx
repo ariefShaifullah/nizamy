@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useSurahData } from '../../../hooks/useSurahData.ts';
-import { FaSearch, FaArrowRight, FaQuran, FaBookmark, FaStar, FaTrash, FaCertificate, FaMosque, FaSpinner, FaTimes, FaList, FaBookOpen, FaLayerGroup } from 'react-icons/fa';
+import { FaSearch, FaArrowRight, FaBookmark, FaStar, FaTrash, FaCertificate, FaMosque, FaSpinner, FaTimes, FaList, FaBookOpen, FaLayerGroup } from 'react-icons/fa';
 import { useDebounce } from '../../../hooks/useDebounce.ts';
 import type { LastReadState, Bookmark, SearchResultItem } from '../../../types.ts';
 import { audioService } from '../../../services/audio.service.ts';
@@ -155,7 +155,7 @@ export const SurahSelection: React.FC<SurahSelectionProps> = ({
                 <div className="hidden md:flex justify-between items-end">
                     <div>
                         <h2 className="text-2xl md:text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight flex items-center gap-3">
-                            <span className="text-teal-600 dark:text-teal-400 text-3xl"><FaQuran /></span>
+                            <img src="/images/icon_mushaf.png" alt="Mushaf" className="w-8 h-8 md:w-10 md:h-10 object-contain drop-shadow-md" />
                             Mushaf Digital
                         </h2>
                         <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 font-medium ml-1">

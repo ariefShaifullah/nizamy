@@ -7,15 +7,8 @@ import { IOSInstallModal } from '../../features/settings/components/IOSInstallMo
 import { PrayerWidget } from '../../features/prayer/components/PrayerWidget.tsx';
 import { useSurahData } from '../../hooks/useSurahData.ts';
 import {
-    FaBalanceScale,
-    FaHandsHelping,
-    FaQuran,
-    FaBrain,
     FaDownload,
-    FaWallet,
     FaTimes,
-    FaCheckCircle,
-    FaCamera,
     FaArrowRight,
 } from "react-icons/fa";
 import { useBlogPosts } from '../../hooks/useBlogPosts.ts';
@@ -163,8 +156,8 @@ const HeroCard = ({ lastRead, onClick }: {
         {/* Content */}
         <div className="relative z-10 p-6 md:p-8 flex flex-col justify-between h-full text-white">
             <div>
-                <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center mb-5 border border-white/20 group-hover:bg-white/20 group-hover:rotate-6 transition-all duration-500 shadow-lg shadow-black/10">
-                    <span className="icon-wrapper w-7 h-7 md:w-8 md:h-8 flex items-center justify-center"><FaQuran /></span>
+                <div className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center mb-5 group-hover:rotate-6 group-hover:scale-110 transition-all duration-500">
+                    <img src="/images/icon_mushaf.png" alt="Mushaf" className="w-full h-full object-contain drop-shadow-2xl" />
                 </div>
                 <h3 className="text-2xl md:text-3xl font-black tracking-tight leading-none mb-2 drop-shadow-md">
                     {lastRead ? lastRead.name : 'Baca Al-Quran'}
@@ -195,21 +188,19 @@ const FeatureCard = ({ title, subtitle, icon, onClick, gradient, iconBg }: {
 }) => (
     <button
         onClick={onClick}
-        className="group relative w-full h-full rounded-3xl overflow-hidden text-left transition-all duration-300 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:shadow-2xl hover:shadow-slate-200/50 dark:hover:shadow-slate-900/50 active:scale-[0.98]"
+        className="group relative w-full h-full rounded-3xl overflow-hidden text-left transition-all duration-300 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:shadow-2xl hover:shadow-slate-200/50 dark:hover:shadow-slate-900/50 active:scale-[0.98] p-4 md:p-5"
     >
         {/* Dynamic Gradient Overlay on Hover */}
         <div className={`absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500 bg-gradient-to-br ${gradient}`} />
 
-        <div className="relative z-10 flex h-full">
-            {/* Left: Full-height icon column */}
-            <div className={`w-20 md:w-30 shrink-0 bg-gradient-to-b ${gradient} flex items-center justify-center`}>
-                <span className="icon-wrapper w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-white text-2xl md:text-5xl drop-shadow-md group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
-                    {icon}
-                </span>
+        <div className="relative z-10 flex items-center h-full gap-4 md:gap-5">
+            {/* Left: Icon without frame */}
+            <div className="w-16 h-16 md:w-20 md:h-20 shrink-0 flex items-center justify-center drop-shadow-md group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+                {icon}
             </div>
 
             {/* Right: Text content */}
-            <div className="flex-1 p-4 md:p-5 flex flex-col justify-center min-w-0">
+            <div className="flex-1 flex flex-col justify-center min-w-0">
                 <h3 className="text-base md:text-lg font-extrabold text-slate-800 dark:text-slate-100 leading-tight tracking-tight">
                     {title}
                 </h3>
@@ -234,10 +225,13 @@ const ToolCard = ({ title, subtitle, icon, onClick, iconGradient }: {
         className="group relative w-full rounded-2xl overflow-hidden text-left transition-all duration-300 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-slate-900/50 active:scale-[0.98] group-hover:-translate-y-1"
     >
         <div className="absolute inset-0 bg-linear-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900/50 opacity-100" />
+        
+        {/* Dynamic Gradient Overlay on Hover */}
+        <div className={`absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-500 bg-gradient-to-br ${iconGradient}`} />
 
         <div className="relative z-10 p-4 md:p-5 flex flex-col items-center text-center md:items-start md:text-left h-full">
-            <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br ${iconGradient} text-white flex items-center justify-center mb-3 shadow-lg shadow-indigo-500/20 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500`}>
-                <span className="icon-wrapper w-6 h-6 flex items-center justify-center">{icon}</span>
+            <div className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center mb-3 drop-shadow-md group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
+                {icon}
             </div>
             <h3 className="text-xs md:text-sm font-extrabold text-slate-700 dark:text-slate-200 leading-tight mt-auto">
                 {title}
@@ -349,7 +343,7 @@ export const Home: React.FC = () => {
                     <FeatureCard
                         title="Hafalan Quran"
                         subtitle={hafalanStats ? `Level ${hafalanStats.level} · 🔥 ${hafalanStats.streak} Hari` : "Metode Spaced Repetition"}
-                        icon={<FaBrain />}
+                        icon={<img src="/images/icon_hafalan.png" alt="Hafalan" className="w-full h-full object-contain" />}
                         gradient="from-indigo-500 to-purple-600"
                         iconBg="bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400"
                         onClick={() => navigate('/hafalan')}
@@ -359,7 +353,7 @@ export const Home: React.FC = () => {
                     <FeatureCard
                         title="Amal Yaumi"
                         subtitle="Catat ibadah harian Anda"
-                        icon={<FaCheckCircle />}
+                        icon={<img src="/images/icon_amal.png" alt="Amal Yaumi" className="w-full h-full object-contain" />}
                         gradient="from-emerald-500 to-teal-600"
                         iconBg="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400"
                         onClick={() => navigate('/amal')}
@@ -376,28 +370,28 @@ export const Home: React.FC = () => {
                         <ToolCard
                             title="Kalkulator Zakat"
                             subtitle="Fitrah, Maal, Emas"
-                            icon={<FaHandsHelping />}
+                            icon={<img src="/images/icon_zakat.png" alt="Zakat" className="w-full h-full object-contain drop-shadow-sm" />}
                             iconGradient="from-emerald-500 to-emerald-600"
                             onClick={() => navigate('/zakat')}
                         />
                         <ToolCard
                             title="Kalkulator Waris"
                             subtitle="Hitung Faraidh"
-                            icon={<FaBalanceScale />}
+                            icon={<img src="/images/icon_waris.png" alt="Waris" className="w-full h-full object-contain drop-shadow-sm" />}
                             iconGradient="from-blue-500 to-blue-600"
                             onClick={() => navigate('/faraidh')}
                         />
                         <ToolCard
                             title="Cek Finansial"
                             subtitle="Diagnosa Syariah"
-                            icon={<FaWallet />}
+                            icon={<img src="/images/icon_hede.png" alt="Finansial" className="w-full h-full object-contain drop-shadow-sm" />}
                             iconGradient="from-purple-500 to-purple-600"
                             onClick={() => navigate('/hede')}
                         />
                         <ToolCard
                             title="Cek Halal"
                             subtitle="Scan Produk"
-                            icon={<FaCamera />}
+                            icon={<img src="/images/icon_scan_halal.png" alt="Scan Halal" className="w-full h-full object-contain drop-shadow-sm" />}
                             iconGradient="from-teal-500 to-teal-600"
                             onClick={() => navigate('/scanner')}
                         />

@@ -302,7 +302,9 @@ const ZakatCalculator: React.FC = () => {
                                         : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border-transparent hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:text-emerald-700 dark:hover:text-emerald-400'
                                         }`}
                                 >
-                                    <span className="mr-3 text-lg">{tab.icon}</span>
+                                    <div className="w-6 h-6 mr-3 flex items-center justify-center shrink-0">
+                                        {tab.icon.startsWith('/') ? <img src={tab.icon} alt={tab.label} className="w-full h-full object-contain drop-shadow-sm" /> : <span className="text-lg">{tab.icon}</span>}
+                                    </div>
                                     {tab.label}
                                 </button>
                             ))}

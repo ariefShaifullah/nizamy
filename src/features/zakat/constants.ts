@@ -37,11 +37,11 @@ export const ZAKAT_FAQ = [
 ];
 
 export const ZAKAT_TABS = [
-  { id: 'fitrah', label: 'Fitrah', icon: '🍚' },
-  { id: 'maal', label: 'Maal', icon: '💰' },
-  { id: 'gold', label: 'Emas', icon: '🥇' },
-  { id: 'business', label: 'Niaga', icon: '🏪' },
-  { id: 'agri', label: 'Tani', icon: '🌾' },
-  { id: 'livestock', label: 'Ternak', icon: '🐄' },
+  { id: 'fitrah', label: 'Fitrah', icon: '/images/icon_zakat_fitrah.png' },
+  { id: 'maal', label: 'Maal', icon: '/images/icon_zakat_maal.png' },
+  { id: 'gold', label: 'Emas', icon: '/images/icon_zakat_emas.png' },
+  { id: 'business', label: 'Niaga', icon: '/images/icon_zakat_niaga.png' },
+  { id: 'agri', label: 'Tani', icon: '/images/icon_zakat_tani.png' },
+  { id: 'livestock', label: 'Ternak', icon: '/images/icon_zakat_ternak.png' },
   { id: 'summary', label: 'Hasil', icon: '🧾' },
 ];

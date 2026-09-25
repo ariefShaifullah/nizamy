@@ -200,19 +200,30 @@ export const HalalScanner: React.FC = () => {
 
                 {/* Camera Error UI */}
                 {cameraErrorState === 'not-allowed' && (
-                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 text-center bg-slate-900">
-                        <div className="w-16 h-16 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mb-4 text-2xl">
+                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 text-center bg-slate-900 overflow-y-auto">
+                        <div className="w-16 h-16 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mb-4 text-2xl shrink-0 mt-8">
                             <FaCamera />
                         </div>
-                        <h3 className="text-xl font-bold text-white mb-2">Akses Kamera Ditolak</h3>
+                        <h3 className="text-xl font-bold text-white mb-2">Akses Kamera Diblokir</h3>
                         <p className="text-slate-400 text-sm mb-6 max-w-xs mx-auto leading-relaxed">
-                            Kami membutuhkan izin kamera untuk memindai komposisi produk. Silakan izinkan akses kamera di pengaturan browser/perangkat Anda.
+                            Web tidak diizinkan membuka pengaturan HP secara otomatis. Jika Anda tidak melihat notifikasi izin kamera, kemungkinan aksesnya tidak sengaja terblokir.
                         </p>
+                        
+                        <div className="bg-slate-800 rounded-2xl p-4 text-left max-w-xs w-full mb-6 text-sm text-slate-300">
+                            <p className="font-bold text-white mb-2">Cara Mengizinkan (Android/iOS):</p>
+                            <ol className="list-decimal pl-4 space-y-2">
+                                <li>Ketuk ikon <strong>Gembok 🔒</strong> atau <strong>AA</strong> di baris alamat web (URL) di atas.</li>
+                                <li>Pilih <strong>Izin</strong> atau <strong>Pengaturan Situs</strong>.</li>
+                                <li>Cari <strong>Kamera</strong> dan ubah menjadi <strong>Izinkan</strong>.</li>
+                                <li>Tutup pengaturan dan muat ulang.</li>
+                            </ol>
+                        </div>
+
                         <button 
                             onClick={() => window.location.reload()}
-                            className="px-6 py-3 bg-emerald-500 text-white rounded-full font-bold active:scale-95 transition-transform"
+                            className="px-6 py-3 bg-emerald-500 text-white rounded-full font-bold active:scale-95 transition-transform shrink-0 mb-8"
                         >
-                            Muat Ulang Halaman
+                            Sudah Diizinkan? Muat Ulang
                         </button>
                     </div>
                 )}

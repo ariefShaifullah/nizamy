@@ -29,6 +29,7 @@ export const HalalScanner: React.FC = () => {
     const [cameraReady, setCameraReady] = useState(false);
     const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
     const [showHistory, setShowHistory] = useState(false);
+    const [cameraErrorState, setCameraErrorState] = useState<'not-allowed' | 'not-found' | 'other' | null>(null);
 
     // Batch Mode State
     const [capturedImages, setCapturedImages] = useState<string[]>([]);
@@ -169,8 +170,26 @@ export const HalalScanner: React.FC = () => {
                     ref={webcamRef}
                     screenshotFormat="image/jpeg"
                     videoConstraints={videoConstraints}
-                    onUserMedia={() => setCameraReady(true)}
-                    onUserMediaError={() => showToast("Gagal mengakses kamera", "error")}
+                    onUserMedia={() => {
+                        setCameraReady(true);
+                        setCameraErrorState(null);
+                    }}
+                    onUserMediaError={(err) => {
+                        console.error("Camera error:", err);
+                        const isNotAllowed = typeof err !== "string" && err.name === "NotAllowedError";
+                        const isNotFound = typeof err !== "string" && err.name === "NotFoundError";
+                        
+                        if (isNotAllowed) {
+                            setCameraErrorState("not-allowed");
+                        } else if (isNotFound) {
+                            setCameraErrorState("not-found");
+                        } else if (facingMode === "environment") {
+                            setFacingMode("user");
+                        } else {
+                            setCameraErrorState("other");
+                            showToast("Gagal mengakses kamera", "error");
+                        }
+                    }}
                     screenshotQuality={0.9}
                     mirrored={facingMode === "user"}
                     disablePictureInPicture={true}
@@ -178,6 +197,42 @@ export const HalalScanner: React.FC = () => {
                     className="absolute inset-0 w-full h-full object-cover"
                     imageSmoothing={true}
                 />
+
+                {/* Camera Error UI */}
+                {cameraErrorState === 'not-allowed' && (
+                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 text-center bg-slate-900">
+                        <div className="w-16 h-16 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mb-4 text-2xl">
+                            <FaCamera />
+                        </div>
+                        <h3 className="text-xl font-bold text-white mb-2">Akses Kamera Ditolak</h3>
+                        <p className="text-slate-400 text-sm mb-6 max-w-xs mx-auto leading-relaxed">
+                            Kami membutuhkan izin kamera untuk memindai komposisi produk. Silakan izinkan akses kamera di pengaturan browser/perangkat Anda.
+                        </p>
+                        <button 
+                            onClick={() => window.location.reload()}
+                            className="px-6 py-3 bg-emerald-500 text-white rounded-full font-bold active:scale-95 transition-transform"
+                        >
+                            Muat Ulang Halaman
+                        </button>
+                    </div>
+                )}
+                {cameraErrorState === 'not-found' && (
+                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 text-center bg-slate-900">
+                        <div className="w-16 h-16 bg-amber-500/20 text-amber-500 rounded-full flex items-center justify-center mb-4 text-2xl">
+                            <FaCamera />
+                        </div>
+                        <h3 className="text-xl font-bold text-white mb-2">Kamera Tidak Ditemukan</h3>
+                        <p className="text-slate-400 text-sm mb-6 max-w-xs mx-auto leading-relaxed">
+                            Perangkat ini sepertinya tidak memiliki kamera, atau kamera sedang digunakan oleh aplikasi lain.
+                        </p>
+                        <button 
+                            onClick={() => window.location.reload()}
+                            className="px-6 py-3 bg-emerald-500 text-white rounded-full font-bold active:scale-95 transition-transform"
+                        >
+                            Coba Lagi
+                        </button>
+                    </div>
+                )}
 
                 {/* Focus Ring Animation */}
                 {focusPoint && (
